@@ -1,0 +1,51 @@
+To load a file uncomment the proper line for the data file in burst.py and run in ipython (run it as ipython -pylab):
+
+run -i burst
+
+in the object d there are all the data: ph arrival times, bursts, search parameters.
+
+Photon stream:
+--------------
+ph_times: is an array of ph arrival times for all channels
+detectors: is an array same lenght of ph_times telling the detector number of each ph
+
+ph_times_m: a list of 4 arrays, each one containing the ph times of 2 channels
+red: a list of 4 bool array telling if each ph in ph_times_m is in red channel (or not)
+
+Bursts:
+-------
+L: minimun number of ph in a burst
+m, T: define the minimum rate for burst start/stop (at least m oh in a window T)
+
+NOTE: all the following variables are 4-element list, one for each (merged channel)
+
+mburstm:
+d.mburst: list of 4 arrays containing bursts for the 4 channles, 
+	every array in mburstm is	
+	array Nx4 (row x col), where N is the number of bursts
+	col0:	burst start time
+	col1:	burst width
+	col2:	burst size (number of ph)
+	col3:	index of burst start time in the corresp. array of ph_times_m
+
+Num_green, Num_red
+d.ng,	   d.nr	   : list of 4 arrays containing the #ph in each burst only in the green
+		     or red channel
+d.nt		   : list of 4 arrays containing the total #ph in a burst after 		     background correction (d.nt=d.nr+d.ng)
+
+d.eff		   : list of 4 arrays containing the fret efficiency for each burst
+
+Plots
+-----
+file: burst_plot.py (even if it plots not only bursts)
+
+The plots 2x2 for the 4 channels are done with plot_mburstm, and plot_mburstm_share. The two functions are pretty equivalent but the latter has more options and by default make shared x and y axis among the 4 subplots (changing one axis changes also the others).
+
+These function take the d (Data) object and then the name of a particular plotting function as a second argument. Additional arguments are passed to the plottong function that usually passes them to the plot or hist function.
+
+The standalone plotting functions can be called directly to make a plot for only one of the 4 channels. These functions have a name that begins with hist_ or scatter_ depending on the type of plot. The typycal calling signature is like this:
+
+function_name(i,b,d)
+
+where i is the channel number (starting from 0), b is d.mburst[i], and d is the object with all the data. The second argument is passed only to have a shourtcut variable in inside the function. Additional optional arguments are specific for each function.
+
