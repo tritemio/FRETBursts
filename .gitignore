@@ -12,6 +12,7 @@ BIOS2012/*
 *build*
 *.c
 *.so
+*.pyd
 
 .bzr*
 *.dat
