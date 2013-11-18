@@ -1,4 +1,9 @@
-## SAFETY TESTS
+"""
+This script run some consistency tests to check correcteness of processing.
+
+To run the script you must load in a variable `d` a Data() object containing 
+burst search results.
+"""
 
 # Test coherence between b_end() and b_iend()
 for i in xrange(d.nch):

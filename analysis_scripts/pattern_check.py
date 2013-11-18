@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Test the effect of beam-steering on the spot-pattern quality.
+"""
 
 CH = 0 # 0 for donor, 1 for accept
 sel = ["donor", "accept"]

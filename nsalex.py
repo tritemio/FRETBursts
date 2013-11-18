@@ -1,3 +1,7 @@
+"""
+Process nsALEX data files. Probably needs updates.
+"""
+
 from path_def import *
 from dataload.spcreader import load_spc
 from utils import gui_fname

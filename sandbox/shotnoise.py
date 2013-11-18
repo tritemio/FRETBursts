@@ -1,3 +1,8 @@
+"""
+Compute shot-noise FRET peak broadening.
+"""
+
+
 from scipy.stats.distributions import binom
 from scipy.interpolate import interp1d
 import numexpr as NE

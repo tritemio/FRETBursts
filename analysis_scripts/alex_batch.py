@@ -1,3 +1,8 @@
+"""
+Process a batch of ALEX data files. Obsolete.
+"""
+
+
 # Configuration XM-SPCM
 DONOR_ON = (2580, 330); ACCEPT_ON = (550, 2300); switch_window = 2000; swap_DA = True
     

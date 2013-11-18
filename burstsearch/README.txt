@@ -27,6 +27,12 @@ Just cd inside the folder where the pyx file is and run:
 Setting the PATH variable
 -------------------------
 
+**NOTE:** *Both Anaconda and Enthough Canopy distributions set the PATH 
+automatically. With WinPython you can chose to register WinPython as the 
+system-wide python in the WinPython Control Panel.*
+
+The following instructions are probably not needed anymore.
+
 If the %path variable is not configured by your python distribution (like with 
 WinPython) you can set the %path manually with "set" command.
 
@@ -38,7 +44,7 @@ To obtain this command I just launched "WinPython Command Prompt.exe" typed:
 
 > echo %path%
 
-from the ouput I copied the first part that refers to python.
+from the output I copied the first part that refers to python.
 
 
 

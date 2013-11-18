@@ -1,3 +1,7 @@
+"""
+Simple test for burst search and burst fuse functions.
+"""
+
 import pickle
 ip = get_ipython()
 ip.magic("run -i ../burstsearch.py")

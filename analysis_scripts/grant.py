@@ -1,3 +1,7 @@
+"""
+Some plots for the multi-spot grant.
+"""
+
 def plot_mburstm_8ch_global(D, fun=hist_fret2, pgrid=True, figsize=(12,9), 
         **kwargs):
     fig, AAX = subplots(8,5,figsize=figsize, sharex=True, sharey=True)

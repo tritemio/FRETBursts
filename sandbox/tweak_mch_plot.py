@@ -1,3 +1,7 @@
+"""
+Tweak the style of multi-ch plots.
+"""
+
 # AX,s = dplot(dfs12, hist_fret, figsize=(5, 5.975),
 # bins=r_[-0.2:1.2:0.05]+0.025, pgrid=False, name='')
 ip.magic("run -i style.py")

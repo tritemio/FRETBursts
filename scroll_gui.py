@@ -1,6 +1,11 @@
-# 
-# Implements the modified plot window for scrolling timetraces plots
-#
+"""
+Implements a modified matplotlib plot window for scrolling timetraces
+with a slider.
+
+To be used with timetrace() and timetrace_da() functions in burst_plot.py.
+
+NOTE: Needs cleanups, comments and optimization (see examples in utils/ folder)
+"""
 
 from PySide import QtGui, QtCore
 

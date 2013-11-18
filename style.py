@@ -9,10 +9,10 @@ font2 = {'fontname':'Arial','fontsize':16}
 rcParams["font.family"] = font2['fontname']
 rcParams["font.size"] = fontsize
 
-rcParams['xtick.labelsize']=fontsize
-rcParams['ytick.labelsize']=fontsize
-rcParams['axes.labelsize']=fontsize
-rcParams['legend.fontsize']=fontsize-1
+rcParams['xtick.labelsize'] = fontsize
+rcParams['ytick.labelsize'] = fontsize
+rcParams['axes.labelsize'] = fontsize
+rcParams['legend.fontsize'] = fontsize - 1
 rcParams['lines.linewidth'] = 2
 
 # Define 8 different colors (1 per ch)

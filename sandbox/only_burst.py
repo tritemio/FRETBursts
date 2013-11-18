@@ -1,3 +1,7 @@
+"""
+Script used in older version for part of the analysis. Now obsolete.
+"""
+
 #
 # Script called after burst.py to do the burst search on the loaded data
 #

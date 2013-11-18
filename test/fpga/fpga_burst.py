@@ -1,3 +1,10 @@
+"""
+This version of burst search maps exactly to Labview-FPGA constructs.
+
+Used for logical validation of the FPGA algorithm.
+"""
+
+
 m = 3
 
 prefilling = True   # (bool) Non-default init

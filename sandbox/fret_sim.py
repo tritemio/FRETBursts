@@ -1,3 +1,7 @@
+"""
+Functions to simulate burst sizes.
+"""
+
 from scipy.stats import poisson
 from scipy.misc import factorial
 from scipy.interpolate import interp1d

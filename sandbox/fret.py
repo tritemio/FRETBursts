@@ -1,3 +1,8 @@
+"""
+Simulate FRET distribution using synthetic bursts.
+
+NOTE: only ONE burst size is considered.
+"""
 from scipy.stats import poisson
 from scipy.misc import factorial
 

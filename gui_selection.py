@@ -1,3 +1,10 @@
+"""
+Hack to allow GUI selection of bursts in a 2D ALEX histogram.
+
+See hist2d_alex() in burst_plot.py.
+"""
+
+
 from matplotlib.patches import Rectangle, Ellipse
 
 class GUI_Selection:
@@ -38,8 +45,9 @@ def on_press_point(event):
         ib = find(mask)[0]
         ts = b_start(mburst)[ib]*PSel.d.clk_p
         skew = bleaching1(PSel.d, ich, ib, use_median=True, normalize=True) 
-        pprint("Burst [%d-CH%d]: t = %d us   nt = %5.1f   E = %4.2f   Skew = %.2f\n" %\
-            (ib, ich+1, ts*1e6, PSel.d.nt[ich][ib], PSel.d.E[ich][ib], skew))
+        pprint("Burst [%d-CH%d]: t = %d us   nt = %5.1f   E = %4.2f   "
+               "Skew = %.2f\n" % (ib, ich+1, ts*1e6, 
+                   PSel.d.nt[ich][ib], PSel.d.E[ich][ib], skew))
         
 def _on_press(event):
     if event.inaxes != GSel.ax: return

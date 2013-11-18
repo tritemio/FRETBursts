@@ -1,3 +1,9 @@
+"""
+Functions to fit the FRET peak using different algorithms.
+
+This module provides a standard interface for different fitting techniques.
+"""
+
 import numpy as np
 from scipy.stats import binom, expon
 from scipy.optimize import minimize_scalar, minimize, leastsq

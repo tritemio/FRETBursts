@@ -1,4 +1,10 @@
 """
+Process measurements of leakage on high-concentration samples.
+
+"""
+
+## Measurement filenames:
+"""
 ## Only intensity profile
 Cy3B_ND3_accept_xm_ym_0.dat
 Cy3B_ND4_donor_xm_ym_1.dat

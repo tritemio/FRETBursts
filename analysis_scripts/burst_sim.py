@@ -1,3 +1,11 @@
+"""
+Simulate a BSD and try different fit functions.
+
+NOTE: Old version, the notebooks contain much more comprehensive simulations
+      and fit comparisons.
+"""
+
+
 import scipy.stats as SS
 import bt_fit
 

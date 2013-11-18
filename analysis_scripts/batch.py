@@ -1,3 +1,8 @@
+"""
+Process a batch of 4-spot FRET measurements. Obsolete.
+"""
+
+
 #from subprocess import Popen
 from glob import glob
 
