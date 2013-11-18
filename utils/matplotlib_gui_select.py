@@ -1,3 +1,9 @@
+"""
+Example on how to use Matplotlib events to allow the user to select a region
+of the plot.
+"""
+
+
 from scipy import *
 from matplotlib.patches import Rectangle, Ellipse
 

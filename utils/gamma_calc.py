@@ -1,7 +1,11 @@
-#
-# 1/S = OME + SIG*Epr  (Epr = Fad/(Fad+Fdd))
-#
-#
+"""
+Compute Gamma factor from two samples: high and low FRET.
+
+Requires the S parameter (stochiometry) and uses the formula:
+
+  1/S = OME + SIG*Epr  (Epr = Fad/(Fad+Fdd))
+"""
+
 SL = 0.5
 SH = 0.5
 EL = 0.21
@@ -9,13 +13,17 @@ EH = 0.75
 
 DeltaS = 0.02
 
-def cal_gamma(SL,SH,EL,EH):
+def cal_gamma(SL, SH, EL, EH):
+    """Compute gamma using E and S from two samples: high (H) and low (L) FRET
+    """
     SIG = (1./SH - 1./SL)/(EH-EL)
     OME = 1./SL - SIG*EL
     gamma = (OME-1)/(OME+SIG-1)
     return gamma
 
-def cal_gamma_beta(SL,SH,EL,EH):
+def cal_gamma_beta(SL, SH, EL, EH):
+    """Compute beta using E and S from two samples: high (H) and low (L) FRET
+    """
     SIG = (1/SH - 1/SL)/(EH-EL)
     OME = 1/SL - SIG*EL
     gamma = (OME-1)/(OME+SIG-1)

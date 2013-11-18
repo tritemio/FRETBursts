@@ -1,3 +1,8 @@
+"""
+A Matplotlib timetrace plot figure with the addition of a QT slider to scroll
+the time axis back and forth.
+"""
+
 from PySide import QtGui, QtCore
 import pylab as plt
 import numpy as np
@@ -21,9 +26,15 @@ class ScrollingPlotQT(object):
         self.fig, self.line, self. ydata, self.dx = fig, line, ydata, dx
         self.scroll_step = scroll_step
         self.xmin, self.xmax = 0, dx*ydata.size
-        self.plot_width = 1 # axis units
-        self.scale = 1e3    # conversion betweeen scrolling units and axis units
+        self.plot_width = 1  # axis units
+        self.scale = 1e3     # conversion betweeen scrolling units and axis units
         self.disp_points = self.plot_width/self.dx
+
+        # Save some MPL shortcuts
+        self.draw = self.fig.canvas.draw
+        self.draw_idle = self.fig.canvas.draw_idle
+        self.ax = self.fig.axes[0]
+        self.set_xlim = self.ax.set_xlim
 
         # Retrive the QMainWindow used by current figure and add a toolbar
         # to host the new widgets
@@ -36,10 +47,8 @@ class ScrollingPlotQT(object):
         self.set_spinbox(toolbar)
 
         # Set the initial xlimits coherently with values in slider and spinbox
-        self.draw = self.fig.canvas.draw
-        self.ax = self.fig.axes[0]
-        self.ax.set_xlim(0, self.plot_width)
-        self.ax.set_ylim(ydata.min(),ydata.max())
+        self.set_xlim(0, self.plot_width)
+        self.ax.set_ylim(ydata.min(), ydata.max())
         
         # Setup the initial plot
         self.line.set_data(np.arange(self.disp_points)*dx,
@@ -47,7 +56,7 @@ class ScrollingPlotQT(object):
 
         text0 = self.ax.text(0.01,0.02, "T = ", transform=fig.transFigure)
         self.text = self.ax.text(0.05,0.02, "0", transform=fig.transFigure)
-        self.fig.canvas.draw()
+        self.draw()
 
     def set_slider(self, parent):
         self.slider = QtGui.QSlider(QtCore.Qt.Horizontal, parent=parent)
@@ -72,12 +81,13 @@ class ScrollingPlotQT(object):
 
     def xpos_changed(self, pos):
         #print("Position (in scroll units) %f\n" %pos)
-        pos /= (self.dx*self.scale) # pos converted in index units for ydata
+        pos /= (self.dx*self.scale)  # pos converted in index units for ydata
         self.line.set_ydata(self.ydata[pos:pos+self.disp_points])
         self.text.set_text(pos*self.dx)
         self.draw()
 
     def xwidth_changed(self, xwidth):
+        #pprint("Width (axis units) %f\n" % xwidth)
         if xwidth <= 0: return
         self.plot_width = xwidth
         self.ax.set_xlim(0, self.plot_width)

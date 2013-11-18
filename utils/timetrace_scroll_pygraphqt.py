@@ -1,4 +1,11 @@
-## adapted from http://stackoverflow.com/questions/16824718/python-matplotlib-pyside-fast-timetrace-scrolling
+"""
+A PyGraphQT timetrace plot figure with a slider to scroll the time axis 
+back and forth.
+
+Adapted from:
+http://stackoverflow.com/questions/16824718/python-matplotlib-pyside-fast-timetrace-scrolling
+"""
+
 
 from PySide import QtGui, QtCore
 import numpy as np
