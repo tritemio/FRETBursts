@@ -74,7 +74,9 @@ def load_data_ordered16(fname, n_bytes_to_read=-1, nch=8, swap_D_A=False,
 def unwind_uni(times, det, nch=8, times_nbit=28, debug=True):
     """64bit conversion and merging of corresponding D/A channels."""
     diff = lambda a: a[1:]-a[:-1]
+    ts_max = 2**times_nbit
     num_spad = nch*2
+
     times_ma = [times[det==d].astype('int64') for d in range(1, num_spad+1)]
     for i, t in enumerate(times_ma):
         ## This debug check is a tautology (cumsum of a bool mask >= 0)
@@ -97,32 +99,32 @@ def unwind_uni(times, det, nch=8, times_nbit=28, debug=True):
     return ph_times_m, red, times_ma
 
 
-def unwind_uni_c(times, 
-        det, nch=8, times_nbit=28, debug=True):
+def unwind_uni_c(times, det, nch=8, times_nbit=28, debug=True):
     """64bit conversion and merging of corresponding D/A channels.
     This version is identical to the cython version but uses numpy sort.
     """
+    cumsum, hstack, int16, int64 = np.cumsum, np.hstack, np.int16, np.int64
     diff = lambda a: a[1:]-a[:-1]
     bones = lambda n: np.ones(n, dtype=bool)
     bzeros = lambda n: np.zeros(n, dtype=bool)
 
     num_spad = nch*2
-    expo = (2**times_nbit)
+    ts_max = (2**times_nbit)
     ph_times_m, A_det = [[]]*nch, [[]]*nch
     for ich in xrange(nch):
         det_d, det_a = ich+1, ich+1+nch
         t_d1, t_a1 = times[det == det_d], times[det == det_a]
-        t_d = t_d1.astype(np.int64) + \
-                np.hstack([0,np.cumsum((diff(t_d1)<0),dtype=np.int16)])*expo
-        t_a = t_a1.astype(np.int64) + \
-                np.hstack([0,np.cumsum((diff(t_a1)<0),dtype=np.int16)])*expo
+        t_d = t_d1.astype(int64)
+        t_d += hstack([0, cumsum((diff(t_d1)<0), dtype=int16)])*ts_max
+        t_a = t_a1.astype(int64)
+        t_a += hstack([0, cumsum((diff(t_a1)<0), dtype=int16)])*ts_max
         del t_d1, t_a1
         
-        T = np.hstack([t_d, t_a])
+        T = hstack([t_d, t_a])
         index_sort = T.argsort(kind='mergesort')
         
         ph_times_m[ich] = T[index_sort]
-        A_det[ich] = np.hstack([bzeros(t_d.size), bones(t_a.size)])[index_sort]
+        A_det[ich] = hstack([bzeros(t_d.size), bones(t_a.size)])[index_sort]
         del index_sort, T
     return ph_times_m, A_det
 
@@ -165,4 +167,20 @@ def unwind_uni_o(times, det, nch=8, times_nbit=28, debug=True):
         del index_sort
     return ph_times_m, A_det
 
+
+if __name__ == '__main__':
+    ## Some test
+
+    #fname = gui_fname()
+    #ph_times, det = read_int32_int32_file(fname)
+
+    ph_m, a_em, t_ma = unwind_uni(ph_times, det)    # plain
+    ph_mc, a_emc = unwind_uni_c(ph_times, det)      # 15% faster than plain
+    ph_mo, a_emo = unwind_uni_o(ph_times, det)      # 15% faster than plain
+
+    print [(ph == phc).all() for ph, phc in zip(ph_m, ph_mc)]
+    print [(ae == aec).all() for ae, aec in zip(a_em, a_emc)]
+
+    ## NOTE: write a compare function that takes into account same timestamps
+    ##       in donor and acceptor ch.
 
