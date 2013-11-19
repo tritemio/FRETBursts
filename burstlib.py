@@ -12,6 +12,7 @@ from numpy import array, zeros, size, mean, r_
 import scipy.stats as SS
 from pylab import find, rand, normpdf
 
+from path_def_burst import *
 from utils import git
 from utils.misc import pprint, clk_to_s
 from dataload.multi_ch_reader import *
@@ -36,7 +37,6 @@ try:
 except:
     print " - Fallback to pure python ph_count."
 
-from path_def_burst import *
 from background import *
 from burst_selection import Sel, Sel_mask, select_bursts_E
 

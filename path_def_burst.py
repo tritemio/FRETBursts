@@ -6,13 +6,16 @@ This module defines paths for common folders
 
 import os
 
+
 # This allows different paths between linux and windows OS
 if os.name == 'posix':
     # Linux or Mac
     data_dir = '../data/'
+    GIT_PATH = 'git'  # On *nix assumes that git is in the PATH
 elif os.name == 'nt':
     # Windows
     data_dir = '../../../data/'
+    GIT_PATH = r'C:\Users\temp\AppData\Local\Atlassian\SourceTree\git_local\bin\git.exe'
 else:
     raise OSError ("Operating system not recognized (%s)." % os.name)
 

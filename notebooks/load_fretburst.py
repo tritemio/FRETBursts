@@ -30,10 +30,10 @@ ip.magic('%run -i style')
 from utils.gui import gui_fname
 
 if not git.git_path_valid():
-    print('Software revision unknown (git not found).')
+    print('\nSoftware revision unknown (git not found).')
 else:
     last_commit = git.get_last_commit()
-    print('Current software revision: {}'.format(last_commit))
+    print('\nCurrent software revision: {}'.format(last_commit))
     if not git.check_clean_status():
         print('\nWARNING -> Uncommitted changes:')
         print(git.get_status())

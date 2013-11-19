@@ -5,10 +5,8 @@ Functions to check the version of the software by quering git.
 from subprocess import check_output, call
 import os
 
-if os.name == 'posix':
-    GIT_PATH = 'git'
-elif os.name == 'nt':
-    GIT_PATH = 'git'
+from path_def_burst import GIT_PATH
+
 
 def git_path_valid(git_path=None):
     """
