@@ -1,7 +1,7 @@
 
 from numpy import *
 from poisson_threshold import find_optimal_T
-from utils import pprint
+from utils.misc import pprint
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #  GLOBAL VARIABLES

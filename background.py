@@ -3,7 +3,7 @@ This module contains routines for background rate estimation and correction.
 """
 
 import numpy as np
-from utils import pprint
+from utils.misc import pprint
 from fit.fitting import *
 
 def histo(ph, bin_ms=10., t_max_s=None, clk_p=12.5e-9):

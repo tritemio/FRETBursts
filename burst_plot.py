@@ -29,7 +29,7 @@ from matplotlib.path import Path
 import matplotlib.patches as patches
 from matplotlib.lines import Line2D
 
-from utils import clk_to_s
+from utils.misc import clk_to_s
 from fit.fitting import *
 from path_def import *
 

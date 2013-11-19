@@ -131,7 +131,7 @@ fname = '2012-12-13/27d ND04_0.dat'
 #fname = glob(fname+'*')[0]
 
 ## Example using GUI to select a file
-from utils import gui_fname
+from utils.gui import gui_fname
 fname = gui_fname(data_dir)
 
 if len(sys.argv) > 1: fname = sys.argv[1]

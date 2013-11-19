@@ -13,7 +13,7 @@ import scipy.stats as SS
 from pylab import find, rand, normpdf
 
 from dataload.multi_ch_reader import *
-from utils import pprint, clk_to_s
+from utils.misc import pprint, clk_to_s
 from poisson_threshold import find_optimal_T_bga
 import bt_fit
 import fret_fit

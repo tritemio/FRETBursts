@@ -4,7 +4,7 @@ Process nsALEX data files. Probably needs updates.
 
 from path_def import *
 from dataload.spcreader import load_spc
-from utils import gui_fname
+from utils.gui import gui_fname
 
 try: ip = get_ipython()
 except: ip = _ip

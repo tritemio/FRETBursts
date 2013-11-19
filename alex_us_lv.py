@@ -288,7 +288,7 @@ if __name__ == '__main__':
     #fname = glob(fname+'*')[0].replace(os.path.sep, '/')
 
     ## Uncomment these lines to select a file using a GUI
-    from utils import gui_fname
+    from utils.gui import gui_fname
     fname = gui_fname(alex_data_dir)
     # Configuration XM-SPCM
     DONOR_ON = (2850, 580); ACCEPT_ON = (930, 2580); 

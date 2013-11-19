@@ -7,7 +7,7 @@ To run the burst search see burst.py
 import os
 import numpy as np
 
-from utils import pprint
+from utils.misc import pprint
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #  DATA LOADING 

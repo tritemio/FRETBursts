@@ -6,9 +6,7 @@ log/*
 data/
 cache/*
 bak/*
-BIOS2012/*
 
-*figure*
 *build*
 *.c
 *.so

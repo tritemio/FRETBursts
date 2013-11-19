@@ -7,14 +7,10 @@ This module provides a standard interface for different fitting techniques.
 import numpy as np
 from scipy.stats import binom, expon
 from scipy.optimize import minimize_scalar, minimize, leastsq
-import sys
+from utils.misc import pprint
 
 import fit.gaussian_fitting as gf
 
-def pprint(s):
-    """Print immediately, even if inside a busy loop."""
-    sys.stdout.write(s)
-    sys.stdout.flush()
 
 def sim_nd_na(E,N=1000, size_mean=100):
     """Simulate an exponential-size burst distribution with binomial (nd,na)

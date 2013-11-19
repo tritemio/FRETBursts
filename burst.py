@@ -112,7 +112,7 @@ fname = data_dir+fname
 #fname = glob(data_dir+'2011-05-27/*_0.dat')[0]; BT = 0.11
 
 ## Example using GUI to select a file
-#from utils import gui_fname
+#from utils.gui import gui_fname
 #fname = gui_fname(data_dir)
 
 if len(sys.argv) > 1: fname = sys.argv[1]
