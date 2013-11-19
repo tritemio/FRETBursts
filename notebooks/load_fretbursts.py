@@ -4,14 +4,14 @@ Helper script to load the FretBurst software.
 This should be run from inside a notebook.
 """
 
-#%%writefile load_fretburst.py
+#%%writefile load_fretbursts.py
 
 from subprocess import check_output
 import os
 if os.name == 'posix':
-    BURST_DIR = r"/home/anto/Documents/ucla/src/burst/sources/smfretbursts"
+    BURST_DIR = r"/home/anto/Documents/ucla/src/burst/sources/fretbursts"
 elif os.name == 'nt':
-    BURST_DIR = r"C:\Data\Antonio\software\src\fretburst"
+    BURST_DIR = r"C:\Data\Antonio\software\src\fretbursts"
 
 ip = get_ipython()
 if not 'NOTEBOOK_DIR' in globals():
