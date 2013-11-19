@@ -31,7 +31,7 @@ from matplotlib.lines import Line2D
 
 from utils.misc import clk_to_s
 from fit.fitting import *
-from path_def import *
+from path_def_burst import *
 
 #_ip.magic("run -i style.py")
 params = {

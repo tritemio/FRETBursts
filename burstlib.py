@@ -12,8 +12,9 @@ from numpy import array, zeros, size, mean, r_
 import scipy.stats as SS
 from pylab import find, rand, normpdf
 
-from dataload.multi_ch_reader import *
+from utils import git
 from utils.misc import pprint, clk_to_s
+from dataload.multi_ch_reader import *
 from poisson_threshold import find_optimal_T_bga
 import bt_fit
 import fret_fit
