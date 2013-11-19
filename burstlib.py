@@ -615,7 +615,7 @@ class Data(DataContainer):
     
     def recompute_bg_lim_ph_p(self, ph_sel='D', PH=None):
         """Recompute self.Lim and selp.Ph_p relative to ph selection `ph_sel`
-        `ph_sel` can be 'D','A', or 'DA' and selects the timestamps array
+        `ph_sel` can be 'D','A', or 'DA'. It selects the timestamps array
         (donor, acceptor or both) on which self.Lim and selp.Ph_p are computed.
         """
         assert ph_sel in ['DA', 'D', 'A']
@@ -649,7 +649,7 @@ class Data(DataContainer):
     #
     def _calc_burst_period(self):
         """Compute for each burst the "period" `bp`.
-        Periods are chuncks of times on which the BG is computed.
+        Periods are times intervals on which the BG is computed.
         """
         P = []
         for b, lim in zip(self.mburst, self.Lim):
@@ -657,7 +657,7 @@ class Data(DataContainer):
             if b.size > 0:
                 bis = b_istart(b)
                 for i, (l0, l1) in enumerate(lim):
-                    p[(bis >= l0)*(bis <=l1)] = i
+                    p[(bis >= l0)*(bis <= l1)] = i
             P.append(p)
         self.add(bp=P)
     
@@ -711,7 +711,12 @@ class Data(DataContainer):
             else: 
                 MBurst.append(array([]))
         self.add(mburst=MBurst)
-        if ph_sel != 'DA': self._fix_mburst_from(ph_sel=ph_sel)
+        if ph_sel != 'DA':
+            # Convert the burst data to be relative to ph_times_m.
+            # Convert both Lim/Ph_p and mburst, as they are both needed 
+            # to compute  .bp.
+            self.recompute_bg_lim_ph_p(ph_sel='DA', PH=self.ph_times_m)
+            self._fix_mburst_from(ph_sel=ph_sel)
     
     def _fix_mburst_from(self, ph_sel):
         """Convert burst data from 'D' or 'A' timestamps to 'DA' timestamps
