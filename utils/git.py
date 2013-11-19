@@ -43,12 +43,19 @@ def check_clean_status(git_path=None):
     is_unmodified = (len(output.strip()) == 0)
     return is_unmodified
 
+def get_last_commit_line(git_path=None):
+    """
+    Get one-line description of last commit for repository in current dir.
+    """
+    if git_path is None: git_path = GIT_PATH
+    output = check_output([git_path, "log", "--oneline", "-n1"])
+    return output.strip()
+
 def get_last_commit(git_path=None):
     """
     Get the last commit SHA1 of repository in current dir.
     """
     if git_path is None: git_path = GIT_PATH
-    output = check_output([git_path, "log", "--oneline", "-n1"])
-    revision_id = output.strip().split()[0]
+    line = get_last_commit_line(git_path)
+    revision_id = line.split()[0]
     return revision_id
-
