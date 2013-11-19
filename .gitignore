@@ -7,6 +7,8 @@ data/
 cache/*
 bak/*
 
+notebooks/.ipynb_checkpoints/
+
 *build*
 *.c
 *.so
