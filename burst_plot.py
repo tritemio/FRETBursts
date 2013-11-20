@@ -10,6 +10,7 @@ from matplotlib.pyplot import *
 from matplotlib.mlab import normpdf
 
 import bt_fit
+from utils.misc import binning
 from scroll_gui import ScrollingToolQT
 try: 
     ip = get_ipython()
@@ -795,9 +796,9 @@ def plot_mburstm_8ch(d, fun=scatter_width_size, sharex=True,sharey=True,
     if sharey:
         setp([a.get_yticklabels() for a in AX[:,1]], visible=False)
         fig.subplots_adjust(wspace=0.08)
-        if scale: ax.autoscale(enable=True,axis='y')
-    s=None
-    if scroll: s=ScrollingToolQT(fig)
+        if scale: ax.autoscale(enable=True, axis='y')
+    s = None
+    if scroll: s = ScrollingToolQT(fig)
     #s = RangeToolQT(fig)
     return AX,s
 

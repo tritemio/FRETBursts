@@ -93,19 +93,6 @@ def Prob_to_be_bg(d, **kwargs):
 # MISC FUCNTIONS
 #
 
-def binning(times, bin_width_ms=1, max_num_bins=1e5, clk_p=12.5e-9):
-    """Return the binned histogram of array times."""
-    bin_width_clk = (bin_width_ms*1e-3)/clk_p
-    num_bins = min(times.max()/bin_width_clk,max_num_bins)
-    h = histogram(times[times<(num_bins*bin_width_clk)], bins=num_bins) 
-    return h
-
-def mbinning(times,det, bin_width_ms=1, max_num_bins=1e5, clk_p=12.5*1e9):
-    """Return the binned arrival times for all channels."""
-    num_det = det.max()
-    H = [binning(times[det==d], bin_width_ms, max_num_bins, clk_p)
-            for d in range(1,num_det+1)]
-    return H
 
 # Maybe will delete these since they are of little use:
 def burst_start(d, ich=0):
