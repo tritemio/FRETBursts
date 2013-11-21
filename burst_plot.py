@@ -343,7 +343,7 @@ def timetrace_b_rate(i, b, d):
     xlabel("Time (s)"); ylabel("Burst per second"); ylim(ymin=0); grid(True)
 
 def hist_bg_fit_single(i,b,d, bp=0, bg='bg_dd', bin_width_us=10, yscale='log', 
-        F=0.1, **kwargs):
+        F=0.15, **kwargs):
     """Histog. of ph-delays compared with BG fitting in burst period 'bp'."""
     l1, l2 = d.Lim[i][bp][0], d.Lim[i][bp][1]
     ph = d.ph_times_m[i][l1:l2+1]*d.clk_p
@@ -352,23 +352,30 @@ def hist_bg_fit_single(i,b,d, bp=0, bg='bg_dd', bin_width_us=10, yscale='log',
     if bg=='bg': dph = np.diff(ph)
     if bg=='bg_dd': dph = np.diff(ph[d_em])
     if bg=='bg_ad': dph = np.diff(ph[a_em])
-    kwargs.update(bins=r_[0:2000:bin_width_us], histtype='step')
-    H = hist(dph*1e6, color='k', **kwargs)
+    hist_kwargs = dict(bins=r_[0:2000:bin_width_us], histtype='step', 
+                       color='k', lw=1)
+    hist_kwargs.update(**kwargs)
+    H = hist(dph*1e6, color='k', **hist_kwargs)
     gca().set_yscale('log')
-    xlabel(u'Ph delay time (μs)'); ylabel("# Ph")
+    xlabel(u'Ph delay time (μs)')
+    ylabel("# Ph")
 
     efun = lambda t, r: np.exp(-r*t)*r
     r = d[bg][i][bp]
     t = r_[0:2000]*1e-6
-    nF = 1 if 'normed' in kwargs else H[0].sum()*(bin_width_us)
+    nF = 1 if 'normed' in hist_kwargs else H[0].sum()*(bin_width_us)
     
-    bins = kwargs['bins']; ibin = bins.size*F; t_min = bins[ibin]*1e-6
+    bins = hist_kwargs['bins']
+    ibin = bins.size*F
+    t_min = bins[ibin]*1e-6
     C = H[0][ibin]/efun(t_min, r)
-    plot(t*1e6,C*efun(t,r), lw=3, alpha=0.5, color='k', 
+    plot(t*1e6, C*efun(t, r), lw=3, alpha=0.5, color='r', 
         label="%s:  %d cps" % (bg, r))
     ym = 0.5
-    if 'normed' in kwargs and kwargs['normed']: ym = 0.1/ph.size
-    legend(loc='best', fancybox=True); xlim(0,1500); ylim(ymin=ym)
+    if 'normed' in hist_kwargs and hist_kwargs['normed']: ym = 0.1/ph.size
+    legend(loc='best', fancybox=True)
+    xlim(0,1500)
+    ylim(ymin=ym)
 
 def hist_bg_fit(i,b,d, bp=0, bin_width_us=10, yscale='log', F=0.1, **kwargs):
     """Histog. of ph-delays compared with BG fitting in burst period 'bp'."""
