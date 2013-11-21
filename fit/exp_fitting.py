@@ -6,15 +6,23 @@ from scipy.special import erf
 from scipy.optimize import leastsq
 
 
-def expon_fit(s, tail_min=0):
-    if tail_min > 0: s = s[s>=tail_min]
-    Tau = s.mean() - tail_min
-    return Tau
+def expon_fit(s, s_min=0):
+    """Eponential fit of samples s using MLE.
+    All samples < s_min are discarded (s_min must be >= 0).
+    Returns the lambda parameter (1/life-time) of the exponential.
+    """
+    if s_min > 0: s = s[s >= s_min]
+    assert s.size > 0    
+    Tau = s.mean() - s_min
+    return 1./Tau
 
-def expon_fit_cdf(s, lambda0=None, tail_min=0):
-    """Eponential fit of samples s using a curve fit to the empirical CDF."""
-    if lambda0 is None: lambda0 = 1/N.mean(s)
-    if tail_min > 0: s = s[s>=tail_min]
+def expon_fit_cdf(s, s_min=0):
+    """Eponential fit of samples s using a curve fit to the empirical CDF.
+    All samples < s_min are discarded (s_min must be >= 0).
+    Returns the lambda parameter (1/life-time) of the exponential.
+    """
+    if s_min > 0: s = s[s >= s_min]
+    assert s.size > 0    
     ## Empirical CDF
     ecdf = [N.sort(s), N.arange(0.5,s.size+0.5)*1./s.size]
     decr_line = N.log(1-ecdf[1])

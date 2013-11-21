@@ -29,24 +29,23 @@ def bg_calc_gauss(ph, bin_ms=10, clk_p=12.5e-9):
     mu2, sig2 = gaussian_fit_hist(tt2, mu0=mu, sigma0=sig)
     return mu2/(bin_ms*1e-3)#, sig2/(bin_ms*1e-3)
 
-def bg_calc_exp(ph, tail_min_p=0.1, tail_min_us=None, clk_p=12.5e-9):
-    """Return BG rate for ph computed as mean of delays (above a min value)
+def bg_calc_exp(ph, fit_fun=expon_fit, tail_min_p=0.1, tail_min_us=None, 
+                     clk_p=12.5e-9):
+    """Return BG rate for ph computed as mean of delays (above a min value).
     """
     dph = np.diff(ph)
-    if tail_min_us is None: tail_min = dph.max()*tail_min_p
-    else: tail_min = tail_min_us*1e-6/clk_p
-    #print "Min delay %.3f ms. " % (tail_min*clk_p*1e3)
-    Tau = expon_fit(dph, tail_min=tail_min)*clk_p
-    return 1/Tau
+    if tail_min_us is None: 
+        tail_min = dph.max()*tail_min_p
+    else:
+        tail_min = tail_min_us*1e-6/clk_p
+    Lambda = fit_fun(dph, s_min=tail_min)/clk_p
+    return Lambda
 
 def bg_calc_exp_cdf(ph, tail_min_p=0.1, tail_min_us=None, clk_p=12.5e-9):
-    """Return BG rate for ph computed fiting the exponential CDF of delays
+    """Return BG rate for ph computed fitting the exponential CDF of delays
     """
-    dph = np.diff(ph)
-    if tail_min_us is None: tail_min = dph.max()*tail_min_p
-    else: tail_min = tail_min_us*1e-6/clk_p
-    Lambda = expon_fit_cdf(dph, tail_min=tail_min)/clk_p
-    return Lambda
+    return bg_calc_exp(ph, fit_fun=expon_fit_cdf, tail_min_p=tail_min_p,
+                       tail_min_us=tail_min_us, clk_p=clk_p)
 
 def bg_calc_raw_tail(ph, clk_p=12.5e-9, tail_min_p=0):
     """Try to compute RAW rates discarding a tail of dealys (WRONG)
