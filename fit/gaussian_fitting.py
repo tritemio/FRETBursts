@@ -229,14 +229,15 @@ def two_gaussian_fit_EM(s, p0=[0,0.1,0.6,0.1,0.5], max_iter=300, ptol=1e-4,
     return reorder_parameters(p_new)
 
 def two_gaussian_fit_hist(s, bins=r_[-0.5:1.5:0.001], weights=None, 
-        p0=[0.2,1,0.8,1,0.3], fix_mu=[0,0], fix_sig=[0,0]):
+        p0=[0.2,1,0.8,1,0.3], fix_mu=[0,0], fix_sig=[0,0], fix_a=False):
     """Fit the sample s with 2-gaussian mixture (histogram fit).
     `p0` is the initial guess
     `bins` specifies the bins (passed to `histogram()`
     `weights` optional weights for the histogram.
     """
     assert size(p0) == 5
-    fix = array([fix_mu[0], fix_sig[0], fix_mu[1], fix_sig[1], 0], dtype=bool)
+    fix = array([fix_mu[0], fix_sig[0], fix_mu[1], fix_sig[1], fix_a], 
+                dtype=bool)
     p0 = array(p0)
     p0_free = p0[-fix]
     p0_fix = p0[fix]
