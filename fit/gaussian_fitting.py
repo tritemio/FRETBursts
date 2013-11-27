@@ -23,7 +23,7 @@ import scipy.optimize as O
 import scipy.stats as S
 
 from scipy.special import erf
-from scipy.optimize import leastsq
+from scipy.optimize import leastsq, minimize
 from scipy.ndimage.filters import gaussian_filter1d
 
 ##
@@ -231,9 +231,14 @@ def two_gaussian_fit_EM(s, p0=[0,0.1,0.6,0.1,0.5], max_iter=300, ptol=1e-4,
 def two_gaussian_fit_hist(s, bins=r_[-0.5:1.5:0.001], weights=None, 
         p0=[0.2,1,0.8,1,0.3], fix_mu=[0,0], fix_sig=[0,0], fix_a=False):
     """Fit the sample s with 2-gaussian mixture (histogram fit).
-    `p0` is the initial guess
-    `bins` specifies the bins (passed to `histogram()`
-    `weights` optional weights for the histogram.
+    Uses scipy.optimize.leastsq function. Parameters can be fixed but
+    cannot be constrained in an interval.
+    `p0`: initial guess or parameters
+    `bins`: bins passed to `histogram()`
+    `weights` optional weights for `histogram()`
+    `fix_a`: if True fixes `a` to p0[4]
+    `fix_mu`: tuple of bools. Whether to fix the means of the gaussians
+    `fix_sig`: tuple of bools. Whether to fix the sigmas of the gaussians
     """
     assert size(p0) == 5
     fix = array([fix_mu[0], fix_sig[0], fix_mu[1], fix_sig[1], fix_a], 
@@ -256,6 +261,48 @@ def two_gaussian_fit_hist(s, bins=r_[-0.5:1.5:0.001], weights=None,
     p, v = leastsq(err_func, x0=p0_free, args=(x,y,fix,p0_fix,p_complete))
     p_new = zeros(5)
     p_new[-fix] = p
+    p_new[fix] = p0_fix
+    return reorder_parameters(p_new)
+    
+def two_gaussian_fit_hist_min(s, bounds=None, method='L-BFGS-B', 
+        bins=r_[-0.5:1.5:0.001], weights=None,  p0=[0.2,1,0.8,1,0.3], 
+        fix_mu=[0,0], fix_sig=[0,0], fix_a=False, verbose=False):
+    """Fit the sample `s` with 2-gaussian mixture (histogram fit). [Bounded]
+    Uses scipy.optimize.minimize allowing constrained minimization.
+    `method`: one of the methods accepted by minimize()
+    `bounds`: 5-element list of (min,max) values to constrain each of the 5
+            parameters (can be used only with L-BFGS-B, TNC or SLSQP methods)
+            If bounds are used, parameters cannot be fixed
+    `p0`: initial guess or parameters
+    `bins`: bins passed to `histogram()`
+    `weights` optional weights for `histogram()`
+    `fix_a`: if True fixes `a` to p0[4]
+    `fix_mu`: tuple of bools. Whether to fix the means of the gaussians
+    `fix_sig`: tuple of bools. Whether to fix the sigmas of the gaussians
+    """
+    assert size(p0) == 5
+    fix = array([fix_mu[0], fix_sig[0], fix_mu[1], fix_sig[1], fix_a], 
+                dtype=bool)
+    p0 = array(p0)
+    p0_free = p0[-fix]
+    p0_fix = p0[fix]
+
+    H = histogram(s, bins=bins, weights=weights, density=True)
+    x, y = 0.5*(H[1][:-1] + H[1][1:]), H[0]
+    assert x.size == y.size
+    
+    ## Fitting
+    def err_func(p, x, y, fix, p_fix, p_complete): 
+        p_complete[-fix] = p
+        p_complete[fix] = p_fix
+        return ((y - two_gauss_mix_pdf(x, p_complete))**2).sum()
+    
+    p_complete = zeros(5)
+    res = minimize(err_func, x0=p0_free, args=(x,y,fix,p0_fix,p_complete),
+                    method=method, bounds=bounds)
+    if verbose: print(res)
+    p_new = zeros(5)
+    p_new[-fix] = res.x
     p_new[fix] = p0_fix
     return reorder_parameters(p_new)
 
