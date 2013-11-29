@@ -1,40 +1,55 @@
 # encoding: utf-8
 """
 This module defines all the plotting functions.
+
+The main function for multi-ch plot is `dplot()` that takes a `Data` object 
+and a 1-ch plot-function as paramenters and creates a subplot for each channel.
+
+The 1-ch plot functions are usually called through `dplot` but can also be
+called directly to make a single ch plots.
+
+The 1-ch plot functions names all start with the plot type (`timetrace`,
+`ratetrace`, `hist` or `scatter`).
+
+Example 1 - Plot the timetrace for all ch:
+
+    dplot(d, timetrace_da, scroll=True)
+
+Example 2 - Plot the FRET histogramm for all ch and overlay the peak fit:
+
+    dplot(d, hist_fret, show_fit=True)
+
 """
 
-
+# Numeric imports
 import numpy as np
 from numpy import arange, r_
-from matplotlib.pyplot import *
 from matplotlib.mlab import normpdf
-
-import bt_fit
-from utils.misc import binning
-from scroll_gui import ScrollingToolQT
-try: 
-    ip = get_ipython()
-except:
-    ip = _ip
-#ip.magic("run -i scroll_gui.py")
-ip.magic("run -i gui_selection.py")
-#ip.magic("run -i fit/fitting")
-#ip.magic("run -i style.py")
-
 from scipy.signal import gaussian
 from scipy.stats import erlang
 from scipy.optimize import leastsq
+
+# Graphics imports
+from matplotlib.pyplot import *
 from matplotlib.patches import Rectangle
 from matplotlib.collections import PathCollection, PatchCollection
 from matplotlib.path import Path
 import matplotlib.patches as patches
 from matplotlib.lines import Line2D
 
-from utils.misc import clk_to_s
+# Local imports
+import bt_fit
+from utils.misc import binning, clk_to_s
+from scroll_gui import ScrollingToolQT
 from fit.fitting import *
+from gui_selection import *
 from path_def_burst import *
+#ip = get_ipython()
+#ip.magic("run -i scroll_gui.py")
+#ip.magic("run -i gui_selection.py")
+#ip.magic("run -i fit/fitting")
+#ip.magic("run -i style.py")
 
-#_ip.magic("run -i style.py")
 params = {
         'font.size': 12,
         'legend.fontsize': 11,
@@ -42,16 +57,11 @@ params = {
 try: rcParams.update(params)
 except: pass
 
-bsavefig = lambda d,s: savefig(fig_dir+d.Name()+s)
 
-def multi_plot(d, save=False, subdir='tmp'):
-    for plot_type in ['hist_fret', 'scatter_width_size', 'scatter_da', 
-            'hist_size', 'hist_bleaching']:
-        plot_mburstm_share(d, fun=eval(plot_type))
-        if save:
-            savefig(fig_dir+subdir+'/'+d.fname.replace('/','_')[:-4]+\
-                    ' '+plot_type+'_L'+str(d.L)+'.png',
-                    dpi=200)
+def bsavefig(d, s): 
+    """Save current figure with name in `d`, appending the string `s`."""
+    savefig(fig_dir+d.Name()+s)
+
 def mch_plot_bg(d, **kwargs):
     plot(r_[1:d.nch+1],[b.mean() for b in d.bg], lw=2, color='b',
             label=' T', **kwargs)
