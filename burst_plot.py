@@ -656,19 +656,21 @@ def hist_size(i,b,d, vmax=1000, bins=r_[:1e3:2]-1, which='all', yscale='log',
     gca().set_yscale(yscale)
     xlabel('# Ph.'); ylabel('# Bursts'); legend(loc='best')
 
-def hist_fret(i,b,d, bins=None, binw=0.05, show_fit=False, 
+def hist_fret(i,b,d, bins=None, binw=0.02, show_fit=False, 
         no_text=False, normed=False, weights=None, gamma=1., **kwargs):
     """Plot the FRET histogram and optionally the fitted peak
     """
     if bins is None: bins = r_[-0.2:1.2:binw]
-    plot_style = dict(color='#4f8ae3', alpha=1, histtype='bar', 
-            edgecolor='white', lw=1.2)
+    #plot_style = dict(color='#4f8ae3', alpha=1, histtype='bar', 
+    #        edgecolor='white', lw=1.2)
+    plot_style = dict(bins=bins, normed=normed, histtype='stepfilled', 
+                      fc='#80b3ff', ec='#5f8dd3', lw=1.5, alpha=1)    
     plot_style.update(**kwargs)  # kwargs overwrite plot_style
     if weights is not None:
         w = fret_fit.get_weights(d.nd[i], d.na[i], weights, gamma=gamma)
         w *= w.size/w.sum()
         plot_style.update(weights=w)
-    H = hist(1.*d.E[i], bins=bins, normed=normed, **plot_style)
+    H = hist(1.*d.E[i], **plot_style)
     xlabel('FRET Efficiency'); ylabel('# Bursts')
     if normed: ylabel('PDF')
     ylim(ymin=0); xlim(-0.2,1.2) 
