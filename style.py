@@ -6,7 +6,8 @@ fontsize = fs = 12
 font1 = {'fontname':'Liberation Sans','fontsize':16}
 font2 = {'fontname':'Arial','fontsize':16}
 
-rcParams["font.family"] = font2['fontname']
+#rcParams["font.family"] = font2['fontname']
+rcParams["font.sans-serif"] = ['Arial', 'Liberation Sans']
 rcParams["font.size"] = fontsize
 
 rcParams['xtick.labelsize'] = fontsize
