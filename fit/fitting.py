@@ -4,6 +4,7 @@ from gaussian_fitting import (
         gaussian_fit_pdf, 
         gaussian_fit_cdf, 
         two_gaussian_fit_EM, 
+        two_gaussian_fit_EM_b, 
         two_gaussian_fit_cdf, 
         two_gaussian_fit_hist,
         two_gaussian_fit_hist_min,

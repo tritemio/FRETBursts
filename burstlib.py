@@ -1099,23 +1099,23 @@ class Data(DataContainer):
         self.fit_E_calc_variance()
         return self.E_fit
     
-    def fit_E_two_gauss_EM(self, weights='size', gamma=1., **kwargs):
+    def fit_E_two_gauss_EM(self, fit_func=two_gaussian_fit_EM, 
+                           weights='size', gamma=1., **kwargs):
         """Fit the E population to a Gaussian mixture model using EM method.
-        Additional arguments in `kwargs` are passed to `two_gaussian_fit_EM()`
+        Additional arguments in `kwargs` are passed to the fit_func().
         """
         fit_res = zeros((self.nch, 5))
         for ich, (nd, na, E) in enumerate(zip(self.nd, self.na, self.E)):
-            fit_res[ich, :] = two_gaussian_fit_EM(
-                    E, w=fret_fit.get_weights(nd, na, weights, gamma), **kwargs)
-        self.add(fit_E_res=fit_res, fit_E_name='two_gauss_EM', 
+            w = fret_fit.get_weights(nd, na, weights, gamma)
+            fit_res[ich, :] = fit_func(E, w=w, **kwargs)
+        self.add(fit_E_res=fit_res, fit_E_name=fit_func.__name__, 
                 E_fit=fit_res[:,2], fit_E_curve=True,
                 fit_E_model=two_gauss_mix_pdf, 
                 fit_E_model_F=np.repeat(1, self.nch))
-        self.fit_E_calc_variance()
         return self.E_fit
     
     def fit_E_generic(self, E1=-1, E2=2, fit_fun=two_gaussian_fit_hist, 
-            weights=None, gamma=1., variance=False, **fit_kwargs):
+            weights=None, gamma=1., **fit_kwargs):
         """Fit E in each channel with `fit_fun` using burst in [E1,E2] range.
         All the fitting functions are defined in `fit.gaussian_fitting`.
         
@@ -1149,12 +1149,11 @@ class Data(DataContainer):
         fit_res, fit_model_F = zeros((self.nch, nparam)), zeros(self.nch)
         for ich, (nd, na, E, mask) in enumerate(
                                         zip(self.nd, self.na, self.E, Mask)):
-            if fit_fun.__name__.endswith('_hist'):
+            if '_hist' in fit_fun.__name__ or '_EM' in fit_fun.__name__:
                 if weights is None:
                     w = None
                 else:
-                    w = fret_fit.get_weights(nd[mask], na[mask], 
-                                             weights, gamma)
+                    w = fret_fit.get_weights(nd[mask], na[mask], weights, gamma)
                 fit_res[ich, :] = fit_fun(E[mask], weights=w, **fit_kwargs)
             else:
                 # Non-histogram fits (PDF/CDF) do not support weights
@@ -1165,7 +1164,6 @@ class Data(DataContainer):
         self.add(fit_E_res=fit_res, fit_E_name=fit_fun.__name__, 
                 E_fit=fit_res[:,iE], fit_E_curve=True, fit_E_E1=E1,fit_E_E2=E2,
                 fit_E_model=fit_model, fit_E_model_F=fit_model_F)
-        if variance: self.fit_E_calc_variance()
         return self.E_fit
 
     def fit_from(self, D):

@@ -168,22 +168,100 @@ def reorder_parameters(p):
         p[4] = 1 - p[4]                   # "swap" the alpha of the mixture
     return p
 
-def two_gaussian_fit_EM(s, p0=[0, 0.1, 0.6, 0.1, 0.5], max_iter=300, ptol=1e-4,
-        fix_mu=[0, 0], fix_sig=[0, 0], debug=False, w=None):
+def bound_check(val, bounds):
+    if bounds[0] is not None and val < bounds[0]:
+        val = bounds[0]
+    if bounds[1] is not None and val > bounds[1]:
+        val = bounds[1]
+    return val
+
+def two_gaussian_fit_EM_b(s, p0=[0, 0.1, 0.6, 0.1, 0.5], weights=None,
+                          bounds=[(None, None,)]*5, 
+                          max_iter=300, ptol=1e-4, debug=False):
     """
     Fit the sample s with two gaussians using Expectation Maximization.
+    This version allows setting boundaries for each parameter.
+    `p0`: initial parameters [mu0, sig0, mu1, sig1, a]
+    `bounds`: sequence of (min, max) values that limits the parameters. If min
+              or max are None, there is no boundary.
+    `ptol`: convergence condition. Relative max variation of any parameter.
+    `max_iter`: max number of iteration in case of non convergence.
+    `weights`: optional weigths, same size as `s` (for ex. 1/sigma^2 ~ nt).
+    """
+    assert np.size(p0) == 5
+    if weights is None: weights = np.ones(s.size)
+    assert weights.size == s.size
+    weights *= (1.*weights.size)/weights.sum() # Normalize to (#samples)
+    #weights /= weights.sum()  # Normalize to 1
+    if debug: assert np.abs(weights.sum() - s.size) < 1e-6
+    bounds_mu = [bounds[0], bounds[2]]
+    bounds_sig = [bounds[1], bounds[3]]
+    bounds_pi0 = bounds[4]
+
+    # Initial guess of parameters and initializations
+    mu = np.array([p0[0], p0[2]])
+    sig = np.array([p0[1], p0[3]])
+    pi_ = np.array([p0[4], 1-p0[4]])
+
+    gamma = np.zeros((2, s.size))
+    N_ = np.zeros(2)
+    p_new = np.array(p0)
+
+    # EM loop
+    counter = 0
+    stop_iter, converged = False, False
+    while not stop_iter:
+        # Compute the responsibility func. (gamma) and the new parameters
+        for k in [0, 1]:
+            gamma[k, :] = weights*pi_[k]*normpdf(s, mu[k], sig[k]) / \
+                            two_gauss_mix_pdf(s, p_new)
+            N_[k] = gamma[k, :].sum()
+            mu[k] = np.sum(gamma[k]*s)/N_[k]
+            mu[k] = bound_check(mu[k], bounds_mu[k])
+            sig[k] = np.sqrt( np.sum(gamma[k]*(s-mu[k])**2)/N_[k] )
+            sig[k] = bound_check(sig[k], bounds_sig[k])
+            if k < 1:
+                pi_[k] = N_[k]/s.size
+                pi_[k] = bound_check(pi_[k], bounds_pi0)
+            else:
+                pi_[k] = 1 - pi_[0]
+        p_old = p_new
+        p_new = np.array([mu[0], sig[0], mu[1], sig[1], pi_[0]])
+        if debug:
+            assert np.abs(N_.sum() - s.size)/float(s.size) < 1e-6 
+            assert np.abs(pi_.sum() - 1) < 1e-6
+        
+        # Convergence check
+        counter += 1
+        relative_delta = np.abs(p_new - p_old)/p_new
+        converged = relative_delta.max() < ptol
+        stop_iter = converged or (counter >= max_iter)
+    
+    if debug:
+        print "Iterations: ", counter
+    if not converged:
+        print "WARNING: Not converged, max iteration (%d) reached." % max_iter
+    return reorder_parameters(p_new)
+
+def two_gaussian_fit_EM(s, p0=[0, 0.1, 0.6, 0.1, 0.5], max_iter=300, ptol=1e-4,
+                        fix_mu=[0, 0], fix_sig=[0, 0], debug=False, 
+                        weights=None):
+    """
+    Fit the sample s with two gaussians using Expectation Maximization.
+    This vesion allows fixing mean or std. dev. of each component.
+    `p0`: initial parameters [mu0, sig0, mu1, sig1, a]
     `ptol`: convergence condition. Relative max variation of any parameter.
     `max_iter`: max number of iteration in case of non convergence.
     `fix_mu`: allow to fix the mean (mu) of a component (1 or True to fix)
     `fix_sig`: allow to fix the std. dev of a component (1 or True to fix)
-    `w`: optional weigths, same size as `s` (for ex. 1/sigma^2 ~ nt).
+    `weights`: optional weigths, same size as `s` (for ex. 1/sigma^2 ~ nt).
     """
     assert np.size(p0) == 5
-    if w is None: w = np.ones(s.size)
-    assert w.size == s.size
-    w *= (1.*w.size)/w.sum() # Normalize to (#samples), not to 1
-    #w /= w.sum() # Normalize to 1
-    if debug: assert np.abs(w.sum() - s.size) < 1e-6
+    if weights is None: weights = np.ones(s.size)
+    assert weights.size == s.size
+    weights *= (1.*weights.size)/weights.sum() # Normalize to (#samples)
+    #weights /= weights.sum()  # Normalize to 1
+    if debug: assert np.abs(weights.sum() - s.size) < 1e-6
     
     # Initial guess of parameters and initializations
     mu = np.array([p0[0], p0[2]])
@@ -200,7 +278,7 @@ def two_gaussian_fit_EM(s, p0=[0, 0.1, 0.6, 0.1, 0.5], max_iter=300, ptol=1e-4,
     while not stop_iter:
         # Compute the responsibility func. (gamma) and the new parameters
         for k in [0, 1]:
-            gamma[k, :] = w*pi_[k]*normpdf(s, mu[k], sig[k]) / \
+            gamma[k, :] = weights*pi_[k]*normpdf(s, mu[k], sig[k]) / \
                     two_gauss_mix_pdf(s, p_new)
             ## Uncomment for SCHEME2
             #gamma[k, :] = pi_[k]*normpdf(s, mu[k], sig[k]) / \
@@ -209,7 +287,7 @@ def two_gaussian_fit_EM(s, p0=[0, 0.1, 0.6, 0.1, 0.5], max_iter=300, ptol=1e-4,
             if not fix_mu[k]: 
                 mu[k] = np.sum(gamma[k]*s)/N_[k]
                 ## Uncomment for SCHEME2
-                #mu[k] = np.sum(w*gamma[k]*s)/N_[k]
+                #mu[k] = np.sum(weights*gamma[k]*s)/N_[k]
             if not fix_sig[k]:
                 sig[k] = np.sqrt( np.sum(gamma[k]*(s-mu[k])**2)/N_[k] )
             pi_[k] = N_[k]/s.size
