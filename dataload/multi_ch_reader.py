@@ -67,7 +67,7 @@ def load_data_ordered16(fname, n_bytes_to_read=-1, nch=8, swap_D_A=False,
         detector = swap_donor_acceptor(detector, nch=8)
         pprint(" [DONE]\n")
     ph_times_m, red, ph_times_ma = unwind_uni(ph_times, detector)
-    pprint(" [END PROCESSING]\n")
+    pprint("   [DONE Processing]\n")
     
     return ph_times_m, red, ph_times_ma
 

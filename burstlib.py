@@ -15,7 +15,7 @@ from pylab import find, rand, normpdf
 from path_def_burst import *
 from utils import git
 from utils.misc import pprint, clk_to_s
-from dataload.multi_ch_reader import *
+#from dataload.multi_ch_reader import *
 from poisson_threshold import find_optimal_T_bga
 import bt_fit
 import fret_fit
@@ -41,6 +41,7 @@ from background import *
 from burst_selection import Sel, Sel_mask, select_bursts_E
 
 ip = get_ipython()
+ip.magic("run -i loaders.py")
 ip.magic("run -i burst_selection.py")
 #ip.magic("run -i burstsearch.py")
 #ip.magic("run -i background.py")
@@ -275,9 +276,10 @@ def delta(x):
     """Return x.max() - x.min()"""
     return x.max() - x.min()
 
+
 class DataContainer(dict):
     """
-    Generic class fot storing data.
+    Generic class for storing data.
 
     It's a dictionary in which each key is also an attribute d['nt'] or d.nt.
     """
@@ -302,6 +304,7 @@ class DataContainer(dict):
                 delattr(self, name)
             except AttributeError:
                 print ' WARNING: Name %s not found (attr).' % name
+
 
 class Data(DataContainer):
     """
@@ -384,30 +387,6 @@ class Data(DataContainer):
         init_kw.update(**kwargs)                    
         DataContainer.__init__(self, **init_kw)
     
-    def load_multispot_cache(self, bytes_to_read=-1, swap_D_A=True):
-        """Same as `load_multispot` but tries to load from cache.
-        """
-        fname = self.fname+'_cache.pickle'
-        try:
-            var = pickle.load(open(fname, 'rb'))
-            self.add(ph_times_m=var['ph_times_m'], A_em=var['A_em'], ALEX=False)
-            pprint(" - File loaded from cache: %s\n" % self.fname)
-        except:
-            self.load_multispot(bytes_to_read, swap_D_A)
-            D = {'ph_times_m': self.ph_times_m, 'A_em': self.A_em}
-            pprint(" - Pickling data ... ")
-            pickle.dump(D, open(fname, 'wb'), -1)
-            pprint("DONE\n")
-    
-    def load_multispot(self, bytes_to_read=-1, swap_D_A=True):
-        """Load a multispot data file. Needs .fname defined."""
-        ph_times_m, A_em, ph_times_det = load_data_ordered16(fname=self.fname, 
-                n_bytes_to_read=bytes_to_read, swap_D_A=swap_D_A)
-        self.add(ph_times_m=ph_times_m, A_em=A_em, ALEX=False) 
-    
-    def load_alex(self, bytes_to_read=-1, swap_D_A=True):
-        """Load an ALEX data file. TODO"""
-        pass
      
     ##
     # Infrastructure methods: they return a new Data object
