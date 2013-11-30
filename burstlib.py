@@ -684,7 +684,7 @@ class Data(DataContainer):
             Th.append(mean(m/Tch))
         self.add(TT=TT, T=T, bg_bs=BG[ph_sel], FF=FF, PP=PP, F=F, P=P, Th=Th)
 
-    def _burst_search_da(self, m, L, ph_sel='DA'):
+    def _burst_search_da(self, m, L, ph_sel='DA', verbose=True):
         """Compute burst search with params `m`, `L` on ph selection `ph_sel`
         """
         assert ph_sel in ['DA', 'D', 'A']
@@ -696,12 +696,15 @@ class Data(DataContainer):
             PH = [p[a] for p, a in zip(self.ph_times_m, self.A_em)]
         self.recompute_bg_lim_ph_p(ph_sel=ph_sel, PH=PH)
         MBurst = []
+        label = ''
         for ich, (ph, T) in enumerate(zip(PH, self.TT)):
             MB = []
             Tck = T/self.clk_p
             for ip, (l0, l1) in enumerate(self.Lim[ich]):
-                mb = ba(ph[l0:l1+1], L, m, Tck[ip], label='%s CH%d-%d' %\
-                        (ph_sel, ich+1, ip))
+                if verbose: 
+                    label='%s CH%d-%d' % (ph_sel, ich+1, ip)
+                mb = ba(ph[l0:l1+1], L, m, Tck[ip], label=label, 
+                        verbose=verbose)
                 if mb.size > 0: # if we found at least one burst
                     mb[:, iistart] += l0
                     mb[:, iiend] += l0
@@ -714,7 +717,7 @@ class Data(DataContainer):
         if ph_sel != 'DA':
             # Convert the burst data to be relative to ph_times_m.
             # Convert both Lim/Ph_p and mburst, as they are both needed 
-            # to compute  .bp.
+            # to compute `.bp`.
             self.recompute_bg_lim_ph_p(ph_sel='DA', PH=self.ph_times_m)
             self._fix_mburst_from(ph_sel=ph_sel)
     
@@ -739,17 +742,23 @@ class Data(DataContainer):
         pprint('[DONE]\n')
 
     def burst_search_t(self, L=10, m=10, P=0.95, F=1., nofret=False,
-            max_rate=False, dither=False, ph_sel='DA'):
+            max_rate=False, dither=False, ph_sel='DA', verbose=False):
         """Burst search with variable BG. `calc_bg()` must be ran first.
         Example:
             d.burst_search_t(L=10, m=10, F=6, P=None, ph_sel='DA')
         """
-        self._calc_T(m=m, P=P, F=F, ph_sel=ph_sel)      # writes TT  
-        self._burst_search_da(L=L, m=m, ph_sel=ph_sel)  # uses TT, writes mburst
+        pprint(" - Performing burst search (verbose=%s) ..." % verbose)
+        # Compute TT
+        self._calc_T(m=m, P=P, F=F, ph_sel=ph_sel)
+        # Use TT and compute mburst
+        self._burst_search_da(L=L, m=m, ph_sel=ph_sel, verbose=verbose)
+        pprint("[DONE]\n")
+        
         pprint(" - Calculating burst periods ...")
         self._calc_burst_period()                       # writes bp
         pprint("[DONE]\n")
-        self.add(m=m, L=L)  # P and F saved in _calc_T()
+        
+        self.add(m=m, L=L)  # P and F are saved in _calc_T()
         self.add(bg_corrected=False, bt_corrected=False, dithering=False)
         for k in ['E', 'S', 'nd', 'na', 'naa', 'nt', 'fuse', 'lsb']:
             if k in self: self.delete(k)

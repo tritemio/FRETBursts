@@ -12,14 +12,15 @@ def pprint(s):
     sys.stdout.write(s)
     sys.stdout.flush()
 
-def ba_c(NP.ndarray[NP.int64_t, ndim=1] t,L,m,T, label='burst search'):
+def ba_c(NP.ndarray[NP.int64_t, ndim=1] t, L, m, T, label='burst search',
+	 verbose=True):
     """FIFO burst search (T in clk periods). Optimized implementation."""
     cdef int i, i_start, i_end
     cdef NP.int64_t burst_start, burst_end
     assert t.dtype == NP.int64
     #cdef char in_burst
     #assert t.dtype == DTYPE
-    pprint('C Burst search: %s\n' % label)
+    if verbose: pprint('C Burst search: %s\n' % label)
     bursts = []
     in_burst = False
     cdef NP.ndarray[NP.int8_t, ndim=1] above_min_rate

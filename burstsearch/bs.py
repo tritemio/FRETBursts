@@ -68,9 +68,9 @@ def ba_pure(t,L,m,T,label='Burst search'):
                     i_end-i_start, i_start, i_end-1, burst_end])
     return array(bursts, dtype=int64)
 
-def ba_pure_o(t,L,m,T,label='Burst search'):
+def ba_pure_o(t, L, m, T, label='Burst search', verbose=True):
     """FIFO burst search (T in clk periods). Optimized implementation."""
-    pprint('Python search (v): %s\n'%label)
+    if verbose: pprint('Python search (v): %s\n' % label)
     bursts = []
     in_burst = False
     above_min_rate = (t[m-1:]-t[:t.size-m+1])<=T
