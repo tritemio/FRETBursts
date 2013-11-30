@@ -9,22 +9,23 @@ Single Gaussian distribution fit:
 
 Mixture of 2 Gaussian distribution fit:
     two_gaussian_fit_hist()
+    two_gaussian_fit_hist_min()
     two_gaussian_fit_cdf()
     two_gaussian_fit_EM()
 
-Also some functions to fit 2-D gaussian distributions and mixtures are
+Also, some functions to fit 2-D gaussian distributions and mixtures are
 implemented (needs more testing).
 """
 
-from pylab import normpdf
-from numpy import *
+import numpy as np
 import numpy.random as R
 import scipy.optimize as O
 import scipy.stats as S
-
 from scipy.special import erf
 from scipy.optimize import leastsq, minimize
 from scipy.ndimage.filters import gaussian_filter1d
+from pylab import normpdf
+
 
 ##
 # Single gaussian distribution
@@ -41,15 +42,17 @@ def gaussian_fit_curve(x, y, mu0=0, sigma0=1, a0=None, return_all=False,
     then the full output of leastsq is returned.
     """
     if a0 is None:
-        gauss_pdf = lambda x,m,s: exp(-((x-m)**2)/(2*s**2))/(sqrt(2*pi)*s)
-        err_fun = lambda p,x,y: gauss_pdf(x,*p) - y
-        res = leastsq(err_fun, x0=[mu0,sigma0], args=(x,y), **kwargs)
+        gauss_pdf = lambda x, m, s: np.exp(-((x-m)**2)/(2*s**2))/\
+                                    (np.sqrt(2*np.pi)*s)
+        err_fun = lambda p, x, y: gauss_pdf(x, *p) - y
+        res = leastsq(err_fun, x0=[mu0, sigma0], args=(x, y), **kwargs)
     else:
-        gauss_fun = lambda x,m,s,a: a*sign(s)*exp(-((x-m)**2)/(2*s**2))
-        err_fun = lambda p,x,y: gauss_fun(x,*p) - y
-        res = leastsq(err_fun, x0=[mu0,sigma0,a0], args=(x,y), **kwargs)
+        gauss_fun = lambda x, m, s, a: a*np.sign(s)*np.exp(-((x-m)**2)/(2*s**2))
+        err_fun = lambda p, x, y: gauss_fun(x, *p) - y
+        res = leastsq(err_fun, x0=[mu0, sigma0, a0], args=(x, y), **kwargs)
 
-    if 'full_output' in kwargs: return_all = kwargs['full_output']
+    if 'full_output' in kwargs: 
+        return_all = kwargs['full_output']
     mu, sigma = res[0][0], res[0][1]
     if return_all: return res
     return mu, sigma 
@@ -60,15 +63,15 @@ def get_epdf(s, smooth=0, N=1000, smooth_pdf=False, smooth_cdf=True):
     If smooth > 0 then apply a gaussian filter with sigma=smooth.
     N is the number of points for interpolation of the CDF on a uniform range.
     """
-    ecdf = [sort(s), arange(0.5,s.size+0.5)*1./s.size]
-    #ecdf = [sort(s), arange(s.size)*1./s.size]
-    _x = linspace(s.min(),s.max(),N)
-    ecdfi = [_x, interp(_x, ecdf[0],ecdf[1])]
+    ecdf = [np.sort(s), np.arange(0.5, s.size+0.5)*1./s.size]
+    #ecdf = [np.sort(s), np.arange(s.size)*1./s.size]
+    _x = np.linspace(s.min(), s.max(), N)
+    ecdfi = [_x, np.interp(_x, ecdf[0], ecdf[1])]
     if smooth_cdf and smooth > 0:
-        ecdfi[1] =gaussian_filter1d(ecdfi[1], sigma=smooth)
-    epdf = [ecdfi[0][:-1], diff(ecdfi[1])/diff(ecdfi[0])]
+        ecdfi[1] = gaussian_filter1d(ecdfi[1], sigma=smooth)
+    epdf = [ecdfi[0][:-1], np.diff(ecdfi[1])/np.diff(ecdfi[0])]
     if smooth_pdf and smooth > 0:
-        epdf[1] =gaussian_filter1d(epdf[1], sigma=smooth)
+        epdf[1] = gaussian_filter1d(epdf[1], sigma=smooth)
     return epdf
 
 def gaussian_fit_pdf(s, mu0=0, sigma0=1, a0=1, return_all=False, 
@@ -88,7 +91,7 @@ def gaussian_fit_pdf(s, mu0=0, sigma0=1, a0=1, return_all=False,
     if return_all: return res, epdf
     return res
 
-def gaussian_fit_hist(s, mu0=0, sigma0=1, a0=None, bins=r_[-0.5:1.5:0.001],
+def gaussian_fit_hist(s, mu0=0, sigma0=1, a0=None, bins=np.r_[-0.5:1.5:0.001],
         return_all=False, leastsq_kwargs={}, weights=None, **kwargs):
     """Gaussian fit of samples s fitting the hist to a Gaussian function.
     If a0 is None then only (mu,sigma) are fitted (to a gaussian density).
@@ -100,7 +103,7 @@ def gaussian_fit_hist(s, mu0=0, sigma0=1, a0=None, bins=r_[-0.5:1.5:0.001],
     """
     histogram_kwargs = dict(bins=bins, density=True, weights=weights)
     histogram_kwargs.update(**kwargs)
-    H = histogram(s, **histogram_kwargs)
+    H = np.histogram(s, **histogram_kwargs)
     x, y = 0.5*(H[1][:-1] + H[1][1:]), H[0]
     #bar(H[1][:-1], H[0], H[1][1]-H[1][0], alpha=0.3)
     
@@ -117,30 +120,31 @@ def gaussian_fit_cdf(s, mu0=0, sigma0=1, return_all=False, **leastsq_kwargs):
     then the full output of leastsq and the histogram is returned.
     """
     ## Empirical CDF
-    ecdf = [sort(s), arange(0.5,s.size+0.5)*1./s.size]
+    ecdf = [np.sort(s), np.arange(0.5, s.size+0.5)*1./s.size]
     
     ## Analytical Gaussian CDF
-    gauss_cdf = lambda x, mu, sigma: 0.5*(1+erf((x-mu)/(sqrt(2)*sigma)))
+    gauss_cdf = lambda x, mu, sigma: 0.5*(1+erf((x-mu)/(np.sqrt(2)*sigma)))
     
     ## Fitting the empirical CDF
     err_func = lambda p, x, y: y - gauss_cdf(x, p[0], p[1])
-    res = leastsq(err_func, x0=[mu0, sigma0], args=(ecdf[0],ecdf[1]),
+    res = leastsq(err_func, x0=[mu0, sigma0], args=(ecdf[0], ecdf[1]),
             **leastsq_kwargs)
     if return_all: return res, ecdf
     return res[0]
 
-def gaussian_fit_ml(s, mu_sigma_guess=[0.5,1]):
+def gaussian_fit_ml(s, mu_sigma_guess=[0.5, 1]):
     """Gaussian fit of samples s using the Maximum Likelihood (ML method).
     Didactical, since S.norm.fit() implements the same method.    
     """
     n = s.size
     ## Log-likelihood (to be maximized)
-    log_l = lambda mu, sig: -n/2.*log(sig**2) -1./(2*sig**2)*sum((s-mu)**2)
+    log_l = lambda mu, sig: -n/2.*np.log(sig**2) - \
+                             1./(2*sig**2)*np.sum((s-mu)**2)
     
     ## Function to be minimized
     min_fun = lambda p: -log_l(p[0], p[1])     
     
-    res = O.minimize(min_fun, [0,0.5], method='powell',
+    res = O.minimize(min_fun, [0, 0.5], method='powell',
                      options={'xtol': 1e-6, 'disp': True, 'maxiter': 1e9})
                      
     print res 
@@ -160,12 +164,12 @@ def reorder_parameters(p):
     """Reorder 2-gauss mix params to have the 1st component with smaller mean.
     """
     if p[0] > p[2]:
-        p = p[array([2,3,0,1,4])] # swap (mu1, sig1) with (mu2, sig2)
-        p[4] = 1 - p[4]           # "swap" the alpha of the mixture
+        p = p[np.array([2, 3, 0, 1, 4])]  # swap (mu1, sig1) with (mu2, sig2)
+        p[4] = 1 - p[4]                   # "swap" the alpha of the mixture
     return p
 
-def two_gaussian_fit_EM(s, p0=[0,0.1,0.6,0.1,0.5], max_iter=300, ptol=1e-4,
-        fix_mu=[0,0], fix_sig=[0,0], debug=False, w=None):
+def two_gaussian_fit_EM(s, p0=[0, 0.1, 0.6, 0.1, 0.5], max_iter=300, ptol=1e-4,
+        fix_mu=[0, 0], fix_sig=[0, 0], debug=False, w=None):
     """
     Fit the sample s with two gaussians using Expectation Maximization.
     `ptol`: convergence condition. Relative max variation of any parameter.
@@ -174,51 +178,51 @@ def two_gaussian_fit_EM(s, p0=[0,0.1,0.6,0.1,0.5], max_iter=300, ptol=1e-4,
     `fix_sig`: allow to fix the std. dev of a component (1 or True to fix)
     `w`: optional weigths, same size as `s` (for ex. 1/sigma^2 ~ nt).
     """
-    assert size(p0) == 5
-    if w is None: w = ones(s.size)
+    assert np.size(p0) == 5
+    if w is None: w = np.ones(s.size)
     assert w.size == s.size
     w *= (1.*w.size)/w.sum() # Normalize to (#samples), not to 1
     #w /= w.sum() # Normalize to 1
-    if debug: assert abs(w.sum() - s.size) < 1e-6
+    if debug: assert np.abs(w.sum() - s.size) < 1e-6
     
     # Initial guess of parameters and initializations
-    mu = array([p0[0], p0[2]])
-    sig = array([p0[1], p0[3]])
-    pi_ = array([p0[4], 1-p0[4]])
+    mu = np.array([p0[0], p0[2]])
+    sig = np.array([p0[1], p0[3]])
+    pi_ = np.array([p0[4], 1-p0[4]])
 
-    gamma = zeros((2, s.size))
-    N_ = zeros(2)
-    p_new = array(p0)
+    gamma = np.zeros((2, s.size))
+    N_ = np.zeros(2)
+    p_new = np.array(p0)
 
     # EM loop
     counter = 0
     stop_iter, converged = False, False
     while not stop_iter:
         # Compute the responsibility func. (gamma) and the new parameters
-        for k in [0,1]:
-            gamma[k,:] = w*pi_[k]*normpdf(s, mu[k], sig[k]) / \
+        for k in [0, 1]:
+            gamma[k, :] = w*pi_[k]*normpdf(s, mu[k], sig[k]) / \
                     two_gauss_mix_pdf(s, p_new)
             ## Uncomment for SCHEME2
-            #gamma[k,:] = pi_[k]*normpdf(s, mu[k], sig[k]) / \
+            #gamma[k, :] = pi_[k]*normpdf(s, mu[k], sig[k]) / \
             #        two_gauss_mix_pdf(s, p_new)
-            N_[k] = gamma[k,:].sum()
+            N_[k] = gamma[k, :].sum()
             if not fix_mu[k]: 
-                mu[k] = sum(gamma[k]*s)/N_[k]
+                mu[k] = np.sum(gamma[k]*s)/N_[k]
                 ## Uncomment for SCHEME2
-                #mu[k] = sum(w*gamma[k]*s)/N_[k]
+                #mu[k] = np.sum(w*gamma[k]*s)/N_[k]
             if not fix_sig[k]:
-                sig[k] = sqrt( sum(gamma[k]*(s-mu[k])**2)/N_[k] )
+                sig[k] = np.sqrt( np.sum(gamma[k]*(s-mu[k])**2)/N_[k] )
             pi_[k] = N_[k]/s.size
         p_old = p_new
-        p_new = array([mu[0], sig[0], mu[1], sig[1], pi_[0]])
+        p_new = np.array([mu[0], sig[0], mu[1], sig[1], pi_[0]])
         if debug:
-            assert abs(N_.sum() - s.size)/float(s.size) < 1e-6 
-            assert abs(pi_.sum() - 1) < 1e-6
+            assert np.abs(N_.sum() - s.size)/float(s.size) < 1e-6 
+            assert np.abs(pi_.sum() - 1) < 1e-6
         
         # Convergence check
         counter += 1
-        fixed = concatenate([fix_mu, fix_sig, [0]]).astype(bool)
-        relative_delta = abs(p_new[-fixed]-p_old[-fixed])/p_new[-fixed]
+        fixed = np.concatenate([fix_mu, fix_sig, [0]]).astype(bool)
+        relative_delta = np.abs(p_new[-fixed] - p_old[-fixed])/p_new[-fixed]
         converged = relative_delta.max() < ptol
         stop_iter = converged or (counter >= max_iter)
     
@@ -228,26 +232,26 @@ def two_gaussian_fit_EM(s, p0=[0,0.1,0.6,0.1,0.5], max_iter=300, ptol=1e-4,
         print "WARNING: Not converged, max iteration (%d) reached." % max_iter
     return reorder_parameters(p_new)
 
-def two_gaussian_fit_hist(s, bins=r_[-0.5:1.5:0.001], weights=None, 
+def two_gaussian_fit_hist(s, bins=np.r_[-0.5:1.5:0.001], weights=None, 
         p0=[0.2,1,0.8,1,0.3], fix_mu=[0,0], fix_sig=[0,0], fix_a=False):
     """Fit the sample s with 2-gaussian mixture (histogram fit).
     Uses scipy.optimize.leastsq function. Parameters can be fixed but
     cannot be constrained in an interval.
     `p0`: initial guess or parameters
-    `bins`: bins passed to `histogram()`
-    `weights` optional weights for `histogram()`
+    `bins`: bins passed to `np.histogram()`
+    `weights` optional weights for `np.histogram()`
     `fix_a`: if True fixes `a` to p0[4]
     `fix_mu`: tuple of bools. Whether to fix the means of the gaussians
     `fix_sig`: tuple of bools. Whether to fix the sigmas of the gaussians
     """
-    assert size(p0) == 5
-    fix = array([fix_mu[0], fix_sig[0], fix_mu[1], fix_sig[1], fix_a], 
+    assert np.size(p0) == 5
+    fix = np.array([fix_mu[0], fix_sig[0], fix_mu[1], fix_sig[1], fix_a], 
                 dtype=bool)
-    p0 = array(p0)
+    p0 = np.array(p0)
     p0_free = p0[-fix]
     p0_fix = p0[fix]
 
-    H = histogram(s, bins=bins, weights=weights, density=True)
+    H = np.histogram(s, bins=bins, weights=weights, density=True)
     x, y = 0.5*(H[1][:-1] + H[1][1:]), H[0]
     assert x.size == y.size
     
@@ -257,15 +261,15 @@ def two_gaussian_fit_hist(s, bins=r_[-0.5:1.5:0.001], weights=None,
         p_complete[fix] = p_fix
         return y - two_gauss_mix_pdf(x, p_complete)
 
-    p_complete = zeros(5)
-    p, v = leastsq(err_func, x0=p0_free, args=(x,y,fix,p0_fix,p_complete))
-    p_new = zeros(5)
+    p_complete = np.zeros(5)
+    p, v = leastsq(err_func, x0=p0_free, args=(x, y, fix, p0_fix, p_complete))
+    p_new = np.zeros(5)
     p_new[-fix] = p
     p_new[fix] = p0_fix
     return reorder_parameters(p_new)
     
 def two_gaussian_fit_hist_min(s, bounds=None, method='L-BFGS-B', 
-        bins=r_[-0.5:1.5:0.001], weights=None,  p0=[0.2,1,0.8,1,0.3], 
+        bins=np.r_[-0.5:1.5:0.001], weights=None,  p0=[0.2,1,0.8,1,0.3], 
         fix_mu=[0,0], fix_sig=[0,0], fix_a=False, verbose=False):
     """Fit the sample `s` with 2-gaussian mixture (histogram fit). [Bounded]
     Uses scipy.optimize.minimize allowing constrained minimization.
@@ -274,20 +278,20 @@ def two_gaussian_fit_hist_min(s, bounds=None, method='L-BFGS-B',
             parameters (can be used only with L-BFGS-B, TNC or SLSQP methods)
             If bounds are used, parameters cannot be fixed
     `p0`: initial guess or parameters
-    `bins`: bins passed to `histogram()`
-    `weights` optional weights for `histogram()`
+    `bins`: bins passed to `np.histogram()`
+    `weights` optional weights for `np.histogram()`
     `fix_a`: if True fixes `a` to p0[4]
     `fix_mu`: tuple of bools. Whether to fix the means of the gaussians
     `fix_sig`: tuple of bools. Whether to fix the sigmas of the gaussians
     """
-    assert size(p0) == 5
-    fix = array([fix_mu[0], fix_sig[0], fix_mu[1], fix_sig[1], fix_a], 
+    assert np.size(p0) == 5
+    fix = np.array([fix_mu[0], fix_sig[0], fix_mu[1], fix_sig[1], fix_a], 
                 dtype=bool)
-    p0 = array(p0)
+    p0 = np.array(p0)
     p0_free = p0[-fix]
     p0_fix = p0[fix]
 
-    H = histogram(s, bins=bins, weights=weights, density=True)
+    H = np.histogram(s, bins=bins, weights=weights, density=True)
     x, y = 0.5*(H[1][:-1] + H[1][1:]), H[0]
     assert x.size == y.size
     
@@ -297,32 +301,34 @@ def two_gaussian_fit_hist_min(s, bounds=None, method='L-BFGS-B',
         p_complete[fix] = p_fix
         return ((y - two_gauss_mix_pdf(x, p_complete))**2).sum()
     
-    p_complete = zeros(5)
-    res = minimize(err_func, x0=p0_free, args=(x,y,fix,p0_fix,p_complete),
+    p_complete = np.zeros(5)
+    res = minimize(err_func, x0=p0_free, args=(x, y, fix, p0_fix, p_complete),
                     method=method, bounds=bounds)
     if verbose: print(res)
-    p_new = zeros(5)
+    p_new = np.zeros(5)
     p_new[-fix] = res.x
     p_new[fix] = p0_fix
     return reorder_parameters(p_new)
 
-def two_gaussian_fit_cdf(s, p0=[0.,.05,.6,.1,.5], fix_mu=[0,0], fix_sig=[0,0]):
+def two_gaussian_fit_cdf(s, p0=[0., .05, .6, .1, .5],
+                         fix_mu=[0, 0], fix_sig=[0, 0]):
     """Fit the sample s with two gaussians. Parameters can be fixed.
     """
-    assert size(p0) == 5
-    fix = array([fix_mu[0], fix_sig[0], fix_mu[1], fix_sig[1], 0], dtype=bool)
-    p0 = array(p0)
+    assert np.size(p0) == 5
+    fix = np.array([fix_mu[0], fix_sig[0], fix_mu[1], fix_sig[1], 0],
+                    dtype=bool)
+    p0 = np.array(p0)
     p0_free = p0[-fix]
     p0_fix = p0[fix]
 
     ## Empirical CDF
-    ecdf = [sort(s), arange(0.5,s.size+0.5)*1./s.size]
+    ecdf = [np.sort(s), np.arange(0.5, s.size+0.5)*1./s.size]
     x, y = ecdf
     
     ## Analytical gaussian CDF
-    gauss_cdf = lambda x, mu, sigma: 0.5*(1+erf((x-mu)/(sqrt(2)*sigma)))
+    gauss_cdf = lambda x, mu, sigma: 0.5*(1+erf((x-mu)/(np.sqrt(2)*sigma)))
     def two_gauss_mix_cdf(x, p):
-        return p[4]*gauss_cdf(x,p[0],p[1])+(1-p[4])*gauss_cdf(x,p[2],p[3])
+        return p[4]*gauss_cdf(x, p[0], p[1]) + (1-p[4])*gauss_cdf(x, p[2], p[3])
 
     ## Fitting the empirical CDF
     def err_func(p, x, y, fix, p_fix, p_complete): 
@@ -330,9 +336,9 @@ def two_gaussian_fit_cdf(s, p0=[0.,.05,.6,.1,.5], fix_mu=[0,0], fix_sig=[0,0]):
         p_complete[fix] = p_fix
         return y - two_gauss_mix_cdf(x, p_complete)
 
-    p_complete = zeros(5)
-    p, v = leastsq(err_func, x0=p0_free, args=(x,y,fix,p0_fix,p_complete))
-    p_new = zeros(5)
+    p_complete = np.zeros(5)
+    p, v = leastsq(err_func, x0=p0_free, args=(x, y, fix, p0_fix, p_complete))
+    p_new = np.zeros(5)
     p_new[-fix] = p
     p_new[fix] = p0_fix
     return reorder_parameters(p_new)
@@ -350,7 +356,7 @@ def test_two_gauss():
     si2 = round((1-alpha)*N)
     s1 = R.normal(size=si1, loc=m01, scale=s01)
     s2 = R.normal(size=si2, loc=m02, scale=s02)
-    s = r_[s1,s2]
+    s = np.r_[s1,s2]
     
     pc = two_gaussian_fit_cdf(s, fix_mu=[1,0], p0=[-0.01,0.05,0.5,0.2,0.4])
     ph = two_gaussian_fit_hist(s, fix_mu=[1,0], p0=[-0.01,0.05,0.5,0.2,0.4])
@@ -358,7 +364,7 @@ def test_two_gauss():
     
     hist(s, bins=40, normed=True)
     
-    x = r_[s.min()-1:s.max()+1:200j]
+    x = np.r_[s.min()-1:s.max()+1:200j]
     plot(x, a*normpdf(x,mu1,sig1), lw=2)
     plot(x, (1-a)*normpdf(x,mu2,sig2), lw=2)
     plot(x, two_gauss_mix_pdf(x, p0), lw=2)
@@ -386,11 +392,11 @@ def compare_two_gauss():
     fix_mu = [0,0]
 
     n = 500
-    PC, PH, PE = zeros((n,5)), zeros((n,5)), zeros((n,5))
+    PC, PH, PE = np.zeros((n,5)), np.zeros((n,5)), np.zeros((n,5))
     for i in xrange(n):
         s1 = R.normal(size=si1, loc=m01, scale=s01)
         s2 = R.normal(size=si2, loc=m02, scale=s02)
-        s = r_[s1,s2]
+        s = np.r_[s1,s2]
         
         pc = two_gaussian_fit_cdf(s, fix_mu=fix_mu, p0=p0)
         ph = two_gaussian_fit_hist(s, fix_mu=fix_mu, p0=p0)
@@ -406,8 +412,8 @@ def compare_two_gauss():
         title(Label[i])
         vmin = min([PC[:,i].min(), PH[:,i].min(), PE[:,i].min()])
         vmax = max([PC[:,i].max(), PH[:,i].max(), PE[:,i].max()])
-        b = r_[vmin:vmax:80j]
-        if vmax == vmin: b = r_[vmin-.1:vmax+.1:200j]
+        b = np.r_[vmin:vmax:80j]
+        if vmax == vmin: b = np.r_[vmin-.1:vmax+.1:200j]
         hist(PC[:,i], bins=b, alpha=0.3, label='CDF')
         hist(PH[:,i], bins=b, alpha=0.3, label='Hist')
         hist(PE[:,i], bins=b, alpha=0.3, label='EM')
@@ -420,11 +426,11 @@ def gaussian2d_fit(sx, sy, guess=[0.5,1]):
     assert sx.size == sy.size
     
     ## Empirical CDF
-    ecdfx = [sort(sx), arange(0.5,sx.size+0.5)*1./sx.size]
-    ecdfy = [sort(sy), arange(0.5,sy.size+0.5)*1./sy.size]
+    ecdfx = [np.sort(sx), np.arange(0.5,sx.size+0.5)*1./sx.size]
+    ecdfy = [np.sort(sy), np.arange(0.5,sy.size+0.5)*1./sy.size]
     
     ## Analytical gaussian CDF
-    gauss_cdf = lambda x, mu, sigma: 0.5*(1+erf((x-mu)/(sqrt(2)*sigma)))
+    gauss_cdf = lambda x, mu, sigma: 0.5*(1+erf((x-mu)/(np.sqrt(2)*sigma)))
     
     ## Fitting the empirical CDF
     fitfunc = lambda p, x: gauss_cdf(x, p[0], p[1])
@@ -451,10 +457,10 @@ def test_gaussian2d_fit():
 
     plot(sx, sy, 'o', alpha=0.2, mew=0)
 
-    X,Y = mgrid[sx.min()-1:sx.max()+1:200j, sy.min()-1:sy.max()+1:200j]
+    X,Y = np.mgrid[sx.min()-1:sx.max()+1:200j, sy.min()-1:sy.max()+1:200j]
     
     def gauss2d(X,Y, mx, my, sigx, sigy):
-        return exp(-((X-mx)**2)/(2*sigx**2))*exp(-((Y-my)**2)/(2*sigy**2))
+        return np.exp(-((X-mx)**2)/(2*sigx**2))*np.exp(-((Y-my)**2)/(2*sigy**2))
     
     contour(X,Y,gauss2d(X,Y,mux,muy,sigmax,sigmay))
 
@@ -464,15 +470,15 @@ def test_gaussian2d_fit():
 
 def two_gaussian2d_fit(sx, sy, guess=[0.5,1]):
     """2D-Gaussian fit of samples S using a fit to the empirical CDF."""
-    ## UNFINISHED (I have 2 alphas usign the xy projections)
+    ## UNFINISHED (I have 2 alphas unp.sign the xy projections)
     assert sx.size == sy.size
     
     ## Empirical CDF
-    ecdfx = [sort(sx), arange(0.5,sx.size+0.5)*1./sx.size]
-    ecdfy = [sort(sy), arange(0.5,sy.size+0.5)*1./sy.size]
+    ecdfx = [np.sort(sx), np.arange(0.5,sx.size+0.5)*1./sx.size]
+    ecdfy = [np.sort(sy), np.arange(0.5,sy.size+0.5)*1./sy.size]
     
     ## Analytical gaussian CDF
-    gauss_cdf = lambda x, mu, sigma: 0.5*(1+erf((x-mu)/(sqrt(2)*sigma)))
+    gauss_cdf = lambda x, mu, sigma: 0.5*(1+erf((x-mu)/(np.sqrt(2)*sigma)))
 
     gauss2d_cdf = lambda X,Y,mx,sx,my,sy: gauss_cdf(X,mx,sx)*gauss_cdf(Y,my,sy)
 
@@ -511,13 +517,13 @@ def test_gaussian_fit():
     print "ML         ", mu1, sig1
     print "ML (manual)", mu2, sig2
     
-    H = histogram(s, bins=20, density=True)
+    H = np.histogram(s, bins=20, density=True)
     h = H[0]
     bw = H[1][1] - H[1][0]
     #bins_c = H[1][:-1]+0.5*bw
     bar(H[1][:-1], H[0], bw, alpha=0.3)
 
-    x = r_[s.min()-1:s.max()+1:200j]
+    x = np.r_[s.min()-1:s.max()+1:200j]
     plot(x, normpdf(x,m0,s0), lw=2, color='grey')    
     plot(x, normpdf(x,mu,sig), lw=2, color='r', alpha=0.5)
     plot(x, normpdf(x,mu1,sig1), lw=2, color='b', alpha=0.5)
