@@ -41,6 +41,7 @@ from matplotlib.lines import Line2D
 import bt_fit
 from utils.misc import binning, clk_to_s
 from scroll_gui import ScrollingToolQT
+from fit.weighted_kde import gaussian_kde_w
 from fit.fitting import *
 from gui_selection import *
 from path_def_burst import *
@@ -681,6 +682,27 @@ def hist_fret(i,b,d, bins=None, binw=0.02, show_fit=False,
             figtext(0.4,0.01,get_fit_text(d),fontsize=14)
 hist_E = hist_fret
 
+def kde_fret(i,b,d, show_fit=False, weights=None, gamma=1., bandwidth=0.04,
+             no_text=False, verbose=False, **kwargs):
+    """Plot the KDE for FRET distribution and optionally the fitted peak
+    """
+    E_ax = np.arange(-0.19, 1.19, 0.001)
+    w = fret_fit.get_weights(d.nd[i], d.na[i], weights=weights, gamma=gamma)
+    kde = gaussian_kde_w(d.E[i], bw_method=bandwidth, weights=w)
+    E_pdf = kde.evaluate(E_ax)
+    if verbose: print 'KDE Integral:', np.trapz(E_pdf, E_ax)
+
+    plot_style = dict(facecolor='#80b3ff', edgecolor='#5f8dd3', lw=1.5,
+                      alpha=1)
+    plot_style.update(**kwargs)  # kwargs overwrite plot_style
+    fill_between(E_ax, E_pdf, **plot_style)
+    xlabel('FRET Efficiency')
+    ylabel('PDF')
+    if show_fit:
+        fitted_E(i,b,d, F=1, no_E=no_text, lw=4, color='k', verbose=verbose)
+        if i==0 and not no_text:
+            figtext(0.4,0.01,get_fit_text(d),fontsize=14)
+
 def get_fit_text(d, pylab=True):
     delta = (d.E_fit.max()-d.E_fit.min())*100
     fit_text = r'\langle{E}_{fit}\rangle = %.3f \qquad ' % d.E_fit.mean()
@@ -688,22 +710,26 @@ def get_fit_text(d, pylab=True):
     if pylab: fit_text = r'$'+fit_text+r'$'
     return fit_text
 
-def fitted_E(i,b,d, F=1, no_E=False, ax=None):
-    if ax is None: ax2 = gca()
+def fitted_E(i,b,d, F=1, no_E=False, ax=None, lw=2.5, color='k', alpha=0.5,
+             verbose=False):
+    if ax is None:
+        ax2 = gca()
     else: 
         ax2 = twinx(ax=ax)
         ax2.grid(False)
     if d.fit_E_curve:
         x = r_[-0.2:1.21:0.002]
         y = d.fit_E_model(x, d.fit_E_res[i,:])
-        ax2.plot(x, F*d.fit_E_model_F[i]*y, lw=2.5, alpha=0.5, color='k')
+        ax2.plot(x, F*d.fit_E_model_F[i]*y, lw=lw, alpha=alpha, color=color)
+        if verbose: print 'Fit Integral:', np.trapz(F*d.fit_E_model_F[i]*y, x)
+
     ax2.axvline(d.E_fit[i], lw=3, color='r', ls='--', alpha=0.6)
     xtext = 0.6 if d.E_fit[i] < 0.6 else 0.06
     if not no_E:
-        ax2.text(xtext,0.8,"CH%d: E = %.3f" % \
-                (i+1,d.E_fit[i]), 
+        ax2.text(xtext, 0.81,"CH%d: $E_{fit} = %.3f$" % \
+                (i+1, d.E_fit[i]),
                 transform = gca().transAxes, fontsize=16,
-                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+                bbox=dict(boxstyle='round', facecolor='#dedede', alpha=0.5))
 
 def hist_S(i,b,d, fit=None, bins=None, **kwargs):
     if bins is None: bins = arange(-0.2,1.21,0.02)

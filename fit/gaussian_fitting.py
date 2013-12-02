@@ -26,6 +26,8 @@ from scipy.optimize import leastsq, minimize
 from scipy.ndimage.filters import gaussian_filter1d
 from pylab import normpdf
 
+#from scipy.stats import gaussian_kde
+from weighted_kde import gaussian_kde_w  # this version supports weights
 
 ##
 # Single gaussian distribution
@@ -174,6 +176,65 @@ def bound_check(val, bounds):
     if bounds[1] is not None and val > bounds[1]:
         val = bounds[1]
     return val
+
+def two_gaussian_fit_curve(x, y, p0, return_all=False, verbose=False, **kwargs):
+    """Fit a 2-gaussian mixture to the (x,y) curve.
+    `kwargs` are passed to the leastsq() function.
+
+    If return_all=False then return only the fitted paramaters
+    If return_all=True then the full output of leastsq is returned.
+    """
+    if kwargs['method'] == 'leastsq':
+        kwargs.pop('method')
+        kwargs.pop('bounds')
+        def err_func(p, x, y):
+            return (y - two_gauss_mix_pdf(x, p))
+        res = leastsq(err_func, x0=p0, args=(x, y), **kwargs)
+        p = res[0]
+    else:
+        def err_func(p, x, y):
+            return ((y - two_gauss_mix_pdf(x, p))**2).sum()
+        res = minimize(err_func, x0=p0, args=(x, y), **kwargs)
+        p = res.x
+
+    if verbose:
+        print res, '\n'
+    if return_all: return res
+    return reorder_parameters(p)
+
+def two_gaussian_fit_KDE_curve(s, p0=[0, 0.1, 0.6, 0.1, 0.5], weights=None,
+                               bandwidth=0.05, x_pdf=None, debug=False,
+                               method='SLSQP', bounds=None,
+                               verbose=False, **kde_kwargs):
+    """
+    Fit sample `s` with two gaussians using a KDE pdf approximation.
+    The 2-gaussian pdf is then curve-fitted to the KDE pdf.
+    `p0`: initial parameters [mu0, sig0, mu1, sig1, a]
+    `weights`: optional weigths, same size as `s` (for ex. 1/sigma^2 ~ nt).
+    `bandwidth`: bandwidth for the KDE algorithm
+    `x_pdf`: array on which the KDE PDF is evaluated and curve-fitted
+    `method`: fit method, can be 'leastsq' or a method supported by minimize()
+    `bounds`: bounds for the fit parameters (ignored if method='leastsq')
+    `debug`: (bool) if True perfoms more tests and print more info.
+    Additional kwargs are passed to scipy.stats.gaussian_kde().
+    """
+    if x_pdf is None: x_pdf = np.linspace(s.min(), s.max(), 1000)
+
+    ## Scikit-learn KDE estimation
+    #kde_skl = KernelDensity(bandwidth=bandwidth, **kde_kwargs)
+    #kde_skl.fit(x)[:, np.newaxis])
+    ## score_samples() returns the log-likelihood of the samples
+    #log_pdf = kde_skl.score_samples(x_pdf)[:, np.newaxis])
+    #kde_pdf = np.exp(log_pdf)
+
+    ## Weighted KDE estimation
+    kde = gaussian_kde_w(s, bw_method=bandwidth, weights=weights)
+    kde_pdf = kde.evaluate(x_pdf)
+
+    p = two_gaussian_fit_curve(x_pdf, kde_pdf, p0=p0, method=method,
+                               bounds=bounds, verbose=verbose)
+    return p
+
 
 def two_gaussian_fit_EM_b(s, p0=[0, 0.1, 0.6, 0.1, 0.5], weights=None,
                           bounds=[(None, None,)]*5, 
