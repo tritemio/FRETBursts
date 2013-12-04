@@ -47,7 +47,7 @@ from gui_selection import *
 from path_def_burst import *
 #ip = get_ipython()
 #ip.magic("run -i scroll_gui.py")
-#ip.magic("run -i gui_selection.py")
+ip.magic("run -i gui_selection.py")
 #ip.magic("run -i fit/fitting")
 #ip.magic("run -i style.py")
 
@@ -116,7 +116,8 @@ def plot_alternation_hist_sel(d, **kwargs):
 
 def hist2d_alex(i,b,d, vmin=2, vmax=0, bin_step=None, interp='bicubic', 
         cmap='hot', under_color='white', over_color='white', 
-        scatter=True, scatter_ms=3, scatter_color='orange', scatter_alpha=0.2):
+        scatter=True, scatter_ms=3, scatter_color='orange', scatter_alpha=0.2,
+        gui_sel=False):
     if bin_step is not None: d.calc_alex_hist(bin_step=bin_step)
     AH, E_bins,S_bins, E_ax,S_ax = d.AH[i], d.E_bins,d.S_bins, d.E_ax,d.S_ax
 
@@ -137,10 +138,14 @@ def hist2d_alex(i,b,d, vmin=2, vmax=0, bin_step=None, interp='bicubic',
     gcf().colorbar(im)
     xlim(-0.2,1.2); ylim(-0.2,1.2)
     xlabel('E'); ylabel('S'); grid(color='gray')
-    fig, GSel.fig, GSel.ax = gcf(), gcf(), gca()
-    if hasattr(GSel, 'r'): delattr(GSel, 'r') # delete rectangle from old figs
-    GSel.id_press = fig.canvas.mpl_connect('button_press_event', _on_press)
-    GSel.id_rls = fig.canvas.mpl_connect('button_release_event', _on_release)
+    if gui_sel:    
+        fig, GSel.fig, GSel.ax = gcf(), gcf(), gca()
+        if hasattr(GSel, 'r'): 
+            delattr(GSel, 'r') # delete rectangle from old figs
+            GSel.id_press = fig.canvas.mpl_connect('button_press_event', 
+                                                   _on_press)
+            GSel.id_rls = fig.canvas.mpl_connect('button_release_event', 
+                                                 _on_release)
 
 def time_ph(i,b,d, num_ph=1e4, ph_istart=0):
     """Plot 'num_ph' ph starting at 'ph_istart' marking burst start/end."""
@@ -847,7 +852,7 @@ def plot_mburstm_8ch(d, fun=scatter_width_size, sharex=True,sharey=True,
     #s = RangeToolQT(fig)
     return AX,s
 
-def plot_mburstm_1ch(d, fun, scroll=False,pgrid=True, 
+def plot_mburstm_1ch(d, fun, scroll=False, pgrid=True, 
         #figsize=(7.5625,3.7125), 
         figsize=(9,4.5), 
         fignum=None, nosuptitle=False, **kwargs):
@@ -862,9 +867,9 @@ def plot_mburstm_1ch(d, fun, scroll=False,pgrid=True,
     ax.grid(pgrid)
     b = d.mburst[0] if hasattr(d, 'mburst') else None
     fun(0,b,d,**kwargs)
-    s=None
+    s = None
     if scroll: s = ScrollingToolQT(fig)
-    return ax,s
+    return ax, s
 
 def dplot(d, fun, **kwargs):
     if d.nch == 1:
