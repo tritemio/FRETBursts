@@ -91,8 +91,14 @@ def usalex_apply_period(d):
             accept_t_mask.sum())
 
     # Build masks for excitation windows
-    donor_ex_t = select_outer_range(ph_times_t, period, d.D_ON)
-    accept_ex_t = select_inner_range(ph_times_t, period, d.A_ON)
+    if d.D_ON[0] < d.D_ON[1]: 
+        donor_ex_t = select_inner_range(ph_times_t, period, d.D_ON)
+    else:
+        donor_ex_t = select_outer_range(ph_times_t, period, d.D_ON)
+    if d.A_ON[0] < d.A_ON[1]:
+        accept_ex_t = select_inner_range(ph_times_t, period, d.A_ON)
+    else:
+        accept_ex_t = select_outer_range(ph_times_t, period, d.A_ON)
 
     # Safety check: each ph is either D or A ex (not both)
     assert (donor_ex_t*accept_ex_t == False).any() 

@@ -98,9 +98,19 @@ def plot_alternation_hist(d, bins=100, **kwargs):
     kwargs.update(bins=bins, alpha=0.2)
     hist(ph_times[D_em_t]%period, color='g', label='D', **kwargs)
     hist(ph_times[-D_em_t]%period, color='r', label='A', **kwargs)
-    axvspan(0,d.D_ON[1], color='g', alpha=0.1)
-    axvspan(d.D_ON[0],2*d.switch_window, color='g', alpha=0.1)
-    axvspan(d.A_ON[0],d.A_ON[1], color='r', alpha=0.1)
+    
+    if d.D_ON[0] < d.D_ON[1]:
+        axvspan(d.D_ON[0], d.D_ON[1], color='g', alpha=0.1)
+    else:
+        axvspan(0,d.D_ON[1], color='g', alpha=0.1)
+        axvspan(d.D_ON[0],2*d.switch_window, color='g', alpha=0.1)
+        
+    if d.A_ON[0] < d.A_ON[1]:
+        axvspan(d.A_ON[0],d.A_ON[1], color='r', alpha=0.1)      
+    else:
+        axvspan(0, d.A_ON[1], color='r', alpha=0.1)
+        axvspan(d.A_ON[0], 2*d.switch_window, color='r', alpha=0.1)
+        
     legend(loc='best')
 
 def plot_alternation_hist_sel(d, **kwargs):
