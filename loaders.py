@@ -70,19 +70,18 @@ def load_usalex(fname, bytes_to_read=-1, swap_D_A=True, BT=0,
     
     DONOR_ON = (2850, 580)
     ACCEPT_ON = (930, 2580)
-    switch_window = 2000
+    alex_period = 4000
 
     dx = Data(fname=fname, clk_p=12.5e-9, nch=1, BT=BT, gamma=gamma, 
               ALEX=True,
-              D_ON=DONOR_ON, A_ON=ACCEPT_ON, switch_window=switch_window,
+              D_ON=DONOR_ON, A_ON=ACCEPT_ON, alex_period=alex_period,
               ph_times_t=[ph_times_t], D_em_t=[(det_t == D_ch)],
               )
     return dx
 
-def usalex_apply_period(d):  
+def usalex_apply_period(d, delete_ph_t=True):  
     
     ph_times_t = d.ph_times_t[0]
-    period = 2*d.switch_window
     
     # Create masks for donor and acceptor channels
     donor_t_mask = d.D_em_t[0]
@@ -92,13 +91,13 @@ def usalex_apply_period(d):
 
     # Build masks for excitation windows
     if d.D_ON[0] < d.D_ON[1]: 
-        donor_ex_t = select_inner_range(ph_times_t, period, d.D_ON)
+        donor_ex_t = select_inner_range(ph_times_t, d.alex_period, d.D_ON)
     else:
-        donor_ex_t = select_outer_range(ph_times_t, period, d.D_ON)
+        donor_ex_t = select_outer_range(ph_times_t, d.alex_period, d.D_ON)
     if d.A_ON[0] < d.A_ON[1]:
-        accept_ex_t = select_inner_range(ph_times_t, period, d.A_ON)
+        accept_ex_t = select_inner_range(ph_times_t, d.alex_period, d.A_ON)
     else:
-        accept_ex_t = select_outer_range(ph_times_t, period, d.A_ON)
+        accept_ex_t = select_outer_range(ph_times_t, d.alex_period, d.A_ON)
 
     # Safety check: each ph is either D or A ex (not both)
     assert (donor_ex_t*accept_ex_t == False).any() 
@@ -106,8 +105,6 @@ def usalex_apply_period(d):
     # (3) Burst search on donor_excitation+acceptor_excitation
     mask = donor_ex_t + accept_ex_t
     
-    #ph_burst_search = "donor_accept_ex"
-
     # Assign the new ph selection mask
     ph_times = ph_times_t[mask]
     d_em = donor_t_mask[mask]
@@ -119,13 +116,16 @@ def usalex_apply_period(d):
     assert (d_em * a_em).any() == False
     assert a_ex.size == a_em.size == d_ex.size == d_em.size == ph_times.size
     
-    ph_times_m, A_ex, D_ex, A_em, D_em = [ph_times],[a_ex],[d_ex],[a_em],[d_em]
+    ph_times_m = [ph_times]
+    A_ex, D_ex, A_em, D_em = [a_ex], [d_ex], [a_em], [d_em]
     d.add(ph_times_m=ph_times_m, 
-          D_em=D_em, A_em=A_em, D_ex=D_ex, A_ex=A_ex,
-          )
+          D_em=D_em, A_em=A_em, D_ex=D_ex, A_ex=A_ex,)
+          
     assert d.ph_times_m[0].size == d.A_em[0].size
-    assert d.switch_window*2 == period
     
+    if delete_ph_t:
+        d.delete('ph_times_t')
+        d.delete('D_em_t')
     return d
               
 

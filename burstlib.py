@@ -337,7 +337,7 @@ class Data(DataContainer):
             and each element is a boolean mask for ph_times_m[i].
             D_ON, A_ON: tuples of int (start-end values) for donor ex. and 
                     acceptor ex. selection.
-            switch_window: (int) lenth of the alternation window in clk cycles.
+            alex_period: (int) lenth of the alternation period in clk cycles.
     
     BACKGROUND ATTRIBUTES
     bg, bg_dd, bg_ad, bg_aa: (list) bg for each channel calculated every X sec
@@ -422,7 +422,7 @@ class Data(DataContainer):
                 sliced_d[name] = [data[m] for data, m in zip(self[name], masks)]
                 setattr(sliced_d, name, sliced_d[name])
         copy_fields = ['fname', 'nch', 'clk_p', 'BT', 'gamma', 'ALEX',
-                'switch_window', 'D_ON', 'A_ON']
+                'alex_period', 'D_ON', 'A_ON']
         for name in copy_fields:
             if name in self:
                 sliced_d[name] = self[name]
@@ -469,7 +469,7 @@ class Data(DataContainer):
     #
     def get_params(self):
         """Returns a plain dict containing only parameters and no arrays.
-        This can be used as a summary of data analisys parameters.
+        This can be used as a summary of data analysis parameters.
         An addtional keys `name' and `Names` are added with values
         from `.name()` and `.Name()`.
         """
@@ -624,7 +624,7 @@ class Data(DataContainer):
         pprint("[DONE]\n")
 
     ##
-    # Burst analisys methods
+    # Burst analysis methods
     #
     def _calc_burst_period(self):
         """Compute for each burst the "period" `bp`.
