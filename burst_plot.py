@@ -94,32 +94,32 @@ def bg_plot(d, bg="bg"):
 ## ALEX
 def plot_alternation_hist(d, bins=100, **kwargs):
     figure() 
-    ph_times, D_em_t, period = d.ph_times_t[0], d.D_em_t[0], 2*d.switch_window
+    ph_times, D_em_t, period = d.ph_times_t[0], d.D_em_t[0], d.alex_period
     kwargs.update(bins=bins, alpha=0.2)
-    hist(ph_times[D_em_t]%period, color='g', label='D', **kwargs)
-    hist(ph_times[-D_em_t]%period, color='r', label='A', **kwargs)
+    hist(ph_times[D_em_t] % period, color='g', label='D', **kwargs)
+    hist(ph_times[-D_em_t] % period, color='r', label='A', **kwargs)
     
     if d.D_ON[0] < d.D_ON[1]:
         axvspan(d.D_ON[0], d.D_ON[1], color='g', alpha=0.1)
     else:
         axvspan(0,d.D_ON[1], color='g', alpha=0.1)
-        axvspan(d.D_ON[0],2*d.switch_window, color='g', alpha=0.1)
+        axvspan(d.D_ON[0], period, color='g', alpha=0.1)
         
     if d.A_ON[0] < d.A_ON[1]:
-        axvspan(d.A_ON[0],d.A_ON[1], color='r', alpha=0.1)      
+        axvspan(d.A_ON[0], d.A_ON[1], color='r', alpha=0.1)      
     else:
         axvspan(0, d.A_ON[1], color='r', alpha=0.1)
-        axvspan(d.A_ON[0], 2*d.switch_window, color='r', alpha=0.1)
+        axvspan(d.A_ON[0], period, color='r', alpha=0.1)
         
     legend(loc='best')
 
 def plot_alternation_hist_sel(d, **kwargs):
     figure() 
-    ph_times, d_ex, period = d.ph_times_m[0], d.D_ex[0], 2*d.switch_window
+    ph_times, d_ex, period = d.ph_times_m[0], d.D_ex[0], d.alex_period
     bins = arange(0, period+1, period/100.)
     kwargs.update(bins=bins, alpha=0.2)
-    hist(ph_times[d_ex]%period, color='g', label='D', **kwargs)
-    hist(ph_times[-d_ex]%period, color='r', label='A', **kwargs)
+    hist(ph_times[d_ex] % period, color='g', label='D', **kwargs)
+    hist(ph_times[-d_ex] % period, color='r', label='A', **kwargs)
     axvline(d.D_ON[0], color='g', lw=2); axvline(d.D_ON[1], color='g', lw=2)
     axvline(d.A_ON[0], color='r', lw=2); axvline(d.A_ON[1], color='r', lw=2)
     legend(loc='best')
@@ -410,7 +410,7 @@ def hist_bg_fit(i,b,d, bp=0, bin_width_us=10, yscale='log', F=0.1, **kwargs):
     a_em = d.A_em[i][l1:l2+1]
     d_em = -a_em
     dph, dph_d, dph_a = np.diff(ph), np.diff(ph[d_em]), np.diff(ph[a_em])
-    plot_kw = dict(bins=r_[0:3000:bin_width_us], histtype='step', 
+    plot_kw = dict(bins=r_[0:3000:bin_width_us], histtype='step', lw=1.,
                           normed=False)
     plot_kw.update(**kwargs)
     H = hist(dph*1e6, color='k', **plot_kw)
@@ -421,7 +421,7 @@ def hist_bg_fit(i,b,d, bp=0, bin_width_us=10, yscale='log', F=0.1, **kwargs):
 
     efun = lambda t, r: np.exp(-r*t)*r
     r, rd, ra = d.bg[i][bp], d.bg_dd[i][bp], d.bg_ad[i][bp]
-    t = r_[0:2000]*1e-6
+    t = r_[0:plot_kw['bins'].max()]*1e-6
     nF = 1 if plot_kw['normed'] else H[0].sum()*(bin_width_us)
     
     bins = plot_kw['bins']; ibin = bins.size*F; t_min = bins[ibin]*1e-6
