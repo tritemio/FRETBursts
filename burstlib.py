@@ -827,7 +827,7 @@ class Data(DataContainer):
             if self.ALEX: self.nt[i] += self.naa[i]
         self.add(bt_corrected=True)
 
-    def background_correction_t(self, relax_nt=True):
+    def background_correction_t(self, relax_nt=False):
         """Apply background correction to burst sizes (nd, na,...)
         """
         if self.bg_corrected: return -1
