@@ -548,7 +548,18 @@ class Data(DataContainer):
         Example:
             d.calc_bg(bg_calc_exp, time_s=20, tail_min_us=200)
         """
-        pprint(" - Calculating BG rates ... ") 
+        pprint(" - Calculating BG rates ... ")
+        
+        if 'tail_min_us' in kwargs and not self.ALEX:
+            tail_min_us = kwargs.pop('tail_min_us')
+            if np.size(tail_min_us) == 3:
+                th_us, thd_us, tha_us = tail_min_us
+            else:
+                th_us = thd_us = tha_us = tail_min_us
+        else:
+            print 'Warning: no threshold specified, using default'
+            th_us = thd_us = tha_us = 300
+        
         kwargs.update(clk_p=self.clk_p)
         time_clk = time_s/self.clk_p
         BG, BG_dd, BG_ad, BG_aa, Lim, Ph_p = [], [], [], [], [], []
@@ -561,19 +572,21 @@ class Data(DataContainer):
                 i0 = 0 if ip == 0 else i1  # pylint: disable=E0601
                 i1 = (ph < (ip+1)*time_clk).sum()
                 cph = ph[i0:i1]
-                bg[ip] = fun(cph, **kwargs)
+                bg[ip] = fun(cph, tail_min_us=th_us, **kwargs)
                 if not self.ALEX:
                     a_em = self.A_em[ich] 
                     if (-a_em[i0:i1]).any():
-                        bg_dd[ip] = fun(cph[-a_em[i0:i1]], **kwargs)
+                        bg_dd[ip] = fun(cph[-a_em[i0:i1]], tail_min_us=thd_us,
+                                        **kwargs)
                     if (a_em[i0:i1]).any():
-                        bg_ad[ip] = fun(cph[a_em[i0:i1]], **kwargs)
+                        bg_ad[ip] = fun(cph[a_em[i0:i1]], tail_min_us=tha_us,
+                                        **kwargs)
                 else:
                     a_em, a_ex = self.A_em[ich], self.A_ex[ich]
                     d_em, d_ex = self.D_em[ich], self.D_ex[ich]
-                    bg_dd[ip] = fun(cph[d_em[i0:i1]*d_ex[i0:i1]])
-                    bg_ad[ip] = fun(cph[a_em[i0:i1]*d_ex[i0:i1]])
-                    bg_aa[ip] = fun(cph[a_em[i0:i1]*a_ex[i0:i1]])
+                    bg_dd[ip] = fun(cph[d_em[i0:i1]*d_ex[i0:i1]], **kwargs)
+                    bg_ad[ip] = fun(cph[a_em[i0:i1]*d_ex[i0:i1]], **kwargs)
+                    bg_aa[ip] = fun(cph[a_em[i0:i1]*a_ex[i0:i1]], **kwargs)
                 lim.append((i0, i1-1))
                 ph_p.append((ph[i0], ph[i1-1]))
             BG.append(bg)
