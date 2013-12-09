@@ -1,4 +1,4 @@
-from exp_fitting import expon_fit, expon_fit_cdf
+from exp_fitting import expon_fit, expon_fit_cdf, expon_fit_hist
 from gaussian_fitting import (
         gaussian_fit_hist,
         gaussian_fit_pdf,

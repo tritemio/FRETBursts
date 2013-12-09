@@ -29,6 +29,17 @@ def bg_calc_gauss(ph, bin_ms=10, clk_p=12.5e-9):
     mu2, sig2 = gaussian_fit_hist(tt2, mu0=mu, sigma0=sig)
     return mu2/(bin_ms*1e-3)#, sig2/(bin_ms*1e-3)
 
+def bg_calc_hist(ph, tail_min_us, binw=0.1e-3, clk_p=12.5e-9):
+    """Returns the BG rate of ph calculated from the hist (PDF) of timetrace.
+    """   
+    assert np.size(ph) > 0
+    dph = np.diff(ph)
+    tail_min = tail_min_us*1e-6/clk_p
+    binw_clk = binw/clk_p
+    bins = np.arange(0, dph.max(), binw_clk)
+    Lambda = expon_fit_hist(dph, bins=bins, s_min=tail_min)/clk_p
+    return Lambda
+
 def bg_calc_exp(ph, fit_fun=expon_fit, tail_min_p=0.1, tail_min_us=None, 
                      clk_p=12.5e-9):
     """Return BG rate for ph computed as mean of delays (above a min value).

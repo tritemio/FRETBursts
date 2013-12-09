@@ -30,6 +30,24 @@ def expon_fit_cdf(s, s_min=0):
     Lambda = -L[0]
     return Lambda
 
+def expon_fit_hist(s, bins, s_min=0):
+    """Eponential fit of samples s using a curve fit of the histogram.
+    All samples < s_min are discarded (s_min must be >= 0).
+    Returns the lambda parameter (1/life-time) of the exponential.
+    """
+    if s_min > 0: s = s[s >= s_min]
+    assert s.size > 0
+    
+    H = N.histogram(s, bins=bins, density=True)
+    x = H[1][:-1] + 0.5*(H[1][1] - H[1][0])
+    y = H[0]
+    
+    exp_fun = lambda x, rate, x_min: N.exp(-(x - x_min)*rate)
+    err_fun = lambda rate, x, y, x_min: exp_fun(x, rate, x_min) - y
+    
+    res = leastsq(err_fun, x0=1./(s.mean() - s_min), args=(x, y, s_min))
+    rate = res[0]
+    return rate
 
 def exp_tail_fit(sample, auto_min_val=0.2, min_val=None, max_val=None,
         end_discard=1., debug=False, plot=False):

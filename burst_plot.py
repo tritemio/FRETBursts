@@ -403,13 +403,21 @@ def hist_bg_fit_single(i,b,d, bp=0, bg='bg_dd', bin_width_us=10, yscale='log',
     xlim(0,1500)
     ylim(ymin=ym)
 
-def hist_bg_fit(i,b,d, bp=0, bin_width_us=10, yscale='log', F=0.1, **kwargs):
+def hist_bg_fit(i, b, d, bp=0, bin_width_us=10, yscale='log', F=0.1, **kwargs):
     """Histog. of ph-delays compared with BG fitting in burst period 'bp'."""
     l1, l2 = d.Lim[i][bp][0], d.Lim[i][bp][1]
     ph = d.ph_times_m[i][l1:l2+1]*d.clk_p
-    a_em = d.A_em[i][l1:l2+1]
-    d_em = -a_em
-    dph, dph_d, dph_a = np.diff(ph), np.diff(ph[d_em]), np.diff(ph[a_em])
+    
+    if d.ALEX:    
+        dd_mask = d.D_em[i][l1:l2+1]*d.D_ex[i][l1:l2+1]
+        ad_mask = d.A_em[i][l1:l2+1]*d.D_ex[i][l1:l2+1]
+        aa_mask = d.A_em[i][l1:l2+1]*d.A_ex[i][l1:l2+1]
+    else:
+        ad_mask = d.A_em[i][l1:l2+1]
+        dd_mask = -ad_mask
+
+    dph = np.diff(ph)
+    dph_d, dph_a = np.diff(ph[dd_mask]), np.diff(ph[ad_mask])
     plot_kw = dict(bins=r_[0:3000:bin_width_us], histtype='step', lw=1.,
                           normed=False)
     plot_kw.update(**kwargs)
