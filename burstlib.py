@@ -821,23 +821,6 @@ class Data(DataContainer):
     ##
     # Corrections methods
     #
-    def bleed_through_correction(self, relax_nt=True):
-        """Apply bleed-through correction to burst sizes (nd, na,...)
-        """
-        if self.bt_corrected: return -1
-        pprint("   - Applying leakage correction.\n")
-        assert (size(self.BT) == 1) or (size(self.BT) == self.nch)
-        BT = self.get_BT_array()
-        for i in range(self.nch):
-            if self.na[i].size == 0: continue  # if no bursts skip this ch
-            self.na[i] -= self.nd[i]*BT[i]
-            if relax_nt:
-                self.nt[i] -= self.nd[i]*BT[i]
-            else:
-                self.nt[i] = self.nd[i]+self.na[i]
-            if self.ALEX: self.nt[i] += self.naa[i]
-        self.add(bt_corrected=True)
-
     def background_correction_t(self, relax_nt=False):
         """Apply background correction to burst sizes (nd, na,...)
         """
@@ -851,6 +834,7 @@ class Data(DataContainer):
             self.nd[ich] -= self.bg_dd[ich][period] * width
             self.na[ich] -= self.bg_ad[ich][period] * width
             if relax_nt:
+                # This does not guarantee that nt = nd + na
                 self.nt[ich] -= self.bg[ich][period] * width
             else:
                 self.nt[ich] = self.nd[ich] + self.na[ich]
@@ -858,6 +842,20 @@ class Data(DataContainer):
                 self.naa[ich] -= self.bg_aa[ich][period] * width
                 self.nt[ich] += self.naa[ich]
     
+    def bleed_through_correction(self):
+        """Apply bleed-through correction to burst sizes (nd, na,...)
+        """
+        if self.bt_corrected: return -1
+        pprint("   - Applying leakage correction.\n")
+        assert (size(self.BT) == 1) or (size(self.BT) == self.nch)
+        BT = self.get_BT_array()
+        for i in range(self.nch):
+            if self.na[i].size == 0: continue  # if no bursts skip this ch
+            self.na[i] -= self.nd[i]*BT[i]
+            self.nt[i] = self.nd[i] + self.na[i]
+            if self.ALEX: self.nt[i] += self.naa[i]
+        self.add(bt_corrected=True)
+
     def dither(self, lsb=2):
         """Add dithering (uniform random noise) to burst sizes (nd, na,...).
         `lsb` is the amplitude of dithering (if lsb=2 then noise is in -1..1).
