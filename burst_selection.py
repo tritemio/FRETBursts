@@ -108,10 +108,6 @@ def select_bursts_time(d, ich=0, time_s1=0, time_s2=None):
     burst_mask = (burst_start >= time_s1)*(burst_start <= time_s2)
     return burst_mask, ''
 
-def select_bursts_raw_L(d, ich=0, L=20):
-    """Select the bursts with raw (uncorrected) total size >= L."""
-    bursts_mask = (d.mburst[ich][:,inum_ph] >= L)
-    return bursts_mask, ''
 def select_bursts_nd(d, ich=0, th1=20, th2=1000):
     """Select bursts with (nd >= th1) and (nd <= th2)."""
     bursts_mask = (d.nd[ich] >= th1)*(d.nd[ich] <= th2)
@@ -124,11 +120,6 @@ def select_bursts_naa(d, ich=0, th1=20, th2=1000):
     """Select bursts with (naa >= th1) and (naa <= th2)."""
     bursts_mask = (d.naa[ich] >= th1)*(d.naa[ich] <= th2)
     return bursts_mask, ''
-def select_bursts_nt(d, ich=0, th1=20, th2=1000):
-    """Select bursts with (nt >= th1) and (nt <= th2). Note: nt = nd+na/gamma"""
-    nt = d.nt[ich]
-    bursts_mask = (nt >= th1)*(nt <= th2)
-    return bursts_mask, ' nt_th1_%d' % th1
 def select_bursts_nda(d, ich=0, th1=20, th2=1000, gamma=1., gamma1=None):
     """Select bursts with (nd+na >= th1) and (nd+na <= th2).
     If `gamma` or `gamma1` is specified burst size is computed as:
@@ -176,12 +167,40 @@ def select_bursts_width(d, ich=0, th1=0.5, th2=1):
     bursts_mask = (burst_width >= th1)*(burst_width <= th2)
     return bursts_mask, ''
 
-def select_bursts_for_bt_fit(d, ich=0, BT=None):
-    """Select bursts for more accurate BT fitting (select before BG corr.)"""
-    assert size(BT) == d.nch
-    # Selection to be applied as a second-step fit after a first BT fit.
-    bursts_mask = (d.na[ich] <= 2*BT[ich]*d.nd[ich])
-    return bursts_mask, ''
+
+# Selection on burst rate
+def select_bursts_max_rate(d, ich=0, min_rate_p=0.1):
+    min_rate = d.max_rate[ich].max()*min_rate_p
+    mask = (d.max_rate[ich] >= min_rate)
+    return mask
+
+
+## Selection on burst time (nearby, overlapping or isolated bursts)
+def select_bursts_single(d, ich=0, th=1):
+    """Select bursts that are at least th millisec apart from the others."""
+    th = th*1e-3/d.clk_p
+    burst_start = d.mburst[ich][:,itstart]
+    burst_end = burst_start + d.mburst[ich][:,iwidth]
+    gap_mask = (burst_start[1:] - burst_end[:-1]) >= th
+    bursts_mask = hstack([gap_mask,False])*hstack([False,gap_mask])
+    return bursts_mask
+def select_bursts_attached(d, ich=0):
+    """Select the first burst of consecutive bursts."""
+    burst_mask = (burst_separation(d, ich=ich) <= 0)
+    return hstack([burst_mask, (False,)])
+def select_bursts_attached2(d, ich=0):
+    """Select the second burst of consecutive bursts."""
+    burst_mask = (burst_separation(d, ich=ich) <= 0)
+    return hstack([(False,), burst_mask])
+def select_bursts_nearby(d, ich=0, ms=0.2, clk_p=12.5e-9):
+    """Select the first burst of bursts disting less than "ms" millisec."""
+    burst_mask = (burst_separation(d, ich=ich) <= (ms*1e-3)/clk_p)
+    return hstack([burst_mask, (False,)])
+def select_bursts_nearby2(d, ich=0, ms=0.2, clk_p=12.5e-9):
+    """Select the second burst of bursts disting less than "ms" millisec."""
+    burst_mask = (burst_separation(d, ich=ich) <= (ms*1e-3)/clk_p)
+    return hstack([(False,), burst_mask])
+
 
 ## Selection on burst size vs BG
 def select_bursts_nd_bg(d, ich=0, F=5):
@@ -242,11 +261,6 @@ def select_bursts_nt_bg_p(d, ich=0, P=0.05, F=1.):
     bursts_mask = (d.nt[ich] >= max_num_bg_ph)
     return bursts_mask
 
-# Selection on burst rate
-def select_bursts_max_rate(d, ich=0, min_rate_p=0.1):
-    min_rate = d.max_rate[ich].max()*min_rate_p
-    mask = (d.max_rate[ich] >= min_rate)
-    return mask
 
 ## Selection on burst skeness
 def select_bursts_centered(d, ich=0, th=0.1):
@@ -260,34 +274,14 @@ def select_bursts_skewness(d, ich=0, th1=0.2, th2=1, **kwargs):
     bursts_mask = (skew_index <= th2)*(skew_index >= th1)
     return bursts_mask
 
-## Selection on burst time (nearby, overlapping or isolated bursts)
-def select_bursts_single(d, ich=0, th=1):
-    """Select bursts that are at least th millisec apart from the others."""
-    th = th*1e-3/d.clk_p
-    burst_start = d.mburst[ich][:,itstart]
-    burst_end = burst_start + d.mburst[ich][:,iwidth]
-    gap_mask = (burst_start[1:] - burst_end[:-1]) >= th
-    bursts_mask = hstack([gap_mask,False])*hstack([False,gap_mask])
-    return bursts_mask
-def select_bursts_attached(d, ich=0):
-    """Select the first burst of consecutive bursts."""
-    burst_mask = (burst_separation(d, ich=ich) <= 0)
-    return hstack([burst_mask, (False,)])
-def select_bursts_attached2(d, ich=0):
-    """Select the second burst of consecutive bursts."""
-    burst_mask = (burst_separation(d, ich=ich) <= 0)
-    return hstack([(False,), burst_mask])
-def select_bursts_nearby(d, ich=0, ms=0.2, clk_p=12.5e-9):
-    """Select the first burst of bursts disting less than "ms" millisec."""
-    burst_mask = (burst_separation(d, ich=ich) <= (ms*1e-3)/clk_p)
-    return hstack([burst_mask, (False,)])
-def select_bursts_nearby2(d, ich=0, ms=0.2, clk_p=12.5e-9):
-    """Select the second burst of bursts disting less than "ms" millisec."""
-    burst_mask = (burst_separation(d, ich=ich) <= (ms*1e-3)/clk_p)
-    return hstack([(False,), burst_mask])
-
 
 ## Old selection functions
+def select_bursts_for_bt_fit(d, ich=0, BT=None):
+    """Select bursts for more accurate BT fitting (select before BG corr.)"""
+    assert size(BT) == d.nch
+    # Selection to be applied as a second-step fit after a first BT fit.
+    bursts_mask = (d.na[ich] <= 2*BT[ich]*d.nd[ich])
+    return bursts_mask, ''
 def select_bursts_size_noise(d, ich=0, th=2):
     """Select bursts w/ size th times above the noise on both D and A ch."""
     burst_width = d.mburst[ich][:,iwidth]
