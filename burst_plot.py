@@ -680,16 +680,20 @@ def hist_size(i,b,d, vmax=1000, bins=r_[:1e3:2]-1, which='all', yscale='log',
     gca().set_yscale(yscale)
     xlabel('# Ph.'); ylabel('# Bursts'); legend(loc='best')
 
-def hist_fret(i,b,d, bins=None, binw=0.02, show_fit=False, 
-        no_text=False, normed=False, weights=None, gamma=1., **kwargs):
+def hist_fret(i,b,d, bins=None, binw=0.02, show_fit=False, show_model=True,
+        no_text=False, normed=False, weights=None, gamma=1., verbose=False, 
+        fit_color='k', fit_alpha=0.5, fit_lw=2.5, fit_fillcolor=None,       
+        **kwargs):
     """Plot the FRET histogram and optionally the fitted peak
     """
     if bins is None: bins = r_[-0.2:1.2:binw]
     #plot_style = dict(color='#4f8ae3', alpha=1, histtype='bar', 
     #        edgecolor='white', lw=1.2)
     plot_style = dict(bins=bins, normed=normed, histtype='stepfilled', 
-                      fc='#80b3ff', ec='#5f8dd3', lw=1.5, alpha=1)    
-    plot_style.update(**kwargs)  # kwargs overwrite plot_style
+                      facecolor='#80b3ff', edgecolor='#5f8dd3', lw=1.5, 
+                      alpha=1)    
+    # kwargs overwrite plot_style
+    plot_style.update(**_normalize_kwargs(kwargs))
     if weights is not None:
         w = fret_fit.get_weights(d.nd[i], d.na[i], weights, gamma=gamma)
         w *= w.size/w.sum()
@@ -700,13 +704,25 @@ def hist_fret(i,b,d, bins=None, binw=0.02, show_fit=False,
     ylim(ymin=0); xlim(-0.2,1.2) 
     if show_fit:
         F = 1 if normed else d.E[i].size*(H[1][1]-H[1][0])
-        fitted_E(i,b,d, F=F, no_E=no_text)
+        kw = dict(color=fit_color, alpha=fit_alpha, lw=fit_lw,
+                  fillcolor=fit_fillcolor)
+        fitted_E(i, b, d, F=F, no_E=no_text, show_model=show_model,
+                 verbose=verbose, **kw)
         if i==0 and not no_text: 
-            figtext(0.4,0.01,get_fit_text(d),fontsize=14)
+            figtext(0.4, 0.01, get_fit_text(d), fontsize=14)
 hist_E = hist_fret
 
-def kde_fret(i,b,d, show_fit=False, weights=None, gamma=1., bandwidth=0.04,
-             no_text=False, verbose=False, **kwargs):
+def _normalize_kwargs(kwargs):
+    if 'ec' in kwargs:
+        kwargs.update(edgecolor=kwargs.pop('ec'))
+    if 'fc' in kwargs:
+        kwargs.update(facecolor=kwargs.pop('fc'))
+    return kwargs
+
+def kde_fret(i,b,d, bandwidth=0.04, show_fit=False, show_model=False,
+             weights=None, gamma=1., no_text=False, verbose=False, 
+             fit_color='k', fit_alpha=0.5, fit_lw=2.5, fit_fillcolor=None,
+             **kwargs):
     """Plot the KDE for FRET distribution and optionally the fitted peak
     """
     E_ax = np.arange(-0.19, 1.19, 0.001)
@@ -717,14 +733,29 @@ def kde_fret(i,b,d, show_fit=False, weights=None, gamma=1., bandwidth=0.04,
 
     plot_style = dict(facecolor='#80b3ff', edgecolor='#5f8dd3', lw=1.5,
                       alpha=1)
-    plot_style.update(**kwargs)  # kwargs overwrite plot_style
+    # kwargs overwrite plot_style
+    plot_style.update(**_normalize_kwargs(kwargs))
     fill_between(E_ax, E_pdf, **plot_style)
     xlabel('FRET Efficiency')
     ylabel('PDF')
     if show_fit:
-        fitted_E(i,b,d, F=1, no_E=no_text, lw=4, color='k', verbose=verbose)
+        kw = dict(color=fit_color, alpha=fit_alpha, lw=fit_lw, 
+                  fillcolor=fit_fillcolor)
+        fitted_E(i, b, d, F=1, no_E=no_text, show_model=show_model, 
+                 verbose=verbose, **kw)
         if i==0 and not no_text:
-            figtext(0.4,0.01,get_fit_text(d),fontsize=14)
+            figtext(0.4, 0.01, get_fit_text(d), fontsize=14)
+
+def hist_fret_kde(i,b,d, bins=None, binw=0.02, bandwidth=0.04, show_fit=False,
+        no_text=False, weights=None, gamma=1., **kwargs):
+    """Plot the FRET histogram and a KDE overlay
+    """
+    hist_fret(i, b, d, bins=bins, binw=binw, show_fit=show_fit, 
+              no_text=no_text, weights=weights, gamma=gamma, 
+              show_model=False, normed=True, **kwargs)
+    kde_fret(i, b, d, bandwidth=bandwidth, show_fit=False, 
+             weights=weights, gamma=gamma, 
+             facecolor='#8c8c8c', edgecolor='k', lw=2, alpha=0.5, zorder=2)
 
 def get_fit_text(d, pylab=True):
     delta = (d.E_fit.max()-d.E_fit.min())*100
@@ -734,20 +765,25 @@ def get_fit_text(d, pylab=True):
     return fit_text
 
 def fitted_E(i,b,d, F=1, no_E=False, ax=None, lw=2.5, color='k', alpha=0.5,
-             verbose=False):
+             show_model=True, fillcolor=None, verbose=False):
     if ax is None:
         ax2 = gca()
     else: 
         ax2 = twinx(ax=ax)
         ax2.grid(False)
-    if d.fit_E_curve:
+    if d.fit_E_curve and show_model:
         x = r_[-0.2:1.21:0.002]
         y = d.fit_E_model(x, d.fit_E_res[i,:])
-        ax2.plot(x, F*d.fit_E_model_F[i]*y, lw=lw, alpha=alpha, color=color)
+        if fillcolor == None:
+            ax2.plot(x, F*d.fit_E_model_F[i]*y, lw=lw, alpha=alpha, 
+                     color=color)
+        else:
+            ax2.fill_between(x, F*d.fit_E_model_F[i]*y, lw=lw, alpha=alpha,
+                             edgecolor=color, facecolor=fillcolor, zorder=10)
         if verbose: print 'Fit Integral:', np.trapz(F*d.fit_E_model_F[i]*y, x)
 
     ax2.axvline(d.E_fit[i], lw=3, color='r', ls='--', alpha=0.6)
-    xtext = 0.6 if d.E_fit[i] < 0.6 else 0.06
+    xtext = 0.6 if d.E_fit[i] < 0.6 else 0.2
     if not no_E:
         ax2.text(xtext, 0.81,"CH%d: $E_{fit} = %.3f$" % \
                 (i+1, d.E_fit[i]),
@@ -835,7 +871,7 @@ def plot_mburstm_8ch(d, fun=scatter_width_size, sharex=True,sharey=True,
     if AX is None:
         fig, AX = subplots(4,2,figsize=figsize, sharex=sharex, sharey=sharey)
         fig.subplots_adjust(left=0.08, right=0.96, top=0.93, bottom=0.07,
-                wspace=0.1)
+                wspace=0.05)
         old_ax = False
     else:
         fig = AX[0,0].figure
@@ -855,6 +891,7 @@ def plot_mburstm_8ch(d, fun=scatter_width_size, sharex=True,sharey=True,
         ax.grid(pgrid)
         sca(ax)
         fun(i,b,d,**kwargs)
+        if i % 2 == 1: ax.yaxis.tick_right()
     [a.set_xlabel('') for a in AX[:-1,:].ravel()]
     [a.set_ylabel('') for a in AX[:,1:].ravel()]
     if sharex:
