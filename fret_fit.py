@@ -176,6 +176,10 @@ def get_weights(nd, na, weights, gamma=1.):
         weights = np.ones(nd.size)
     elif weights is 'size':       # Multiply each error by the burst size
         weights = nt
+    elif weights is 'size_min':   # Multiply each error by offset burst size
+        weights = nt - nt.min() + 1
+    elif weights is 'size2':      # Multiply each error by the (burst size)^2
+        weights = nt**2
     elif weights is 'sqrt':       # Multiply each error by sqrt(burst size)
         weights = np.sqrt(nt)
     elif weights is 'inv_size':   # Multiply each error by 1/(burst size)
