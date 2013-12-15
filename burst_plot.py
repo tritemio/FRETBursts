@@ -126,10 +126,10 @@ def plot_alternation_hist_sel(d, **kwargs):
     axvline(d.A_ON[0], color='r', lw=2); axvline(d.A_ON[1], color='r', lw=2)
     legend(loc='best')
 
-def hist2d_alex(i,b,d, vmin=2, vmax=0, bin_step=None, interp='bicubic', 
-        cmap='hot', under_color='white', over_color='white', 
-        scatter=True, scatter_ms=3, scatter_color='orange', scatter_alpha=0.2,
-        gui_sel=False):
+def hist2d_alex(i=0, b=None, d=None, vmin=2, vmax=0, bin_step=None, 
+                interp='bicubic', cmap='hot', under_color='white', 
+                over_color='white', scatter=True, scatter_ms=3, 
+                scatter_color='orange', scatter_alpha=0.2, gui_sel=False):
     if bin_step is not None: d.calc_alex_hist(bin_step=bin_step)
     AH, E_bins,S_bins, E_ax,S_ax = d.AH[i], d.E_bins,d.S_bins, d.E_ax,d.S_ax
 
