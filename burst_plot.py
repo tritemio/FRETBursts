@@ -94,11 +94,13 @@ def bg_plot(d, bg="bg"):
 ## ALEX
 def plot_alternation_hist(d, bins=100, **kwargs):
     figure() 
-    ph_times, D_em_t, period = d.ph_times_t[0], d.D_em_t[0], d.alex_period
+    ph_times_t, det_t, period = d.ph_times_t, d.det_t, d.alex_period
+    d_ch, a_ch = d.det_donor_accept
+    d_em_t = (det_t == d_ch)
     kwargs.update(bins=bins, alpha=0.2)
-    hist(ph_times[D_em_t] % period, color='g', label='D', **kwargs)
-    hist(ph_times[-D_em_t] % period, color='r', label='A', **kwargs)
-    
+    hist(ph_times_t[d_em_t] % period, color='g', label='D', **kwargs)
+    hist(ph_times_t[-d_em_t] % period, color='r', label='A', **kwargs)
+ 
     if d.D_ON[0] < d.D_ON[1]:
         axvspan(d.D_ON[0], d.D_ON[1], color='g', alpha=0.1)
     else:
@@ -403,7 +405,8 @@ def hist_bg_fit_single(i,b,d, bp=0, bg='bg_dd', bin_width_us=10, yscale='log',
     xlim(0,1500)
     ylim(ymin=ym)
 
-def hist_bg_fit(i, b, d, bp=0, bin_width_us=10, yscale='log', F=0.1, **kwargs):
+def hist_bg_fit(i, b, d, bp=0, bin_width_us=10, yscale='log', 
+                t_min_us=300, **kwargs):
     """Histog. of ph-delays compared with BG fitting in burst period 'bp'."""
     l1, l2 = d.Lim[i][bp][0], d.Lim[i][bp][1]
     ph = d.ph_times_m[i][l1:l2+1]*d.clk_p
@@ -424,26 +427,35 @@ def hist_bg_fit(i, b, d, bp=0, bin_width_us=10, yscale='log', F=0.1, **kwargs):
     H = hist(dph*1e6, color='k', **plot_kw)
     Hd = hist(dph_d*1e6, color='g', **plot_kw)
     Ha = hist(dph_a*1e6, color='r', **plot_kw)
+    if d.ALEX:
+        Haa = hist(np.diff(ph[aa_mask])*1e6, color='m', **plot_kw)
+        
     gca().set_yscale('log')
     xlabel(u'Ph delay time (μs)'); ylabel("# Ph")
 
     efun = lambda t, r: np.exp(-r*t)*r
-    r, rd, ra = d.bg[i][bp], d.bg_dd[i][bp], d.bg_ad[i][bp]
+    r, rd, ra, = d.bg[i][bp], d.bg_dd[i][bp], d.bg_ad[i][bp]
+    raa = d.bg_aa[i][bp]
     t = r_[0:plot_kw['bins'].max()]*1e-6
-    nF = 1 if plot_kw['normed'] else H[0].sum()*(bin_width_us)
+    #nF = 1 if plot_kw['normed'] else H[0].sum()*(bin_width_us)
     
-    bins = plot_kw['bins']; ibin = bins.size*F; t_min = bins[ibin]*1e-6
-    C = H[0][ibin]/efun(t_min, r)
-    Cd = Hd[0][ibin]/efun(t_min, rd); Ca = Ha[0][ibin]/efun(t_min, ra)
-    plot(t*1e6,C*efun(t,r), lw=3, alpha=0.5, color='k', 
+    bins = plot_kw['bins'] #; ibin = bins.size*F; t_min = bins[ibin]*1e-6
+    ibin = find(bins >= t_min_us)[0]
+    C = H[0][ibin]/efun(t_min_us*1e-6, r)
+    Cd = Hd[0][ibin]/efun(t_min_us*1e-6, rd)
+    Ca = Ha[0][ibin]/efun(t_min_us*1e-6, ra)
+    Caa = Haa[0][ibin]/efun(t_min_us*1e-6, raa)
+    plot(t*1e6, C*efun(t, r), lw=3, alpha=0.5, color='k', 
         label="T:  %d cps" % r)
-    plot(t*1e6,Cd*efun(t,rd), lw=3, alpha=0.5, color='g', 
+    plot(t*1e6, Cd*efun(t, rd), lw=3, alpha=0.5, color='g', 
         label="DD:  %d cps" % rd)
-    plot(t*1e6,Ca*efun(t,ra), lw=3, alpha=0.5, color='r', 
+    plot(t*1e6, Ca*efun(t, ra), lw=3, alpha=0.5, color='r', 
         label="AD:  %d cps" % ra)
+    plot(t*1e6, Caa*efun(t, raa), lw=3, alpha=0.5, color='m', 
+        label="AD:  %d cps" % raa)
     ym = 0.5
     if plot_kw['normed']: ym = 0.1/ph.size
-    legend(loc='best', fancybox=True); xlim(0,1500); ylim(ymin=ym)
+    legend(loc='best', fancybox=True); ylim(ymin=ym)
 
 def hist_ph_delays(i,b,d, time_min_s=0, time_max_s=30, bin_width_us=10, 
         mask=None, yscale='log', gfit_bin_ms=10, efit_tail_min_p=0.1,

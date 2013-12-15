@@ -56,6 +56,16 @@ ip.magic("run -i burst_selection.py")
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Bursts and Timestamps utilities
 #
+def get_alex_fraction(on_range, alex_period):
+    """Get the fraction of period beween two numbers indicating a range.
+    """
+    assert len(on_range) == 2
+    if on_range[0] < on_range[1]: 
+        fraction = 1.*(on_range[1] - on_range[0])/alex_period
+    else: 
+        fraction = 1.*(alex_period + on_range[1] - on_range[0])/alex_period
+    return fraction
+
 def top_tail(nx, a=0.1):
     """Return for each ch the mean size of the top `a` fraction.
     nx is one of nd, na, nt from Data() (list of burst size in each ch).
@@ -552,17 +562,17 @@ class Data(DataContainer):
         
         if 'tail_min_us' in kwargs:
             tail_min_us = kwargs.pop('tail_min_us')
-            if np.size(tail_min_us) > 1:
-                if not self.ALEX and np.size(tail_min_us) == 3:
-                    th_us, thd_us, tha_us = tail_min_us
-                else:
-                    th_us, thd_us, tha_us, thaa_us = tail_min_us
-                    print th_us, thd_us, tha_us, thaa_us
-            else:
+            if np.size(tail_min_us) == 1:
                 th_us = thd_us = tha_us = thaa_us = tail_min_us
+            elif np.size(tail_min_us) == 3:
+                th_us, thd_us, tha_us = tail_min_us
+            elif  np.size(tail_min_us) == 4:
+                th_us, thd_us, tha_us, thaa_us = tail_min_us
+            else:
+                raise ValueError('`tail_min_us` must be of size 1, 3 or 4.')
         else:
-            print 'Warning: no threshold specified, using default'
-            th_us = thd_us = tha_us = 300
+            th_us = thd_us = tha_us = thaa_us = 300
+            print 'Warning: no threshold specified, using default (300)'
         
         kwargs.update(clk_p=self.clk_p)
         time_clk = time_s/self.clk_p
@@ -570,33 +580,38 @@ class Data(DataContainer):
         rate_m, rate_dd, rate_ad, rate_aa = [], [], [], []
         for ich, ph in enumerate(self.ph_times_m):
             nperiods = int(np.ceil(ph[-1]/time_clk))
+            if not self.ALEX:
+                ad_mask = self.A_em[ich]
+                dd_mask = -ad_mask
+            else:
+                dd_mask = self.D_em[ich]*self.D_ex[ich]
+                ad_mask = self.A_em[ich]*self.D_ex[ich]
+                aa_mask = self.A_em[ich]*self.A_ex[ich]
+            
             bg, lim, ph_p = zeros(nperiods), [], []
             bg_dd, bg_ad, bg_aa = [zeros(nperiods) for _ in [1, 1, 1]]
             for ip in xrange(nperiods):
-                i0 = 0 if ip == 0 else i1  # pylint: disable=E0601
+                i0 = 0 if ip == 0 else i1           # pylint: disable=E0601
                 i1 = (ph < (ip+1)*time_clk).sum()
-                cph = ph[i0:i1]
-                bg[ip] = fun(cph, tail_min_us=th_us, **kwargs)
-                if not self.ALEX:
-                    ad_mask = self.A_em[ich][i0:i1]
-                    dd_mask = -ad_mask
-                else:
-                    a_em, a_ex = self.A_em[ich], self.A_ex[ich]
-                    d_em, d_ex = self.D_em[ich], self.D_ex[ich]
-                    dd_mask = d_em[i0:i1]*d_ex[i0:i1]
-                    ad_mask = a_em[i0:i1]*d_ex[i0:i1]
-                    aa_mask = a_em[i0:i1]*a_ex[i0:i1]
-                    
+
+                ph_i = ph[i0:i1]
+                dd_mask_i = dd_mask[i0:i1]
+                ad_mask_i = ad_mask[i0:i1]
+
+                bg[ip] = fun(ph_i, tail_min_us=th_us, **kwargs)
+                
                 if dd_mask.any():
                     bg_dd[ip] = fun(
-                                cph[dd_mask], tail_min_us=thd_us, **kwargs)
+                                ph_i[dd_mask_i], tail_min_us=thd_us, **kwargs)
+
                 if ad_mask.any():
                     bg_ad[ip] = fun(
-                                cph[ad_mask], tail_min_us=tha_us, **kwargs)
-                
+                                ph_i[ad_mask_i], tail_min_us=tha_us, **kwargs)
+                        
                 if self.ALEX and aa_mask.any():
+                    aa_mask_i = aa_mask[i0:i1]
                     bg_aa[ip] = fun(
-                                cph[aa_mask], tail_min_us=thaa_us, **kwargs)
+                                ph_i[aa_mask_i], tail_min_us=thaa_us, **kwargs)
 
                 lim.append((i0, i1-1))
                 ph_p.append((ph[i0], ph[i1-1]))
