@@ -452,7 +452,7 @@ def hist_bg_fit(i, b, d, bp=0, bin_width_us=10, yscale='log',
     plot(t*1e6, Ca*efun(t, ra), lw=3, alpha=0.5, color='r', 
         label="AD:  %d cps" % ra)
     plot(t*1e6, Caa*efun(t, raa), lw=3, alpha=0.5, color='m', 
-        label="AD:  %d cps" % raa)
+        label="AA:  %d cps" % raa)
     ym = 0.5
     if plot_kw['normed']: ym = 0.1/ph.size
     legend(loc='best', fancybox=True); ylim(ymin=ym)
