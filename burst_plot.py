@@ -720,7 +720,7 @@ def hist_fret(i,b,d, bins=None, binw=0.02, show_fit=False, show_model=True,
                   fillcolor=fit_fillcolor)
         fitted_E(i, b, d, F=F, no_E=no_text, show_model=show_model,
                  verbose=verbose, **kw)
-        if i==0 and not no_text: 
+        if i == 1 and not no_text: 
             figtext(0.4, 0.01, get_fit_text(d), fontsize=14)
 hist_E = hist_fret
 
@@ -796,7 +796,7 @@ def fitted_E(i,b,d, F=1, no_E=False, ax=None, lw=2.5, color='k', alpha=0.5,
 
     ax2.axvline(d.E_fit[i], lw=3, color='r', ls='--', alpha=0.6)
     xtext = 0.6 if d.E_fit[i] < 0.6 else 0.2
-    if not no_E:
+    if d.nch > 1 and not no_E:
         ax2.text(xtext, 0.81,"CH%d: $E_{fit} = %.3f$" % \
                 (i+1, d.E_fit[i]),
                 transform = gca().transAxes, fontsize=16,
@@ -919,11 +919,15 @@ def plot_mburstm_8ch(d, fun=scatter_width_size, sharex=True,sharey=True,
     #s = RangeToolQT(fig)
     return AX,s
 
-def plot_mburstm_1ch(d, fun, scroll=False, pgrid=True, 
+def plot_mburstm_1ch(d, fun, scroll=False, pgrid=True, ax=None,
         #figsize=(7.5625,3.7125), 
         figsize=(9,4.5), 
         fignum=None, nosuptitle=False, **kwargs):
-    fig = figure(num=fignum, figsize=figsize); ax = fig.add_subplot(111)
+    if ax is None:
+        fig = figure(num=fignum, figsize=figsize)
+        ax = fig.add_subplot(111)
+    else:
+        fig = ax.figure
     try:
         t = d.status() + ' BG=%d cps, T=%dus, #B=%d' %\
                     (d.rate_m[0], d.T[0]*1e6, d.mburst[0].shape[0])
@@ -933,7 +937,7 @@ def plot_mburstm_1ch(d, fun, scroll=False, pgrid=True,
         print "WARNING: No title in plots."
     ax.grid(pgrid)
     b = d.mburst[0] if hasattr(d, 'mburst') else None
-    fun(0,b,d,**kwargs)
+    fun(0, b, d, **kwargs)
     s = None
     if scroll: s = ScrollingToolQT(fig)
     return ax, s
