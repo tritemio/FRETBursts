@@ -747,7 +747,13 @@ def kde_fret(i,b,d, bandwidth=0.04, show_fit=False, show_model=False,
                       alpha=1)
     # kwargs overwrite plot_style
     plot_style.update(**_normalize_kwargs(kwargs))
-    fill_between(E_ax, E_pdf, **plot_style)
+    if plot_style['facecolor'] is None:
+        plot_style.pop('facecolor')
+        if not 'color' in plot_style:
+            plot_style.update(color=plot_style.pop('edgecolor'))
+        plot(E_ax, E_pdf, **plot_style)
+    else:
+        fill_between(E_ax, E_pdf, **plot_style)
     xlabel('FRET Efficiency')
     ylabel('PDF')
     if show_fit:
