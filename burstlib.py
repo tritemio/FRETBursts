@@ -509,7 +509,10 @@ class Data(DataContainer):
 
     def time_max(self):
         """Return the measurement time (last photon) in seconds."""
-        return max([t[-1]*self.clk_p for t in self.ph_times_m])
+        if 'ph_times_m' in self:
+            return max([t[-1]*self.clk_p for t in self.ph_times_m])
+        else:
+            return max([b_end(mb)[-1]*self.clk_p for mb in self.mburst])
     
     def num_bu(self):
         """Return an array with number of bursts for each channel."""
