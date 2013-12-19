@@ -150,13 +150,13 @@ def hist2d_alex(i=0, b=None, d=None, vmin=2, vmax=0, bin_step=None,
     gcf().colorbar(im)
     xlim(-0.2,1.2); ylim(-0.2,1.2)
     xlabel('E'); ylabel('S'); grid(color='gray')
-    if gui_sel:    
+    if gui_sel:
         fig, GSel.fig, GSel.ax = gcf(), gcf(), gca()
         if hasattr(GSel, 'r'): 
             delattr(GSel, 'r') # delete rectangle from old figs
-            GSel.id_press = fig.canvas.mpl_connect('button_press_event', 
+        GSel.id_press = fig.canvas.mpl_connect('button_press_event', 
                                                    _on_press)
-            GSel.id_rls = fig.canvas.mpl_connect('button_release_event', 
+        GSel.id_rls = fig.canvas.mpl_connect('button_release_event', 
                                                  _on_release)
 
 def time_ph(i,b,d, num_ph=1e4, ph_istart=0):
