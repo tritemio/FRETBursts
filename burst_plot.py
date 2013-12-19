@@ -658,8 +658,10 @@ def scatter_alex(i,b,d, alpha=0.2):
     xlabel("E"); ylabel('S')
     xlim(-0.2,1.2); ylim(-0.2,1.2)
 
-def hist_width(i,b,d, bins=r_[0:10:0.025], yscale='log', **kwargs):
-    histog, bins = np.histogram(b_width(b)*d.clk_p*1e3, bins=bins)
+def hist_width(i,b,d, bins=r_[0:10:0.025], yscale='log', density=True,
+               **kwargs):
+    histog, bins = np.histogram(b_width(b)*d.clk_p*1e3, bins=bins, 
+                                density=density)
     #bins *= d.clk_p  # (ms)
     bins = bins[:-1]#+(bins[1]-bins[0])/2.
     plot_style = dict(color='red', lw=2)
