@@ -1151,7 +1151,7 @@ class Data(DataContainer):
         fit_res = zeros((self.nch, 5))
         for ich, (nd, na, E) in enumerate(zip(self.nd, self.na, self.E)):
             w = fret_fit.get_weights(nd, na, weights, gamma)
-            fit_res[ich, :] = fit_func(E, w=w, **kwargs)
+            fit_res[ich, :] = fit_func(E, weights=w, **kwargs)
         self.add(fit_E_res=fit_res, fit_E_name=fit_func.__name__, 
                 E_fit=fit_res[:,2], fit_E_curve=True,
                 fit_E_model=two_gauss_mix_pdf, 
