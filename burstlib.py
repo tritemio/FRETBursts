@@ -511,8 +511,12 @@ class Data(DataContainer):
         """Return the measurement time (last photon) in seconds."""
         if 'ph_times_m' in self:
             return max([t[-1]*self.clk_p for t in self.ph_times_m])
-        else:
+        elif 'ph_times_t' in self:
+            return self.ph_times_t.max()
+        elif 'mburst' in self:
             return max([b_end(mb)[-1]*self.clk_p for mb in self.mburst])
+        else:
+            raise ValueError("No timestamps or bursts found.")
     
     def num_bu(self):
         """Return an array with number of bursts for each channel."""
