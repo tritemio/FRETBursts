@@ -84,7 +84,7 @@ def load_usalex(fname, BT=0, gamma=1., header=166, bytes_to_read=-1):
               )
     return dx
 
-def usalex_apply_period(d, delete_ph_t=True):
+def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
     """Applies the alternation period previously set.
     
     To load usALEX data follow this pattern:
@@ -108,9 +108,6 @@ def usalex_apply_period(d, delete_ph_t=True):
     assert (d_ch_mask_val + a_ch_mask_val).all()
     assert not (d_ch_mask_val * a_ch_mask_val).any()
     
-    print "#donor: %d  #acceptor: %d \n" % (d_ch_mask_val.sum(), 
-                                            a_ch_mask_val.sum())
-
     # Build masks for excitation windows
     d_ex_mask_val = _select_range(ph_times_val, d.alex_period, d.D_ON)
     a_ex_mask_val = _select_range(ph_times_val, d.alex_period, d.A_ON)
@@ -126,10 +123,22 @@ def usalex_apply_period(d, delete_ph_t=True):
     d_ex = d_ex_mask_val[mask]
     a_ex = a_ex_mask_val[mask]
     
+    if remove_d_em_a_ex:
+        # Removes donor-ch photons during acceptor excitation
+        mask = a_em + d_em*d_ex
+        assert (mask == -(a_ex*d_em)).all()
+
+        ph_times = ph_times[mask]
+        d_em = d_em[mask]
+        a_em = a_em[mask]
+        d_ex = d_ex[mask]
+        a_ex = a_ex[mask]    
+
     assert d_em.sum() + a_em.sum() == ph_times.size
     assert (d_em * a_em).any() == False
     assert a_ex.size == a_em.size == d_ex.size == d_em.size == ph_times.size
-    
+    print "#donor: %d  #acceptor: %d \n" % (d_em.sum(), a_em.sum())
+
     d.add(ph_times_m=[ph_times],
           D_em=[d_em], A_em=[a_em], D_ex=[d_ex], A_ex=[a_ex],)
           
