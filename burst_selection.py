@@ -120,16 +120,20 @@ def select_bursts_naa(d, ich=0, th1=20, th2=1000):
     """Select bursts with (naa >= th1) and (naa <= th2)."""
     bursts_mask = (d.naa[ich] >= th1)*(d.naa[ich] <= th2)
     return bursts_mask, ''
-def select_bursts_nda(d, ich=0, th1=20, th2=1000, gamma=1., gamma1=None):
+def select_bursts_nda(d, ich=0, th1=20, th2=1000, gamma=1., gamma1=None,
+                      add_naa=False):
     """Select bursts with (nd+na >= th1) and (nd+na <= th2).
     If `gamma` or `gamma1` is specified burst size is computed as:
         nd+na/gamma  (so th1 is the min. burst size for donly bursts)
         nd*gamma1+na (so th1 is the min. burst size for high FRET bursts)
+    If data is ALEX and `add_naa` is True, `naa` is added to burst-size.
     """
     if gamma1 is not None: 
         burst_size = (1.*d.nd[ich]*gamma1 + d.na[ich])
     else:
         burst_size = (d.nd[ich] + 1.*d.na[ich]/gamma)
+    if d.ALEX and add_naa: 
+        burst_size += d.naa[ich]
     bursts_mask = (burst_size >= th1)*(burst_size <= th2)
     s = "nda_th%d" % th1
     if th2 < 1000: s +="_th2_%d" % th2
