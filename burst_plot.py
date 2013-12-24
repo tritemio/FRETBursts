@@ -237,8 +237,11 @@ def timetrace_da(i,b,d, bin_width=1e-3, bins=100000, bursts=False):
         plot(t_a, -tr_a, 'r', lw=1.5, alpha=0.8)
         _timetrace_bg(d,i,-r_[d.bg_ad], bin_width=bin_width, color='k', 
                 Th=False)
-    
     xlabel('Time (s)'); ylabel('# ph')
+    if i == 0:
+        timetrace_da.burst_sel = MultiAxPointSelection(gcf(), gca(), d)
+    else:
+        timetrace_da.burst_sel.ax_list.append(gca())
 
 def timetrace(i,b,d, bin_width=1e-3, bins=100000, bursts=False, F=None):
     if bursts:
@@ -252,6 +255,10 @@ def timetrace(i,b,d, bin_width=1e-3, bins=100000, bursts=False, F=None):
     plot(time, trace, 'b', lw=1.5)
     _timetrace_bg(d,i,d.bg, bin_width=bin_width, F=F)
     xlabel('Time (s)'); ylabel('# ph')
+    if i == 0:
+        timetrace.burst_sel = MultiAxPointSelection(gcf(), gca(), d)
+    else:
+        timetrace.burst_sel.ax_list.append(gca())
 
 def ratetrace(i,b,d, m=None, max_ph=1e6, pmax=1e6, bursts=False, F=None):
     if m is None: m = d.m
@@ -265,12 +272,10 @@ def ratetrace(i,b,d, m=None, max_ph=1e6, pmax=1e6, bursts=False, F=None):
     plot(times,rates)
     _timetrace_bg(d,i,d.bg, F=F)
     xlabel('Time (s)'); ylabel('# ph')
-    PSel.fig = gcf()
-    PSel.AX.append(gca())
-    if not PSel.connected:
-        PSel.d = d
-        PSel.id_press = PSel.fig.canvas.mpl_connect('button_press_event',
-            on_press_point)
+    if i == 0:
+        ratetrace.burst_sel = MultiAxPointSelection(gcf(), gca(), d)
+    else:
+        ratetrace.burst_sel.ax_list.append(gca())
     
 def ratetrace_da(i,b,d, m=None, max_ph=1e6, pmax=1e6, bursts=False, F=None):
     if m is None: m = d.m
@@ -296,16 +301,13 @@ def ratetrace_da(i,b,d, m=None, max_ph=1e6, pmax=1e6, bursts=False, F=None):
         r_aa = ph_rate(m, ph_aa[:max_ph])/d.clk_p
         t_aa = ph_rate_t(m, ph_aa[:max_ph])*d.clk_p
         plot(t_aa, -r_aa, 'm')
-    _timetrace_bg(d,i,d.bg_dd, F=F, color='k')
-    _timetrace_bg(d,i,-r_[d.bg_ad], F=F, color='k')
+    _timetrace_bg(d, i, d.bg_dd, F=F, color='k')
+    _timetrace_bg(d, i, -r_[d.bg_ad], F=F, color='k')
     xlabel('Time (s)'); ylabel('# ph')
-    
-    PSel.fig = gcf()
-    PSel.AX.append(gca())
-    if not PSel.connected:
-        PSel.d = d
-        PSel.id_press = PSel.fig.canvas.mpl_connect('button_press_event',
-            on_press_point)
+    if i == 0:
+        ratetrace_da.burst_sel = MultiAxPointSelection(gcf(), gca(), d)
+    else:
+        ratetrace_da.burst_sel.ax_list.append(gca())
 
 def timetrace_alex(i,b,d, bin_width=1e-3, bins=100000, bursts=False, **plot_kw):
     ph_dd = d.ph_times_m[i][d.D_em[i]*d.D_ex[i]]

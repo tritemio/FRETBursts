@@ -118,40 +118,49 @@ class rectSelection(GuiSelection):
         self.fig.canvas.draw()
 
     def on_release_print(self):
+        # This is the only custom method for hist2d_alex()
         E1, E2 = min((self.xs, self.xe)), max((self.xs, self.xe))
         S1, S2 = min((self.ys, self.ye)), max((self.ys, self.ye))
         pprint("Selection: \nE1=%.2f, E2=%.2f, S1=%.2f, S2=%.2f\n" %\
                 (E1,E2,S1,S2))
+
+
+class MultiAxPointSelection(object):
+    """Class for point selection on a multi-axes plot.
     
+    Used to select/print bursts by clicking in timetrace_ and ratetrace_ plots.
+    """
+    def __init__(self, fig, ax, d, debug=False):
+        self.ax_list = [ax]
+        self.fig = fig
+        self.d = d
+        self.debug = debug
+        self.id_press = fig.canvas.mpl_connect('button_press_event', 
+                                                self.on_press)
+    def on_press(self, event):
+        if self.debug:
+            print 'PRESS button=%d, x=%d, y=%d, xdata=%f, ydata=%f' % (
+                event.button, event.x, event.y, event.xdata, event.ydata)        
+        iax = [i for i, ax in enumerate(self.ax_list) if ax == event.inaxes]
+        if len(iax) == 0: return
 
-class Point_Selection:
-    """Select a point in a plot"""
-    xp = 0
-    yp = 0
-    AX = []
-    d = None
-    connected = False
-
-PSel = Point_Selection()
-
-def on_press_point(event):
-    axb = r_[[ax == event.inaxes for ax in PSel.AX]]
-    if not axb.any(): return
-    ich = find(axb)
-    ax = PSel.AX[ich]
-
-    PSel.xp, PSel.yp, PSel.ich = event.xdata, event.ydata, ich
-    #print 'PRESS button=%d, x=%d, y=%d, xdata=%f, ydata=%f' % (
-    #        event.button, event.x, event.y, event.xdata, event.ydata)
-    pprint("%s %s %s\n" %(PSel.xp, PSel.yp, PSel.ich))
-    mburst = PSel.d.mburst[ich]
-    t_clk = PSel.xp/PSel.d.clk_p
-    mask = (b_start(mburst) < t_clk)*(b_end(mburst) > t_clk)    
-    if mask.any():
-        ib = find(mask)[0]
-        ts = b_start(mburst)[ib]*PSel.d.clk_p
-        skew = bleaching1(PSel.d, ich, ib, use_median=True, normalize=True) 
-        pprint("Burst [%d-CH%d]: t = %d us   nt = %5.1f   E = %4.2f   "
-               "Skew = %.2f\n" % (ib, ich+1, ts*1e6, 
-                   PSel.d.nt[ich][ib], PSel.d.E[ich][ib], skew))
-        
+        self.ich = iax[0]
+        self.xp, self.yp = event.xdata, event.ydata
+        self.on_press_print()
+    
+    def on_press_print(self):
+        if self.debug:
+            pprint("%s %s %s\n" % (self.xp, self.yp, self.ich))
+        mburst = self.d.mburst[self.ich]
+        t_clk = self.xp/self.d.clk_p
+        mask = (b_start(mburst) < t_clk)*(b_end(mburst) > t_clk)    
+        if mask.any():
+            burst_index = find(mask)[0]
+            ts = b_start(mburst)[burst_index]*self.d.clk_p
+            #skew = bleaching1(self.d, self.ich, burst_index, use_median=True, 
+            #                  normalize=True) 
+            pprint("Burst [%d-CH%d]: t = %d us   nt = %5.1f   E = %4.2f \n" % \
+                    (burst_index, self.ich+1, ts*1e6, 
+                     self.d.nt[self.ich][burst_index], 
+                     self.d.E[self.ich][burst_index],))
+                                      #skew))
