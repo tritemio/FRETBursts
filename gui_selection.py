@@ -1,22 +1,128 @@
 """
-Hack to allow GUI selection of bursts in a 2D ALEX histogram.
+GUI selection of a range in a matplotlib figure.
 
-See hist2d_alex() in burst_plot.py.
+Used by hist2d_alex() and other functions in burst_plot.py.
 """
 
-
 from matplotlib.patches import Rectangle, Ellipse
+from utils.misc import pprint
 
-class GUI_Selection:
-    id_motion = 0
-    xs = 0
-    ys = 0
-    xe = 0
-    ye = 0
-    ax = 0
-    pressed = False
 
-GSel = GUI_Selection()
+class GuiSelection(object):
+    """Abstract class for range selection.
+    
+    Methods on_press_draw(), on_motion_draw() and on_release_print() must
+    be overloaded by children classes.
+    """
+    def __init__(self, fig, ax, debug=False):
+        self.ax = ax
+        self.fig = fig
+        self.pressed = False
+        self.debug = debug
+        self.id_press = fig.canvas.mpl_connect('button_press_event', 
+                                                self.on_press)
+    def on_press(self, event):
+        if event.inaxes != self.ax: return
+        self.pressed = True
+        self.xs, self.ys = event.xdata, event.ydata
+        if self.debug: 
+            print 'PRESS button=%d, x=%d, y=%d, xdata=%f, ydata=%f' % (
+                event.button, event.x, event.y, event.xdata, event.ydata)
+        self.on_press_draw()    
+        self.fig.canvas.draw()     
+        self.id_motion = self.fig.canvas.mpl_connect('motion_notify_event', 
+                                                     self.on_motion)
+        self.fig.canvas.mpl_connect('button_release_event', 
+                                             self.on_release)
+
+    def on_motion(self, event):
+        if event.inaxes != self.ax: return
+        if self.debug: 
+            print 'MOTION x=%d, y=%d, xdata=%f, ydata=%f' % (
+                event.x, event.y, event.xdata, event.ydata)
+        self.xe, self.ye = event.xdata, event.ydata
+        self.on_motion_draw()
+        self.fig.canvas.draw()
+     
+    def on_release(self, event):
+        if not self.pressed: return
+        self.pressed = False
+        if self.debug: 
+            print 'RELEASE button=%d, x=%d, y=%d, xdata=%f, ydata=%f' % (
+                event.button, event.x, event.y, event.xdata, event.ydata)
+        self.fig.canvas.mpl_disconnect(self.id_motion)
+        self.on_release_print()
+    
+    def on_press_draw(self):
+        pass
+
+    def on_motion_draw(self):
+        pass
+    
+    def on_release_print(self):
+        pass
+        
+
+class xspanSelection(GuiSelection):
+    """Select an x range on the figure"""
+    def on_press_draw(self):
+        if 'r' in self.__dict__:
+            self.r.set_width(0)
+            self.r.set_xy((self.xs, self.ax.get_ylim()[0]))
+            self.r.set_height(self.ax.get_ylim()[1] - self.ax.get_ylim()[0])
+        else:
+            self.r = Rectangle(xy=(self.xs, self.ax.get_ylim()[0]), 
+                               height=self.ax.get_ylim()[1] - \
+                                      self.ax.get_ylim()[0], 
+                               width=0, fill=True, lw=2, alpha=0.5, 
+                               color='blue')
+            self.ax.add_artist(self.r)
+            self.r.set_clip_box(self.ax.bbox)
+            self.r.set_zorder(10)
+            
+    def on_motion_draw(self):
+        self.r.set_width(self.xe - self.xs)
+    
+    def on_release_print(self):
+        pprint('X Span: (%d, %d)\n' % (self.xs, self.xe))
+        
+        
+class rectSelection(GuiSelection):
+    """Select a rectangular region on the figure (for hist2d_alex())"""
+    def on_press_draw(self):
+        if 'r' in self.__dict__:
+            self.r.set_height(0)
+            self.r.set_width(0)
+            self.r.set_xy((self.xs, self.ys))
+            self.e.height = 0
+            self.e.width = 0
+            self.e.center = (self.xs, self.ys)
+        else:
+            self.r = Rectangle(xy=(self.xs, self.ys), height=0, width=0, 
+                               fill=False, lw=2, alpha=0.5, color='blue')
+            self.e = Ellipse(xy=(self.xs, self.ys), height=0, width=0, 
+                    fill=False, lw=2, alpha=0.6, color='blue')
+            self.ax.add_artist(self.r)
+            self.ax.add_artist(self.e)
+            self.r.set_clip_box(self.ax.bbox)
+            self.r.set_zorder(10)
+            self.e.set_clip_box(self.ax.bbox)
+            self.e.set_zorder(10)
+ 
+    def on_motion_draw(self):
+        self.r.set_height(self.ye - self.ys)
+        self.r.set_width(self.xe - self.xs)
+        self.e.height = (self.ye - self.ys)
+        self.e.width = (self.xe - self.xs)
+        self.e.center = (mean([self.xs, self.xe]), mean([self.ys, self.ye]))
+        self.fig.canvas.draw()
+
+    def on_release_print(self):
+        E1, E2 = min((self.xs, self.xe)), max((self.xs, self.xe))
+        S1, S2 = min((self.ys, self.ye)), max((self.ys, self.ye))
+        pprint("Selection: \nE1=%.2f, E2=%.2f, S1=%.2f, S2=%.2f\n" %\
+                (E1,E2,S1,S2))
+    
 
 class Point_Selection:
     """Select a point in a plot"""
@@ -49,51 +155,3 @@ def on_press_point(event):
                "Skew = %.2f\n" % (ib, ich+1, ts*1e6, 
                    PSel.d.nt[ich][ib], PSel.d.E[ich][ib], skew))
         
-def _on_press(event):
-    if event.inaxes != GSel.ax: return
-    GSel.pressed = True
-    GSel.xs, GSel.ys = event.xdata, event.ydata
-    #print 'PRESS button=%d, x=%d, y=%d, xdata=%f, ydata=%f' % (
-    #        event.button, event.x, event.y, event.xdata, event.ydata)
-    if hasattr(GSel, 'r'):
-        GSel.r.set_height(0); GSel.r.set_width(0)
-        GSel.r.set_xy((GSel.xs,GSel.ys))
-        GSel.e.height = 0; GSel.e.width = 0
-        GSel.e.center = (GSel.xs,GSel.ys)
-    else:
-        GSel.r = Rectangle(xy=(GSel.xs,GSel.ys), height=0, width=0, 
-                fill=False, lw=2, alpha=0.6, color='blue')
-        GSel.e = Ellipse(xy=(GSel.xs,GSel.ys), height=0, width=0, 
-                fill=False, lw=2, alpha=0.6, color='blue')
-        GSel.ax.add_artist(GSel.r)
-        GSel.r.set_clip_box(GSel.ax.bbox); GSel.r.set_zorder(10)
-        GSel.ax.add_artist(GSel.e)
-        GSel.e.set_clip_box(GSel.ax.bbox); GSel.e.set_zorder(10)
-    GSel.fig.canvas.draw()
-    GSel.id_motion = GSel.fig.canvas.mpl_connect('motion_notify_event', 
-            _on_motion)
-
-def _on_release(event):
-    if not GSel.pressed: return
-    GSel.pressed = False
-    #print 'RELEASE button=%d, x=%d, y=%d, xdata=%f, ydata=%f' % (
-    #        event.button, event.x, event.y, event.xdata, event.ydata)
-    GSel.fig.canvas.mpl_disconnect(GSel.id_motion)
-    #print "Selection: \nE1=%.3f; E2=%.3f; S1=%.3f; S2=%.3f" % \
-    #        (GSel.xs, GSel.xe, GSel.ys, GSel.ye)
-    E1, E2 = min((GSel.xs, GSel.xe)), max((GSel.xs, GSel.xe))
-    S1, S2 = min((GSel.ys, GSel.ye)), max((GSel.ys, GSel.ye))
-    print "Selection: \nE1=%.2f, E2=%.2f, S1=%.2f, S2=%.2f" % (E1,E2,S1,S2)
-
-def _on_motion(event):
-    if event.inaxes != GSel.ax: return
-    #print 'MOTION x=%d, y=%d, xdata=%f, ydata=%f' % (
-    #        event.x, event.y, event.xdata, event.ydata)
-    GSel.xe, GSel.ye = event.xdata, event.ydata
-    GSel.r.set_height(GSel.ye-GSel.ys); GSel.r.set_width(GSel.xe-GSel.xs)
-    GSel.e.height=(GSel.ye-GSel.ys); GSel.e.width = (GSel.xe-GSel.xs)
-    GSel.e.center = (mean([GSel.xs,GSel.xe]),mean([GSel.ys,GSel.ye]))
-    GSel.fig.canvas.draw()
-
-
-

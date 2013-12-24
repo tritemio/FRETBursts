@@ -151,13 +151,8 @@ def hist2d_alex(i=0, b=None, d=None, vmin=2, vmax=0, bin_step=None,
     xlim(-0.2,1.2); ylim(-0.2,1.2)
     xlabel('E'); ylabel('S'); grid(color='gray')
     if gui_sel:
-        fig, GSel.fig, GSel.ax = gcf(), gcf(), gca()
-        if hasattr(GSel, 'r'): 
-            delattr(GSel, 'r') # delete rectangle from old figs
-        GSel.id_press = fig.canvas.mpl_connect('button_press_event', 
-                                                   _on_press)
-        GSel.id_rls = fig.canvas.mpl_connect('button_release_event', 
-                                                 _on_release)
+        # the selection object must be saved (otherwise will be destroyed)
+        hist2d_alex.gui_sel = rectSelection(gcf(), gca())
 
 def time_ph(i,b,d, num_ph=1e4, ph_istart=0):
     """Plot 'num_ph' ph starting at 'ph_istart' marking burst start/end."""
