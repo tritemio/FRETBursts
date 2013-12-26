@@ -169,22 +169,26 @@ def get_dist_euclid(nd, na, E_fit=None, slope=None):
     return distances
 
 def get_weights(nd, na, weights, gamma=1.):
-    """Get the weigths used to scale the errors according to different criteria
+    """Return burst weigths computed according to different criteria.
+    
+    `nd`, `na`: background corrected donor and acceptor ph. per burst
+    `weights`: (string) type of weights (if None returns uniform weights).
+                see source for all the possible weights.
     """
     nt = nd*gamma + na
-    if weights is None:           # All errors weighted the same
+    if weights is None:           # all weights the same
         weights = np.ones(nd.size)
-    elif weights is 'size':       # Multiply each error by the burst size
+    elif weights is 'size':       # weight = burst size (with gamma)
         weights = nt
-    elif weights is 'size_min':   # Multiply each error by offset burst size
+    elif weights is 'size_min':   # weight = burst size - min(burst size)
         weights = nt - nt.min() + 1
-    elif weights is 'size2':      # Multiply each error by the (burst size)^2
+    elif weights is 'size2':      # weight = (burst size)^2
         weights = nt**2
-    elif weights is 'sqrt':       # Multiply each error by sqrt(burst size)
+    elif weights is 'sqrt':       # weigth = sqrt(burst size)
         weights = np.sqrt(nt)
-    elif weights is 'inv_size':   # Multiply each error by 1/(burst size)
+    elif weights is 'inv_size':   # weight = 1/(burst size)
         weights = 1./(nt)
-    elif weights is 'inv_sqrt':   # Multiply each error by 1/sqrt(burst size)
+    elif weights is 'inv_sqrt':   # weight = 1/sqrt(burst size)
         weights = 1./np.sqrt(nt)
     else:
         raise ValueError
