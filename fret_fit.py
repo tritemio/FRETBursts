@@ -190,6 +190,12 @@ def get_weights(nd, na, weights, gamma=1.):
         weights = 1./(nt)
     elif weights is 'inv_sqrt':   # weight = 1/sqrt(burst size)
         weights = 1./np.sqrt(nt)
+    elif weights is 'cum_size':   # weight = CDF_of_burst_sizes(burst size)
+        ecdf = [np.sort(nt), 1.*np.arange(1, nt.size+1)/nt.size]        
+        weights = np.interp(nt, ecdf[0], ecdf[1], left=0, right=1)
+    elif weights is 'cum_size2':   # weight = CDF_of_burst_sizes(burst size)^2
+        ecdf = [np.sort(nt), 1.*np.arange(1, nt.size+1)/nt.size]        
+        weights = np.interp(nt, ecdf[0], ecdf[1]**2, left=0, right=1) 
     else:
         raise ValueError
     assert weights.size == nd.size
