@@ -441,15 +441,16 @@ def hist_bg_fit(i, b, d, bp=0, bin_width_us=10, yscale='log',
     C = H[0][ibin]/efun(t_min_us*1e-6, r)
     Cd = Hd[0][ibin]/efun(t_min_us*1e-6, rd)
     Ca = Ha[0][ibin]/efun(t_min_us*1e-6, ra)
-    Caa = Haa[0][ibin]/efun(t_min_us*1e-6, raa)
     plot(t*1e6, C*efun(t, r), lw=3, alpha=0.5, color='k', 
         label="T:  %d cps" % r)
     plot(t*1e6, Cd*efun(t, rd), lw=3, alpha=0.5, color='g', 
         label="DD:  %d cps" % rd)
     plot(t*1e6, Ca*efun(t, ra), lw=3, alpha=0.5, color='r', 
         label="AD:  %d cps" % ra)
-    plot(t*1e6, Caa*efun(t, raa), lw=3, alpha=0.5, color='m', 
-        label="AA:  %d cps" % raa)
+    if d.ALEX:
+        Caa = Haa[0][ibin]/efun(t_min_us*1e-6, raa)
+        plot(t*1e6, Caa*efun(t, raa), lw=3, alpha=0.5, color='m', 
+            label="AA:  %d cps" % raa)
     ym = 0.5
     if plot_kw['normed']: ym = 0.1/ph.size
     legend(loc='best', fancybox=True); ylim(ymin=ym)
