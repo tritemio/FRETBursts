@@ -64,13 +64,13 @@ def bsavefig(d, s):
     savefig(fig_dir+d.Name()+s)
 
 def mch_plot_bg(d, **kwargs):
-    plot(r_[1:d.nch+1],[b.mean() for b in d.bg], lw=2, color='b',
+    plot(r_[1:d.nch+1],[b.mean()*1e-3 for b in d.bg], lw=2, color='b',
             label=' T', **kwargs)
-    plot(r_[1:d.nch+1],[b.mean() for b in d.bg_dd], color='g', lw=2, 
+    plot(r_[1:d.nch+1],[b.mean()*1e-3 for b in d.bg_dd], color='g', lw=2, 
             label=' D', **kwargs)
-    plot(r_[1:d.nch+1],[b.mean() for b in d.bg_ad], color='r', lw=2, 
+    plot(r_[1:d.nch+1],[b.mean()*1e-3 for b in d.bg_ad], color='r', lw=2, 
             label=' A', **kwargs)
-    xlabel("CH"); ylabel("CPS"); grid(True); legend(loc='best')
+    xlabel("CH"); ylabel("kcps"); grid(True); legend(loc='best')
     title(d.name())
 def mch_plot_bg_ratio(d):
     plot(r_[1:d.nch+1],[ba.mean()/bd.mean() for bd,ba in zip(d.bg_dd,d.bg_ad)],
