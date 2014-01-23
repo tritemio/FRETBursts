@@ -464,10 +464,18 @@ class Data(DataContainer):
         """Returns an object with 1-ch data joining the multi-ch data.
         """
         dc = Data(**self)
-        dc.add(mburst=[np.vstack(self.mburst)])
+
+        mburst = np.vstack(self.mburst)
+        burst_start = b_start(mburst)
+        sort_index = burst_start.argsort()
+        dc.add(mburst=[mburst[sort_index]])
+
+        ich_burst = [i*np.ones(nb) for i, nb in enumerate(self.num_bu())]
+        dc.add(ich_burst=np.hstack(ich_burst)[sort_index])
+
         for k in ['nd', 'na', 'naa', 'nt', 'bp']:
             if k in self:
-                dc[k] = [np.hstack(self[k])]
+                dc[k] = [np.hstack(self[k])[sort_index]]
                 setattr(dc, k, dc[k])
         dc.add(nch=1)
         dc.add(chi_ch=1.)
