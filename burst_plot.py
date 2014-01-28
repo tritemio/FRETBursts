@@ -943,6 +943,7 @@ def plot_mburstm_1ch(d, fun, scroll=False, pgrid=True, ax=None,
         print "WARNING: No title in plots."
     ax.grid(pgrid)
     b = d.mburst[0] if hasattr(d, 'mburst') else None
+    sca(ax)
     fun(0, b, d, **kwargs)
     s = None
     if scroll: s = ScrollingToolQT(fig)
