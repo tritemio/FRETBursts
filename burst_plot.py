@@ -274,7 +274,7 @@ def ratetrace(d, i=0, m=None, max_ph=1e6, pmax=1e6, bursts=False, F=None):
         _plot_bursts(d, i, t_max_clk, pmax=pmax)
     rates = ph_rate(m, ph[:max_ph])/d.clk_p
     times = ph_rate_t(m, ph[:max_ph])*d.clk_p
-    plot(times,rates)
+    plot(times, rates, lw=1.2)
     _timetrace_bg(d, i, d.bg, F=F)
     xlabel('Time (s)'); ylabel('# ph')
     if i == 0:
@@ -301,12 +301,12 @@ def ratetrace_da(d, i=0, m=None, max_ph=1e6, pmax=1e6, bursts=False, F=None):
     t_d = ph_rate_t(m, ph_d[:max_ph])*d.clk_p
     r_a = ph_rate(m, ph_a[:max_ph])/d.clk_p
     t_a = ph_rate_t(m, ph_a[:max_ph])*d.clk_p
-    plot(t_d, r_d, 'g')
-    plot(t_a, -r_a, 'r')
+    plot(t_d, r_d, 'g', lw=1.2)
+    plot(t_a, -r_a, 'r', lw=1.2)
     if d.ALEX:
         r_aa = ph_rate(m, ph_aa[:max_ph])/d.clk_p
         t_aa = ph_rate_t(m, ph_aa[:max_ph])*d.clk_p
-        plot(t_aa, -r_aa, 'm')
+        plot(t_aa, -r_aa, 'm', lw=1.2)
     _timetrace_bg(d, i, d.bg_dd, F=F, color='k')
     _timetrace_bg(d, i, -r_[d.bg_ad], F=F, color='k')
     xlabel('Time (s)'); ylabel('# ph')
