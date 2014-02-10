@@ -50,7 +50,8 @@ def load_multispot48(fname, swap_D_A=True, BT=0, gamma=1.,
     ph_times_m, big_fifo, ch_fifo = load_manta_timestamps(
                                         fname, i_start=i_start, i_stop=i_stop)
     A_em = [True] * len(ph_times_m)
-    dx.add(ph_times_m=ph_times_m, A_em=A_em, ALEX=False)
+    dx.add(ph_times_m=ph_times_m, A_em=A_em, ALEX=False,
+           big_fifo=big_fifo, ch_fifo=ch_fifo)
     return dx
 
 
