@@ -818,7 +818,12 @@ class Data(DataContainer):
         """After burst search computes number of D and A ph in each burst.
         """
         if not self.ALEX:
-            na = mch_count_ph_in_bursts(self.mburst, Mask=self.A_em)
+            A_em = self.A_em
+            if type(A_em[0]) is bool:
+                bool_funcs = [np.ones if v else np.zeros for v in A_em]
+                A_em = [bfunc(ph.shape, dtype=bool) for ph, bfunc in
+                                    zip(self.ph_times_m, bool_funcs)]
+            na = mch_count_ph_in_bursts(self.mburst, Mask=A_em)
             nt = [b[:, inum_ph].astype(float) if b.size > 0 else array([])\
                     for b in self.mburst]
             nd = [t-a for t, a in zip(nt, na)]
