@@ -153,16 +153,16 @@ def process_timestamps(timestamps, det, delta_rollover=1, nbits=24,
         mask = (det == CH)
         if mask.sum() >= 3:
             # We need at least 2 valid timestamps and the first is invalid
-            t = np.zeros(mask.sum() - 1, dtype='int64')
-            ts_diff = diff(timestamps[mask].astype('int32'))
-            rollover_mask = ts_diff < -delta_rollover
-            rollover_correction = cumsum(rollover_mask, dtype='int64')*max_ts
-            t = timestamps[mask][1:] + rollover_correction
-            #t[0] = timestamps[mask][0]
+            times32 = timestamps[mask].astype('int32')
+            times64 = (diff(times32) < -delta_rollover).astype('int64')
+            cumsum(times64, out=times64)
+            times64 *= max_ts
+            times64 += times32[1:]
+            del times32
         else:
             # Return an array of size 0 for current ch
-            t = np.zeros(0, dtype='int64')
-        timestamps_m.append(t)
+            times64 = np.zeros(0, dtype='int64')
+        timestamps_m.append(times64)
         if fifo_flag:
             full_big_fifo_m.append(full_big_fifo[mask])
             full_small_fifo_m.append(full_small_fifo[mask])
