@@ -46,23 +46,23 @@ ip.magic("run -i burst_selection.py")
 #ip.magic("run -i burstsearch.py")
 #ip.magic("run -i background.py")
 
-### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##  GLOBAL VARIABLES
 ##
 #
 # itstart, iwidth, inum_ph, iistart and others defined in burstsearch/bs.py
 #
 
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Bursts and Timestamps utilities
 #
 def get_alex_fraction(on_range, alex_period):
     """Get the fraction of period beween two numbers indicating a range.
     """
     assert len(on_range) == 2
-    if on_range[0] < on_range[1]: 
+    if on_range[0] < on_range[1]:
         fraction = 1.*(on_range[1] - on_range[0])/alex_period
-    else: 
+    else:
         fraction = 1.*(alex_period + on_range[1] - on_range[0])/alex_period
     return fraction
 
@@ -72,7 +72,7 @@ def top_tail(nx, a=0.1):
     """
     assert a>0 and a<1
     return np.r_[[n[n>n.max()*(1-a)].mean() for n in nx]]
-    
+
 # Quick functions to calculate rate-trace from ph_times
 ph_rate = lambda m, ph: 1.*m/(ph[m-1:]-ph[:ph.size-m+1])     # rate
 ph_rate_t = lambda m, ph: 0.5*(ph[m-1:]+ph[:ph.size-m+1])   # time for rate
@@ -99,7 +99,7 @@ def b_ph_times_v(bursts, ph_times, pad=0):
     PH = [ph_times[b[iistart]-pad:b[iiend]+pad+1] for b in bursts]
     return PH
 def b_rate_max(b, ph, m=3):
-    """Returns the max (m-photons) rate reached inside each bursts. 
+    """Returns the max (m-photons) rate reached inside each bursts.
     """
     PHB = [ph[ bu[iistart] : bu[iiend]+1 ] for bu in b]
     rates_max = array([ph_rate(m=m, ph=phb).max() for phb in PHB])
@@ -107,7 +107,7 @@ def b_rate_max(b, ph, m=3):
 
 def b_irange(bursts, b_index, pad=0):
     """Returns range of indices of ph_times inside one burst"""
-    pad = array(pad).astype(bursts.dtype) # to avoid unwanted conversions 
+    pad = array(pad).astype(bursts.dtype) # to avoid unwanted conversions
     _i_start = bursts[b_index, iistart]
     _i_end = bursts[b_index, iiend]
     return np.arange(_i_start-pad, _i_end+pad+1)
@@ -142,11 +142,11 @@ def b_fuse(mburst, ms=0, clk_p=12.5e-9):
     # istart is from the first bursts, iend is from the second burst
     fused_burst1 = mburst[first_burst, :] # slicing makes a copy
     fused_burst2 = mburst[second_burst, :]
-    
+
     # pure bool mask, no copy, b will be changed
-    #fused_burst1 = mburst[first_burst] 
+    #fused_burst1 = mburst[first_burst]
     #fused_burst2 = mburst[second_burst]
-    
+
     num_ph = b_size(fused_burst1) + b_size(fused_burst2)
     overlap = b_iend(fused_burst1) - b_istart(fused_burst2) + 1
     # NOTE: overlap == 0 means touching but not overlapping bursts, if ph[i] is
@@ -156,7 +156,7 @@ def b_fuse(mburst, ms=0, clk_p=12.5e-9):
     #[2] overlap_non_neg = overlap >= 0
     #[2] num_ph[overlap_non_neg] -= overlap[overlap_non_neg]
     #assert (num_ph <= (b_size(fused_burst1) + b_size(fused_burst2))).all()
-    
+
     width = b_width(fused_burst1) + b_width(fused_burst2)
     t_overlap = b_end(fused_burst1) - b_start(fused_burst2)
     #assert (t_overlap[overlap > 0] >= 0).all()
@@ -167,18 +167,18 @@ def b_fuse(mburst, ms=0, clk_p=12.5e-9):
     #       t_overlap is negative, it's an arbitrary choice if in this case we
     #       should add (s2-e1) = -t_overlap to the new width. See paper notes.
     #assert (width <= (b_width(fused_burst1) + b_width(fused_burst2))).all()
-    
+
     # Assign the new burst data
     # fused_burst1 has alredy the right tstart and istart
     fused_burst1[:, inum_ph] = num_ph
     fused_burst1[:, iwidth] = width
     fused_burst1[:, iiend] = b_iend(fused_burst2)
     fused_burst1[:, itend] = b_end(fused_burst2)
-    
+
     new_burst = np.vstack([fused_burst1, mburst[-both_burst, :]])
     reorder = new_burst[:, itstart].argsort()
     #pprint(" - Fused %4d of %5d bursts (%.1f%%).\n" %\
-    #        (first_burst.sum(), mburst.shape[0], 
+    #        (first_burst.sum(), mburst.shape[0],
     #         100.*first_burst.sum()/mburst.shape[0]))
     return new_burst[reorder, :]
 
@@ -215,11 +215,11 @@ def stat_burst(d, ich=0, fun=mean):
     for i, b in enumerate(d.mburst[ich]):
         burst_slice = slice(b[istart], b[istart]+b[num_ph])
         # Arrival times of (all) ph in burst b
-        ph = d.ph_times_m[ich][burst_slice] 
+        ph = d.ph_times_m[ich][burst_slice]
         # Select only one color ch if requested
         r_mask = d.A_em[ich][burst_slice]
         g_mask = -r_mask
-        #if r_mask.sum() == 0 or g_mask.sum() == 0: 
+        #if r_mask.sum() == 0 or g_mask.sum() == 0:
         #    pprint("WARNING: Zero-size bursts.\n")
         statg[i] = fun(ph[g_mask].astype(float))
         statr[i] = fun(ph[r_mask].astype(float))
@@ -229,13 +229,13 @@ def stat_burst(d, ich=0, fun=mean):
 def burst_stats(mburst, clk_p=12.5*1e9):
     """Compute average duration, size and burst-delay for bursts in mburst.
     """
-    width_stats = array([[b[:, 1].mean(), b[:, 1].std()] for b in mburst 
+    width_stats = array([[b[:, 1].mean(), b[:, 1].std()] for b in mburst
         if len(b) > 0]).T
     height_stats = array([[b[:, 2].mean(), b[:, 2].std()] for b in mburst
         if len(b) > 0]).T
     mean_burst_delay = array([np.diff(b[:, 0]).mean() for b in mburst
         if len(b) > 0])
-    return (clk_to_s(width_stats, clk_p)*1e3, height_stats, 
+    return (clk_to_s(width_stats, clk_p)*1e3, height_stats,
             clk_to_s(mean_burst_delay, clk_p))
 
 def print_burst_stats(d):
@@ -265,9 +265,9 @@ def print_burst_stats(d):
 def ES_histo(E, S, bin_step=0.05, E_bins=None, S_bins=None):
     """Returns 2D (ALEX) histogram and bins of bursts (E,S).
     """
-    if E_bins is None: 
+    if E_bins is None:
         E_bins = np.arange(-0.2, 1.2+1e-4, bin_step)
-    if S_bins is None: 
+    if S_bins is None:
         S_bins = np.arange(-0.2, 1.2+1e-4, bin_step)
     H, E_bins, S_bins = np.histogram2d(E, S, bins=[E_bins, S_bins])
     return H, E_bins, S_bins
@@ -282,7 +282,7 @@ def gamma_uncorrect_E(E, gamma):
     E = np.asarray(E)
     return gamma*E/(1 - E + gamma*E)
 
-def delta(x): 
+def delta(x):
     """Return x.max() - x.min()"""
     return x.max() - x.min()
 
@@ -295,13 +295,13 @@ class DataContainer(dict):
     """
     def __init__(self, **kwargs):
         dict.__init__(self, **kwargs)
-        for k in self: 
+        for k in self:
             dict.__setattr__(self, k, self[k])
-    
+
     def add(self, **kwargs):
         """Adds or updates elements (attributes and/or dict entries). """
         self.update(**kwargs)
-        for k, v in kwargs.items(): 
+        for k, v in kwargs.items():
             setattr(self, k, v)
     def delete(self, *args):
         """Delete an element (attribute and/or dict entry). """
@@ -319,10 +319,10 @@ class DataContainer(dict):
 class Data(DataContainer):
     """
     Class that contains all the information (ph times, burst) of a dataset.
-    
+
     It's a dictionary in which the initial items are also attributes. To add
-    more attributes use method .add(). 
-    
+    more attributes use method .add().
+
     COPYING DATA
     To copy the content to a new variable you can create a new variable:
         d_new = Data(**d_old)
@@ -333,9 +333,9 @@ class Data(DataContainer):
 
     To copy to a new variable duplicating all the data (so that will double
     the RAM usage but the data is completely separated) use the method .copy()
-    
+
     ATTRIBUTES: if marked as (list) then is one element per channel.
-    
+
     MEASUREMENT ATTRIBUTES
     nch: number of channels
     clk_p:  clock period in seconds (for ph_times)
@@ -345,19 +345,19 @@ class Data(DataContainer):
 
     ALEX Specific: D_em, A_em, D_ex, D_ex, they are lists (1 per ch)
             and each element is a boolean mask for ph_times_m[i].
-            D_ON, A_ON: tuples of int (start-end values) for donor ex. and 
+            D_ON, A_ON: tuples of int (start-end values) for donor ex. and
                     acceptor ex. selection.
             alex_period: (int) lenth of the alternation period in clk cycles.
-    
+
     BACKGROUND ATTRIBUTES
     bg, bg_dd, bg_ad, bg_aa: (list) bg for each channel calculated every X sec
     nperiods:   number of periods in which ph are splitted for bg calculation
     bg_fun:     function used for bg calculation
     Lim: (list) for each ch, is a list of pairs of index of .ph_times_m[i]
                 that identify first and last photon in each period
-    Ph_p: (list) for each ch, is a list of pairs of arrival time for 
+    Ph_p: (list) for each ch, is a list of pairs of arrival time for
                 the first and the last photon in each period
- 
+
     Old attributes (now just the per-ch mean of bg, bg_dd, bg_ad and bg_aa):
         rate_m: array of bg rates for D+A channel pairs (ex. 4 for 4 spots)
         rate_dd: array of bg rates for D em (and D ex if ALEX)
@@ -369,21 +369,21 @@ class Data(DataContainer):
     m, L : parameters for burt search
     P: 1-prob. to have a burst start due to BG (assuming Poisson distrib.).
     F: multiplying factor for BG used to calc TT and T
-    
+
     BURST SEARCH DATA (available after burst search)
     mburst: (list) array containing burst data: [tstart, width, #ph, istart]
     TT: (same size as .bg) T values (in sec.) for burst search
     T: (array) per-channel mean of TT parameter
-    
+
     nd,na,nt : (list) number of donor, acceptor and total ph in each burst,
                 these are eventually BG and Lk corrected.
-    naa: [ALEX only] (list) number of ph in the A (acceptor) ch during A 
+    naa: [ALEX only] (list) number of ph in the A (acceptor) ch during A
                 excitation in each burst
     bp: (list) index of the time period in which the burst happens.
                 Same length as nd. Needed to identify which bg value to use.
     bg_bs (list): BG used for threshold in burst search (points to bg, bg_dd
                 or bg_ad)
-    
+
     fuse: is not None, contains the parameters used for fusing bursts
 
     E:  (list) FRET efficiency value for each burst (E = na/(na+nd)).
@@ -394,10 +394,10 @@ class Data(DataContainer):
         # Default values
         init_kw = dict(ALEX=False, BT=0., gamma=1, chi_ch=1., s=[])
         # Override with user data
-        init_kw.update(**kwargs)                    
+        init_kw.update(**kwargs)
         DataContainer.__init__(self, **init_kw)
-    
-     
+
+
     ##
     # Infrastructure methods: they return a new Data object
     #
@@ -407,24 +407,24 @@ class Data(DataContainer):
         new_d = Data(**self) # this make a shallow copy (like a pointer)
 
         ## Deep copy (not just reference) or array data
-        for k in ['mburst', 'nd', 'na', 'nt', 'naa', 'E', 'S']: 
+        for k in ['mburst', 'nd', 'na', 'nt', 'naa', 'E', 'S']:
             # Making sure k is defined
-            if k in self: 
+            if k in self:
                 # Make the new list with a copy of the original arrays
                 new_d[k] = [self[k][i].copy() for i in range(self.nch)]
                 # Set the attribute: new_d.k = new_d[k]
                 setattr(new_d, k, new_d[k])
         return new_d
-    
+
     def slice_ph(self, time_s1=5, time_s2=None, s='slice'):
         """Return a new Data object with ph in [`time_s1`,`time_s2`] (seconds)
         """
         if time_s2 is None: time_s2 = self.time_max()
         t1_clk, t2_clk = time_s1/self.clk_p, time_s2/self.clk_p
         assert array([t1_clk < ph.max() for ph in self.ph_times_m]).all()
-        
+
         masks = [(ph > t1_clk)*(ph <= t2_clk) for ph in self.ph_times_m]
-        
+
         sliced_d = Data()
         slice_fields = ['ph_times_m', 'A_em', 'D_em', 'A_ex', 'D_ex']
         for name in slice_fields:
@@ -442,20 +442,20 @@ class Data(DataContainer):
             sliced_d.ph_times_m[ich] -= t1_clk
         sliced_d.s.append(s)
         return sliced_d
-    
+
     def bursts_slice(self, N1=0, N2=-1):
-        """Return new Data object with bursts between `N1` and `N2` 
+        """Return new Data object with bursts between `N1` and `N2`
         `N1` and `N2` can be scalars or lists (one per ch).
         """
         if np.isscalar(N1): N1 = [N1]*self.nch
-        if np.isscalar(N2): N2 = [N2]*self.nch        
+        if np.isscalar(N2): N2 = [N2]*self.nch
         assert len(N1) == len(N2) == self.nch
         d = Data(**self)
         d.add(mburst=[b[n1:n2, :] for b, n1, n2 in zip(d.mburst, N1, N2)])
         d.add(nt=[nt[n1:n2] for nt, n1, n2 in zip(d.nt, N1, N2)])
         d.add(nd=[nd[n1:n2] for nd, n1, n2 in zip(d.nd, N1, N2)])
         d.add(na=[na[n1:n2] for na, n1, n2 in zip(d.na, N1, N2)])
-        if self.ALEX: 
+        if self.ALEX:
             d.add(naa=[aa[n1:n2] for aa, n1, n2 in zip(d.naa, N1, N2)])
         d.calc_fret() # recalc fret efficiency
         return d
@@ -481,7 +481,7 @@ class Data(DataContainer):
         dc.add(chi_ch=1.)
         dc.update_gamma(mean(self.get_gamma_array()))
         return dc
-    
+
     ##
     # Utility methods
     #
@@ -492,7 +492,7 @@ class Data(DataContainer):
         from `.name()` and `.Name()`.
         """
         p_names = ['fname', 'clk_p', 'nch', 'ph_sel', 'L', 'm', 'F', 'P',
-                'BT', 'gamma', 'bg_time_s', 'nperiods', 
+                'BT', 'gamma', 'bg_time_s', 'nperiods',
                 'rate_dd', 'rate_ad', 'rate_aa', 'rate_m', 'T', 'Th',
                 'bg_corrected', 'bt_corrected', 'dithering', #'PP', 'TT',
                 'chi_ch', 's', 'ALEX']
@@ -502,7 +502,7 @@ class Data(DataContainer):
                 p_dict.pop(name)
         p_dict.update(name=self.name(), Name=self.Name())
         return p_dict
-         
+
     def expand(self, ich, width=False):
         """Return nd, na, bg_d, bg_a (and optionally width) for bursts in `ich`.
         """
@@ -525,18 +525,18 @@ class Data(DataContainer):
             return max([b_end(mb)[-1]*self.clk_p for mb in self.mburst])
         else:
             raise ValueError("No timestamps or bursts found.")
-    
+
     def num_bu(self):
         """Return an array with number of bursts for each channel."""
         return np.r_[[mb.shape[0] for mb in self.mburst]]
-    
+
     def ph_select(self):
         """Return masks of ph inside bursts."""
         self.ph_in_burst = mch_ph_select(self.ph_times_m, self.mburst)
- 
+
     def cal_max_rate(self, m):
         """Compute the max m-photon rate reached in each burst."""
-        Max_Rate = [b_rate_max(mb, ph, m=m)/self.clk_p 
+        Max_Rate = [b_rate_max(mb, ph, m=m)/self.clk_p
                 for ph, mb in zip(self.ph_times_m, self.mburst)]
         self.add(max_rate=Max_Rate)
 
@@ -574,7 +574,7 @@ class Data(DataContainer):
             d.calc_bg(bg_calc_exp, time_s=20, tail_min_us=200)
         """
         pprint(" - Calculating BG rates ... ")
-        
+
         if 'tail_min_us' in kwargs:
             tail_min_us = kwargs.pop('tail_min_us')
             if np.size(tail_min_us) == 1:
@@ -588,7 +588,7 @@ class Data(DataContainer):
         else:
             th_us = thd_us = tha_us = thaa_us = 300
             print 'Warning: no threshold specified, using default (300)'
-        
+
         kwargs.update(clk_p=self.clk_p)
         time_clk = time_s/self.clk_p
         BG, BG_dd, BG_ad, BG_aa, Lim, Ph_p = [], [], [], [], [], []
@@ -605,7 +605,7 @@ class Data(DataContainer):
                 dd_mask = self.D_em[ich]*self.D_ex[ich]
                 ad_mask = self.A_em[ich]*self.D_ex[ich]
                 aa_mask = self.A_em[ich]*self.A_ex[ich]
-            
+
             bg, lim, ph_p = zeros(nperiods), [], []
             bg_dd, bg_ad, bg_aa = [zeros(nperiods) for _ in [1, 1, 1]]
             for ip in xrange(nperiods):
@@ -614,7 +614,7 @@ class Data(DataContainer):
 
                 ph_i = ph[i0:i1]
                 bg[ip] = fun(ph_i, tail_min_us=th_us, **kwargs)
-                
+
                 # This to support cases of D-only or A-only timestamps
                 # where self.A_em[ich] is a bool and not a bool-array
                 if type(dd_mask) is bool:
@@ -625,14 +625,14 @@ class Data(DataContainer):
                         bg_dd[ip] = fun(
                                 ph_i[dd_mask_i], tail_min_us=thd_us, **kwargs)
 
-                if type(ad_mask) is bool: 
+                if type(ad_mask) is bool:
                     if ad_mask: bg_ad[ip] = bg[ip]
                 else:
                     ad_mask_i = ad_mask[i0:i1]
                     if ad_mask_i.any():
                         bg_ad[ip] = fun(
                                 ph_i[ad_mask_i], tail_min_us=tha_us, **kwargs)
-                        
+
                 if self.ALEX and aa_mask.any():
                     aa_mask_i = aa_mask[i0:i1]
                     bg_aa[ip] = fun(
@@ -654,8 +654,8 @@ class Data(DataContainer):
                 Lim=Lim, Ph_p=Ph_p, nperiods=nperiods, bg_fun=fun,
                 bg_time_s=time_s, ph_sel='DA',
                 rate_dd=rate_dd, rate_ad=rate_ad, rate_aa=rate_aa)
-        pprint("[DONE]\n") 
-    
+        pprint("[DONE]\n")
+
     def recompute_bg_lim_ph_p(self, ph_sel='D', PH=None):
         """Recompute self.Lim and selp.Ph_p relative to ph selection `ph_sel`
         `ph_sel` can be 'D','A', or 'DA'. It selects the timestamps array
@@ -663,15 +663,15 @@ class Data(DataContainer):
         """
         assert ph_sel in ['DA', 'D', 'A']
         if 'ph_sel' in self and self.ph_sel == ph_sel: return
-        
+
         pprint(" - Recomputing limits for current ph selection (%s) ... " % \
                 ph_sel)
         if PH is None:
-            if ph_sel == 'DA': 
+            if ph_sel == 'DA':
                 PH = self.ph_times_m
-            elif ph_sel == 'D': 
+            elif ph_sel == 'D':
                 PH = [p[-a] for p, a in zip(self.ph_times_m, self.A_em)]
-            elif ph_sel == 'A': 
+            elif ph_sel == 'A':
                 PH = [p[a] for p, a in zip(self.ph_times_m, self.A_em)]
         bg_time_clk = self.bg_time_s/self.clk_p
         Lim, Ph_p = [], []
@@ -703,7 +703,7 @@ class Data(DataContainer):
                     p[(bis >= l0)*(bis <= l1)] = i
             P.append(p)
         self.add(bp=P)
-    
+
     def _calc_T(self, m, P, F=1., ph_sel='DA'):
         """If P is None use F, otherwise uses both P *and* F (F defaults to 1).
         """
@@ -731,11 +731,11 @@ class Data(DataContainer):
         """Compute burst search with params `m`, `L` on ph selection `ph_sel`
         """
         assert ph_sel in ['DA', 'D', 'A']
-        if ph_sel == 'DA': 
+        if ph_sel == 'DA':
             PH = self.ph_times_m
-        elif ph_sel == 'D': 
+        elif ph_sel == 'D':
             PH = [p[-a] for p, a in zip(self.ph_times_m, self.A_em)]
-        elif ph_sel == 'A': 
+        elif ph_sel == 'A':
             PH = [p[a] for p, a in zip(self.ph_times_m, self.A_em)]
         self.recompute_bg_lim_ph_p(ph_sel=ph_sel, PH=PH)
         MBurst = []
@@ -744,26 +744,26 @@ class Data(DataContainer):
             MB = []
             Tck = T/self.clk_p
             for ip, (l0, l1) in enumerate(self.Lim[ich]):
-                if verbose: 
+                if verbose:
                     label='%s CH%d-%d' % (ph_sel, ich+1, ip)
-                mb = ba(ph[l0:l1+1], L, m, Tck[ip], label=label, 
+                mb = ba(ph[l0:l1+1], L, m, Tck[ip], label=label,
                         verbose=verbose)
                 if mb.size > 0: # if we found at least one burst
                     mb[:, iistart] += l0
                     mb[:, iiend] += l0
                     MB.append(mb)
-            if len(MB) > 0: 
+            if len(MB) > 0:
                 MBurst.append(np.vstack(MB))
-            else: 
+            else:
                 MBurst.append(array([]))
         self.add(mburst=MBurst)
         if ph_sel != 'DA':
             # Convert the burst data to be relative to ph_times_m.
-            # Convert both Lim/Ph_p and mburst, as they are both needed 
+            # Convert both Lim/Ph_p and mburst, as they are both needed
             # to compute `.bp`.
             self.recompute_bg_lim_ph_p(ph_sel='DA', PH=self.ph_times_m)
             self._fix_mburst_from(ph_sel=ph_sel)
-    
+
     def _fix_mburst_from(self, ph_sel):
         """Convert burst data from 'D' or 'A' timestamps to 'DA' timestamps
         """
@@ -777,7 +777,7 @@ class Data(DataContainer):
             mburst[:, iistart] = index[mask][mburst[:, iistart]]
             mburst[:, iiend] = index[mask][mburst[:, iiend]]
             mburst[:, inum_ph] = mburst[:, iiend] - mburst[:, iistart] + 1
-        
+
         for mb, old_mb in zip(self.mburst, old_MBurst):
             assert (mb[:, iistart] >= old_mb[:, iistart]).all()
             assert (mb[:, iiend] >= old_mb[:, iiend]).all()
@@ -796,16 +796,16 @@ class Data(DataContainer):
         # Use TT and compute mburst
         self._burst_search_da(L=L, m=m, ph_sel=ph_sel, verbose=verbose)
         pprint("[DONE]\n")
-        
+
         pprint(" - Calculating burst periods ...")
         self._calc_burst_period()                       # writes bp
         pprint("[DONE]\n")
-        
+
         self.add(m=m, L=L)  # P and F are saved in _calc_T()
         self.add(bg_corrected=False, bt_corrected=False, dithering=False)
         for k in ['E', 'S', 'nd', 'na', 'naa', 'nt', 'fuse', 'lsb']:
             if k in self: self.delete(k)
-        if not nofret: 
+        if not nofret:
             pprint(" - Counting D and A ph and calculating FRET ... \n")
             self.calc_fret(count_ph=True, corrections=True, dither=dither)
             pprint("   [DONE Counting D/A]\n")
@@ -813,7 +813,7 @@ class Data(DataContainer):
             pprint(" - Computing max rates in burst ...")
             self.cal_max_rate(m=3)
             pprint("[DONE]\n")
-    
+
     def cal_ph_num(self):
         """After burst search computes number of D and A ph in each burst.
         """
@@ -826,38 +826,38 @@ class Data(DataContainer):
         if self.ALEX:
             Mask = [d_em*d_ex for d_em, d_ex in zip(self.D_em, self.D_ex)]
             nd = mch_count_ph_in_bursts(self.mburst, Mask)
-            
+
             Mask = [a_em*d_ex for a_em, d_ex in zip(self.A_em, self.D_ex)]
             na = mch_count_ph_in_bursts(self.mburst, Mask)
-              
+
             Mask = [a_em*a_ex for a_em, a_ex in zip(self.A_em, self.A_ex)]
             naa = mch_count_ph_in_bursts(self.mburst, Mask)
             self.add(naa=naa)
-            
+
             nt = [d+a+aa for d, a, aa in zip(nd, na, naa)]
             assert (nt[0] == na[0] + nd[0] + naa[0]).all()
-        self.add(nd=nd, na=na, nt=nt, 
+        self.add(nd=nd, na=na, nt=nt,
                 bt_corrected=False, bg_corrected=False, dithering=False)
-    
+
     def fuse_bursts(self, ms=0, process=True):
         """Return a new Data() fusing bursts separated by less than ms.
         If process==True, it applies corrections and (re)compute FRET.
         """
         if ms < 0: return self
-        mburst = mch_fuse_bursts(self.mburst, ms=ms, clk_p=self.clk_p) 
+        mburst = mch_fuse_bursts(self.mburst, ms=ms, clk_p=self.clk_p)
         new_d = Data(**self)
         for k in ['E', 'S', 'nd', 'na', 'naa', 'nt', 'lsb', 'bp']:
             if k in new_d: new_d.delete(k)
         new_d.add(bt_corrected=False, bg_corrected=False, dithering=False)
         new_d.add(mburst=mburst, fuse=ms)
         if 'bg' in new_d: new_d._calc_burst_period()
-        if process: 
+        if process:
             pprint(" - Counting D and A ph and calculating FRET ... \n")
-            new_d.calc_fret(count_ph=True, corrections=True, 
+            new_d.calc_fret(count_ph=True, corrections=True,
                             dither=self.dithering)
             pprint("   [DONE Counting D/A and FRET]\n")
-        return new_d    
-      
+        return new_d
+
     ##
     # Corrections methods
     #
@@ -881,7 +881,7 @@ class Data(DataContainer):
             if self.ALEX:
                 self.naa[ich] -= self.bg_aa[ich][period] * width
                 self.nt[ich] += self.naa[ich]
-    
+
     def bleed_through_correction(self):
         """Apply bleed-through correction to burst sizes (nd, na,...)
         """
@@ -909,7 +909,7 @@ class Data(DataContainer):
             for naa in self.naa:
                 naa += lsb*(rand(na.size)-0.5)
         self.add(lsb=lsb)
-    
+
     def calc_chi_ch(self):
         """Calculate the gamma correction prefactor factor `chi_ch` (array).
         `chi_ch` is a ch-dependent prefactor for gamma used to correct
@@ -923,13 +923,13 @@ class Data(DataContainer):
         EE = self.E_fit.mean()  # Mean E value among the CH
         chi_ch = (1/EE - 1)/(1/self.E_fit - 1)
         return chi_ch
-     
+
     def corrections(self):
         """Apply both background BG and bleed-through (BT) corrections."""
         if 'bg' in self: self.background_correction_t()
         else: self.background_correction()
         self.bleed_through_correction()
-    
+
     def update_bt(self, BT):
         """Change the bleed-through value `BT` and recompute FRET."""
         if not self.bt_corrected:
@@ -938,7 +938,7 @@ class Data(DataContainer):
             self.add(BT=BT)
             self.bleed_through_correction()
         else:
-            # if already BT-corrected need to recompute na,nd,nt to avoid 
+            # if already BT-corrected need to recompute na,nd,nt to avoid
             # overcorrection
             self.add(BT=BT, bt_corrected=False)
             old_bg_corrected = self.bg_corrected
@@ -955,7 +955,7 @@ class Data(DataContainer):
         self.add(chi_ch=chi_ch)
         self.calc_fret(corrections=False)
 
-    def update_gamma(self, gamma):    
+    def update_gamma(self, gamma):
         """Change the `gamma` value and recompute FRET."""
         self.add(gamma=gamma)
         self.calc_fret(corrections=False)
@@ -971,7 +971,7 @@ class Data(DataContainer):
         G = np.r_[[gamma]*self.nch] if np.size(gamma) == 1 else gamma
         G *= self.chi_ch
         return G
-    
+
     def get_BT_array(self):
         """Get the array of bleed-through coefficients (one per ch).
         Use this function to obtain an array of BT values
@@ -982,7 +982,7 @@ class Data(DataContainer):
         BT = np.r_[[self.BT]*self.nch] if size(self.BT) == 1 else self.BT
         BT *= self.chi_ch
         return BT
-   
+
     # methods calc_bt_* to be deleted ...
     def calc_bt_from_donly_old(self, debug=False):
         """Compute BT assuming D-only data."""
@@ -1004,33 +1004,33 @@ class Data(DataContainer):
         """Compute BT assuming D-only data."""
         BT = r_[[bt_fit.fit_LR(self, ich) for ich in range(self.nch)]]
         return BT
-    
+
     ##
     # FRET and stochiometry methods
     #
     def calc_fret(self, count_ph=False, corrections=True, dither=False):
         """Compute FRET (and Stoichiometry if ALEX) for each burst."""
         if count_ph: self.cal_ph_num()
-        if dither: self.dither() 
+        if dither: self.dither()
         if corrections: self.corrections()
         self.calculate_fret_eff()
         if self.ALEX:
             self.calculate_stoich()
             self.calc_alex_hist()
-    
+
     def calculate_fret_eff(self):
         """Compute FRET efficiency (`E`) for each burst."""
         G = self.get_gamma_array()
         E = [1.*na/(g*nd+na) for nd, na, g in zip(self.nd, self.na, G)]
         self.add(E=E)
-    
+
     def calculate_stoich(self):
         """Compute "stochiometry" (the `S` parameter) for each burst."""
         G = self.get_gamma_array()
-        S = [1.0*(g*d+a)/(g*d+a+aa) for d, a, aa, g in 
+        S = [1.0*(g*d+a)/(g*d+a+aa) for d, a, aa, g in
                 zip(self.nd, self.na, self.naa, G)]
         self.add(S=S)
-    
+
     def calc_alex_hist(self, bin_step=0.05):
         """Compute the ALEX histogram with given bin width `bin_step`"""
         self.add(bin_step=bin_step)
@@ -1039,7 +1039,7 @@ class Data(DataContainer):
         E_ax = E_bins[:-1] + 0.5*bin_step
         S_ax = S_bins[:-1] + 0.5*bin_step
         self.add(AH=AH, E_bins=E_bins, S_bins=S_bins, E_ax=E_ax, S_ax=S_ax)
-    
+
     ##
     # Information methods
     #
@@ -1055,35 +1055,35 @@ class Data(DataContainer):
         if 'bg_fun' in self: s += " BG%s" % self.bg_fun.__name__[8:]
         if 'bg_time_s' in self: s += "-%d" % self.bg_time_s
         if 'fuse' in self: s += " Fuse%.1fms" % self.fuse
-        if 'bt_corrected' in self and self.bt_corrected: 
+        if 'bt_corrected' in self and self.bt_corrected:
             s += " BT%.3f" % mean(self.BT)
         if 'bg_corrected' in self and self.bg_corrected:
             s += " bg"
         if 'dithering' in self and self.dithering:
-            s += " Dith%d" % self.lsb        
+            s += " Dith%d" % self.lsb
         if 's' in self: s += ' '.join(self.s)
         return s +add
-    
+
     def name(self):
         """Return short filename"""
         return shorten_fname(self.fname)[:-len('.dat')].replace("/","_")
-    
+
     def Name(self, add=""):
         """Return short filename + status information."""
         n = self.status(add=add).replace(os.path.sep, '_').replace('/', '_')
         return n
-    
+
     def __repr__(self):
         return self.status()
-    
+
     def stats(self, string=False):
         """Print common statistics (BG rates, #bursts, mean size, ...)"""
         s = print_burst_stats(self)
-        if string: 
+        if string:
             return s
         else:
             print s
-    
+
     ##
     # FRET fitting methods
     #
@@ -1095,20 +1095,20 @@ class Data(DataContainer):
         However `fit_E_minimize()` does not provide a model curve.
         """
         Mask = Sel_mask(self, select_bursts_E, E1=E1, E2=E2)
-        
+
         fit_res, fit_model_F = zeros((self.nch, 2)), zeros(self.nch)
         for ich, (nd, na, E, mask) in enumerate(
                                         zip(self.nd, self.na, self.E, Mask)):
             w = fret_fit.get_weights(nd[mask], na[mask], weights, gamma)
             # Compute weighted mean
-            fit_res[ich, 0] = np.dot(w, E[mask])/w.sum() 
+            fit_res[ich, 0] = np.dot(w, E[mask])/w.sum()
             # Compute weighted variance
             fit_res[ich, 1] = np.sqrt(
                     np.dot(w, (E[mask] - fit_res[ich,0])**2)/w.sum())
             fit_model_F[ich] = 1.*mask.sum()/mask.size
 
         fit_model = lambda x, p: normpdf(x, p[0], p[1])
-        self.add(fit_E_res=fit_res, fit_E_name='Moments', 
+        self.add(fit_E_res=fit_res, fit_E_name='Moments',
                 E_fit=fit_res[:,0], fit_E_curve=True, fit_E_E1=E1, fit_E_E2=E2,
                 fit_E_model=fit_model, fit_E_model_F=fit_model_F)
         self.fit_E_calc_variance()
@@ -1127,25 +1127,25 @@ class Data(DataContainer):
             bg_x = bg_d if method == 3 else bg_a
             fit_res[ich] = fit_fun[method](nd[mask], na[mask],
                     bg_x[mask], **kwargs)
-        self.add(fit_E_res=fit_res, fit_E_name='MLE: na ~ Poisson', 
-                E_fit=fit_res, fit_E_curve=False, fit_E_E1=E1, fit_E_E2=E2)    
+        self.add(fit_E_res=fit_res, fit_E_name='MLE: na ~ Poisson',
+                E_fit=fit_res, fit_E_curve=False, fit_E_E1=E1, fit_E_E2=E2)
         self.fit_E_calc_variance()
         return self.E_fit
-    
+
     def fit_E_ML_binom(self, E1=-1, E2=2, **kwargs):
         """ML fit for E modeling na ~ Binomial, using bursts in [E1,E2] range.
         """
         Mask = Sel_mask(self, select_bursts_E, E1=E1, E2=E2)
-        fit_res = array([fret_fit.fit_E_binom(_d[mask], _a[mask], **kwargs) 
+        fit_res = array([fret_fit.fit_E_binom(_d[mask], _a[mask], **kwargs)
                 for _d, _a, mask in zip(self.nd, self.na, Mask)])
-        self.add(fit_E_res=fit_res, fit_E_name='MLE: na ~ Binomial', 
-                E_fit=fit_res, fit_E_curve=False, fit_E_E1=E1, fit_E_E2=E2)    
+        self.add(fit_E_res=fit_res, fit_E_name='MLE: na ~ Binomial',
+                E_fit=fit_res, fit_E_curve=False, fit_E_E1=E1, fit_E_E2=E2)
         self.fit_E_calc_variance()
         return self.E_fit
-    
+
     def fit_E_minimize(self, kind='slope', E1=-1, E2=2, **kwargs):
         """Fit E using method `kind` ('slope' or 'E_size') and bursts in [E1,E2]
-        If `kind` is 'slope' the fit function is fret_fit.fit_E_slope() 
+        If `kind` is 'slope' the fit function is fret_fit.fit_E_slope()
         If `kind` is 'E_size' the fit function is fret_fit.fit_E_E_size()
         Additional arguments in `kwargs` are passed to the fit function.
         """
@@ -1153,15 +1153,15 @@ class Data(DataContainer):
         # Build a dictionary fun_d so we'll call the function fun_d[kind]
         fun_d = dict(slope=fret_fit.fit_E_slope, E_size=fret_fit.fit_E_E_size)
         Mask = Sel_mask(self, select_bursts_E, E1=E1, E2=E2)
-        fit_res = array([fun_d[kind](nd[mask], na[mask], **kwargs) 
+        fit_res = array([fun_d[kind](nd[mask], na[mask], **kwargs)
                 for nd, na, mask in zip(self.nd,self.na,Mask)])
         fit_name = dict(slope='Linear slope fit', E_size='E_size fit')
-        self.add(fit_E_res=fit_res, fit_E_name=fit_name[kind], 
+        self.add(fit_E_res=fit_res, fit_E_name=fit_name[kind],
                 E_fit=fit_res, fit_E_curve=False, fit_E_E1=E1, fit_E_E2=E2)
         self.fit_E_calc_variance()
         return self.E_fit
-    
-    def fit_E_two_gauss_EM(self, fit_func=two_gaussian_fit_EM, 
+
+    def fit_E_two_gauss_EM(self, fit_func=two_gaussian_fit_EM,
                            weights='size', gamma=1., **kwargs):
         """Fit the E population to a Gaussian mixture model using EM method.
         Additional arguments in `kwargs` are passed to the fit_func().
@@ -1170,27 +1170,27 @@ class Data(DataContainer):
         for ich, (nd, na, E) in enumerate(zip(self.nd, self.na, self.E)):
             w = fret_fit.get_weights(nd, na, weights, gamma)
             fit_res[ich, :] = fit_func(E, weights=w, **kwargs)
-        self.add(fit_E_res=fit_res, fit_E_name=fit_func.__name__, 
+        self.add(fit_E_res=fit_res, fit_E_name=fit_func.__name__,
                 E_fit=fit_res[:,2], fit_E_curve=True,
-                fit_E_model=two_gauss_mix_pdf, 
+                fit_E_model=two_gauss_mix_pdf,
                 fit_E_model_F=np.repeat(1, self.nch))
         return self.E_fit
-    
-    def fit_E_generic(self, E1=-1, E2=2, fit_fun=two_gaussian_fit_hist, 
+
+    def fit_E_generic(self, E1=-1, E2=2, fit_fun=two_gaussian_fit_hist,
             weights=None, gamma=1., **fit_kwargs):
         """Fit E in each channel with `fit_fun` using burst in [E1,E2] range.
         All the fitting functions are defined in `fit.gaussian_fitting`.
-        
+
         `weights`: None or a string that specifies the type of weights
             If not None `weights` will be passed to `fret_fit.get_weights()`
-            NB: `weights` can be not None only when using fit functions that 
+            NB: `weights` can be not None only when using fit functions that
             accept weights (the ones ending in `_hist` or `_EM`)
         `gamma`: passed to `fret_fit.get_weights()` to compute weights
 
-        All the additional arguments are passed to `fit_fun`. For example `p0` 
+        All the additional arguments are passed to `fit_fun`. For example `p0`
         or `mu_fix` can be passed (see `fit.gaussian_fitting` for details).
 
-        Use this method for CDF/PDF or hist fitting. 
+        Use this method for CDF/PDF or hist fitting.
         For EM fitting use `fit_E_two_gauss_EM()`.
         """
         if fit_fun.__name__.startswith("gaussian_fit"):
@@ -1199,15 +1199,15 @@ class Data(DataContainer):
             if 'sigma0' not in fit_kwargs: fit_kwargs.update(sigma0=0.3)
             iE, nparam = 0, 2
         elif fit_fun.__name__.startswith("two_gaussian_fit"):
-            fit_model = two_gauss_mix_pdf 
-            if 'p0' not in fit_kwargs: 
+            fit_model = two_gauss_mix_pdf
+            if 'p0' not in fit_kwargs:
                 fit_kwargs.update(p0=[0, .05, 0.6, 0.1, 0.5])
             iE, nparam = 2, 5
         else:
             raise ValueError, "Fitting function not recognized."
-        
+
         Mask = Sel_mask(self, select_bursts_E, E1=E1, E2=E2)
-        
+
         fit_res, fit_model_F = zeros((self.nch, nparam)), zeros(self.nch)
         for ich, (nd, na, E, mask) in enumerate(
                                         zip(self.nd, self.na, self.E, Mask)):
@@ -1223,7 +1223,7 @@ class Data(DataContainer):
             fit_model_F[ich] = 1.*mask.sum()/mask.size
 
         # Save enough info to generate a fit plot (see hist_fret in burst_plot)
-        self.add(fit_E_res=fit_res, fit_E_name=fit_fun.__name__, 
+        self.add(fit_E_res=fit_res, fit_E_name=fit_fun.__name__,
                 E_fit=fit_res[:,iE], fit_E_curve=True, fit_E_E1=E1,fit_E_E2=E2,
                 fit_E_model=fit_model, fit_E_model_F=fit_model_F)
         return self.E_fit
@@ -1232,7 +1232,7 @@ class Data(DataContainer):
         """Copy fit results from another Data() variable.
         Now that the fit methods accept E1,E1 parameter this probabily useless.
         """
-        fit_data = ['fit_E_res', 'fit_E_name', 'E_fit', 'fit_E_curve', 
+        fit_data = ['fit_E_res', 'fit_E_name', 'E_fit', 'fit_E_curve',
                 'fit_E_E1', 'fit_E_E2=E2', 'fit_E_model', 'fit_E_model_F',
                 'fit_guess', 'fit_fix']  # NOTE Are these last two still used ?
         for name in fit_data:
@@ -1242,23 +1242,23 @@ class Data(DataContainer):
         # Deal with the normalization to the number of bursts
         self.add(fit_model_F=r_[[1.*old_E.size/new_E.size \
                 for old_E,new_E in zip(D.E, self.E)]])
-    
-    def fit_E_calc_variance(self, weights='sqrt', dist='DeltaE', 
+
+    def fit_E_calc_variance(self, weights='sqrt', dist='DeltaE',
             E_fit=None, E1=-1, E2=2):
         """Compute several versions of WEIGHTED std.dev. of the E estimator.
         `weights` are multiplied *BEFORE* squaring the distance/error
         `dist` can be 'DeltaE' or 'SlopeEuclid'
         """
         assert dist in ['DeltaE', 'SlopeEuclid']
-        if E_fit is None: 
+        if E_fit is None:
             E_fit = self.E_fit
             E1 = self.fit_E_E1 if 'fit_E_E1' in self else -1
             E2 = self.fit_E_E2 if 'fit_E_E2' in self else 2
         else:
             # If E_fit is not None the specified E1,E2 range is used
-            if E1 < 0 and E2 > 1: 
+            if E1 < 0 and E2 > 1:
                 pprint('WARN: E1 < 0 and E2 > 1 (wide range of E eff.)\n')
-        if size(E_fit) == 1 and self.nch > 0: 
+        if size(E_fit) == 1 and self.nch > 0:
             E_fit = np.repeat(E_fit, self.nch)
         assert size(E_fit) == self.nch
 
@@ -1273,12 +1273,12 @@ class Data(DataContainer):
             w = fret_fit.get_weights(nd_s, na_s, weights)
             info_ph = nt_s.sum()
             info_bu = nt_s.size
-            
-            if dist == 'DeltaE': 
+
+            if dist == 'DeltaE':
                 distances = (Ech - E_fit[i])
-            elif dist == 'SlopeEuclid': 
+            elif dist == 'SlopeEuclid':
                 distances = fret_fit.get_dist_euclid(nd_s, na_s, E_fit[i])
-            
+
             residuals = distances * w
             var = mean(residuals**2)
             var_bu = mean(residuals**2)/info_bu
