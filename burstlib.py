@@ -597,7 +597,10 @@ class Data(DataContainer):
             nperiods = int(np.ceil(ph[-1]/time_clk))
             if not self.ALEX:
                 ad_mask = self.A_em[ich]
-                dd_mask = -ad_mask
+                if type(ad_mask) is bool:
+                    dd_mask =  not ad_mask
+                else:
+                    dd_mask = -ad_mask
             else:
                 dd_mask = self.D_em[ich]*self.D_ex[ich]
                 ad_mask = self.A_em[ich]*self.D_ex[ich]
@@ -610,17 +613,24 @@ class Data(DataContainer):
                 i1 = (ph < (ip+1)*time_clk).sum()
 
                 ph_i = ph[i0:i1]
-                dd_mask_i = dd_mask[i0:i1]
-                ad_mask_i = ad_mask[i0:i1]
-
                 bg[ip] = fun(ph_i, tail_min_us=th_us, **kwargs)
                 
-                if dd_mask.any():
-                    bg_dd[ip] = fun(
+                # This to support cases of D-only or A-only timestamps
+                # where self.A_em[ich] is a bool and not a bool-array
+                if type(dd_mask) is bool:
+                    if dd_mask: bg_dd[ip] = bg[ip]
+                else:
+                    dd_mask_i = dd_mask[i0:i1]
+                    if dd_mask_i.any():
+                        bg_dd[ip] = fun(
                                 ph_i[dd_mask_i], tail_min_us=thd_us, **kwargs)
 
-                if ad_mask.any():
-                    bg_ad[ip] = fun(
+                if type(ad_mask) is bool: 
+                    if ad_mask: bg_ad[ip] = bg[ip]
+                else:
+                    ad_mask_i = ad_mask[i0:i1]
+                    if ad_mask_i.any():
+                        bg_ad[ip] = fun(
                                 ph_i[ad_mask_i], tail_min_us=tha_us, **kwargs)
                         
                 if self.ALEX and aa_mask.any():
