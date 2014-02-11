@@ -5,11 +5,11 @@ These are high-level helper functions that just pack the data in a Data()
 object. The low-level format decoding functions are in dataload folder.
 """
 
+import numpy as np
 import cPickle as pickle
 from dataload.multi_ch_reader import load_data_ordered16
 from dataload.smreader import load_sm
 from dataload.manta_reader import load_manta_timestamps
-
 
 ##
 # Multi-spot loader functions
@@ -42,16 +42,23 @@ def load_multispot8_core(fname, bytes_to_read=-1, swap_D_A=True, BT=0,
     dx.add(ph_times_m=ph_times_m, A_em=A_em, ALEX=False)
     return dx
 
-def load_multispot48(fname, swap_D_A=True, BT=0, gamma=1.,
+def load_multispot48(fname, BT=0, gamma=1.,
                      i_start=0, i_stop=None, debug=False):
-    """Load a 8-ch multispot file and return a Data() object.
+    """Load a 48-ch multispot file and return a Data() object.
     """
     dx = Data(fname=fname, clk_p=10e-9, nch=48, BT=BT, gamma=gamma)
     ph_times_m, big_fifo, ch_fifo = load_manta_timestamps(
                 fname, i_start=i_start, i_stop=i_stop, debug=debug)
     A_em = [True] * len(ph_times_m)
-    dx.add(ph_times_m=ph_times_m, A_em=A_em, ALEX=False,
-           big_fifo=big_fifo, ch_fifo=ch_fifo)
+    dx.add(ph_times_m=ph_times_m, A_em=A_em, ALEX=False)
+    big_fifo_full = np.array([b.any() for b in big_fifo]).any()
+    ch_fifo_full = np.array([b.any() for b in ch_fifo]).any()
+    if big_fifo_full:
+        print 'WARNING: Big-FIFO full, flags saved in Data()'
+        dx.add(big_fifo=big_fifo)
+    if ch_fifo_full:
+        print 'WARNING: CH-FIFO full, flags saved in Data()'
+        dx.add(ch_fifo=ch_fifo)
     return dx
 
 
