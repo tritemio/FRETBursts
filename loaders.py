@@ -43,12 +43,12 @@ def load_multispot8_core(fname, bytes_to_read=-1, swap_D_A=True, BT=0,
     return dx
 
 def load_multispot48(fname, swap_D_A=True, BT=0, gamma=1.,
-                     i_start=0, i_stop=None):
+                     i_start=0, i_stop=None, debug=False):
     """Load a 8-ch multispot file and return a Data() object.
     """
     dx = Data(fname=fname, clk_p=10e-9, nch=48, BT=BT, gamma=gamma)
     ph_times_m, big_fifo, ch_fifo = load_manta_timestamps(
-                                        fname, i_start=i_start, i_stop=i_stop)
+                fname, i_start=i_start, i_stop=i_stop, debug=debug)
     A_em = [True] * len(ph_times_m)
     dx.add(ph_times_m=ph_times_m, A_em=A_em, ALEX=False,
            big_fifo=big_fifo, ch_fifo=ch_fifo)
