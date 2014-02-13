@@ -219,7 +219,6 @@ def _timetrace_bg(d, i, BG, bin_width=None, F=None, Th=True, color='r'):
         if F is not None: plot(ph_p,[F*bg*bin_width]*2, color='m')
 
 def timetrace_da(d, i=0, bin_width=1e-3, bins=100000, bursts=False):
-    b = d.mburst[i]
     if bursts:
         t_max_clk = int((bins*bin_width)/d.clk_p)
         _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500)
@@ -247,7 +246,6 @@ def timetrace_da(d, i=0, bin_width=1e-3, bins=100000, bursts=False):
         timetrace_da.burst_sel.ax_list.append(gca())
 
 def timetrace(d, i=0, bin_width=1e-3, bins=100000, bursts=False, F=None):
-    b = d.mburst[i]
     if bursts:
         t_max_clk = int((bins*bin_width)/d.clk_p)
         _plot_bursts(d, i, t_max_clk, pmax=500)
@@ -265,7 +263,6 @@ def timetrace(d, i=0, bin_width=1e-3, bins=100000, bursts=False, F=None):
         timetrace.burst_sel.ax_list.append(gca())
 
 def ratetrace(d, i=0, m=None, max_ph=1e6, pmax=1e6, bursts=False, F=None):
-    b = d.mburst[i]
     if m is None: m = d.m
     ph = d.ph_times_m[i]
     max_ph = min(max_ph, ph.size)
@@ -283,7 +280,6 @@ def ratetrace(d, i=0, m=None, max_ph=1e6, pmax=1e6, bursts=False, F=None):
         ratetrace.burst_sel.ax_list.append(gca())
 
 def ratetrace_da(d, i=0, m=None, max_ph=1e6, pmax=1e6, bursts=False, F=None):
-    b = d.mburst[i]
     if m is None: m = d.m
     if not d.ALEX:
         ph_d = d.ph_times_m[i][-d.A_em[i]]
