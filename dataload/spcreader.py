@@ -25,7 +25,7 @@
 from numpy import *
 
 def load_spc(fname, return_extra_data=False):
-    f = open(fname)
+    f = open(fname, 'rb')
     raw_data = f.read()
 
     ## Each element is 48bit, which will be imported as 3 uint16
