@@ -89,13 +89,13 @@ def load_multispot48(fname, BT=0, gamma=1.,
                                 parent_node='/timestamps_list')
     else:
         ## Load data from raw file and store it in a HDF5 file
-        data = load_xavier_manta_data(fname)
+        data = load_xavier_manta_data(fname, i_start=i_start, i_stop=i_stop, 
+                                      debug=debug)
         timestamps, det = get_timestamps_detectors(data, nbits=24)
         ph_times_m, big_fifo, ch_fifo = process_store(timestamps, det,
                         out_fname=fname_h5, fifo_flag=True, debug=False)
 
-    #ph_times_m, big_fifo, ch_fifo = load_manta_timestamps(
-    #            fname, i_start=i_start, i_stop=i_stop, debug=debug)
+    ## Current data has only acceptor ch
     A_em = [True] * len(ph_times_m)
 
     dx = Data(fname=fname, clk_p=10e-9, nch=48, BT=BT, gamma=gamma)

@@ -35,10 +35,10 @@ def load_manta_timestamps(fname, format='xa', full_output=False,
     """
     assert format in ['raw', 'xa']
     if format == 'raw':
-        data = load_raw_manta_data(fname, dtype='<u4')
+        data = load_raw_manta_data(fname)
     elif format == 'xa':
         data = load_xavier_manta_data(fname,
-                    dtype='>u4', i_start=i_start, i_stop=i_stop, debug=debug)
+                    i_start=i_start, i_stop=i_stop, debug=debug)
     timestamps, det = get_timestamps_detectors(data, nbits=24)
     timestamps_m, big_ff, small_ff = process_timestamps(
             timestamps, det, fifo_flag=True, debug=debug)
@@ -180,6 +180,8 @@ def process_store(timestamps, det, out_fname, delta_rollover=1, nbits=24,
         timestamps to be processes (rollover correction and ch separation)
     det : array (int)
         detector number for each timestamp
+    out_fname : string
+        file name where to save the processed timestamps
     nbits : integer
         number of bits used for the timestamps. Default 24.
     delta_rollover : positive integer
