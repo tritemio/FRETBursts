@@ -117,7 +117,7 @@ def plot_alternation_hist(d, bins=100, **kwargs):
 
 def plot_alternation_hist_sel(d, **kwargs):
     figure()
-    ph_times, d_ex, period = d.ph_times_m[0], d.D_ex[0], d.alex_period
+    ph_times, d_ex, period = d.get_ph_times(0), d.D_ex[0], d.alex_period
     bins = arange(0, period+1, period/100.)
     kwargs.update(bins=bins, alpha=0.2)
     hist(ph_times[d_ex] % period, color='g', label='D', **kwargs)
@@ -157,7 +157,7 @@ def hist2d_alex(d, i=0, vmin=2, vmax=0, bin_step=None,
 def time_ph(d, i=0, num_ph=1e4, ph_istart=0):
     """Plot 'num_ph' ph starting at 'ph_istart' marking burst start/end."""
     b = d.mburst[i]
-    SLICE = slice(ph_istart,ph_istart+num_ph)
+    SLICE = slice(ph_istart, ph_istart+num_ph)
     ph_d = d.ph_times_m[i][SLICE][-d.A_em[i][SLICE]]
     ph_a = d.ph_times_m[i][SLICE][d.A_em[i][SLICE]]
 
@@ -224,7 +224,7 @@ def timetrace_da(d, i=0, bin_width=1e-3, bins=100000, bursts=False):
         _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500)
 
     if (-d.A_em[i]).any():
-        ph_d = d.ph_times_m[i][-d.A_em[i]]
+        ph_d = d.get_ph_times(i, ph_sel='D')
         tr_d, t_d = binning(ph_d,bin_width_ms=bin_width*1e3, max_num_bins=bins,
                 clk_p=d.clk_p)
         t_d = t_d[1:]*d.clk_p-bin_width*0.5
@@ -232,7 +232,7 @@ def timetrace_da(d, i=0, bin_width=1e-3, bins=100000, bursts=False):
         _timetrace_bg(d, i, d.bg_dd, bin_width=bin_width, color='k', Th=False)
 
     if (d.A_em[i]).any():
-        ph_a = d.ph_times_m[i][d.A_em[i]]
+        ph_a = d.get_ph_times(i, ph_sel='A')
         tr_a, t_a = binning(ph_a,bin_width_ms=bin_width*1e3, max_num_bins=bins,
                 clk_p=d.clk_p)
         t_a = t_a[1:]*d.clk_p-bin_width*0.5
@@ -250,7 +250,7 @@ def timetrace(d, i=0, bin_width=1e-3, bins=100000, bursts=False, F=None):
         t_max_clk = int((bins*bin_width)/d.clk_p)
         _plot_bursts(d, i, t_max_clk, pmax=500)
     #ph = d.ph_times_det[i]
-    ph = d.ph_times_m[i]
+    ph = d.get_ph_times(i)
     trace, time = binning(ph,bin_width_ms=bin_width*1e3, max_num_bins=bins,
             clk_p=d.clk_p)
     time = time[1:]*d.clk_p-bin_width*0.5
@@ -264,7 +264,7 @@ def timetrace(d, i=0, bin_width=1e-3, bins=100000, bursts=False, F=None):
 
 def ratetrace(d, i=0, m=None, max_ph=1e6, pmax=1e6, bursts=False, F=None):
     if m is None: m = d.m
-    ph = d.ph_times_m[i]
+    ph = d.get_ph_times(i)
     max_ph = min(max_ph, ph.size)
     if bursts:
         t_max_clk = ph[max_ph-1]
@@ -281,14 +281,12 @@ def ratetrace(d, i=0, m=None, max_ph=1e6, pmax=1e6, bursts=False, F=None):
 
 def ratetrace_da(d, i=0, m=None, max_ph=1e6, pmax=1e6, bursts=False, F=None):
     if m is None: m = d.m
+    ph_d = d.get_ph_times(i, ph_sel='D')
+    ph_a = d.get_ph_times(i, ph_sel='A')
     if not d.ALEX:
-        ph_d = d.ph_times_m[i][-d.A_em[i]]
-        ph_a = d.ph_times_m[i][d.A_em[i]]
         max_ph = min(max_ph, ph_d.size, ph_a.size)
     else:
-        ph_d = d.ph_times_m[i][d.D_ex[i]*d.D_em[i]]
-        ph_a = d.ph_times_m[i][d.D_ex[i]*d.A_em[i]]
-        ph_aa = d.ph_times_m[i][d.A_ex[i]*d.A_em[i]]
+        ph_aa = d.get_ph_times(i, ph_sel='AA')
         max_ph = min(max_ph, ph_d.size, ph_a.size, ph_aa.size)
     if bursts:
         t_max_clk = ph_d[max_ph-1]

@@ -416,16 +416,37 @@ class Data(DataContainer):
         `ph_sel` can be 'DA', D' or 'A' and allows to retrive timstamps for
         donor-acceptor, donor or acceptor emission.
         """
-        assert ph_sel in ['DA', 'D', 'A']
-        for a_em, ph in zip(self.A_em, self.ph_times_m):
-            if type(self.ph_times_m) is not list:
-                ph = ph[:]
-            if ph_sel == 'DA':
-                yield ph
-            elif ph_sel == 'D':
-                yield ph[-a_em]
-            elif ph_sel == 'A':
-                yield ph[a_em]
+        for ich in xrange(self.nch):
+            yield self.get_ph_times(ich, ph_sel=ph_sel)
+                            
+    def get_ph_times(self, ich, ph_sel='DA'):
+        """Returns timestamps array for ch `ich`.
+        This method always returns in-memory arrays, even when ph_time_m
+        is a disk-baked list of arrays.
+        `ph_sel` can be 'DA', D' or 'A' and allows to retrive timstamps for
+        donor-acceptor, donor or acceptor emission.
+        """
+        assert ph_sel in ['DA', 'D', 'A', 'AA']
+        ph = self.ph_times_m[ich]
+        if type(self.ph_times_m) is not list:
+            ph = ph[:]
+        
+        if ph_sel == 'DA':
+            return ph
+        elif ph_sel == 'D':
+            if self.ALEX:
+                return ph[self.D_ex[ich]*self.D_em[ich]]
+            else:
+                return ph[-self.A_em[ich]]
+        elif ph_sel == 'A':
+            if self.ALEX:
+                return ph[self.D_ex[ich]*self.A_em[ich]]
+            else:
+                return ph[self.A_em[ich]]
+        elif ph_sel == 'AA':
+            if not self.ALEX:
+                raise ValueError('Selection "AA" is valid only for ALEX data')
+            return ph[self.A_ex[ich]*self.A_em[ich]]
             
     def slice_ph(self, time_s1=5, time_s2=None, s='slice'):
         """Return a new Data object with ph in [`time_s1`,`time_s2`] (seconds)
