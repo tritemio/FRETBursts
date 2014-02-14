@@ -15,6 +15,7 @@ from dataload.manta_reader import (load_manta_timestamps,
                                    get_timestamps_detectors,
                                    #process_timestamps,
                                    process_store,)
+from dataload.pytables_array_list import PyTablesList
 
 ##
 # Multi-spot loader functions
@@ -77,7 +78,7 @@ def load_multispot48(fname, BT=0, gamma=1.,
 
     if os.path.exists(fname_h5):
         ## There is a HDF5 file
-        print 'EXISTS'
+        pprint(' - Loading HDF5 file: %s ... ' % fname_h5)
         ph_times_m = PyTablesList(fname_h5, group_name='timestamps_list')
 
         big_fifo = PyTablesList(ph_times_m.data_file,
@@ -87,14 +88,18 @@ def load_multispot48(fname, BT=0, gamma=1.,
         ch_fifo = PyTablesList(ph_times_m.data_file,
                                 group_name='small_fifo_full_list',
                                 parent_node='/timestamps_list')
+        pprint('DONE.\n')
     else:
+        pprint(' - Loading file: %s ... ' % fname)
         ## Load data from raw file and store it in a HDF5 file
         data = load_xavier_manta_data(fname, i_start=i_start, i_stop=i_stop, 
                                       debug=debug)
+        pprint('DONE.\n - Extracting timestamps and detectors ... ')
         timestamps, det = get_timestamps_detectors(data, nbits=24)
+        pprint('DONE.\n - Processing and storing ... ')
         ph_times_m, big_fifo, ch_fifo = process_store(timestamps, det,
                         out_fname=fname_h5, fifo_flag=True, debug=False)
-
+        pprint('DONE.\n')
     ## Current data has only acceptor ch
     A_em = [True] * len(ph_times_m)
 

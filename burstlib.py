@@ -12,19 +12,17 @@ from numpy import array, zeros, size, mean, r_
 import scipy.stats as SS
 from pylab import find, rand, normpdf
 
-from path_def_burst import *
-from utils import git
 from utils.misc import pprint, clk_to_s
-#from dataload.multi_ch_reader import *
 from poisson_threshold import find_optimal_T_bga
 import bt_fit
 import fret_fit
+
 from burstsearch.bs import (itstart, iwidth, inum_ph, iistart, iiend, itend,
-        ba_pure, ba_pure_o, mch_count_ph_in_bursts,
-        b_start,b_end,b_width,b_istart,b_iend,b_size,b_rate,b_separation)
+        ba_pure_o, mch_count_ph_in_bursts, b_start, b_end, b_width, 
+        b_istart, b_iend, b_size, b_rate, b_separation)
 
 try:
-    from burstsearch.c_burstsearch import ba_c, ba_pure_c
+    from burstsearch.c_burstsearch import ba_c#, ba_pure_c
     ba = ba_c
     print " - Optimized burst search (cython) loaded."
 except:
@@ -40,11 +38,6 @@ except:
 from background import *
 from burst_selection import Sel, Sel_mask, select_bursts_E
 
-ip = get_ipython()
-ip.magic("run -i loaders.py")
-ip.magic("run -i burst_selection.py")
-#ip.magic("run -i burstsearch.py")
-#ip.magic("run -i background.py")
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##  GLOBAL VARIABLES

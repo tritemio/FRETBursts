@@ -36,10 +36,12 @@ if not 'NOTEBOOK_DIR' in globals():
 ip.magic('%matplotlib inline')
 
 ip.magic('%cd "$BURST_DIR"')
-ip.magic('%run -i burstlib.py')
+ip.magic('%run -i fretbursts.py')
 ip.magic('%run -i burst_plot.py')
 ip.magic('%run -i style')
+
 from utils.gui import gui_fname
+from utils import git
 
 # If git is available, check fretbursts version
 if not git.git_path_valid():
