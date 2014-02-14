@@ -210,17 +210,18 @@ def process_store(timestamps, det, out_fname, delta_rollover=1, nbits=24,
     if debug :
         assert (det < 49).all()
 
+    array_list_descr = 'List of arrays of %s (one per ch).'  
     timestamps_m = PyTablesList(
             out_fname, overwrite=True, group_name='timestamps_list',
-            group_descr='List of arrays of timestamps (one per ch).')
+            group_descr=(array_list_descr % 'timestamps'))
     full_big_fifo_m = PyTablesList(out_fname,
             parent_node='/timestamps_list',
             group_name='big_fifo_full_list',
-            group_descr='List of arrays of big-FIFO full flags (one per ch).')
+            group_descr=(array_list_descr % 'big-FIFO'))
     full_small_fifo_m = PyTablesList(out_fname,
             parent_node='/timestamps_list',
             group_name='small_fifo_full_list',
-            group_descr='List of arrays of small-FIFO full flags (one per ch).')
+            group_descr=(array_list_descr % 'small-FIFO'))
 
     for CH in range(1, 49):
         mask = (det == CH)
@@ -232,7 +233,7 @@ def process_store(timestamps, det, out_fname, delta_rollover=1, nbits=24,
 
             small_fifo_i = full_small_fifo[mask]
             #if not small_fifo_i.any(): small_fifo_i = np.array([])
-            full_big_fifo_m.append(small_fifo_i)
+            full_small_fifo_m.append(small_fifo_i)
         del mask
 
         if times32.size >= 3:
@@ -248,3 +249,18 @@ def process_store(timestamps, det, out_fname, delta_rollover=1, nbits=24,
         timestamps_m.append(times64)
     timestamps_m.data_file.flush()
     return timestamps_m, full_big_fifo_m, full_small_fifo_m
+    
+def load_manta_timestamps_pytables(fname):
+    """Load timestamps from HDF5 file `fname` saved with `process_store()`.
+    """
+    timestamps_m = PyTablesList(fname, group_name='timestamps_list')
+
+    big_fifo = PyTablesList(timestamps_m.data_file,
+                            group_name='big_fifo_full_list',
+                            parent_node='/timestamps_list')
+
+    small_fifo = PyTablesList(timestamps_m.data_file,
+                            group_name='small_fifo_full_list',
+                            parent_node='/timestamps_list')
+
+    return timestamps_m, big_fifo, small_fifo

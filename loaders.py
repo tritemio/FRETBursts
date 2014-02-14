@@ -14,8 +14,9 @@ from dataload.manta_reader import (load_manta_timestamps,
                                    load_xavier_manta_data,
                                    get_timestamps_detectors,
                                    #process_timestamps,
-                                   process_store,)
-from dataload.pytables_array_list import PyTablesList
+                                   process_store,
+                                   load_manta_timestamps_pytables)
+from utils.misc import pprint
 
 ##
 # Multi-spot loader functions
@@ -67,7 +68,7 @@ def load_multispot48_simple(fname, BT=0, gamma=1.,
         dx.add(ch_fifo=ch_fifo)
     return dx
 
-def load_multispot48(fname, BT=0, gamma=1.,
+def load_multispot48(fname, BT=0, gamma=1., reprocess=False,
                      i_start=0, i_stop=None, debug=False):
     """Load a 48-ch multispot file and return a Data() object.
     """
@@ -76,18 +77,11 @@ def load_multispot48(fname, BT=0, gamma=1.,
     if not os.path.exists(fname):
         raise IOError('Data file "%s" not found' % fname)
 
-    if os.path.exists(fname_h5):
+    if os.path.exists(fname_h5) and not reprocess:
         ## There is a HDF5 file
         pprint(' - Loading HDF5 file: %s ... ' % fname_h5)
-        ph_times_m = PyTablesList(fname_h5, group_name='timestamps_list')
-
-        big_fifo = PyTablesList(ph_times_m.data_file,
-                                group_name='big_fifo_full_list',
-                                parent_node='/timestamps_list')
-
-        ch_fifo = PyTablesList(ph_times_m.data_file,
-                                group_name='small_fifo_full_list',
-                                parent_node='/timestamps_list')
+        ph_times_m, big_fifo, ch_fifo = \
+                    load_manta_timestamps_pytables(fname_h5)
         pprint('DONE.\n')
     else:
         pprint(' - Loading file: %s ... ' % fname)
