@@ -658,8 +658,8 @@ class Data(DataContainer):
 
     def recompute_bg_lim_ph_p(self, ph_sel='D', PH=None):
         """Recompute self.Lim and selp.Ph_p relative to ph selection `ph_sel`
-        `ph_sel` can be 'D','A', or 'DA'. It selects the timestamps array
-        (donor, acceptor or both) on which self.Lim and selp.Ph_p are computed.
+        `ph_sel` (can be 'D','A', or 'DA') selects the timestamps (donor, 
+        acceptor or both) on which self.Lim and selp.Ph_p are computed.
         """
         assert ph_sel in ['DA', 'D', 'A']
         if 'ph_sel' in self and self.ph_sel == ph_sel: return
@@ -667,12 +667,7 @@ class Data(DataContainer):
         pprint(" - Recomputing limits for current ph selection (%s) ... " % \
                 ph_sel)
         if PH is None:
-            if ph_sel == 'DA':
-                PH = self.ph_times_m
-            elif ph_sel == 'D':
-                PH = [p[-a] for p, a in zip(self.ph_times_m, self.A_em)]
-            elif ph_sel == 'A':
-                PH = [p[a] for p, a in zip(self.ph_times_m, self.A_em)]
+            PH = self._select_ph_times(ph_sel)
         bg_time_clk = self.bg_time_s/self.clk_p
         Lim, Ph_p = [], []
         for ph_x, lim in zip(PH, self.Lim):
@@ -727,8 +722,9 @@ class Data(DataContainer):
             Th.append(mean(m/Tch))
         self.add(TT=TT, T=T, bg_bs=BG[ph_sel], FF=FF, PP=PP, F=F, P=P, Th=Th)
 
-    def _burst_search_da(self, m, L, ph_sel='DA', verbose=True):
-        """Compute burst search with params `m`, `L` on ph selection `ph_sel`
+    def _select_ph_times(self, ph_sel):
+        """Return a list of ph_times with photons specified by `ph_sel`.
+        `ph_sel` is a string that can be 'D', 'A' or 'DA'.
         """
         assert ph_sel in ['DA', 'D', 'A']
         if ph_sel == 'DA':
@@ -737,6 +733,12 @@ class Data(DataContainer):
             PH = [p[-a] for p, a in zip(self.ph_times_m, self.A_em)]
         elif ph_sel == 'A':
             PH = [p[a] for p, a in zip(self.ph_times_m, self.A_em)]
+        return PH
+        
+    def _burst_search_da(self, m, L, ph_sel='DA', verbose=True):
+        """Compute burst search with params `m`, `L` on ph selection `ph_sel`
+        """
+        PH = self._select_ph_times(ph_sel)
         self.recompute_bg_lim_ph_p(ph_sel=ph_sel, PH=PH)
         MBurst = []
         label = ''
@@ -761,7 +763,7 @@ class Data(DataContainer):
             # Convert the burst data to be relative to ph_times_m.
             # Convert both Lim/Ph_p and mburst, as they are both needed
             # to compute `.bp`.
-            self.recompute_bg_lim_ph_p(ph_sel='DA', PH=self.ph_times_m)
+            self.recompute_bg_lim_ph_p(ph_sel='DA')
             self._fix_mburst_from(ph_sel=ph_sel)
 
     def _fix_mburst_from(self, ph_sel):
