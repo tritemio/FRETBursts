@@ -409,6 +409,24 @@ class Data(DataContainer):
                 setattr(new_d, k, new_d[k])
         return new_d
 
+    def iter_ph_times(self, ph_sel='DA'):
+        """Iterator that returns the arrays of timestamps in `.ph_times_m`.
+        This method always returns in-memory arrays, even when ph_time_m
+        is a disk-baked list of arrays.
+        `ph_sel` can be 'DA', D' or 'A' and allows to retrive timstamps for
+        donor-acceptor, donor or acceptor emission.
+        """
+        assert ph_sel in ['DA', 'D', 'A']
+        for a_em, ph in zip(self.A_em, self.ph_times_m):
+            if type(self.ph_times_m) is not list:
+                ph = ph[:]
+            if ph_sel == 'DA':
+                yield ph
+            elif ph_sel == 'D':
+                yield ph[-a_em]
+            elif ph_sel == 'A':
+                yield ph[a_em]
+            
     def slice_ph(self, time_s1=5, time_s2=None, s='slice'):
         """Return a new Data object with ph in [`time_s1`,`time_s2`] (seconds)
         """
@@ -530,7 +548,7 @@ class Data(DataContainer):
     def cal_max_rate(self, m):
         """Compute the max m-photon rate reached in each burst."""
         Max_Rate = [b_rate_max(mb, ph, m=m)/self.clk_p
-                for ph, mb in zip(self.ph_times_m, self.mburst)]
+                for ph, mb in zip(self.iter_ph_times(), self.mburst)]
         self.add(max_rate=Max_Rate)
 
     ##
@@ -586,7 +604,7 @@ class Data(DataContainer):
         time_clk = time_s/self.clk_p
         BG, BG_dd, BG_ad, BG_aa, Lim, Ph_p = [], [], [], [], [], []
         rate_m, rate_dd, rate_ad, rate_aa = [], [], [], []
-        for ich, ph in enumerate(self.ph_times_m):
+        for ich, ph in enumerate(self.iter_ph_times()):
             nperiods = int(np.ceil(ph[-1]/time_clk))
             if not self.ALEX:
                 ad_mask = self.A_em[ich]
@@ -649,7 +667,7 @@ class Data(DataContainer):
                 rate_dd=rate_dd, rate_ad=rate_ad, rate_aa=rate_aa)
         pprint("[DONE]\n")
 
-    def recompute_bg_lim_ph_p(self, ph_sel='D', PH=None):
+    def recompute_bg_lim_ph_p(self, ph_sel='D'):
         """Recompute self.Lim and selp.Ph_p relative to ph selection `ph_sel`
         `ph_sel` (can be 'D','A', or 'DA') selects the timestamps (donor, 
         acceptor or both) on which self.Lim and selp.Ph_p are computed.
@@ -659,11 +677,9 @@ class Data(DataContainer):
 
         pprint(" - Recomputing limits for current ph selection (%s) ... " % \
                 ph_sel)
-        if PH is None:
-            PH = self._select_ph_times(ph_sel)
         bg_time_clk = self.bg_time_s/self.clk_p
         Lim, Ph_p = [], []
-        for ph_x, lim in zip(PH, self.Lim):
+        for ph_x, lim in zip(self.iter_ph_times(ph_sel), self.Lim):
             lim, ph_p = [], []
             for ip in xrange(self.nperiods):
                 i0 = 0 if ip == 0 else i1  # pylint: disable=E0601
@@ -723,19 +739,19 @@ class Data(DataContainer):
         if ph_sel == 'DA':
             PH = self.ph_times_m
         elif ph_sel == 'D':
-            PH = [p[-a] for p, a in zip(self.ph_times_m, self.A_em)]
+            PH = [p[-a] for p, a in zip(self.iter_ph_times(), self.A_em)]
         elif ph_sel == 'A':
-            PH = [p[a] for p, a in zip(self.ph_times_m, self.A_em)]
+            PH = [p[a] for p, a in zip(self.iter_ph_times(), self.A_em)]
         return PH
-        
+      
     def _burst_search_da(self, m, L, ph_sel='DA', verbose=True):
         """Compute burst search with params `m`, `L` on ph selection `ph_sel`
         """
-        PH = self._select_ph_times(ph_sel)
-        self.recompute_bg_lim_ph_p(ph_sel=ph_sel, PH=PH)
+        self.recompute_bg_lim_ph_p(ph_sel=ph_sel)
         MBurst = []
         label = ''
-        for ich, (ph, T) in enumerate(zip(PH, self.TT)):
+        for ich, (ph, T) in enumerate(zip(self.iter_ph_times(ph_sel), 
+                                          self.TT)):
             MB = []
             Tck = T/self.clk_p
             for ip, (l0, l1) in enumerate(self.Lim[ich]):
@@ -767,7 +783,8 @@ class Data(DataContainer):
         Mask = self.A_em if ph_sel == 'A' else [-a for a in self.A_em]
         old_MBurst = [mb.copy() for mb in self.mburst]
         # Note that mburst is modified in-place
-        for mburst, ph_times, mask in zip(self.mburst, self.ph_times_m, Mask):
+        for mburst, ph_times, mask in \
+                    zip(self.mburst, self.iter_ph_times(), Mask):
             index = np.arange(ph_times.size, dtype=np.int32)
             mburst[:, iistart] = index[mask][mburst[:, iistart]]
             mburst[:, iiend] = index[mask][mburst[:, iiend]]
