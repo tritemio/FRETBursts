@@ -5,11 +5,16 @@ These are high-level helper functions that just pack the data in a Data()
 object. The low-level format decoding functions are in dataload folder.
 """
 
+import os
 import numpy as np
 import cPickle as pickle
 from dataload.multi_ch_reader import load_data_ordered16
 from dataload.smreader import load_sm
-from dataload.manta_reader import load_manta_timestamps
+from dataload.manta_reader import (load_manta_timestamps,
+                                   load_xavier_manta_data,
+                                   get_timestamps_detectors,
+                                   #process_timestamps,
+                                   process_store,)
 
 ##
 # Multi-spot loader functions
@@ -42,7 +47,7 @@ def load_multispot8_core(fname, bytes_to_read=-1, swap_D_A=True, BT=0,
     dx.add(ph_times_m=ph_times_m, A_em=A_em, ALEX=False)
     return dx
 
-def load_multispot48(fname, BT=0, gamma=1.,
+def load_multispot48_simple(fname, BT=0, gamma=1.,
                      i_start=0, i_stop=None, debug=False):
     """Load a 48-ch multispot file and return a Data() object.
     """
@@ -53,6 +58,50 @@ def load_multispot48(fname, BT=0, gamma=1.,
     dx.add(ph_times_m=ph_times_m, A_em=A_em, ALEX=False)
     big_fifo_full = np.array([b.any() for b in big_fifo]).any()
     ch_fifo_full = np.array([b.any() for b in ch_fifo]).any()
+    if big_fifo_full:
+        print 'WARNING: Big-FIFO full, flags saved in Data()'
+        dx.add(big_fifo=big_fifo)
+    if ch_fifo_full:
+        print 'WARNING: CH-FIFO full, flags saved in Data()'
+        dx.add(ch_fifo=ch_fifo)
+    return dx
+
+def load_multispot48(fname, BT=0, gamma=1.,
+                     i_start=0, i_stop=None, debug=False):
+    """Load a 48-ch multispot file and return a Data() object.
+    """
+    fname_h5 = fname if fname.endswith('hdf5') else fname[:-3]+'hdf5'
+
+    if not os.path.exists(fname):
+        raise IOError('Data file "%s" not found' % fname)
+
+    if os.path.exists(fname_h5):
+        ## There is a HDF5 file
+        print 'EXISTS'
+        ph_times_m = PyTablesList(fname_h5, group_name='timestamps_list')
+
+        big_fifo = PyTablesList(ph_times_m.data_file,
+                                group_name='big_fifo_full_list',
+                                parent_node='/timestamps_list')
+
+        ch_fifo = PyTablesList(ph_times_m.data_file,
+                                group_name='small_fifo_full_list',
+                                parent_node='/timestamps_list')
+    else:
+        ## Load data from raw file and store it in a HDF5 file
+        data = load_xavier_manta_data(fname)
+        timestamps, det = get_timestamps_detectors(data, nbits=24)
+        ph_times_m, big_fifo, ch_fifo = process_store(timestamps, det,
+                        out_fname=fname_h5, fifo_flag=True, debug=False)
+
+    #ph_times_m, big_fifo, ch_fifo = load_manta_timestamps(
+    #            fname, i_start=i_start, i_stop=i_stop, debug=debug)
+    A_em = [True] * len(ph_times_m)
+
+    dx = Data(fname=fname, clk_p=10e-9, nch=48, BT=BT, gamma=gamma)
+    dx.add(ph_times_m=ph_times_m, A_em=A_em, ALEX=False)
+    big_fifo_full = np.array([b[:].any() for b in big_fifo]).any()
+    ch_fifo_full = np.array([b[:].any() for b in ch_fifo]).any()
     if big_fifo_full:
         print 'WARNING: Big-FIFO full, flags saved in Data()'
         dx.add(big_fifo=big_fifo)
