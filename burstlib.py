@@ -18,7 +18,7 @@ import bt_fit
 import fret_fit
 
 from burstsearch.bs import (itstart, iwidth, inum_ph, iistart, iiend, itend,
-        ba_pure_o, mch_count_ph_in_bursts, b_start, b_end, b_width, 
+        ba_pure_o, mch_count_ph_in_bursts, b_start, b_end, b_width,
         b_istart, b_iend, b_size, b_rate, b_separation)
 
 try:
@@ -67,8 +67,8 @@ def top_tail(nx, a=0.1):
     return np.r_[[n[n>n.max()*(1-a)].mean() for n in nx]]
 
 # Quick functions to calculate rate-trace from ph_times
-ph_rate = lambda m, ph: 1.*m/(ph[m-1:]-ph[:ph.size-m+1])     # rate
-ph_rate_t = lambda m, ph: 0.5*(ph[m-1:]+ph[:ph.size-m+1])   # time for rate
+ph_rate = lambda m, ph: 1.*m/(ph[m-1:] - ph[:ph.size-m+1])   # rate
+ph_rate_t = lambda m, ph: 0.5*(ph[m-1:] + ph[:ph.size-m+1])  # time for rate
 
 def ph_select(ph, mburst):
     """Return bool mask to select all ph inside any burst"""
@@ -411,17 +411,17 @@ class Data(DataContainer):
 
     def iter_ph_times(self, ph_sel='DA'):
         """Iterator that returns the arrays of timestamps in `.ph_times_m`.
-        This method always returns in-memory arrays, even when ph_time_m
+        This method always returns in-memory arrays, even when ph_times_m
         is a disk-baked list of arrays.
         `ph_sel` can be 'DA', D' or 'A' and allows to retrive timstamps for
         donor-acceptor, donor or acceptor emission.
         """
         for ich in xrange(self.nch):
             yield self.get_ph_times(ich, ph_sel=ph_sel)
-                            
+
     def get_ph_times(self, ich, ph_sel='DA'):
-        """Returns timestamps array for ch `ich`.
-        This method always returns in-memory arrays, even when ph_time_m
+        """Returns timestamps array for channel `ich`.
+        This method always returns in-memory arrays, even when ph_times_m
         is a disk-baked list of arrays.
         `ph_sel` can be 'DA', D' or 'A' and allows to retrive timstamps for
         donor-acceptor, donor or acceptor emission.
@@ -430,24 +430,51 @@ class Data(DataContainer):
         ph = self.ph_times_m[ich]
         if type(self.ph_times_m) is not list:
             ph = ph[:]
-        
+
         if ph_sel == 'DA':
             return ph
         elif ph_sel == 'D':
             if self.ALEX:
-                return ph[self.D_ex[ich]*self.D_em[ich]]
+                return ph[self.get_D_ex(ich)*self.get_D_em(ich)]
             else:
-                return ph[-self.A_em[ich]]
+                return ph[self.get_D_em(ich)]
         elif ph_sel == 'A':
             if self.ALEX:
-                return ph[self.D_ex[ich]*self.A_em[ich]]
+                return ph[self.get_D_ex(ich)*self.get_A_em(ich)]
             else:
-                return ph[self.A_em[ich]]
+                return ph[self.get_A_em(ich)]
         elif ph_sel == 'AA':
             if not self.ALEX:
                 raise ValueError('Selection "AA" is valid only for ALEX data')
             return ph[self.A_ex[ich]*self.A_em[ich]]
-            
+
+    def _get_mask(self, ich, mask_name, negate=False):
+        """Get the bool array `mask_name` for channel `ich`.
+        If the bool array is a scalar return a slice (full or empty)
+        """
+        mask = np.asarray(getattr(self, mask_name)[ich])
+        if negate:
+            mask = np.logical_not(mask)
+        if len(mask.shape) == 0:
+            mask = slice(None) if mask else slice(0)
+        return mask
+
+    def get_A_em(self, ich):
+        """Returns a mask to select photons detected in the acceptor ch."""
+        return self._get_mask(ich, 'A_em')
+
+    def get_D_em(self, ich):
+        """Returns a mask to select photons detected in the donor ch."""
+        return self._get_mask(ich, 'A_em', negate=True)
+
+    def get_A_ex(self, ich):
+        """Returns a mask to select photons in acceptor-excitation periods."""
+        return self._get_mask(ich, 'A_ex')
+
+    def get_D_ex(self, ich):
+        """Returns a mask to select photons in donor-excitation periods."""
+        return self._get_mask(ich, 'D_ex')
+
     def slice_ph(self, time_s1=5, time_s2=None, s='slice'):
         """Return a new Data object with ph in [`time_s1`,`time_s2`] (seconds)
         """
@@ -455,7 +482,7 @@ class Data(DataContainer):
         t1_clk, t2_clk = time_s1/self.clk_p, time_s2/self.clk_p
         assert array([t1_clk < ph.max() for ph in self.ph_times_m]).all()
 
-        masks = [(ph > t1_clk)*(ph <= t2_clk) for ph in self.ph_times_m]
+        masks = ((ph > t1_clk)*(ph <= t2_clk) for ph in self.iter_ph_times())
 
         sliced_d = Data()
         slice_fields = ['ph_times_m', 'A_em', 'D_em', 'A_ex', 'D_ex']
@@ -469,9 +496,10 @@ class Data(DataContainer):
             if name in self:
                 sliced_d[name] = self[name]
                 setattr(sliced_d, name, sliced_d[name])
-        # Start timestamps from 0 to avoid problems with BG calc that assume so
+        # Start timestamps from 0 to avoid problems with BG calc
         for ich in range(self.nch):
-            sliced_d.ph_times_m[ich] -= t1_clk
+            ph_i = sliced_d.get_ph_times(ich)
+            ph_i -= t1_clk
         sliced_d.s.append(s)
         return sliced_d
 
@@ -690,7 +718,7 @@ class Data(DataContainer):
 
     def recompute_bg_lim_ph_p(self, ph_sel='D'):
         """Recompute self.Lim and selp.Ph_p relative to ph selection `ph_sel`
-        `ph_sel` (can be 'D','A', or 'DA') selects the timestamps (donor, 
+        `ph_sel` (can be 'D','A', or 'DA') selects the timestamps (donor,
         acceptor or both) on which self.Lim and selp.Ph_p are computed.
         """
         assert ph_sel in ['DA', 'D', 'A']
@@ -764,14 +792,14 @@ class Data(DataContainer):
         elif ph_sel == 'A':
             PH = [p[a] for p, a in zip(self.iter_ph_times(), self.A_em)]
         return PH
-      
+
     def _burst_search_da(self, m, L, ph_sel='DA', verbose=True):
         """Compute burst search with params `m`, `L` on ph selection `ph_sel`
         """
         self.recompute_bg_lim_ph_p(ph_sel=ph_sel)
         MBurst = []
         label = ''
-        for ich, (ph, T) in enumerate(zip(self.iter_ph_times(ph_sel), 
+        for ich, (ph, T) in enumerate(zip(self.iter_ph_times(ph_sel),
                                           self.TT)):
             MB = []
             Tck = T/self.clk_p
