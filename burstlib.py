@@ -35,8 +35,14 @@ try:
 except:
     print " - Fallback to pure python ph_count."
 
-from background import *
-from burst_selection import Sel, Sel_mask, select_bursts_E
+import background as bg
+import select_bursts
+from fit.gaussian_fitting import (gaussian_fit_hist,
+                                  gaussian_fit_cdf,
+                                  two_gaussian_fit_hist,
+                                  two_gaussian_fit_hist_min,
+                                  two_gaussian_fit_EM,
+                                  two_gauss_mix_pdf)
 
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -45,6 +51,73 @@ from burst_selection import Sel, Sel_mask, select_bursts_E
 #
 # itstart, iwidth, inum_ph, iistart and others defined in burstsearch/bs.py
 #
+
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#  BURST SELECTION FUNCTIONS
+#
+
+def Select_bursts(d_orig, filter_fun, negate=False, nofret=False, **kwargs):
+    """Returns a new Data object with bursts selected according to filter_fun.
+    The passed 'filter_fun' is used to compute the mask for each channel.
+    Note that 'ph_times_m' is shared to save RAM, but 'mburst', 'nd', 'na',
+    'nt', 'bp' (ad 'naa' if ALEX) are new objects.
+    """
+    Masks, str_sel = Sel_mask(d_orig, filter_fun, negate=negate,
+            return_str=True, **kwargs)
+    d_sel = Sel_mask_apply(d_orig, Masks, nofret=nofret, str_sel=str_sel)
+    return d_sel
+Sel = Select_bursts
+
+def Sel_mask(d_orig, filter_fun, negate=False, return_str=False, **kwargs):
+    """Returns a list of nch masks to select bursts according to filter_fun.
+    The passed 'filter_fun' is used to compute the mask for each channel.
+    """
+    ## Create the list of bool masks for the bursts selection
+    M = [filter_fun(d_orig,i,**kwargs) for i in range(d_orig.nch)]
+    Masks = [-m[0] if negate else m[0] for m in M]
+    str_sel = M[0][1]
+    if return_str: return Masks, str_sel
+    else: return Masks
+
+def Sel_mask_apply(d_orig, Masks, nofret=False, str_sel=''):
+    """Returns a new Data object with bursts select according to Masks.
+    Note that 'ph_times_m' is shared to save RAM, but 'mburst', 'nd', 'na',
+    'nt', 'bp' (and 'naa' if ALEX) are new objects.
+    """
+    ## Attributes of ds point to the same objects of d_orig
+    ds = Data(**d_orig)
+
+    ##
+    ## Alternative implementation (always applies corrections)
+    ##
+    # NOTE that boolean masking implies numpy array copy
+    # On the contrary slicing only makes a new view of the array
+    #new_mburst = [mburst[mask] for mburst,mask in zip(d_orig.mburst,Masks)]
+    #ds.add(mburst=new_mburst)
+    #ds.calc_fret(count_ph=True, corrections=True, dither=d_orig.dithering)
+    fields = ['mburst', 'nd', 'na', 'nt', 'bp']
+    if d_orig.ALEX: fields += ['naa']
+    if hasattr(d_orig, 'max_rate'): fields += ['max_rate']
+    for k in fields:
+        # Reading hint: think of d[k] as another name for (for ex.) d.nd, etc...
+
+        # Make new lists to contain the filtered data
+        # (otherwise changing ds.nd[0] changes also d_orig.nd[0])
+        ds[k] = [np.array([])]*d_orig.nch
+        # Assign also the attribute to maintain the same object interface
+        setattr(ds,k,ds[k])
+        # Assign the new data
+        for i,mask in enumerate(Masks):
+            if d_orig[k][i].size == 0: continue # -> no bursts in current ch
+            # Note that boolean masking implies numpy array copy
+            # On the contrary slicing only makes a new view of the array
+            ds[k][i] = d_orig[k][i][mask]
+    if not nofret:
+        ds.calc_fret(count_ph=False)
+    # Add the annotation about the filter function
+    ds.s = list(d_orig.s+[str_sel]) # using append would modify also d_orig
+    return ds
+
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Bursts and Timestamps utilities
@@ -606,7 +679,7 @@ class Data(DataContainer):
     def calc_bg_cache(self, fun, time_s=60, **kwargs):
         """Same as `calc_bg` but try to load from cache. Caches results.
         Example:
-            d.calc_bg_cache(bg_calc_exp, time_s=20, tail_min_us=200)
+            d.calc_bg_cache(bg.exp_fit, time_s=20, tail_min_us=200)
         """
         kw_str = ''.join(['_'+k+str(kwargs[k]) for k in kwargs])
         fname = self.fname+'_'+fun.__name__+str(time_s)+kw_str+'.bg'
@@ -629,9 +702,9 @@ class Data(DataContainer):
 
     def calc_bg(self, fun, time_s=60, **kwargs):
         """Calc a BG rate for every "time" seconds of ph arrival times.
-        The BG functions are defined as bg_calc_* in background.py.
+        The BG functions are defined as bkg.calc_* in background.py.
         Example:
-            d.calc_bg(bg_calc_exp, time_s=20, tail_min_us=200)
+            d.calc_bg(bg.exp_fit, time_s=20, tail_min_us=200)
         """
         pprint(" - Calculating BG rates ... ")
 
@@ -1160,7 +1233,7 @@ class Data(DataContainer):
             fit_E_minimize(kind='E_size', weights='sqrt')
         However `fit_E_minimize()` does not provide a model curve.
         """
-        Mask = Sel_mask(self, select_bursts_E, E1=E1, E2=E2)
+        Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
 
         fit_res, fit_model_F = zeros((self.nch, 2)), zeros(self.nch)
         for ich, (nd, na, E, mask) in enumerate(
@@ -1186,7 +1259,7 @@ class Data(DataContainer):
         assert method in [1, 2, 3]
         fit_fun = {1: fret_fit.fit_E_poisson_na, 2: fret_fit.fit_E_poisson_nt,
                    3: fret_fit.fit_E_poisson_nd}
-        Mask = Sel_mask(self, select_bursts_E, E1=E1, E2=E2)
+        Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
         fit_res = zeros(self.nch)
         for ich, mask in zip(xrange(self.nch), Mask):
             nd, na, bg_d, bg_a = self.expand(ich)
@@ -1201,7 +1274,7 @@ class Data(DataContainer):
     def fit_E_ML_binom(self, E1=-1, E2=2, **kwargs):
         """ML fit for E modeling na ~ Binomial, using bursts in [E1,E2] range.
         """
-        Mask = Sel_mask(self, select_bursts_E, E1=E1, E2=E2)
+        Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
         fit_res = array([fret_fit.fit_E_binom(_d[mask], _a[mask], **kwargs)
                 for _d, _a, mask in zip(self.nd, self.na, Mask)])
         self.add(fit_E_res=fit_res, fit_E_name='MLE: na ~ Binomial',
@@ -1218,7 +1291,7 @@ class Data(DataContainer):
         assert kind in ['slope', 'E_size']
         # Build a dictionary fun_d so we'll call the function fun_d[kind]
         fun_d = dict(slope=fret_fit.fit_E_slope, E_size=fret_fit.fit_E_E_size)
-        Mask = Sel_mask(self, select_bursts_E, E1=E1, E2=E2)
+        Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
         fit_res = array([fun_d[kind](nd[mask], na[mask], **kwargs)
                 for nd, na, mask in zip(self.nd,self.na,Mask)])
         fit_name = dict(slope='Linear slope fit', E_size='E_size fit')
@@ -1272,7 +1345,7 @@ class Data(DataContainer):
         else:
             raise ValueError, "Fitting function not recognized."
 
-        Mask = Sel_mask(self, select_bursts_E, E1=E1, E2=E2)
+        Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
 
         fit_res, fit_model_F = zeros((self.nch, nparam)), zeros(self.nch)
         for ich, (nd, na, E, mask) in enumerate(
@@ -1329,7 +1402,7 @@ class Data(DataContainer):
         assert size(E_fit) == self.nch
 
         E_sel = [Ei[(Ei>E1)*(Ei<E2)] for Ei in self.E]
-        Mask = Sel_mask(self, select_bursts_E, E1=E1, E2=E2)
+        Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
 
         E_var, E_var_bu, E_var_ph = \
                 zeros(self.nch), zeros(self.nch), zeros(self.nch)
