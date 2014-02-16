@@ -45,6 +45,19 @@ from fit.gaussian_fitting import (gaussian_fit_hist,
                                   two_gauss_mix_pdf)
 
 
+def deprecate(function, old_name, new_name):
+    def deprecated_function(*args, **kwargs):
+        pprint("Function %s is deprecated, use %s instead.\n" %\
+                (old_name, new_name))
+        res = function(*args, **kwargs)
+        return res
+    return deprecated_function
+
+# Redefine some old functions that have been renamed so old scripts will not
+# break but will print a warning
+bg_calc_exp = deprecate(bg.exp_fit, 'bg_calc_exp', 'bg.exp_fit')
+bg_calc_exp_cdf = deprecate(bg.exp_fit, 'bg_calc_exp_cdf', 'bg.exp_cdf_fit')
+
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##  GLOBAL VARIABLES
 ##
