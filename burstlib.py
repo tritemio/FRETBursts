@@ -14,7 +14,6 @@ import scipy.stats as SS
 from utils.misc import pprint, clk_to_s
 from path_def_burst import shorten_fname
 from poisson_threshold import find_optimal_T_bga
-import bt_fit
 import fret_fit
 
 from burstsearch.burstsearchlib import (
@@ -1134,28 +1133,6 @@ class Data(DataContainer):
         assert (size(self.BT) == 1) or (size(self.BT) == self.nch)
         BT = np.r_[[self.BT]*self.nch] if size(self.BT) == 1 else self.BT
         BT *= self.chi_ch
-        return BT
-
-    # methods calc_bt_* to be deleted ...
-    def calc_bt_from_donly_old(self, debug=False):
-        """Compute BT assuming D-only data."""
-        lk = r_[[SS.linregress(x=nd, y=na) for nd, na in zip(self.nd, self.na)]]
-        return lk if debug else lk[:, 0]
-    def calc_bt_from_donly_ML_binom(self):
-        """Compute BT assuming D-only data."""
-        BT = r_[[bt_fit.fit_ML_binom(self, ich) for ich in range(self.nch)]]
-        return BT
-    def calc_bt_from_donly_ML(self):
-        """Compute BT assuming D-only data."""
-        BT = r_[[bt_fit.fit_ML(self, ich) for ich in range(self.nch)]]
-        return BT
-    def calc_bt_from_donly_LS(self):
-        """Compute BT assuming D-only data."""
-        BT = r_[[bt_fit.fit_LS(self, ich) for ich in range(self.nch)]]
-        return BT
-    def calc_bt_from_donly_LR(self):
-        """Compute BT assuming D-only data."""
-        BT = r_[[bt_fit.fit_LR(self, ich) for ich in range(self.nch)]]
         return BT
 
     ##

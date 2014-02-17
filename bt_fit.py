@@ -4,7 +4,7 @@ from scipy.optimize import minimize_scalar, leastsq
 from scipy.special import gammaln
 from numpy import r_, log, round
 
-from burstsearch.bs import b_width
+from burstsearch.burstsearchlib import b_width
 
 #from burst_selection import Sel, select_bursts_nda
 # TODO: Solve the problem of imports without using run -i
