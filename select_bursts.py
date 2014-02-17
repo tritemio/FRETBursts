@@ -5,7 +5,7 @@ Functions to select bursts according to different criteria
 import numpy as np
 import scipy.stats as ss
 
-from burstsearch.burstsearchlib import b_start, b_width, b_separation, b_tstart
+from burstsearch.burstsearchlib import b_start, b_width, b_end, b_separation
 from utils.misc import clk_to_s
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -112,7 +112,7 @@ def topN_nda(d, ich=0, N=500, gamma=1., gamma1=None):
 def width(d, ich=0, th1=0.5, th2=1):
     """Select bursts with width between th1 and th2 (ms)."""
     th1, th2 = th1*1e-3/d.clk_p, th2*1e-3/d.clk_p
-    burst_width = d.mburst[ich][:, iwidth]
+    burst_width = b_width(d.mburst[ich])
     bursts_mask = (burst_width >= th1)*(burst_width <= th2)
     return bursts_mask, ''
 
@@ -128,8 +128,8 @@ def max_rate(d, ich=0, min_rate_p=0.1):
 def single(d, ich=0, th=1):
     """Select bursts that are at least th millisec apart from the others."""
     th = th*1e-3/d.clk_p
-    burst_start = d.mburst[ich][:, itstart]
-    burst_end = burst_start + d.mburst[ich][:, iwidth]
+    burst_start = b_start(d.mburst[ich])
+    burst_end = b_end(d.mburst[ich])
     gap_mask = (burst_start[1:] - burst_end[:-1]) >= th
     bursts_mask = np.hstack([gap_mask,False])*np.hstack([False,gap_mask])
     return bursts_mask
@@ -177,7 +177,7 @@ def nt_bg(d, ich=0, F=5):
 def na_bg_p(d, ich=0, P=0.05, F=1.):
     """Select bursts w/ AD signal using P{F*BG>=na} < P."""
     accept_ch_bg_rate = d.rate_ad[ich]
-    bursts_width = clk_to_s(d.mburst[ich][:,iwidth])
+    bursts_width = clk_to_s(b_width(d.mburst[ich]))
     max_num_bg_ph = ss.poisson(F*accept_ch_bg_rate*bursts_width).isf(P)
     #print "Min num. ph = ", max_num_bg_ph
     bursts_mask = (d.na[ich] >= max_num_bg_ph)
@@ -185,7 +185,7 @@ def na_bg_p(d, ich=0, P=0.05, F=1.):
 def nd_bg_p(d, ich=0, P=0.05, F=1.):
     """Select bursts w/ DD signal using P{F*BG>=nd} < P."""
     donor_ch_bg_rate = d.rate_dd[ich]
-    bursts_width = clk_to_s(d.mburst[ich][:,iwidth])
+    bursts_width = clk_to_s(b_width(d.mburst[ich]))
     max_num_bg_ph = ss.poisson(F*donor_ch_bg_rate*bursts_width).isf(P)
     #print "Min num. ph = ", max_num_bg_ph
     bursts_mask = (d.nd[ich] >= max_num_bg_ph)
@@ -193,7 +193,7 @@ def nd_bg_p(d, ich=0, P=0.05, F=1.):
 def naa_bg_p(d, ich=0, P=0.05, F=1.):
     """Select bursts w/ AA signal using P{F*BG>=naa} < P."""
     A_em_ex_bg_rate = d.rate_aa[ich]
-    bursts_width = clk_to_s(d.mburst[ich][:,iwidth])
+    bursts_width = clk_to_s(b_width(d.mburst[ich]))
     max_num_bg_ph = ss.poisson(F*A_em_ex_bg_rate*bursts_width).isf(P)
     #print "Min num. ph = ", max_num_bg_ph
     bursts_mask = (d.naa[ich] >= max_num_bg_ph)
@@ -201,7 +201,7 @@ def naa_bg_p(d, ich=0, P=0.05, F=1.):
 def nt_bg_p(d, ich=0, P=0.05, F=1.):
     """Select bursts w/ signal using P{F*BG>=nt} < P."""
     bg_rate = d.rate_m[ich]
-    bursts_width = clk_to_s(d.mburst[ich][:,iwidth])
+    bursts_width = clk_to_s(b_width(d.mburst[ich]))
     max_num_bg_ph = ss.poisson(F*bg_rate*bursts_width).isf(P)
     #print "Min num. ph = ", max_num_bg_ph
     #print "burst width (ms) = ", bursts_width*1e3
@@ -237,14 +237,14 @@ def for_bt_fit(d, ich=0, BT=None):
 
 def size_noise(d, ich=0, th=2):
     """Select bursts w/ size th times above the noise on both D and A ch."""
-    burst_width = d.mburst[ich][:,iwidth]
+    burst_width = b_width(d.mburst[ich])
     noise_d, noise_a = burst_width*d.rate_dd[ich], burst_width*d.rate_ad[ich]
     bursts_mask = (d.nd[ich] >= th*noise_d)*(d.na[ich] >= th*noise_a)
     return bursts_mask
 
 def size_noise_or(d, ich=0, th=2):
     """Select bursts w/ size th times above the noise on D or A ch."""
-    burst_width = d.mburst[ich][:,iwidth]
+    burst_width = b_width(d.mburst[ich])
     noise_d, noise_a = burst_width*d.rate_dd[ich], burst_width*d.rate_ad[ich]
     bursts_mask = (d.nd[ich] >= th*noise_d)+(d.na[ich] >= th*noise_a)
     return bursts_mask
