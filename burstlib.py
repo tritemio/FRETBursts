@@ -18,8 +18,11 @@ import fret_fit
 
 from burstsearch.burstsearchlib import (
         itstart, iwidth, inum_ph, iistart, iiend, itend,
-        ba_pure_o, mch_count_ph_in_bursts, b_start, b_end, b_width,
-        b_istart, b_iend, b_size, b_rate, b_separation)
+        ba_pure_o, mch_count_ph_in_bursts, 
+        b_start, b_end, b_width,
+        b_istart, b_iend, b_size, 
+        #b_rate, 
+        b_separation)
 
 try:
     from burstsearch.c_burstsearch import ba_c#, ba_pure_c
