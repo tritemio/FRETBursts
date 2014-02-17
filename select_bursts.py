@@ -5,7 +5,7 @@ Functions to select bursts according to different criteria
 import numpy as np
 import scipy.stats as ss
 
-from burstsearch.bs import b_start, b_width, b_separation, itstart, iwidth
+from burstsearch.burstsearchlib import b_start, b_width, b_separation, b_tstart
 from utils.misc import clk_to_s
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

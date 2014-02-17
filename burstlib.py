@@ -17,7 +17,8 @@ from poisson_threshold import find_optimal_T_bga
 import bt_fit
 import fret_fit
 
-from burstsearch.bs import (itstart, iwidth, inum_ph, iistart, iiend, itend,
+from burstsearch.burstsearchlib import (
+        itstart, iwidth, inum_ph, iistart, iiend, itend,
         ba_pure_o, mch_count_ph_in_bursts, b_start, b_end, b_width,
         b_istart, b_iend, b_size, b_rate, b_separation)
 
