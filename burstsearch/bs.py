@@ -108,38 +108,7 @@ def ba_pure_a(t,L,m,T,label='Burst search'):
                 bursts[iburst] = (burst_start, burst_end-burst_start,
                     i_end-i_start, i_start, i_end-1, burst_end)
                 iburst += 1
-    return array(bursts, dtype=int64)[:iburst]
-
-def ba_cpp(t,L,m,T, label='Burst search', fast=False):
-    """FIFO burst search (T in clk periods). Optimized. Prints what it does.
-
-    If fast==True the C++ burst search is performed.
-
-    [OBSOLETE] C++ code is difficult to maintain. Now the same high
-    performances are achieved through cython (see .pyx file).
-    """
-    if fast: 
-        bursts = c_findbursts(t, L, m, T)
-    else:
-        pprint('Python search: %s\n'%label)
-        bursts = []
-        in_burst = False
-        above_min_rate = (t[m-1:]-t[:t.size-m+1])<=T
-        for i in xrange(t.size-m+1):
-            if above_min_rate[i]:
-                if not in_burst:
-                    i_start = i
-                    in_burst = True
-            elif in_burst:
-                in_burst = False
-                i_end = i+m-1
-                if i_end - i_start >= L:
-                    burst_start, burst_end = t[i_start], t[i_end-1]
-                    bursts.append([burst_start, burst_end-burst_start,
-                        i_end-i_start, i_start, i_end-1, burst_end])
-    return array(bursts, dtype=int64)
-    # NOTE: Returns int64 and not uint64 so that aritmethics does not
-    # overflows (ex burst separation < 0)
+    return np.array(bursts, dtype=np.int64)[:iburst]
 
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
