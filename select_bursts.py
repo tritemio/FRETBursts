@@ -2,6 +2,11 @@
 Functions to select bursts according to different criteria
 """
 
+import numpy as np
+import scipy.stats as ss
+
+from burstsearch.bs import b_start, b_width, b_separation, itstart, iwidth
+from utils.mist import clk_to_s
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  BURSTS SELECTION FUNCTIONS
@@ -31,7 +36,7 @@ def ESe(d, ich=0, E1=-0.2, E2=1.2, S1=-0.2, S2=1.2):
     """Select the burst with E-S inside an ellipsis inscribed in E1,E2,S1,S2"""
     def ellips(x,y,x1,x2,y1,y2):
         rx, ry = 0.5*abs(x2-x1), 0.5*abs(y2-y1)
-        return ((x-mean([x1,x2]))/rx)**2 + ((y-mean([y1,y2]))/ry)**2
+        return ((x-np.mean([x1,x2]))/rx)**2 + ((y-np.mean([y1,y2]))/ry)**2
     burst_mask = (ellips(d.E[ich],d.S[ich],E1,E2,S1,S2) <= 1)
     return burst_mask, ''
 
@@ -87,7 +92,7 @@ def nda_percentile(d, ich=0, q=50, low=False,
         burst_size = (1.*d.nd[ich]*gamma1 + d.na[ich])
     else:
         burst_size = (d.nd[ich] + 1.*d.na[ich]/gamma)
-    q_percentile = percentile(burst_size, q=q)
+    q_percentile = np.percentile(burst_size, q=q)
     if low: bursts_mask = (burst_size <= q_percentile)
     else: bursts_mask = (burst_size >= q_percentile)
     return bursts_mask, 'perc%d' % q
@@ -100,14 +105,14 @@ def topN_nda(d, ich=0, N=500, gamma=1., gamma1=None):
     else:
         burst_size = (d.nd[ich] + 1.*d.na[ich]/gamma)
     index_sorted = burst_size.argsort()
-    burst_mask = zeros(burst_size.size, dtype=bool)
+    burst_mask = np.zeros(burst_size.size, dtype=bool)
     burst_mask[index_sorted[-N:]] = True
     return burst_mask, 'topN%d%s' % (N, str_G(gamma,gamma1))
 
 def width(d, ich=0, th1=0.5, th2=1):
     """Select bursts with width between th1 and th2 (ms)."""
     th1, th2 = th1*1e-3/d.clk_p, th2*1e-3/d.clk_p
-    burst_width = d.mburst[ich][:,iwidth]
+    burst_width = d.mburst[ich][:, iwidth]
     bursts_mask = (burst_width >= th1)*(burst_width <= th2)
     return bursts_mask, ''
 
@@ -123,27 +128,27 @@ def max_rate(d, ich=0, min_rate_p=0.1):
 def single(d, ich=0, th=1):
     """Select bursts that are at least th millisec apart from the others."""
     th = th*1e-3/d.clk_p
-    burst_start = d.mburst[ich][:,itstart]
-    burst_end = burst_start + d.mburst[ich][:,iwidth]
+    burst_start = d.mburst[ich][:, itstart]
+    burst_end = burst_start + d.mburst[ich][:, iwidth]
     gap_mask = (burst_start[1:] - burst_end[:-1]) >= th
-    bursts_mask = hstack([gap_mask,False])*hstack([False,gap_mask])
+    bursts_mask = np.hstack([gap_mask,False])*np.hstack([False,gap_mask])
     return bursts_mask
 def attached(d, ich=0):
     """Select the first burst of consecutive bursts."""
-    burst_mask = (burst_separation(d, ich=ich) <= 0)
-    return hstack([burst_mask, (False,)])
+    burst_mask = (b_separation(d, ich=ich) <= 0)
+    return np.hstack([burst_mask, (False,)])
 def attached2(d, ich=0):
     """Select the second burst of consecutive bursts."""
-    burst_mask = (burst_separation(d, ich=ich) <= 0)
-    return hstack([(False,), burst_mask])
+    burst_mask = (b_separation(d, ich=ich) <= 0)
+    return np.hstack([(False,), burst_mask])
 def nearby(d, ich=0, ms=0.2, clk_p=12.5e-9):
     """Select the first burst of bursts disting less than "ms" millisec."""
-    burst_mask = (burst_separation(d, ich=ich) <= (ms*1e-3)/clk_p)
-    return hstack([burst_mask, (False,)])
+    burst_mask = (b_separation(d, ich=ich) <= (ms*1e-3)/clk_p)
+    return np.hstack([burst_mask, (False,)])
 def nearby2(d, ich=0, ms=0.2, clk_p=12.5e-9):
     """Select the second burst of bursts disting less than "ms" millisec."""
-    burst_mask = (burst_separation(d, ich=ich) <= (ms*1e-3)/clk_p)
-    return hstack([(False,), burst_mask])
+    burst_mask = (b_separation(d, ich=ich) <= (ms*1e-3)/clk_p)
+    return np.hstack([(False,), burst_mask])
 
 
 ## Selection on burst size vs BG
@@ -173,7 +178,7 @@ def na_bg_p(d, ich=0, P=0.05, F=1.):
     """Select bursts w/ AD signal using P{F*BG>=na} < P."""
     accept_ch_bg_rate = d.rate_ad[ich]
     bursts_width = clk_to_s(d.mburst[ich][:,iwidth])
-    max_num_bg_ph = poisson(F*accept_ch_bg_rate*bursts_width).isf(P)
+    max_num_bg_ph = ss.poisson(F*accept_ch_bg_rate*bursts_width).isf(P)
     #print "Min num. ph = ", max_num_bg_ph
     bursts_mask = (d.na[ich] >= max_num_bg_ph)
     return bursts_mask
@@ -181,7 +186,7 @@ def nd_bg_p(d, ich=0, P=0.05, F=1.):
     """Select bursts w/ DD signal using P{F*BG>=nd} < P."""
     donor_ch_bg_rate = d.rate_dd[ich]
     bursts_width = clk_to_s(d.mburst[ich][:,iwidth])
-    max_num_bg_ph = poisson(F*donor_ch_bg_rate*bursts_width).isf(P)
+    max_num_bg_ph = ss.poisson(F*donor_ch_bg_rate*bursts_width).isf(P)
     #print "Min num. ph = ", max_num_bg_ph
     bursts_mask = (d.nd[ich] >= max_num_bg_ph)
     return bursts_mask
@@ -189,7 +194,7 @@ def naa_bg_p(d, ich=0, P=0.05, F=1.):
     """Select bursts w/ AA signal using P{F*BG>=naa} < P."""
     A_em_ex_bg_rate = d.rate_aa[ich]
     bursts_width = clk_to_s(d.mburst[ich][:,iwidth])
-    max_num_bg_ph = poisson(F*A_em_ex_bg_rate*bursts_width).isf(P)
+    max_num_bg_ph = ss.poisson(F*A_em_ex_bg_rate*bursts_width).isf(P)
     #print "Min num. ph = ", max_num_bg_ph
     bursts_mask = (d.naa[ich] >= max_num_bg_ph)
     return bursts_mask
@@ -197,7 +202,7 @@ def nt_bg_p(d, ich=0, P=0.05, F=1.):
     """Select bursts w/ signal using P{F*BG>=nt} < P."""
     bg_rate = d.rate_m[ich]
     bursts_width = clk_to_s(d.mburst[ich][:,iwidth])
-    max_num_bg_ph = poisson(F*bg_rate*bursts_width).isf(P)
+    max_num_bg_ph = ss.poisson(F*bg_rate*bursts_width).isf(P)
     #print "Min num. ph = ", max_num_bg_ph
     #print "burst width (ms) = ", bursts_width*1e3
     #print "Poisson rate = ", bg_rate*bursts_width
@@ -206,51 +211,58 @@ def nt_bg_p(d, ich=0, P=0.05, F=1.):
     return bursts_mask
 
 
-## Selection on burst skeness
-def centered(d, ich=0, th=0.1):
-    """Select bursts with absolute value of skewness index less than th."""
-    skew_index,_,_ = bleaching(d, ich=ich, exclude_nan=False)
-    bursts_mask = (skew_index <= th)*(skew_index >= -th)
-    return bursts_mask
-def skewness(d, ich=0, th1=0.2, th2=1, **kwargs):
-    """Select bursts with skeness between th1 and th2."""
-    skew_index,_,_ = bleaching(d, ich=ich, **kwargs)
-    bursts_mask = (skew_index <= th2)*(skew_index >= th1)
-    return bursts_mask
-
-
 ## Old selection functions
+
+### Selection on burst skeness
+### this uses bleaching() from burstlib_misc.py
+#def centered(d, ich=0, th=0.1):
+#    """Select bursts with absolute value of skewness index less than th."""
+#    skew_index,_,_ = bleaching(d, ich=ich, exclude_nan=False)
+#    bursts_mask = (skew_index <= th)*(skew_index >= -th)
+#    return bursts_mask
+#
+### this uses bleaching() from burstlib_misc.py
+#def skewness(d, ich=0, th1=0.2, th2=1, **kwargs):
+#    """Select bursts with skeness between th1 and th2."""
+#    skew_index,_,_ = bleaching(d, ich=ich, **kwargs)
+#    bursts_mask = (skew_index <= th2)*(skew_index >= th1)
+#    return bursts_mask
+
 def for_bt_fit(d, ich=0, BT=None):
     """Select bursts for more accurate BT fitting (select before BG corr.)"""
-    assert size(BT) == d.nch
+    assert np.size(BT) == d.nch
     # Selection to be applied as a second-step fit after a first BT fit.
     bursts_mask = (d.na[ich] <= 2*BT[ich]*d.nd[ich])
     return bursts_mask, ''
+
 def size_noise(d, ich=0, th=2):
     """Select bursts w/ size th times above the noise on both D and A ch."""
     burst_width = d.mburst[ich][:,iwidth]
     noise_d, noise_a = burst_width*d.rate_dd[ich], burst_width*d.rate_ad[ich]
     bursts_mask = (d.nd[ich] >= th*noise_d)*(d.na[ich] >= th*noise_a)
     return bursts_mask
+
 def size_noise_or(d, ich=0, th=2):
     """Select bursts w/ size th times above the noise on D or A ch."""
     burst_width = d.mburst[ich][:,iwidth]
     noise_d, noise_a = burst_width*d.rate_dd[ich], burst_width*d.rate_ad[ich]
     bursts_mask = (d.nd[ich] >= th*noise_d)+(d.na[ich] >= th*noise_a)
     return bursts_mask
-def no_bg(d, ich=0, P=0.005, NF=1.):
-    """Select bursts with prob. to be from BG < P."""
-    burst_prob = prob_to_be_bg(d, ich=ich, NF=NF)
-    bursts_mask = (burst_prob < P)
-    return bursts_mask
+
+## this uses prob_to_be_bg from burstlib_misc.py
+#def no_bg(d, ich=0, P=0.005, NF=1.):
+#    """Select bursts with prob. to be from BG < P."""
+#    burst_prob = prob_to_be_bg(d, ich=ich, NF=NF)
+#    bursts_mask = (burst_prob < P)
+#    return bursts_mask
 
 def fret_value(d, ich=0, F=0.5, P_th=0.01):
     """Select bursts with prob. > P_th to have fret of F."""
-    bsizes = around(d.nd[ich]+d.na[ich]).astype(uint16)
-    bursts_mask = zeros(bsizes.size, dtype=bool)
+    bsizes = np.around(d.nd[ich]+d.na[ich]).astype(np.uint16)
+    bursts_mask = np.zeros(bsizes.size, dtype=bool)
     for burst_size in range(bsizes.min(), bsizes.max()+1):
-        indexes = find(bsizes == burst_size)
-        RV = binom(burst_size, F)
+        indexes = np.where(bsizes == burst_size)
+        RV = ss.binom(burst_size, F)
         #accept_num = arange(burst_size+1)
         #y = RV.cdf(accept_num)
         #min_accept_num = interp(th, y,accept_num)
