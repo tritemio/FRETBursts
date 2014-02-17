@@ -10,9 +10,9 @@ import cPickle as pickle
 import numpy as np
 from numpy import array, zeros, size, mean, r_
 import scipy.stats as SS
-from pylab import find, rand, normpdf
 
 from utils.misc import pprint, clk_to_s
+from path_def_bursts import shorten_fname
 from poisson_threshold import find_optimal_T_bga
 import bt_fit
 import fret_fit
@@ -204,7 +204,7 @@ def find_burst(bursts, size, width_ms, clk_p=12.5e-9):
     """Find b_index of burst(s) of given size AND width."""
     width = (width_ms*1e-3)/clk_p
     th = 0.01e-3/clk_p # 800clk or 10us @ clk_p=12.5e-9s
-    return find((b_size(bursts) == size)*(abs(b_width(bursts)-width) < th))
+    return np.where((b_size(bursts) == size)*(abs(b_width(bursts)-width) < th))
 
 def b_fuse(mburst, ms=0, clk_p=12.5e-9):
     """Fuse touching or nearby bursts in the Nx6 burst array 'mburst'."""
@@ -1055,11 +1055,11 @@ class Data(DataContainer):
         if self.dithering: return -1
         self.add(dithering=True)
         for nd, na in zip(self.nd, self.na):
-            nd += lsb*(rand(nd.size)-0.5)
-            na += lsb*(rand(na.size)-0.5)
+            nd += lsb*(np.random.rand(nd.size)-0.5)
+            na += lsb*(np.random.rand(na.size)-0.5)
         if self.ALEX:
             for naa in self.naa:
-                naa += lsb*(rand(na.size)-0.5)
+                naa += lsb*(np.random.rand(na.size)-0.5)
         self.add(lsb=lsb)
 
     def calc_chi_ch(self):
@@ -1259,7 +1259,7 @@ class Data(DataContainer):
                     np.dot(w, (E[mask] - fit_res[ich,0])**2)/w.sum())
             fit_model_F[ich] = 1.*mask.sum()/mask.size
 
-        fit_model = lambda x, p: normpdf(x, p[0], p[1])
+        fit_model = lambda x, p: SS.norm.pdf(x, p[0], p[1])
         self.add(fit_E_res=fit_res, fit_E_name='Moments',
                 E_fit=fit_res[:,0], fit_E_curve=True, fit_E_E1=E1, fit_E_E2=E2,
                 fit_E_model=fit_model, fit_E_model_F=fit_model_F)
@@ -1346,7 +1346,7 @@ class Data(DataContainer):
         For EM fitting use `fit_E_two_gauss_EM()`.
         """
         if fit_fun.__name__.startswith("gaussian_fit"):
-            fit_model = lambda x, p: normpdf(x, p[0], p[1])
+            fit_model = lambda x, p: SS.norm.pdf(x, p[0], p[1])
             if 'mu0' not in fit_kwargs: fit_kwargs.update(mu0=0.5)
             if 'sigma0' not in fit_kwargs: fit_kwargs.update(sigma0=0.3)
             iE, nparam = 0, 2
