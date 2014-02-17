@@ -1,6 +1,5 @@
 
-from numpy import *
-from poisson_threshold import find_optimal_T
+import numpy as np
 from utils.misc import pprint
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -43,7 +42,7 @@ def wba(t,L,m,T):
             if i-1+m - i_start >= L:
                 bursts.append([burst_start,burst_end-burst_start, 
                     i-1+m-i_start])
-    return array(bursts)
+    return np.array(bursts)
 
 def ba_pure(t,L,m,T,label='Burst search'):
     """FIFO burst search (T in clk periods). Reference implementation."""
@@ -66,7 +65,7 @@ def ba_pure(t,L,m,T,label='Burst search'):
                 burst_start, burst_end = t[i_start], t[i_end-1]
                 bursts.append([burst_start,burst_end-burst_start,
                     i_end-i_start, i_start, i_end-1, burst_end])
-    return array(bursts, dtype=int64)
+    return np.array(bursts, dtype=np.int64)
 
 def ba_pure_o(t, L, m, T, label='Burst search', verbose=True):
     """FIFO burst search (T in clk periods). Optimized implementation."""
@@ -86,12 +85,12 @@ def ba_pure_o(t, L, m, T, label='Burst search', verbose=True):
                 burst_start, burst_end = t[i_start], t[i_end-1]
                 bursts.append([burst_start, burst_end-burst_start,
                     i_end-i_start, i_start, i_end-1, burst_end])
-    return array(bursts, dtype=int64)
+    return np.array(bursts, dtype=np.int64)
 
 def ba_pure_a(t,L,m,T,label='Burst search'):
     """FIFO burst search (T in clk periods). Optimized implementation."""
     pprint('Python search (a): %s\n'%label)
-    bursts = zeros((3e3, 6))
+    bursts = np.zeros((3e3, 6))
     iburst = 0
     in_burst = False
     above_min_rate = (t[m-1:]-t[:t.size-m+1])<=T
@@ -122,7 +121,7 @@ def count_ph_in_bursts(bursts, mask):
     mask: 1-D bool array (same size as the ph array), true if a ph is "counted"
     """
     assert (itstart, iwidth, inum_ph, iistart, iiend, itend) == (0,1,2,3,4,5)
-    num_ph = zeros(bursts.shape[0], dtype=int16)
+    num_ph = np.zeros(bursts.shape[0], dtype=np.int16)
     for i,b in enumerate(bursts):
         # Counts donors between start and end of current burst b
         num_ph[i] = mask[b[iistart]:b[iiend]+1].sum()
@@ -138,7 +137,7 @@ def mch_count_ph_in_bursts(mburst, Mask):
     assert (itstart, iwidth, inum_ph, iistart, iiend, itend) == (0,1,2,3,4,5)
     Num_ph = []
     for bursts, mask in zip(mburst, Mask):
-        num_ph = zeros(bursts.shape[0], dtype=int16)
+        num_ph = np.zeros(bursts.shape[0], dtype=np.int16)
         for i,b in enumerate(bursts):
             # Counts donors between start and end of current burst b
             num_ph[i] = mask[b[iistart]:b[iiend]+1].sum()
