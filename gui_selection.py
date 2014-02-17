@@ -7,6 +7,7 @@ Used by hist2d_alex() and other functions in burst_plot.py.
 import numpy as np
 from matplotlib.patches import Rectangle, Ellipse
 from utils.misc import pprint
+from burstsearch.burstsearchlib import b_start, b_end
 
 
 class GuiSelection(object):
@@ -159,7 +160,7 @@ class MultiAxPointSelection(object):
         t_clk = self.xp/self.d.clk_p
         mask = (b_start(mburst) < t_clk)*(b_end(mburst) > t_clk)
         if mask.any():
-            burst_index = find(mask)[0]
+            burst_index = np.where(mask)[0][0]
             ts = b_start(mburst)[burst_index]*self.d.clk_p
             #skew = bleaching1(self.d, self.ich, burst_index, use_median=True,
             #                  normalize=True)

@@ -439,7 +439,7 @@ def hist_bg_fit(d, i=0, bp=0, bin_width_us=10, yscale='log',
     #nF = 1 if plot_kw['normed'] else H[0].sum()*(bin_width_us)
 
     bins = plot_kw['bins'] #; ibin = bins.size*F; t_min = bins[ibin]*1e-6
-    ibin = find(bins >= t_min_us)[0]
+    ibin = np.where(bins >= t_min_us)[0][0]
     C = H[0][ibin]/efun(t_min_us*1e-6, r)
     Cd = Hd[0][ibin]/efun(t_min_us*1e-6, rd)
     Ca = Ha[0][ibin]/efun(t_min_us*1e-6, ra)
@@ -917,10 +917,11 @@ def splot(d, fun=scatter_width_size,
     return ax, s
 
 def plot_mburstm_48ch(d, fun=scatter_width_size, sharex=True, sharey=True,
-        scroll=False,pgrid=True, figsize=(20,16), ax=None,
+        scroll=False, pgrid=True, figsize=(20,16), AX=None, nosuptitle=False, 
         scale=True, **kwargs):
+    ax_ny, ax_nx = 6, 8
     if AX is None:
-        fig, AX = subplots(6,8,figsize=figsize, sharex=sharex, sharey=sharey)
+        fig, AX = subplots(ax_ny, ax_nx, figsize=figsize, sharex=sharex, sharey=sharey)
         fig.subplots_adjust(left=0.08, right=0.96, top=0.93, bottom=0.07,
                 wspace=0.05)
         old_ax = False
@@ -942,7 +943,6 @@ def plot_mburstm_48ch(d, fun=scatter_width_size, sharex=True, sharey=True,
         ax.grid(pgrid)
         sca(ax)
         fun(d, i, **kwargs)
-        if i % 2 == 1: ax.yaxis.tick_right()
     [a.set_xlabel('') for a in AX[:-1,:].ravel()]
     [a.set_ylabel('') for a in AX[:,1:].ravel()]
     if sharex:
@@ -956,7 +956,7 @@ def plot_mburstm_48ch(d, fun=scatter_width_size, sharex=True, sharey=True,
     s = None
     if scroll: s = ScrollingToolQT(fig)
     #s = RangeToolQT(fig)
-    return AX,s
+    return AX, s
 
 
 def plot_mburstm_8ch(d, fun=scatter_width_size, sharex=True,sharey=True,
