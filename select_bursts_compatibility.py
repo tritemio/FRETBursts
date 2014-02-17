@@ -32,5 +32,6 @@ for name, value in select_bursts.__dict__.items():
     if hasattr(select_bursts.__builtins__, name): continue
     if name.startswith('__'): continue
     print "Redefining `%s` as `%s`" % (name, 'select_bursts_'+name)
-    globals()['select_bursts_'+name] = deprecate(value)
+    globals()['select_bursts_'+name] = deprecate(value, name, 
+                                                 'select_bursts_'+name)
 
