@@ -6,7 +6,7 @@ import numpy as np
 import scipy.stats as ss
 
 from burstsearch.bs import b_start, b_width, b_separation, itstart, iwidth
-from utils.mist import clk_to_s
+from utils.misc import clk_to_s
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  BURSTS SELECTION FUNCTIONS

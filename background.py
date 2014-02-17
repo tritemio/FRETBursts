@@ -23,7 +23,7 @@ def exp_fit(ph, fit_fun=expon_fit, tail_min_p=0.1, tail_min_us=None,
 def exp_cdf_fit(ph, tail_min_p=0.1, tail_min_us=None, clk_p=12.5e-9):
     """Return BG rate for ph computed fitting the exponential CDF of delays
     """
-    return bg_calc_exp(ph, fit_fun=expon_fit_cdf, tail_min_p=tail_min_p,
+    return exp_fit(ph, fit_fun=expon_fit_cdf, tail_min_p=tail_min_p,
                        tail_min_us=tail_min_us, clk_p=clk_p)
 
 def raw_fit(ph, clk_p=12.5e-9):

@@ -12,7 +12,7 @@ from numpy import array, zeros, size, mean, r_
 import scipy.stats as SS
 
 from utils.misc import pprint, clk_to_s
-from path_def_bursts import shorten_fname
+from path_def_burst import shorten_fname
 from poisson_threshold import find_optimal_T_bga
 import bt_fit
 import fret_fit
