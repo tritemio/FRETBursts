@@ -68,14 +68,14 @@ def prob_noise_above_th_test_version(rate, T, m):
     rate = float(rate)
     T = float(T)
     n_poiss = rate*T
-    if m < (n_poiss) - 9*sqrt(n_poiss): return 1. #
+    if m < (n_poiss) - 9*np.sqrt(n_poiss): return 1. #
     
     s = 0.
-    for i in arange(m,int(rate*T + 9*sqrt(rate*T))+1):
+    for i in np.arange(m,int(rate*T + 9*np.sqrt(rate*T))+1):
         s += reduce(lambda x,y: x*y, [(n_poiss/j) for j in range(1,i+1)])
-        assert isfinite(s)
-    p = exp(-(rate*T)) * s
-    assert isfinite(p)
+        assert np.isfinite(s)
+    p = np.exp(-(rate*T)) * s
+    assert np.isfinite(p)
     return p
 _p2 = prob_noise_above_th_test_version
 
@@ -119,10 +119,10 @@ def find_optimal_T_iter(bg_rate, m, P_user, max_iter=int(1e6), debug=False):
     return T
 
 def test_find_optimal_T_iter(P_user, debug=False):
-    Lam = array([100, 1000, 2000, 5000])
-    M = array([3,5,10,20,50])
+    Lam = np.array([100, 1000, 2000, 5000])
+    M = np.array([3,5,10,20,50])
 
-    TT = zeros((Lam.size,M.size))
+    TT = np.zeros((Lam.size,M.size))
     for y,lam in enumerate(Lam):
         for x,m in enumerate(M):
             TT[y,x] = find_optimal_T_iter(lam, m, P_user, debug=debug)
@@ -135,10 +135,10 @@ def test_find_optimal_T_iter(P_user, debug=False):
     return TT
 
 def test_find_optimal_T(P_user, debug=False):
-    Lam = array([100, 1000, 2000, 5000])
-    M = array([3,5,10,20,50])
+    Lam = np.array([100, 1000, 2000, 5000])
+    M = np.array([3,5,10,20,50])
 
-    TT = zeros((Lam.size,M.size))
+    TT = np.zeros((Lam.size,M.size))
     for y,lam in enumerate(Lam):
         for x,m in enumerate(M):
             TT[y,x] = find_optimal_T(lam, m, P_user)
@@ -152,10 +152,10 @@ def test_find_optimal_T(P_user, debug=False):
 
 
 def old_hard_threshold_T(factor=2.5):
-    Lam = array([100, 1000, 2000, 5000])
-    M = array([3,5,10,20,50])
+    Lam = np.array([100, 1000, 2000, 5000])
+    M = np.array([3,5,10,20,50])
 
-    TT = zeros((Lam.size,M.size))
+    TT = np.zeros((Lam.size,M.size))
     for y,lam in enumerate(Lam):
         for x,m in enumerate(M):
             TT[y,x] = float(m)/(factor*lam)
