@@ -935,34 +935,36 @@ class Data(DataContainer):
         pprint('[DONE]\n')
 
     def burst_search_t(self, L=10, m=10, P=0.95, F=1., nofret=False,
-            max_rate=False, dither=False, ph_sel='DA', verbose=False):
+            max_rate=False, dither=False, ph_sel='DA', verbose=False, 
+            mute=False):
         """Burst search with variable BG. `calc_bg()` must be ran first.
         Example:
             d.burst_search_t(L=10, m=10, F=6, P=None, ph_sel='DA')
         """
-        pprint(" - Performing burst search (verbose=%s) ..." % verbose)
+        pprint(" - Performing burst search (verbose=%s) ..." % verbose, mute)
         # Compute TT
         self._calc_T(m=m, P=P, F=F, ph_sel=ph_sel)
         # Use TT and compute mburst
         self._burst_search_da(L=L, m=m, ph_sel=ph_sel, verbose=verbose)
-        pprint("[DONE]\n")
+        pprint("[DONE]\n", mute)
 
-        pprint(" - Calculating burst periods ...")
+        pprint(" - Calculating burst periods ...", mute)
         self._calc_burst_period()                       # writes bp
-        pprint("[DONE]\n")
+        pprint("[DONE]\n", mute)
 
         self.add(m=m, L=L)  # P and F are saved in _calc_T()
         self.add(bg_corrected=False, bt_corrected=False, dithering=False)
         for k in ['E', 'S', 'nd', 'na', 'naa', 'nt', 'fuse', 'lsb']:
             if k in self: self.delete(k)
         if not nofret:
-            pprint(" - Counting D and A ph and calculating FRET ... \n")
-            self.calc_fret(count_ph=True, corrections=True, dither=dither)
-            pprint("   [DONE Counting D/A]\n")
+            pprint(" - Counting D and A ph and calculating FRET ... \n", mute)
+            self.calc_fret(count_ph=True, corrections=True, dither=dither, 
+                           mute=mute)
+            pprint("   [DONE Counting D/A]\n", mute)
         if max_rate:
-            pprint(" - Computing max rates in burst ...")
+            pprint(" - Computing max rates in burst ...", mute)
             self.cal_max_rate(m=3)
-            pprint("[DONE]\n")
+            pprint("[DONE]\n", mute)
 
     def cal_ph_num(self):
         """After burst search computes number of D and A ph in each burst.
@@ -1016,11 +1018,11 @@ class Data(DataContainer):
     ##
     # Corrections methods
     #
-    def background_correction_t(self, relax_nt=False):
+    def background_correction_t(self, relax_nt=False, mute=False):
         """Apply background correction to burst sizes (nd, na,...)
         """
         if self.bg_corrected: return -1
-        pprint("   - Applying background correction.\n")
+        pprint("   - Applying background correction.\n", mute)
         self.add(bg_corrected=True)
         for ich, mb in enumerate(self.mburst):
             if mb.size == 0: continue  # if no bursts skip this ch
@@ -1037,11 +1039,11 @@ class Data(DataContainer):
                 self.naa[ich] -= self.bg_aa[ich][period] * width
                 self.nt[ich] += self.naa[ich]
 
-    def bleed_through_correction(self):
+    def bleed_through_correction(self, mute=False):
         """Apply bleed-through correction to burst sizes (nd, na,...)
         """
         if self.bt_corrected: return -1
-        pprint("   - Applying leakage correction.\n")
+        pprint("   - Applying leakage correction.\n", mute)
         assert (size(self.BT) == 1) or (size(self.BT) == self.nch)
         BT = self.get_BT_array()
         for i in range(self.nch):
@@ -1051,11 +1053,12 @@ class Data(DataContainer):
             if self.ALEX: self.nt[i] += self.naa[i]
         self.add(bt_corrected=True)
 
-    def dither(self, lsb=2):
+    def dither(self, lsb=2, mute=False):
         """Add dithering (uniform random noise) to burst sizes (nd, na,...).
         `lsb` is the amplitude of dithering (if lsb=2 then noise is in -1..1).
         """
         if self.dithering: return -1
+        pprint("   - Applying burst-size dithering.\n", mute)
         self.add(dithering=True)
         for nd, na in zip(self.nd, self.na):
             nd += lsb*(np.random.rand(nd.size)-0.5)
@@ -1079,11 +1082,11 @@ class Data(DataContainer):
         chi_ch = (1/EE - 1)/(1/self.E_fit - 1)
         return chi_ch
 
-    def corrections(self):
+    def corrections(self, mute=False):
         """Apply both background BG and bleed-through (BT) corrections."""
-        if 'bg' in self: self.background_correction_t()
+        if 'bg' in self: self.background_correction_t(mute=mute)
         else: self.background_correction()
-        self.bleed_through_correction()
+        self.bleed_through_correction(mute=mute)
 
     def update_bt(self, BT):
         """Change the bleed-through value `BT` and recompute FRET."""
@@ -1158,11 +1161,12 @@ class Data(DataContainer):
     ##
     # FRET and stochiometry methods
     #
-    def calc_fret(self, count_ph=False, corrections=True, dither=False):
+    def calc_fret(self, count_ph=False, corrections=True, dither=False, 
+                  mute=False):
         """Compute FRET (and Stoichiometry if ALEX) for each burst."""
         if count_ph: self.cal_ph_num()
-        if dither: self.dither()
-        if corrections: self.corrections()
+        if dither: self.dither(mute=mute)
+        if corrections: self.corrections(mute=mute)
         self.calculate_fret_eff()
         if self.ALEX:
             self.calculate_stoich()

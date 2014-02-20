@@ -10,8 +10,9 @@ def clk_to_s(t_ck, clk_p=12.5*1e-9):
     """Convert clock cycles to seconds."""
     return t_ck*clk_p
 
-def pprint(s):
+def pprint(s, mute=False):
     """Print immediately, even if inside a busy loop."""
+    if mute: return 
     sys.stdout.write(s)
     sys.stdout.flush()
 
