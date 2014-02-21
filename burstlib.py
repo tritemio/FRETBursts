@@ -846,23 +846,30 @@ class Data(DataContainer):
             P.append(p)
         self.add(bp=P)
 
+    def _param_as_mch_array(self, par):
+        """Regardless of `par` size, return an arrays with size == nch.
+        if `par` is scalar the arrays repeats the calar multiple times
+        if `par is a list/array must be of length `nch`.
+        """
+        assert size(par) == 1 or size(par) == self.nch
+        return np.repeat(par, self.nch) if size(par) == 1 else np.asarray(par)
+
     def _calc_T(self, m, P, F=1., ph_sel='DA'):
         """If P is None use F, otherwise uses both P *and* F (F defaults to 1).
         """
         # Regardless of F and P sizes, FF and PP are arrays with size == nch
-        assert size(F) == 1 or size(F) == self.nch
-        assert size(P) == 1 or size(P) == self.nch
-        FF = np.repeat(F, self.nch) if size(F) == 1 else np.asarray(F)
-        PP = np.repeat(P, self.nch) if size(P) == 1 else np.asarray(P)
+        FF = self._param_as_mch_array(F)
+        PP = self._param_as_mch_array(P)
         if P is None:
             find_T = lambda m, Fi, Pi, bg: 1.*m/(bg*Fi) # NOTE: ignoring P_i
         else:
             if F != 1:
-                print "WARNING: BS prob. th. with modified BG rate (F=%.1f)" % F
+                print "WARNING: BS prob. th. with modified BG rate (F=%.1f)"%F
             find_T = lambda m, Fi, Pi, bg: find_optimal_T_bga(bg*Fi, m, 1-Pi)
         TT, T, Th = [], [], []
         BG = {'DA': self.bg, 'D': self.bg_dd, 'A': self.bg_ad}
         for bg_ch, F_ch, P_ch in zip(BG[ph_sel], FF, PP):
+            # All "T" are in seconds            
             Tch = find_T(m, F_ch, P_ch, bg_ch)
             TT.append(Tch)
             T.append(Tch.mean())
@@ -882,8 +889,26 @@ class Data(DataContainer):
             PH = [p[a] for p, a in zip(self.iter_ph_times(), self.A_em)]
         return PH
 
-    def _burst_search_da(self, m, L, ph_sel='DA', verbose=True):
+    def _burst_search_rate(self, m, L, min_rate_cps, ph_sel='DA', 
+                           verbose=True):
+        """Experimental burst search with one fixed rate.
+        May break stuff downstream!!
+        """
+        Min_rate_cps = self._param_as_mch_array(min_rate_cps)
+        mburst = []
+        T_clk = (1.*m/Min_rate_cps)/self.clk_p
+        for ich, (ph, t_clk) in enumerate(zip(self.iter_ph_times(ph_sel), 
+                                          T_clk)):
+            label = '%s CH%d' % (ph_sel, ich+1) if verbose else None
+            mb = ba(ph, L, m, t_clk, label=label, verbose=verbose) 
+            mburst.append(mb)
+        self.add(mburst=mburst, min_rate_cps=Min_rate_cps, T=T_clk*self.clk_p)
+
+    def _burst_search_TT(self, m, L, ph_sel='DA', verbose=True):
         """Compute burst search with params `m`, `L` on ph selection `ph_sel`
+        
+        Requires a list of arrays `self.TT` with the max time-thresholds in
+        the different burst periods for each channel (use `._calc_T()`).
         """
         self.recompute_bg_lim_ph_p(ph_sel=ph_sel)
         MBurst = []
@@ -934,18 +959,39 @@ class Data(DataContainer):
             assert (mb[:, inum_ph] >= old_mb[:, inum_ph]).all()
         pprint('[DONE]\n')
 
-    def burst_search_t(self, L=10, m=10, P=0.95, F=1., nofret=False,
-            max_rate=False, dither=False, ph_sel='DA', verbose=False, 
-            mute=False):
-        """Burst search with variable BG. `calc_bg()` must be ran first.
+    def burst_search_t(self, L=10, m=10, P=0.95, F=1., min_rate_cps=None, 
+            nofret=False, max_rate=False, dither=False, ph_sel='DA', 
+            verbose=False, mute=False):
+        """Perform burst search with specified parameters.
+        
+        `L`, `m`: (int) min. burst size and numbero of ph for rate calculation
+        `P`: Probability to detect non-Poisson bursts. If not None this
+             overrides `F`.
+        `F`: (float) if `P` is None: min.rate/bg.rate ratio for burst search
+                     else: `P` refers to a Poisson rate = bg_rate*F
+        `min_rate`: (float or list/array) min. rate in cps for burst start.
+                    If not None has the precedence over `P` and `F`.
+                    If non-scalar, contains one rate per each channel.
+        `ph_sel`: (string) can be 'DA', 'D' or 'A'. Specifies the photon 
+                  selection on which to perform the burst search: 
+                  'DA' for donor+acceptor, 'D' or 'A' for donor or acceptor 
+                  photons.
+        
+        Note: when using `P` or `F` the background rate is needed so you 
+              should first call `.calc_bg()`.
+              
         Example:
             d.burst_search_t(L=10, m=10, F=6, P=None, ph_sel='DA')
         """
         pprint(" - Performing burst search (verbose=%s) ..." % verbose, mute)
-        # Compute TT
-        self._calc_T(m=m, P=P, F=F, ph_sel=ph_sel)
-        # Use TT and compute mburst
-        self._burst_search_da(L=L, m=m, ph_sel=ph_sel, verbose=verbose)
+        if min_rate_cps is not None:
+            self._burst_search_rate(m=m, L=L, min_rate_cps=min_rate_cps, 
+                                    ph_sel=ph_sel, verbose=verbose)
+        else:
+            # Compute TT
+            self._calc_T(m=m, P=P, F=F, ph_sel=ph_sel)
+            # Use TT and compute mburst
+            self._burst_search_TT(L=L, m=m, ph_sel=ph_sel, verbose=verbose)
         pprint("[DONE]\n", mute)
 
         pprint(" - Calculating burst periods ...", mute)
@@ -1203,8 +1249,12 @@ class Data(DataContainer):
         name = "" if noname else self.name()
         s = name
         if 'L' in self: # burst search has been done
-            s += " BS_%s L%d m%d P%s F%.1f" % \
-                    (self.ph_sel, self.L, self.m, self.P, mean(self.F))
+            if 'min_rate_cps' in self:
+                s += " BS_%s L%d m%d MR%d" % (self.ph_sel, self.L, self.m, 
+                                              np.mean(self.min_rate_cps*1e-3))
+            else:
+                s += " BS_%s L%d m%d P%s F%.1f" % \
+                        (self.ph_sel, self.L, self.m, self.P, mean(self.F))
         if 'gamma' in self: s += " G%.3f" % mean(self.gamma)
         if 'bg_fun' in self: s += " BG%s" % self.bg_fun.__name__[8:]
         if 'bg_time_s' in self: s += "-%d" % self.bg_time_s

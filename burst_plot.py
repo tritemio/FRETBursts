@@ -879,7 +879,7 @@ def hist_asymmetry(d, i=0, bins=None, **kwargs):
 ## Bursts stats
 def hist_rate_in_burst(d, i=0, bins=20):
     b = d.mburst[i]
-    rate = 1e-3*d.nt[i]/(b[:,1]*d.clk_p)
+    rate = 1e-3*d.nt[i]/(b_width(b)*d.clk_p)
     hist(rate, bins=bins, color="blue")
     xlabel('In-burst ph. rate (kcps)'); ylabel('# Bursts')
     #xlim(xmin=d.L/2); ylim(ymin=0)
