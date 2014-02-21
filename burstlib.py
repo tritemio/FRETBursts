@@ -642,7 +642,7 @@ class Data(DataContainer):
         """
         p_names = ['fname', 'clk_p', 'nch', 'ph_sel', 'L', 'm', 'F', 'P',
                 'BT', 'gamma', 'bg_time_s', 'nperiods',
-                'rate_dd', 'rate_ad', 'rate_aa', 'rate_m', 'T', 'Th',
+                'rate_dd', 'rate_ad', 'rate_aa', 'rate_m', 'T', 'rate_th',
                 'bg_corrected', 'bt_corrected', 'dithering', #'PP', 'TT',
                 'chi_ch', 's', 'ALEX']
         p_dict = dict(self)
@@ -866,15 +866,16 @@ class Data(DataContainer):
             if F != 1:
                 print "WARNING: BS prob. th. with modified BG rate (F=%.1f)"%F
             find_T = lambda m, Fi, Pi, bg: find_optimal_T_bga(bg*Fi, m, 1-Pi)
-        TT, T, Th = [], [], []
+        TT, T, rate_th = [], [], []
         BG = {'DA': self.bg, 'D': self.bg_dd, 'A': self.bg_ad}
         for bg_ch, F_ch, P_ch in zip(BG[ph_sel], FF, PP):
             # All "T" are in seconds            
             Tch = find_T(m, F_ch, P_ch, bg_ch)
             TT.append(Tch)
             T.append(Tch.mean())
-            Th.append(mean(m/Tch))
-        self.add(TT=TT, T=T, bg_bs=BG[ph_sel], FF=FF, PP=PP, F=F, P=P, Th=Th)
+            rate_th.append(mean(m/Tch))
+        self.add(TT=TT, T=T, bg_bs=BG[ph_sel], FF=FF, PP=PP, F=F, P=P, 
+                 rate_th=rate_th)
 
     def _select_ph_times(self, ph_sel):
         """Return a list of ph_times with photons specified by `ph_sel`.
