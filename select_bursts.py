@@ -79,6 +79,8 @@ def nda(d, ich=0, th1=20, th2=1000, gamma=1., gamma1=None,
         burst_size = (d.nd[ich] + 1.*d.na[ich]/gamma)
     if d.ALEX and add_naa:
         burst_size += d.naa[ich]
+    if np.size(th1) == d.nch: th1 = th1[ich]
+    if np.size(th2) == d.nch: th2 = th2[ich]
     bursts_mask = (burst_size >= th1)*(burst_size <= th2)
     s = "nda_th%d" % th1
     if th2 < 1000: s +="_th2_%d" % th2
