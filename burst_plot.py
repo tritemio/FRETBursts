@@ -707,7 +707,7 @@ def hist_size(d, i=0, vmax=1000, bins=r_[:1e3:2]-1, which='all', yscale='log',
 def hist_fret(d, i=0, bins=None, binw=0.02, show_fit=False, show_model=True,
         no_text=False, normed=False, weights=None, gamma=1., verbose=False,
         fit_color='k', fit_alpha=0.5, fit_lw=2.5, fit_fillcolor=None,
-        **kwargs):
+        two_gauss_model=False, **kwargs):
     """Plot the FRET histogram and optionally the fitted peak
     """
     if bins is None: bins = r_[-0.2:1.2:binw]
@@ -722,16 +722,16 @@ def hist_fret(d, i=0, bins=None, binw=0.02, show_fit=False, show_model=True,
         w = fret_fit.get_weights(d.nd[i], d.na[i], weights, gamma=gamma)
         w *= w.size/w.sum()
         plot_style.update(weights=w)
-    H = hist(1.*d.E[i], **plot_style)
+    hist(1.*d.E[i], **plot_style)
     xlabel('FRET Efficiency'); ylabel('# Bursts')
     if normed: ylabel('PDF')
     ylim(ymin=0); xlim(-0.2,1.2)
     if show_fit:
-        F = 1 if normed else d.E[i].size*(H[1][1]-H[1][0])
+        F = 1 if normed else d.E[i].size*binw
         kw = dict(color=fit_color, alpha=fit_alpha, lw=fit_lw,
                   fillcolor=fit_fillcolor)
         fitted_E(d, i, F=F, no_E=no_text, show_model=show_model,
-                 verbose=verbose, **kw)
+                 verbose=verbose, two_gauss_model=two_gauss_model, **kw)
         if i == 1 and not no_text:
             figtext(0.4, 0.01, get_fit_text(d), fontsize=14)
 hist_E = hist_fret
@@ -794,23 +794,32 @@ def get_fit_text(d, pylab=True):
     if pylab: fit_text = r'$'+fit_text+r'$'
     return fit_text
 
-def fitted_E(d, i=0, F=1, no_E=False, ax=None, lw=2.5, color='k', alpha=0.5,
-             show_model=True, fillcolor=None, verbose=False):
+def fitted_E(d, i=0, F=1, no_E=False, ax=None, show_model=True, verbose=False,
+             two_gauss_model=False, lw=2.5, color='k', alpha=0.5, 
+             fillcolor=None):
     if ax is None:
         ax2 = gca()
     else:
         ax2 = twinx(ax=ax)
         ax2.grid(False)
+
     if d.fit_E_curve and show_model:
         x = r_[-0.2:1.21:0.002]
-        y = d.fit_E_model(x, d.fit_E_res[i,:])
+        y = d.fit_E_model(x, d.fit_E_res[i, :])
+        scale = F*d.fit_E_model_F[i]
+        if two_gauss_model:
+            m1, s1, m2, s2, a =  d.fit_E_res[i, :]
+            y1 = a*normpdf(x, m1, s1)
+            y2 = (1 - a)*normpdf(x, m2, s2)
+            ax2.plot(x, scale*y1, ls='--', lw=lw, alpha=alpha, color=color)
+            ax2.plot(x, scale*y2, ls='--', lw=lw, alpha=alpha, color=color)
         if fillcolor == None:
-            ax2.plot(x, F*d.fit_E_model_F[i]*y, lw=lw, alpha=alpha,
-                     color=color)
+            ax2.plot(x, scale*y, lw=lw, alpha=alpha, color=color)
         else:
-            ax2.fill_between(x, F*d.fit_E_model_F[i]*y, lw=lw, alpha=alpha,
-                             edgecolor=color, facecolor=fillcolor, zorder=10)
-        if verbose: print 'Fit Integral:', np.trapz(F*d.fit_E_model_F[i]*y, x)
+            ax2.fill_between(x, scale*y, lw=lw, alpha=alpha, edgecolor=color, 
+                             facecolor=fillcolor, zorder=10)
+        if verbose: 
+            print 'Fit Integral:', np.trapz(scale*y, x)
 
     ax2.axvline(d.E_fit[i], lw=3, color='r', ls='--', alpha=0.6)
     xtext = 0.6 if d.E_fit[i] < 0.6 else 0.2
