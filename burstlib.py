@@ -8,11 +8,10 @@ For usage example see the IPython Notebooks in sub-folder "notebooks".
 import os
 import cPickle as pickle
 import numpy as np
-from numpy import array, zeros, size, mean, r_
+from numpy import zeros, size, r_
 import scipy.stats as SS
 
-from utils.misc import pprint, clk_to_s
-from path_def_burst import shorten_fname
+from utils.misc import pprint, clk_to_s, shorten_fname
 from poisson_threshold import find_optimal_T_bga
 import fret_fit
 
@@ -184,12 +183,12 @@ def b_rate_max(b, ph, m=3):
     """Returns the max (m-photons) rate reached inside each bursts.
     """
     PHB = [ph[ bu[iistart] : bu[iiend]+1 ] for bu in b]
-    rates_max = array([ph_rate(m=m, ph=phb).max() for phb in PHB])
+    rates_max = np.array([ph_rate(m=m, ph=phb).max() for phb in PHB])
     return rates_max
 
 def b_irange(bursts, b_index, pad=0):
     """Returns range of indices of ph_times inside one burst"""
-    pad = array(pad).astype(bursts.dtype) # to avoid unwanted conversions
+    pad = np.array(pad).astype(bursts.dtype) # to avoid unwanted conversions
     _i_start = bursts[b_index, iistart]
     _i_end = bursts[b_index, iiend]
     return np.arange(_i_start-pad, _i_end+pad+1)
@@ -288,7 +287,7 @@ def mch_fuse_bursts(MBurst, ms=0, clk_p=12.5e-9):
                 (ch, delta_b, 100.*delta_b/init_nburst, z))
     return new_mburst
 
-def stat_burst(d, ich=0, fun=mean):
+def stat_burst(d, ich=0, fun=np.mean):
     """Compute a per-ch statistics (`fun`) for bursts.
     """
     tstart, width, num_ph, istart = 0, 1, 2, 3
@@ -311,11 +310,11 @@ def stat_burst(d, ich=0, fun=mean):
 def burst_stats(mburst, clk_p=12.5*1e9):
     """Compute average duration, size and burst-delay for bursts in mburst.
     """
-    width_stats = array([[b[:, 1].mean(), b[:, 1].std()] for b in mburst
+    width_stats = np.array([[b[:, 1].mean(), b[:, 1].std()] for b in mburst
         if len(b) > 0]).T
-    height_stats = array([[b[:, 2].mean(), b[:, 2].std()] for b in mburst
+    height_stats = np.array([[b[:, 2].mean(), b[:, 2].std()] for b in mburst
         if len(b) > 0]).T
-    mean_burst_delay = array([np.diff(b[:, 0]).mean() for b in mburst
+    mean_burst_delay = np.array([np.diff(b[:, 0]).mean() for b in mburst
         if len(b) > 0])
     return (clk_to_s(width_stats, clk_p)*1e3, height_stats,
             clk_to_s(mean_burst_delay, clk_p))
@@ -327,7 +326,7 @@ def print_burst_stats(d):
     s = "\nNUMBER OF BURSTS: m = %d, L = %d" % (d.m, d.L)
     s += "\nPixel:          "+"%7d "*nch % tuple(range(1, nch+1))
     s += "\n#:              "+"%7d "*nch % tuple([b.shape[0] for b in d.mburst])
-    s += "\nT (us) [BS par] "+"%7d "*nch % tuple(array(d.T)*1e6)
+    s += "\nT (us) [BS par] "+"%7d "*nch % tuple(np.array(d.T)*1e6)
     s += "\nBG Rat T (cps): "+"%7d "*nch % tuple(d.rate_m)
     s += "\nBG Rat D (cps): "+"%7d "*nch % tuple(d.rate_dd)
     s += "\nBG Rat A (cps): "+"%7d "*nch % tuple(d.rate_ad)
@@ -569,7 +568,7 @@ class Data(DataContainer):
         """
         if time_s2 is None: time_s2 = self.time_max()
         t1_clk, t2_clk = time_s1/self.clk_p, time_s2/self.clk_p
-        assert array([t1_clk < ph.max() for ph in self.ph_times_m]).all()
+        assert np.array([t1_clk < ph.max() for ph in self.ph_times_m]).all()
 
         masks = ((ph > t1_clk)*(ph <= t2_clk) for ph in self.iter_ph_times())
 
@@ -628,7 +627,7 @@ class Data(DataContainer):
                 setattr(dc, k, dc[k])
         dc.add(nch=1)
         dc.add(chi_ch=1.)
-        dc.update_gamma(mean(self.get_gamma_array()))
+        dc.update_gamma(np.mean(self.get_gamma_array()))
         return dc
 
     ##
@@ -873,7 +872,7 @@ class Data(DataContainer):
             Tch = find_T(m, F_ch, P_ch, bg_ch)
             TT.append(Tch)
             T.append(Tch.mean())
-            rate_th.append(mean(m/Tch))
+            rate_th.append(np.mean(m/Tch))
         self.add(TT=TT, T=T, bg_bs=BG[ph_sel], FF=FF, PP=PP, F=F, P=P, 
                  rate_th=rate_th)
 
@@ -930,7 +929,7 @@ class Data(DataContainer):
             if len(MB) > 0:
                 MBurst.append(np.vstack(MB))
             else:
-                MBurst.append(array([]))
+                MBurst.append(np.array([]))
         self.add(mburst=MBurst)
         if ph_sel != 'DA':
             # Convert the burst data to be relative to ph_times_m.
@@ -1023,7 +1022,7 @@ class Data(DataContainer):
                 A_em = [bfunc(ph.shape, dtype=bool) for ph, bfunc in
                                     zip(self.ph_times_m, bool_funcs)]
             na = mch_count_ph_in_bursts(self.mburst, Mask=A_em)
-            nt = [b[:, inum_ph].astype(float) if b.size > 0 else array([])\
+            nt = [b[:, inum_ph].astype(float) if b.size > 0 else np.array([])\
                     for b in self.mburst]
             nd = [t-a for t, a in zip(nt, na)]
             assert (nt[0] == na[0] + nd[0]).all()
@@ -1255,13 +1254,13 @@ class Data(DataContainer):
                                               np.mean(self.min_rate_cps*1e-3))
             else:
                 s += " BS_%s L%d m%d P%s F%.1f" % \
-                        (self.ph_sel, self.L, self.m, self.P, mean(self.F))
-        if 'gamma' in self: s += " G%.3f" % mean(self.gamma)
+                        (self.ph_sel, self.L, self.m, self.P, np.mean(self.F))
+        if 'gamma' in self: s += " G%.3f" % np.mean(self.gamma)
         if 'bg_fun' in self: s += " BG%s" % self.bg_fun.__name__[8:]
         if 'bg_time_s' in self: s += "-%d" % self.bg_time_s
         if 'fuse' in self: s += " Fuse%.1fms" % self.fuse
         if 'bt_corrected' in self and self.bt_corrected:
-            s += " BT%.3f" % mean(self.BT)
+            s += " BT%.3f" % np.mean(self.BT)
         if 'bg_corrected' in self and self.bg_corrected:
             s += " bg"
         if 'dithering' in self and self.dithering:
@@ -1341,7 +1340,7 @@ class Data(DataContainer):
         """ML fit for E modeling na ~ Binomial, using bursts in [E1,E2] range.
         """
         Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
-        fit_res = array([fret_fit.fit_E_binom(_d[mask], _a[mask], **kwargs)
+        fit_res = np.array([fret_fit.fit_E_binom(_d[mask], _a[mask], **kwargs)
                 for _d, _a, mask in zip(self.nd, self.na, Mask)])
         self.add(fit_E_res=fit_res, fit_E_name='MLE: na ~ Binomial',
                 E_fit=fit_res, fit_E_curve=False, fit_E_E1=E1, fit_E_E2=E2)
@@ -1358,7 +1357,7 @@ class Data(DataContainer):
         # Build a dictionary fun_d so we'll call the function fun_d[kind]
         fun_d = dict(slope=fret_fit.fit_E_slope, E_size=fret_fit.fit_E_E_size)
         Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
-        fit_res = array([fun_d[kind](nd[mask], na[mask], **kwargs)
+        fit_res = np.array([fun_d[kind](nd[mask], na[mask], **kwargs)
                 for nd, na, mask in zip(self.nd,self.na,Mask)])
         fit_name = dict(slope='Linear slope fit', E_size='E_size fit')
         self.add(fit_E_res=fit_res, fit_E_name=fit_name[kind],
@@ -1485,12 +1484,12 @@ class Data(DataContainer):
                 distances = fret_fit.get_dist_euclid(nd_s, na_s, E_fit[i])
 
             residuals = distances * w
-            var = mean(residuals**2)
-            var_bu = mean(residuals**2)/info_bu
-            var_ph = mean(residuals**2)/info_ph
-            #lvar = mean(log(residuals**2))
-            #lvar_bu = mean(log(residuals**2)) - log(info_bu)
-            #lvar_ph = mean(log(residuals**2)) - log(info_ph)
+            var = np.mean(residuals**2)
+            var_bu = np.mean(residuals**2)/info_bu
+            var_ph = np.mean(residuals**2)/info_ph
+            #lvar = np.mean(log(residuals**2))
+            #lvar_bu = np.mean(log(residuals**2)) - log(info_bu)
+            #lvar_ph = np.mean(log(residuals**2)) - log(info_ph)
             E_var[i], E_var_bu[i], E_var_ph[i] = var, var_bu, var_ph
             assert (-np.isnan(E_var[i])).all() # check there is NO NaN
         self.add(E_var=E_var, E_var_bu=E_var_bu, E_var_ph=E_var_ph)

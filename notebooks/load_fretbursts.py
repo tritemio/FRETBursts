@@ -8,22 +8,26 @@ Run this file from a notebook as follows:
 
 """
 
+import os
+from IPython.display import display, Math, clear_output
+
+HOME = os.environ['HOME'] if 'HOME' in os.environ else ''
+
+
 # Modify these to point to your FRETBursts source folder
 # or set an environment variable FRETBURSTS_DIR containing the path
 # (the enviroment variable, if set, has the precedence).
 FRETBURSTS_DIR_WIN = r"C:\Data\Antonio\software\src\fretbursts"
-FRETBURSTS_DIR_LINUX = r"/home/user/src/fretbursts"
-
-
-import os
-from IPython.display import display, Math, clear_output
+FRETBURSTS_DIR_POSIX = HOME + "/src/fretbursts"
 
 
 if 'FRETBURSTS_DIR' in os.environ:
     FRETBURSTS_DIR = os.environ['FRETBURSTS_DIR']
 elif os.name == 'posix':
-    FRETBURSTS_DIR = FRETBURSTS_DIR_LINUX
+    # Runnning Mac OSX or Linux
+    FRETBURSTS_DIR = FRETBURSTS_DIR_POSIX
 elif os.name == 'nt':
+    # Running Windows
     FRETBURSTS_DIR = FRETBURSTS_DIR_WIN
 else:
     raise OSError ("Operating system not recognized (%s)." % os.name)

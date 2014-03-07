@@ -16,6 +16,10 @@ def pprint(s, mute=False):
     sys.stdout.write(s)
     sys.stdout.flush()
 
+def shorten_fname(f):
+    """Return a path with only the last subfolder (i.e. measurement date)."""
+    return '/'.join(f.split('/')[-2:])
+
 def binning(times, bin_width_ms=1, max_num_bins=1e5, clk_p=12.5e-9):
     """Return the binned histogram of array times."""
     bin_width_clk = (bin_width_ms*1e-3)/clk_p

@@ -5,7 +5,7 @@ Functions to check the version of the software by quering git.
 from subprocess import check_output, call
 import os
 
-from path_def_burst import GIT_PATH
+from fretbursts_path_def import GIT_PATH
 
 
 def git_path_valid(git_path=None):

@@ -41,13 +41,11 @@ from matplotlib.lines import Line2D
 from utils.misc import binning, clk_to_s
 from scroll_gui import ScrollingToolQT
 from fit.weighted_kde import gaussian_kde_w
-from fit.fitting import *
 from gui_selection import *
-from path_def_burst import *
+
 #ip = get_ipython()
 #ip.magic("run -i scroll_gui.py")
 #ip.magic("run -i gui_selection.py")
-#ip.magic("run -i fit/fitting")
 #ip.magic("run -i style.py")
 
 params = {
