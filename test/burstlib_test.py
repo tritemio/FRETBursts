@@ -1,5 +1,5 @@
 """
-This script run some consistency tests to check correcteness of processing.
+This script run some consistency tests to check correctness of processing.
 
 To run the script you must load in a variable `d` a Data() object containing 
 burst search results.
