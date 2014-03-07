@@ -18,6 +18,8 @@ from dataload.manta_reader import (load_manta_timestamps,
                                    load_manta_timestamps_pytables)
 from utils.misc import pprint
 
+from burstlib import Data
+
 ##
 # Multi-spot loader functions
 #
