@@ -1,11 +1,14 @@
 #%%writefile load_fretbursts.py
 """
-Helper script to load the FretBurst software.
+Helper script to load the FRETBursts from a IPython Notebook.
 
-This should be run from inside a notebook.
+Run this file from a notebook as follows:
+
+    run load_fretbursts
+
 """
 
-# Modify these to point to your FretBursts folder
+# Modify these to point to your FRETBursts source folder
 # or set an environment variable FRETBURSTS_DIR containing the path
 # (the enviroment variable, if set, has the precedence).
 FRETBURSTS_DIR_WIN = r"C:\Data\Antonio\software\src\fretbursts"
@@ -13,17 +16,15 @@ FRETBURSTS_DIR_LINUX = r"/home/user/src/fretbursts"
 
 
 import os
-from subprocess import check_output        
 from IPython.display import display, Math, clear_output
-from glob import glob                      # helps finding files
 
 
 if 'FRETBURSTS_DIR' in os.environ:
-    BURST_DIR = os.environ['FRETBURSTS_DIR']
+    FRETBURSTS_DIR = os.environ['FRETBURSTS_DIR']
 elif os.name == 'posix':
-    BURST_DIR = FRETBURSTS_DIR_LINUX
+    FRETBURSTS_DIR = FRETBURSTS_DIR_LINUX
 elif os.name == 'nt':
-    BURST_DIR = FRETBURSTS_DIR_WIN
+    FRETBURSTS_DIR = FRETBURSTS_DIR_WIN
 else:
     raise OSError ("Operating system not recognized (%s)." % os.name)
 
@@ -35,7 +36,7 @@ if not 'NOTEBOOK_DIR' in globals():
 
 ip.magic('%matplotlib inline')
 
-ip.magic('%cd "$BURST_DIR"')
+ip.magic('%cd "$FRETBURSTS_DIR"')
 ip.magic('%run -i fretbursts.py')
 ip.magic('%run -i burst_plot.py')
 ip.magic('%run -i style')
