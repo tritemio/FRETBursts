@@ -15,19 +15,40 @@ from utils.misc import pprint
 #
 
 # Define name for the 6 column indexes in the Nx6 array containing the bursts
-itstart, iwidth, inum_ph, iistart, iiend, itend = 0,1,2,3,4,5
+itstart, iwidth, inum_ph, iistart, iiend, itend = 0, 1, 2, 3, 4, 5
 
 # Quick functions for bursts start and end
-b_start = lambda b: b[:,itstart]            # time of 1st ph in burst
-b_end = lambda b: b[:,itend]                # time of last ph in burst
-b_width = lambda b: b[:,iwidth]             # burst width in clk cycles
-b_istart = lambda b: b[:,iistart]           # index of 1st ph in burst
-b_iend = lambda b: b[:,iiend]               # index of last ph in burst
-b_size = lambda b: b[:,inum_ph]             # number of ph in the burst
-b_rate = lambda b: 1.*b_size(b)/b_width(b)  # mean rate of ph in burst
+def b_start(b):
+    """Time of 1st ph in burst"""
+    return b[:, itstart]
 
-# Separation between nearby bursts
-b_separation = lambda b: b[1:,itstart] - b_end(b)[:-1]
+def b_end(b):
+    """Time of last ph in burst"""
+    return b[:, itend]          
+
+def b_width(b):
+    """Burst width in clk cycles"""
+    return b[:, iwidth]  
+
+def b_istart(b):
+    """Index of 1st ph in burst"""
+    return b[:, iistart]     
+
+def b_iend(b):
+    """Index of last ph in burst"""
+    return b[:, iiend]     
+
+def b_size(b):
+    """Number of ph in the burst"""
+    return b[:, inum_ph]     
+
+def b_rate(b):
+    """Mean rate of ph in burst"""
+    return 1.*b_size(b)/b_width(b)    
+
+def b_separation(b):
+    """Separation between nearby bursts"""
+    return b_start(b)[1:] - b_end(b)[:-1]   
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #  LOW-LEVEL BURST SEARCH FUNCTIONS

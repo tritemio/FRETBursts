@@ -31,7 +31,7 @@ from burstsearch.burstsearchlib import (
         ba_pure_o, mch_count_ph_in_bursts, 
         b_start, b_end, b_width,
         b_istart, b_iend, b_size, 
-        #b_rate, 
+        b_rate, 
         b_separation)
 
 try:
