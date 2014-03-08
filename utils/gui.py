@@ -7,7 +7,7 @@
 GUI related helper functions.
 """
 
-from PySide import QtCore, QtGui
+from PySide import QtGui
 
 
 def gui_fname(dir=None):

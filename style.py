@@ -7,6 +7,9 @@
 A global plot style for matplotlib.
 """
 
+from matplotlib.pyplot import rcParams
+
+
 fontsize = fs = 12
 
 font1 = {'fontname':'Liberation Sans','fontsize':16}

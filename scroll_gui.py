@@ -55,7 +55,7 @@ class RangeToolQT(object):
 
 class mToolQT(object):
     def __init__(self, fig, plot_fun, *args, **kwargs):
-        if 'bins' not in kwargs: kwargs.update(bins=r_[:10:0.02])
+        if 'bins' not in kwargs: kwargs.update(bins=np.r_[:10:0.02])
         if 't_max' not in kwargs: kwargs.update(t_max=-1)
        
         # Save some variables
@@ -119,7 +119,7 @@ class mToolQT(object):
         new = dict(m = self.m_spinbox.value(),
                 bin_w = self.bin_spinbox.value(),
                 t_max = self.tmax_spinbox.value())
-        if array([new[p] == old[p] for p in new]).all():
+        if np.array([new[p] == old[p] for p in new]).all():
             print "all same"
             return
         #print new
@@ -136,7 +136,7 @@ class mToolQT(object):
             self.save_params()
             print "bins out of range"
             return
-        bins = arange(bins.min(),bins.max()+new['bin_w'],new['bin_w'])
+        bins = np.arange(bins.min(),bins.max()+new['bin_w'],new['bin_w'])
         
         self.save_params()
         self.f_kwargs.update(m=new['m'], t_max=new['t_max'], bins=bins)
