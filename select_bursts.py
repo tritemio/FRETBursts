@@ -292,13 +292,13 @@ def size_noise_or(d, ich=0, th=2):
 #    bursts_mask = (burst_prob < P)
 #    return bursts_mask
 
-def fret_value(d, ich=0, F=0.5, P_th=0.01):
-    """Select bursts with prob. > P_th to have fret of F."""
+def fret_value(d, ich=0, E=0.5, P_th=0.01):
+    """Select bursts with prob. > P_th to have FRET equal to `E`."""
     bsizes = np.around(d.nd[ich]+d.na[ich]).astype(np.uint16)
     bursts_mask = np.zeros(bsizes.size, dtype=bool)
     for burst_size in range(bsizes.min(), bsizes.max()+1):
         indexes = np.where(bsizes == burst_size)
-        RV = ss.binom(burst_size, F)
+        RV = ss.binom(burst_size, E)
         #accept_num = arange(burst_size+1)
         #y = RV.cdf(accept_num)
         #min_accept_num = interp(th, y,accept_num)
