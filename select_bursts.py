@@ -1,5 +1,14 @@
 """
-Functions to select bursts according to different criteria
+Contains functions to select bursts according to different criteria.
+
+These functions are usually passed to the `Sel` function as a second parameter.
+For example::
+
+    ds = Sel(d, select_bursts.E, th1=0.2, th2=0.6)
+    
+returns a new object `ds` containing only the bursts of `d` that pass the 
+specified selection criterium (`E` between 0.2 and 0.6 in this case).
+
 """
 
 import numpy as np

@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-Main module to run the fretbursts software.
+This is the main file that loads the FRETBursts software, except for the plot 
+functions.
+
+This file imports two modules:
+
+- `burstlib.py`
+- `loaders.py`
 """
 
 from fretbursts_path_def import data_dir

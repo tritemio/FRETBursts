@@ -2,7 +2,7 @@
 """
 FRETBursts - a confocal single-molecule FRET burst analysis software.
 
-Copyright (C) 2011-2014 Antonino Ingargiola tritemio@gmail.com
+Copyright (C) 2014 Antonino Ingargiola tritemio@gmail.com
 
 This module contains automated test for FRETBursts.
 """

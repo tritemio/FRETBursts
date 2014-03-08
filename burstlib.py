@@ -1,6 +1,12 @@
 """
-This is the main module to import (or run) to load and analyze a
-measurement (background, burst search, FRET fitting, etc...)
+This is the main library to import (or run) in order to load all the analysis 
+functions.
+
+`burstslib.py` defines the fundamental object `Data()` that contains both the 
+experimental data (attributes) and the high-level analysis routines (methods).
+
+Furthermore it loads all the remaining **FRETBursts** modules (except for 
+`loaders.py`).
 
 For usage example see the IPython Notebooks in sub-folder "notebooks".
 """

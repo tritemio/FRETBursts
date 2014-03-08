@@ -1,8 +1,11 @@
 """
-Functions to load supported file formats into a Data() object.
+This module contains (at least) one function for each supported data file 
+format. The loader functions load data from a specific format and 
+initialize a new `Data()` object containing the data.
 
-These are high-level helper functions that just pack the data in a Data()
-object. The low-level format decoding functions are in dataload folder.
+This file contains only the high-level function to load a data-file and 
+to return a `Data()` object. The low-level functions that perform the binary 
+loading and preprocessing are placed in the `dataload` folder.
 """
 
 import os

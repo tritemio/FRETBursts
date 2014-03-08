@@ -2,20 +2,20 @@
 """
 This module defines all the plotting functions.
 
-The main function for multi-ch plot is `dplot()` that takes a `Data` object
-and a 1-ch plot-function as paramenters and creates a subplot for each channel.
+The main plot function is `dplot()` that takes, as parameters, a `Data()` 
+object and a 1-ch plot-function and creates a subplot for each channel.
 
 The 1-ch plot functions are usually called through `dplot` but can also be
-called directly to make a single ch plots.
+called directly to make a single channel plot.
 
 The 1-ch plot functions names all start with the plot type (`timetrace`,
 `ratetrace`, `hist` or `scatter`).
 
-Example 1 - Plot the timetrace for all ch:
+**Example 1** - Plot the timetrace for all ch::
 
     dplot(d, timetrace_da, scroll=True)
 
-Example 2 - Plot the FRET histogramm for all ch and overlay the peak fit:
+**Example 2** - Plot a FRET histogramm for each ch with a fit overlay::
 
     dplot(d, hist_fret, show_fit=True)
 

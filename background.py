@@ -1,5 +1,12 @@
 """
-This module contains routines for background rate estimation.
+Routines to compute the background from an array of timestamps. This module 
+is imported as `bg` by burstlib.py.
+
+The important functions are `bg.exp_fit` and `bg.exp_fit_cdf` that provide 
+two algorithms to estimate the background. These functions are not usually 
+called directly but passed to the `Data()` method `calc_bg` to compute the 
+background of a measurement.
+
 """
 
 import numpy as np
