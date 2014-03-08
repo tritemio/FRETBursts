@@ -37,15 +37,18 @@ def E(d, ich=0, E1=-0.2, E2=1.2):
     """Select the burst with E between E1 and E2."""
     burst_mask = (d.E[ich] >= E1)*(d.E[ich] <= E2)
     return burst_mask, ''
+    
 def S(d, ich=0, S1=-0.2, S2=1.2):
     """Select the burst with S between S1 and S2."""
     burst_mask = (d.S[ich] >= S1)*(d.S[ich] <= S2)
     return burst_mask, ''
+    
 def ES(d, ich=0, E1=-0.2, E2=1.2, S1=-0.2, S2=1.2):
     """Select the burst with E between E1 and E2 and S between S1 and S2."""
     burst_mask = (d.S[ich] >= S1)*(d.S[ich] <= S2) * \
             (d.E[ich] >= E1)*(d.E[ich] <= E2)
     return burst_mask, ''
+    
 def ESe(d, ich=0, E1=-0.2, E2=1.2, S1=-0.2, S2=1.2):
     """Select the burst with E-S inside an ellipsis inscribed in E1,E2,S1,S2"""
     def ellips(x,y,x1,x2,y1,y2):
@@ -54,12 +57,14 @@ def ESe(d, ich=0, E1=-0.2, E2=1.2, S1=-0.2, S2=1.2):
     burst_mask = (ellips(d.E[ich],d.S[ich],E1,E2,S1,S2) <= 1)
     return burst_mask, ''
 
+
 ## Selection on static burst size, width or period
 def period(d, ich=0, bp1=0, bp2=None):
     """Select the burst from period bp1 to period bp2 (included)."""
     if bp2 is None: bp2 = d.bp[ich].max()
     burst_mask = (d.bp[ich] >= bp1)*(d.bp[ich] <= bp2)
     return burst_mask, ''
+    
 def time(d, ich=0, time_s1=0, time_s2=None):
     """Select the burst starting from time_s1 to time_s2 (in seconds)."""
     burst_start = b_start(d.mburst[ich])*d.clk_p
@@ -71,14 +76,17 @@ def nd(d, ich=0, th1=20, th2=1000):
     """Select bursts with (nd >= th1) and (nd <= th2)."""
     bursts_mask = (d.nd[ich] >= th1)*(d.nd[ich] <= th2)
     return bursts_mask, ''
+    
 def na(d, ich=0, th1=20, th2=1000):
     """Select bursts with (na >= th1) and (na <= th2)."""
     bursts_mask = (d.na[ich] >= th1)*(d.na[ich] <= th2)
     return bursts_mask, ''
+    
 def naa(d, ich=0, th1=20, th2=1000):
     """Select bursts with (naa >= th1) and (naa <= th2)."""
     bursts_mask = (d.naa[ich] >= th1)*(d.naa[ich] <= th2)
     return bursts_mask, ''
+    
 def nda(d, ich=0, th1=20, th2=1000, gamma=1., gamma1=None,
                       add_naa=False):
     """Select bursts with (nd+na >= th1) and (nd+na <= th2).
@@ -99,6 +107,7 @@ def nda(d, ich=0, th1=20, th2=1000, gamma=1., gamma1=None,
     s = "nda_th%d" % th1
     if th2 < 1000: s +="_th2_%d" % th2
     return bursts_mask, s+str_G(gamma, gamma1)
+    
 def nda_percentile(d, ich=0, q=50, low=False,
         gamma=1., gamma1=None):
     """Select bursts with SIZE >= q-percentile (or <= if `low` is True)
@@ -112,6 +121,7 @@ def nda_percentile(d, ich=0, q=50, low=False,
     if low: bursts_mask = (burst_size <= q_percentile)
     else: bursts_mask = (burst_size >= q_percentile)
     return bursts_mask, 'perc%d' % q
+    
 def topN_nda(d, ich=0, N=500, gamma=1., gamma1=None):
     """Select the N biggest bursts in the channel.
     `gamma` and `gamma1` are used to compute SIZE like in nda()
@@ -149,18 +159,22 @@ def single(d, ich=0, th=1):
     gap_mask = (burst_start[1:] - burst_end[:-1]) >= th
     bursts_mask = np.hstack([gap_mask,False])*np.hstack([False,gap_mask])
     return bursts_mask
+    
 def attached(d, ich=0):
     """Select the first burst of consecutive bursts."""
     burst_mask = (b_separation(d, ich=ich) <= 0)
     return np.hstack([burst_mask, (False,)])
+    
 def attached2(d, ich=0):
     """Select the second burst of consecutive bursts."""
     burst_mask = (b_separation(d, ich=ich) <= 0)
     return np.hstack([(False,), burst_mask])
+    
 def nearby(d, ich=0, ms=0.2, clk_p=12.5e-9):
     """Select the first burst of bursts disting less than "ms" millisec."""
     burst_mask = (b_separation(d, ich=ich) <= (ms*1e-3)/clk_p)
     return np.hstack([burst_mask, (False,)])
+    
 def nearby2(d, ich=0, ms=0.2, clk_p=12.5e-9):
     """Select the second burst of bursts disting less than "ms" millisec."""
     burst_mask = (b_separation(d, ich=ich) <= (ms*1e-3)/clk_p)
@@ -173,16 +187,19 @@ def nd_bg(d, ich=0, F=5):
     bg_burst = d.bg_dd[ich][d.bp[ich]]*b_width(d.mburst[ich])*d.clk_p
     bursts_mask = (d.nd[ich] >= F*bg_burst)
     return bursts_mask
+    
 def na_bg(d, ich=0, F=5):
     """Select bursts with (na >= bg_ad*F)."""
     bg_burst = d.bg_ad[ich][d.bp[ich]]*b_width(d.mburst[ich])*d.clk_p
     bursts_mask = (d.na[ich] >= F*bg_burst)
     return bursts_mask
+    
 def naa_bg(d, ich=0, F=5):
     """Select bursts with (naa >= bg_aa*F)."""
     bg_burst = d.bg_aa[ich][d.bp[ich]]*b_width(d.mburst[ich])*d.clk_p
     bursts_mask = (d.naa[ich] >= F*bg_burst)
     return bursts_mask
+    
 def nt_bg(d, ich=0, F=5):
     """Select bursts with (nt >= bg*F)."""
     bg_burst = d.bg[ich][d.bp[ich]]*b_width(d.mburst[ich])*d.clk_p
@@ -198,6 +215,7 @@ def na_bg_p(d, ich=0, P=0.05, F=1.):
     #print "Min num. ph = ", max_num_bg_ph
     bursts_mask = (d.na[ich] >= max_num_bg_ph)
     return bursts_mask
+    
 def nd_bg_p(d, ich=0, P=0.05, F=1.):
     """Select bursts w/ DD signal using P{F*BG>=nd} < P."""
     donor_ch_bg_rate = d.rate_dd[ich]
@@ -206,6 +224,7 @@ def nd_bg_p(d, ich=0, P=0.05, F=1.):
     #print "Min num. ph = ", max_num_bg_ph
     bursts_mask = (d.nd[ich] >= max_num_bg_ph)
     return bursts_mask
+    
 def naa_bg_p(d, ich=0, P=0.05, F=1.):
     """Select bursts w/ AA signal using P{F*BG>=naa} < P."""
     A_em_ex_bg_rate = d.rate_aa[ich]
@@ -214,6 +233,7 @@ def naa_bg_p(d, ich=0, P=0.05, F=1.):
     #print "Min num. ph = ", max_num_bg_ph
     bursts_mask = (d.naa[ich] >= max_num_bg_ph)
     return bursts_mask
+    
 def nt_bg_p(d, ich=0, P=0.05, F=1.):
     """Select bursts w/ signal using P{F*BG>=nt} < P."""
     bg_rate = d.rate_m[ich]
@@ -285,6 +305,4 @@ def fret_value(d, ich=0, F=0.5, P_th=0.01):
         min_accept_num = RV.ppf(P_th) # ppf: percent point function (cdf^-1)
         bursts_mask[indexes] = (d.na[ich][indexes] > min_accept_num)
     return bursts_mask
-
-
 
