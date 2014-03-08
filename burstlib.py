@@ -1,3 +1,8 @@
+#
+# FRETBursts - A single-molecule FRET burst analysis toolkit.
+#
+# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+#
 """
 This is the main library to import (or run) in order to load all the analysis 
 functions.

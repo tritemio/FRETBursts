@@ -1,7 +1,15 @@
 #
-# Optimized version of burst search functions to be compiled in C with cython.
-# To compile run: python setup.py build_ext --inplace
+# FRETBursts - A single-molecule FRET burst analysis toolkit.
 #
+# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+#
+"""
+Optimized version of burst search functions to be compiled in C with Cython.
+To compile run::
+
+    python setup.py build_ext --inplace
+
+"""
 
 import sys
 import numpy as NP

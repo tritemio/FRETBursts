@@ -1,3 +1,8 @@
+#
+# FRETBursts - A single-molecule FRET burst analysis toolkit.
+#
+# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+#
 """
 Contains functions to select bursts according to different criteria.
 

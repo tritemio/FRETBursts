@@ -1,3 +1,8 @@
+#
+# FRETBursts - A single-molecule FRET burst analysis toolkit.
+#
+# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+#
 """
 This module contains (at least) one function for each supported data file 
 format. The loader functions load data from a specific format and 

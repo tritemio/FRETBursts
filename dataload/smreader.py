@@ -1,36 +1,44 @@
 #
-#  SM Format, written by the LV program in us-ALEX setup
-#  -----------------------------------------------------
-#  
-#  A SM file is composed by two parts:
-#  - 166 bytes: an header
-#  - the remainig bytes: the data 
-#  - 26 bytes of trailing cruft
+# FRETBursts - A single-molecule FRET burst analysis toolkit.
 #
-#  The data is a list of 96-bit records that contain for each ph (count) 
-#  the detection time and the detector.
+# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
-#  The first 64-bit of each record are the ph time, and the remainig 16-bit 
-#  are the detector.
-#
-#          64-bit ph time        detector
-#        -------------------     -------
-#       |                   |   |       |
-#       XXXX XXXX - XXXX XXXX - XXXX XXXX
-# bit:  0      32   0      32   0      32
-#       '-------'   '-------'   '-------'
-#        data[0]     data[1]     data[2]
-#
-#  The data is in unsigned big endian (>) format. 
-#
-#  For efficiency the data is read as a list of B.E. (>) uint32 and then
-#  recomposed in ph_times and det. (NB: Old not very efficient approach)
-#
-#  The proper way to read the data is to read the byte-stream and interpret
-#  it as a record array in which each element is 12 bytes.
-#
+"""
+SM Format, written by the LV program in WeissLab us-ALEX setup
+--------------------------------------------------------------
+
+A SM file is composed by two parts:
+
+  - 166 bytes: an header
+  - the remainig bytes: the data 
+  - 26 bytes of trailing cruft
+
+The data is a list of 96-bit records that contain for each ph (count) 
+the detection time and the detector.
+
+The first 64-bit of each record are the ph time, and the remainig 16-bit 
+are the detector.
+
+::
+              64-bit ph time        detector
+            -------------------     -------
+           |                   |   |       |
+           XXXX XXXX - XXXX XXXX - XXXX XXXX
+     bit:  0      32   0      32   0      32
+           '-------'   '-------'   '-------'
+            data[0]     data[1]     data[2]
+
+The data is in unsigned big endian (>) format. 
+
+For efficiency the data is read as a list of B.E. (>) uint32 and then
+recomposed in ph_times and det. (NB: Old not very efficient approach)
+
+The proper way to read the data is to read the byte-stream and interpret
+it as a record array in which each element is 12 bytes.
+"""
 
 import numpy as np
+
 
 def load_sm(fname, header=166):
     try: f = open(fname, 'rb')

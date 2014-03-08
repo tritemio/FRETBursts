@@ -1,17 +1,22 @@
-# 
-# From this module import the find_optimal_T() function to calculate the 
-# T value for burst search that gives a probability to detect noise as burst 
-# below a threshold (P_user), for a given value of m (burst search parameter).
 #
-# Implementation details:
-# ----------------------
-# Fixed a rate for a Poisson process, I compare the probability to exceed a
-# minimum rate using different window sizes (T).
+# FRETBursts - A single-molecule FRET burst analysis toolkit.
 #
-# Poisson process rate: lam or rate or bg_rate
-# Time window duration: T
-# Poisson distribution parameter: n = lam*T
+# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
+"""
+From this module import the find_optimal_T() function to calculate the 
+T value for burst search that gives a probability to detect noise as burst 
+below a threshold (P_user), for a given value of m (burst search parameter).
+
+Implementation details:
+----------------------
+Fixed a rate for a Poisson process, I compare the probability to exceed a
+minimum rate using different window sizes (T).
+
+Poisson process rate: lam or rate or bg_rate
+Time window duration: T
+Poisson distribution parameter: n = lam*T
+"""
 
 import numpy as np
 from scipy.stats import poisson, chi2, erlang

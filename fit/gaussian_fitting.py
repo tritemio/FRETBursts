@@ -1,13 +1,20 @@
+#
+# FRETBursts - A single-molecule FRET burst analysis toolkit.
+#
+# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+#
 """
 This module provides functions to fit gaussian distributions and gaussian 
 distribution mixtures (2 components). Several fittings methods are provided.
 
-Single Gaussian distribution fit:
+Single Gaussian distribution fit::
+
     gaussian_fit_hist()
     gaussian_fit_cdf()
     gaussian_fit_pdf()
 
-Mixture of 2 Gaussian distribution fit:
+Mixture of 2 Gaussian distribution fit::
+
     two_gaussian_fit_hist()
     two_gaussian_fit_hist_min()
     two_gaussian_fit_cdf()

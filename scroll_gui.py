@@ -1,13 +1,21 @@
+#
+# FRETBursts - A single-molecule FRET burst analysis toolkit.
+#
+# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+#
 """
 Implements a modified matplotlib plot window for scrolling timetraces
 with a slider.
 
-To be used with timetrace() and timetrace_da() functions in burst_plot.py.
+This functionality is used, for example, by `timetrace()` and `timetrace_da()`
+functions in `burst_plot.py.
 
 NOTE: Needs cleanups, comments and optimization (see examples in utils/ folder)
 """
 
+import numpy as np
 from PySide import QtGui, QtCore
+
 
 class RangeToolQT(object):
     def __init__(self, fig):
@@ -199,6 +207,4 @@ class ScrollingToolQT(object):
         self.slider.setPageStep(self.scroll_step*self.width*self.scale)
         old_xlim = self.ax.get_xlim()
         self.xpos_changed(old_xlim[0]*self.scale)
-
-
 

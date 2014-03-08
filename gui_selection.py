@@ -1,7 +1,12 @@
+#
+# FRETBursts - A single-molecule FRET burst analysis toolkit.
+#
+# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+#
 """
 GUI selection of a range in a matplotlib figure.
 
-Used by hist2d_alex() and other functions in burst_plot.py.
+Used by `hist2d_alex() and other functions in `burst_plot.py.
 """
 
 import numpy as np

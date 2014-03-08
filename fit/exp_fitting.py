@@ -1,3 +1,12 @@
+#
+# FRETBursts - A single-molecule FRET burst analysis toolkit.
+#
+# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+#
+"""
+Generic functions to fit an exponential populations.
+"""
+
 import numpy as N
 import scipy.optimize as O
 import scipy.stats as S

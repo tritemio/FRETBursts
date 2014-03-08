@@ -1,4 +1,8 @@
-# -*- coding: utf-8 -*-
+#
+# FRETBursts - A single-molecule FRET burst analysis toolkit.
+#
+# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+#
 """
 This is the main file that loads the FRETBursts software, except for the plot 
 functions.

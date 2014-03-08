@@ -1,26 +1,31 @@
 #
-#  SPC Format (Beker & Hickl)
-#  --------------------------
+# FRETBursts - A single-molecule FRET burst analysis toolkit.
 #
-# 48-bit element in little endian (<) format
+# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
-# Drawing (note: each char is 2 bits):
-#
-# bit: 64        48                           0
-#       0000 0000 XXXX XXXX XXXX XXXX XXXX XXXX
-#                 '-------' '-------' '-------'
-# uint16:          data[2]   data[1]   data[0]
-#
-#       0000 0000 XXXX XXXX XXXX XXXX XXXX XXXX
-#                 '-------' '--' '--'   '-----'
-#                     a      c    b        d
-#
-# macrotime = [ b  ] [     a     ]  (24 bit)
-# detector  = [ c  ]                (8 bit)
-# nanotime  = [  d  ]               (12 bit)
-#
-# overflow bit: 13, bit_mask = 2^(13-1) = 4096
-#
+"""
+SPC Format (Beker & Hickl)
+--------------------------
+
+48-bit element in little endian (<) format
+
+Drawing (note: each char represents 2 bits)::
+
+    bit: 64        48                          0
+         0000 0000 XXXX XXXX XXXX XXXX XXXX XXXX
+                   '-------' '-------' '-------'
+    uint16:         data[2]   data[1]   data[0]
+
+         0000 0000 XXXX XXXX XXXX XXXX XXXX XXXX
+                   '-------' '--' '--'   '-----'
+                       a      c    b        d
+
+    macrotime = [ b  ] [     a     ]  (24 bit)
+    detector  = [ c  ]                (8 bit)
+    nanotime  = [  d  ]               (12 bit)
+
+    overflow bit: 13, bit_mask = 2^(13-1) = 4096
+"""
 
 from numpy import *
 

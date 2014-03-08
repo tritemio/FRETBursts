@@ -1,4 +1,9 @@
 # encoding: utf-8
+#
+# FRETBursts - A single-molecule FRET burst analysis toolkit.
+#
+# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+#
 """
 This module defines all the plotting functions.
 

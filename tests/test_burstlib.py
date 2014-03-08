@@ -1,10 +1,12 @@
-# -*- coding: utf-8 -*-
+#
+# FRETBursts - A single-molecule FRET burst analysis toolkit.
+#
+# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+#
 """
-FRETBursts - a confocal single-molecule FRET burst analysis software.
+Module containing automated unit tests for FRETBursts.
 
-Copyright (C) 2014 Antonino Ingargiola tritemio@gmail.com
-
-This module contains automated test for FRETBursts.
+Running the tests require `py.test.
 """
 
 import pytest

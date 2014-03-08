@@ -1,5 +1,11 @@
-## GLOBAL Plot style
-#import matplotlib as mpl
+#
+# FRETBursts - A single-molecule FRET burst analysis toolkit.
+#
+# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+#
+"""
+A global plot style for matplotlib.
+"""
 
 fontsize = fs = 12
 

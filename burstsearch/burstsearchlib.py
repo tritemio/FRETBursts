@@ -1,3 +1,11 @@
+#
+# FRETBursts - A single-molecule FRET burst analysis toolkit.
+#
+# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+#
+"""
+Core burst search and photon counting functions.
+"""
 
 import numpy as np
 from utils.misc import pprint
