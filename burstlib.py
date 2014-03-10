@@ -412,49 +412,48 @@ class Data(DataContainer):
     """
     Object containing all the information (timestamps, bursts) of a dataset.
 
-    Attributes
-    ==========
-    
-    **NOTE**: attributes marked as *list* contain one element per channel.
+    .. Note:: attributes of type "*list*" contain one element per channel.
 
     **Measurement attributes**
     
-    nch : int
-        number of channels
-    clk_p : float
-        clock period in seconds (for ph_times)
-    ph_times_m, A_em : (list) 
-        ph times and relative bool mask for acceptor ph
-    BT : float or array of floats (one element per ch)
-        bleedthrough or leakage fraction
-    gamma : float or array of floats (one element per ch)
-        gamma factor, may be scalar or same size as nch.
-
-    D_em, A_em, D_ex, D_ex : list (one element per ch)  **[ALEX-only]**       
-        boolean arrays for ph_times_m[i].
-    D_ON, A_ON : tuples of int                          **[ALEX-only]**
-        start-end values for donor and acceptor excitation selection.
-    alex_period: (int)                                  **[ALEX-only]**
-        duration of the alternation period in clock cycles.
+    Arguments:    
+        nch (int): number of channels
+        clk_p (float): clock period in seconds (for ph_times)
+        ph_times_m, A_em (list): timestamps and relative bool mask for 
+            acceptor photons
+        BT (float or array of floats): bleedthrough or leakage fraction.
+            May be scalar or same size as nch.
+        gamma (float or array of floats): gamma factor.
+            May be scalar or same size as nch.
+        D_em, A_em, D_ex, D_ex (list):  **[ALEX-only]**       
+            boolean arrays for ph_times_m[i].
+        D_ON, A_ON (2-element tuples of int ): **[ALEX-only]**
+            start-end values for donor and acceptor excitation selection.
+        alex_period (int): **[ALEX-only]**
+            duration of the alternation period in clock cycles.
 
     **Background Attributes**
+    
+    These attributes contain the estimated background rate. Each arribute is
+    a list (one element per channel) of arrays. Each array contain several
+    rates computed every `time_s` seconds of measurements. `time_s` is an 
+    argument passed to `.calc_bg()` method. Each `time_s` measurement slice
+    is here called **`period`**.
 
-    bg, bg_dd, bg_ad, bg_aa : list of arrays (one for each channel) 
-        arrays of background rates total (`bg`), donor em. during donor 
-        ex. (bg_dd), accept. em. during donor ex. (`bg_ad`), accept. em.
-        during accept. ex. (`bg_aa`). For each channel the backgound array 
-        contains a rates computed every X seconds of measurements.
+    Arguments:
+        bg (list of arrays):  total background (donor + acceptor) during donor 
+            excitation
+        bg_dd (list of arrays): donor emission during donor excitation
+        bg_ad (list of arrays): acceptor emission during donor excitation
+        bg_aa (list of arrays): acceptor emission during acceptor excitation
         
-    nperiods : int   
-        number of periods in which ph are splitted for bg calculation
-    bg_fun : function
-        function used for background calculation
-    Lim : list  
-        for each ch, is a list of pairs of index of `.ph_times_m[i]` for 
-        first and last photon in each period
-    Ph_p : list
-        for each ch, is a list of pairs of arrival times for first and last 
-        photon of each period
+        nperiods (int): number of periods in which timestamps are splitted for 
+            background calculation
+        bg_fun (function): function used to compute the background rates
+        Lim (list): for each ch, is a list of pairs of index of 
+            `.ph_times_m[i]` for first and last photon in each period.
+        Ph_p (list): for each ch, is a list of pairs of arrival times for 
+            first and last photon of each period.
 
     Old attributes (now just the per-ch mean of bg, bg_dd, bg_ad and bg_aa)::
     
@@ -464,49 +463,49 @@ class Data(DataContainer):
         rate_aa: array of bg rates for A em and A ex (only for ALEX)
 
     **Burst search parameters (user input)**
-    
-    ph_sel: string, valid values 'DA' (default), 'D' or 'A'
-        type of ph selection for burst search (donor, acceptor or both)
-    m : int
-        number of consecutive timestamps used to compute the local rate
-        during burst search
-    L : int
-        mininum number of photons a burst must to be idenfified and saved
-    P : float (probability) 
-        probability that a burst-start is due to a Poisson background
-        the Poisson rate is the rate computed with `.calc_bg()`
-    F: float
-        F * background rate is the minimum rate for burst-start
+
+    Parameters:    
+        ph_sel (string): valid values 'DA' (default), 'D' or 'A'
+            type of ph selection for burst search (donor, acceptor or both)
+        m (int): number of consecutive timestamps used to compute the 
+            local rate during burst search
+        L (int): min. number of photons for a burst to be identified and saved
+        P (float, probability): valid values [0..1].
+            Probability that a burst-start is due to a Poisson background.
+            The emplyed Poisson rate is the one computed by `.calc_bg()`.
+        F (float): `(F * background_rate)` is the minimum rate for burst-start
 
     **Burst search data (available after burst search)**
     
-    mburst : (list) 
-        array containing burst data: [tstart, width, #ph, istart]
-    TT : (same size as .bg) 
-        T values (in sec.) for burst search
-    T: (array) 
-        per-channel mean of TT parameter
-
-    nd, na, nt : (list) 
-        number of donor, acceptor and total ph in each burst, these are 
-        eventually BG and Lk corrected.
-    naa : [ALEX only] (list) 
-        number of ph in the A (acceptor) ch during A excitation in each burst
-    bp : (list) 
-        index of the time period in which the burst happens.
-        Same length as nd. Needed to identify which bg value to use.
-    bg_bs : (list) 
-        BG used for threshold in burst search (points to bg, bg_dd
-        or bg_ad)
-
-    fuse : something
-        is not None, contains the parameters used for fusing bursts
-
-    E : (list) 
-        FRET efficiency value for each burst (E = na/(na+nd)).
-    S : [ALEX only] (list) 
-        stochiometry value for each burst (S = nt/(nt+naa)).
-
+    In the following, when not specified, in parameters marked as (list of 
+    arrays) each array contains one element per bursts. `mburst` contain one 
+    "row" per burst. `TT` arrays contain one element per `period` (see 
+    background parameters above).
+    
+    Parameters:
+        mburst (list): 2-D array containing burst data. Each row is a bursts
+            and columns contain burst start, end, duration, size and indexes.
+            The proper way to access the fields these arrays is through the
+            function b_* (ex: b_start, b_end, b_width, b_size, etc...).
+            
+        TT (list of arrays): T values (in sec.) for burst search. Each `T`
+            value is the maximum delay between `m` photons for a burst-start.
+        T (array): per-channel mean of `TT` parameter
+    
+        nd (list of arrays): number of donor photons in each burst
+        na (list of arrays): number of acceptor photons in each burst
+        nt (list of arrays): number of total photons in each burst
+        naa (list of arrays): number of acceptor photons in each bursts
+            during accetor excitation **[ALEX only]**
+        bp (list of arrays): time period for each burst. Same shape as `nd`. 
+            This is needed to identify the background rate to use.
+        bg_bs (list): background used for threshold computation in burst 
+            search (is a reference to `bg`, `bg_dd` or `bg_ad`).
+    
+        fuse: if not None, contains the parameters used for fusing bursts
+    
+        E (list): FRET efficiency value for each burst (E = na/(na+nd)).
+        S (list): stochiometry value for each burst (S = nt/(nt+naa)).
     """
     def __init__(self, **kwargs):
         # Default values
@@ -514,7 +513,6 @@ class Data(DataContainer):
         # Override with user data
         init_kw.update(**kwargs)
         DataContainer.__init__(self, **init_kw)
-
 
     ##
     # Infrastructure methods: they return a new Data object
@@ -765,7 +763,8 @@ class Data(DataContainer):
             time_s (float, seconds): compute backgound each time_s seconds
             kwargs: additional arguments to be passed to `fun`.
         
-        The BG functions are defined as `bg.calc_*` in `background.py`.
+        The background estimation functions are defined in the module
+        `background` (imported as `bg` in burstlib).
         
         Example:
             d.calc_bg(bg.exp_fit, time_s=20, tail_min_us=200)
