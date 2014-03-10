@@ -410,23 +410,44 @@ class DataContainer(dict):
 
 class Data(DataContainer):
     """
-    Object containing all the information (timestamps, bursts) of a dataset.
-
+    Container for all the information (timestamps, bursts) of a dataset.
+    
+    Data() contains all the information of a dataset (name, timestamps, bursts,
+    correction factors) and provides several methods to perform analysis 
+    (background estimation, burst search, FRET fitting, etc...). 
+    
+    When loading a measurement file a Data() object is created by one
+    of the loader functions in `loaders.py`. Data() objects can be also 
+    created by some methods (`.copy()`, `.fuse_bursts()`, etc...) or by a 
+    "burst selection" with `Sel()` function.
+    
+    To add or delete data-attributes use `.add()` or `.delete()` methods.    
+    In the follow all the standard data-attributes are listed.
+    
     .. Note:: attributes of type "*list*" contain one element per channel.
 
     **Measurement attributes**
     
-    Arguments:    
+    Arguments:
+        fname (string): measuremets file name
         nch (int): number of channels
-        clk_p (float): clock period in seconds (for ph_times)
-        ph_times_m, A_em (list): timestamps and relative bool mask for 
-            acceptor photons
+        clk_p (float): clock period in seconds for timestamps in `ph_times_m`
+        ph_times_m (list): list of timestamp arrays (int64). Each array 
+            contains all the timestamps (donor+acceptor) in one channel.
+        A_em (list): list of boolean arrays marking acceptor timestamps. Each 
+            array is a boolean mask for the corresponding ph_times_m array.
         BT (float or array of floats): bleedthrough or leakage fraction.
             May be scalar or same size as nch.
         gamma (float or array of floats): gamma factor.
             May be scalar or same size as nch.
-        D_em, A_em, D_ex, D_ex (list):  **[ALEX-only]**       
-            boolean arrays for ph_times_m[i].
+        D_em (list of boolean arrays):  **[ALEX-only]**       
+            boolean mask for ph_times_m[i] for donor emission
+        A_em (list of boolean arrays):  **[ALEX-only]**       
+            boolean mask for ph_times_m[i] for acceptor emission
+        D_ex (list of boolean arrays):  **[ALEX-only]**       
+            boolean mask for ph_times_m[i] during donor excitation
+        A_ex (list of boolean arrays):  **[ALEX-only]**       
+            boolean mask for ph_times_m[i] during acceptor excitation
         D_ON, A_ON (2-element tuples of int ): **[ALEX-only]**
             start-end values for donor and acceptor excitation selection.
         alex_period (int): **[ALEX-only]**
@@ -504,8 +525,10 @@ class Data(DataContainer):
     
         fuse: if not None, contains the parameters used for fusing bursts
     
-        E (list): FRET efficiency value for each burst (E = na/(na+nd)).
-        S (list): stochiometry value for each burst (S = nt/(nt+naa)).
+        E (list): FRET efficiency value for each burst:
+                    E = na/(na + gamma*nd).
+        S (list): stochiometry value for each burst:
+                    S = (gamma*nd + na) /(gamma*nd + na + naa)
     """
     def __init__(self, **kwargs):
         # Default values
