@@ -1,0 +1,31 @@
+CODE
+====
+
+- rename Cython functions with _cy or _c suffix
+- move logic to load python or cython functions to burstsearch module
+- integrate apply_usalex load functions to a method in Data
+- handle unit test with both multi-spot and single-spot Data
+- Put docs in git and build in separate folder (redo sphinx-quickstart)
+- Use seaborn for plots (KDE, rugs, normal fit are handled)
+- 2D KDE for ALEX and lateral histograms
+
+
+DOCS
+=====
+
+- Add installation setup, so it will work with RTD:
+https://docs.readthedocs.org/en/latest/builds.html
+
+API:
+- select_burts
+- background
+- burst_plot
+- burst search
+
+Workflow
+- Quick and dirty example
+- usALEX workflow
+- Multi-spot workflow
+- In-depth workflow description (with hierarchy of called methods 
+  and description of written attributes)
+  

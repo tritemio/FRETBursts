@@ -541,7 +541,8 @@ class Data(DataContainer):
     # Infrastructure methods: they return a new Data object
     #
     def copy(self):
-        """Copy data in a new object. All arrays copied except for ph_times."""
+        """Copy data in a new object. All arrays copied except for ph_times_m
+        """
         print 'Deep copy executed.'
         new_d = Data(**self) # this make a shallow copy (like a pointer)
 
@@ -1540,6 +1541,9 @@ class Data(DataContainer):
         """Compute several versions of WEIGHTED std.dev. of the E estimator.
         `weights` are multiplied *BEFORE* squaring the distance/error
         `dist` can be 'DeltaE' or 'SlopeEuclid'
+        
+        Note::
+            This method is still experimental
         """
         assert dist in ['DeltaE', 'SlopeEuclid']
         if E_fit is None:
