@@ -410,76 +410,102 @@ class DataContainer(dict):
 
 class Data(DataContainer):
     """
-    Class that contains all the information (ph times, burst) of a dataset.
+    Object containing all the information (timestamps, bursts) of a dataset.
 
-    It's a dictionary in which the initial items are also attributes. To add
-    more attributes use method .add().
+    Attributes
+    ==========
+    
+    **NOTE**: attributes marked as *list* contain one element per channel.
 
-    COPYING DATA
-    To copy the content to a new variable you can create a new variable:
-        d_new = Data(**d_old)
-    In this case each field of the new variable will point to the old variable
-    data. You can reassign attributes in one variable without influencing the
-    other. However if you modify an attribute (change some elements of an
-    array) the modification is reflected in both variables.
+    **Measurement attributes**
+    
+    nch : int
+        number of channels
+    clk_p : float
+        clock period in seconds (for ph_times)
+    ph_times_m, A_em : (list) 
+        ph times and relative bool mask for acceptor ph
+    BT : float or array of floats (one element per ch)
+        bleedthrough or leakage fraction
+    gamma : float or array of floats (one element per ch)
+        gamma factor, may be scalar or same size as nch.
 
-    To copy to a new variable duplicating all the data (so that will double
-    the RAM usage but the data is completely separated) use the method .copy()
+    D_em, A_em, D_ex, D_ex : list (one element per ch)  **[ALEX-only]**       
+        boolean arrays for ph_times_m[i].
+    D_ON, A_ON : tuples of int                          **[ALEX-only]**
+        start-end values for donor and acceptor excitation selection.
+    alex_period: (int)                                  **[ALEX-only]**
+        duration of the alternation period in clock cycles.
 
-    ATTRIBUTES: if marked as (list) then is one element per channel.
+    **Background Attributes**
 
-    MEASUREMENT ATTRIBUTES
-    nch: number of channels
-    clk_p:  clock period in seconds (for ph_times)
-    ph_times_m, A_em : (list) ph times and relative bool mask for acceptor ph
-    BT: bleedthrough or leakage percentage
-    gamma: gamma factor, may be scalar or same size as nch
+    bg, bg_dd, bg_ad, bg_aa : list of arrays (one for each channel) 
+        arrays of background rates total (`bg`), donor em. during donor 
+        ex. (bg_dd), accept. em. during donor ex. (`bg_ad`), accept. em.
+        during accept. ex. (`bg_aa`). For each channel the backgound array 
+        contains a rates computed every X seconds of measurements.
+        
+    nperiods : int   
+        number of periods in which ph are splitted for bg calculation
+    bg_fun : function
+        function used for background calculation
+    Lim : list  
+        for each ch, is a list of pairs of index of `.ph_times_m[i]` for 
+        first and last photon in each period
+    Ph_p : list
+        for each ch, is a list of pairs of arrival times for first and last 
+        photon of each period
 
-    ALEX Specific: D_em, A_em, D_ex, D_ex, they are lists (1 per ch)
-            and each element is a boolean mask for ph_times_m[i].
-            D_ON, A_ON: tuples of int (start-end values) for donor ex. and
-                    acceptor ex. selection.
-            alex_period: (int) lenth of the alternation period in clk cycles.
-
-    BACKGROUND ATTRIBUTES
-    bg, bg_dd, bg_ad, bg_aa: (list) bg for each channel calculated every X sec
-    nperiods:   number of periods in which ph are splitted for bg calculation
-    bg_fun:     function used for bg calculation
-    Lim: (list) for each ch, is a list of pairs of index of .ph_times_m[i]
-                that identify first and last photon in each period
-    Ph_p: (list) for each ch, is a list of pairs of arrival time for
-                the first and the last photon in each period
-
-    Old attributes (now just the per-ch mean of bg, bg_dd, bg_ad and bg_aa):
+    Old attributes (now just the per-ch mean of bg, bg_dd, bg_ad and bg_aa)::
+    
         rate_m: array of bg rates for D+A channel pairs (ex. 4 for 4 spots)
         rate_dd: array of bg rates for D em (and D ex if ALEX)
         rate_da: array of bg rates for A em (and D ex if ALEX)
         rate_aa: array of bg rates for A em and A ex (only for ALEX)
 
-    BURST SEARCH PARAMETERS (user input)
-    ph_sel: type of ph selection for burst search: 'D', 'A' or 'DA' (default)
-    m, L : parameters for burt search
-    P: 1-prob. to have a burst start due to BG (assuming Poisson distrib.).
-    F: multiplying factor for BG used to calc TT and T
+    **Burst search parameters (user input)**
+    
+    ph_sel: string, valid values 'DA' (default), 'D' or 'A'
+        type of ph selection for burst search (donor, acceptor or both)
+    m : int
+        number of consecutive timestamps used to compute the local rate
+        during burst search
+    L : int
+        mininum number of photons a burst must to be idenfified and saved
+    P : float (probability) 
+        probability that a burst-start is due to a Poisson background
+        the Poisson rate is the rate computed with `.calc_bg()`
+    F: float
+        F * background rate is the minimum rate for burst-start
 
-    BURST SEARCH DATA (available after burst search)
-    mburst: (list) array containing burst data: [tstart, width, #ph, istart]
-    TT: (same size as .bg) T values (in sec.) for burst search
-    T: (array) per-channel mean of TT parameter
+    **Burst search data (available after burst search)**
+    
+    mburst : (list) 
+        array containing burst data: [tstart, width, #ph, istart]
+    TT : (same size as .bg) 
+        T values (in sec.) for burst search
+    T: (array) 
+        per-channel mean of TT parameter
 
-    nd,na,nt : (list) number of donor, acceptor and total ph in each burst,
-                these are eventually BG and Lk corrected.
-    naa: [ALEX only] (list) number of ph in the A (acceptor) ch during A
-                excitation in each burst
-    bp: (list) index of the time period in which the burst happens.
-                Same length as nd. Needed to identify which bg value to use.
-    bg_bs (list): BG used for threshold in burst search (points to bg, bg_dd
-                or bg_ad)
+    nd, na, nt : (list) 
+        number of donor, acceptor and total ph in each burst, these are 
+        eventually BG and Lk corrected.
+    naa : [ALEX only] (list) 
+        number of ph in the A (acceptor) ch during A excitation in each burst
+    bp : (list) 
+        index of the time period in which the burst happens.
+        Same length as nd. Needed to identify which bg value to use.
+    bg_bs : (list) 
+        BG used for threshold in burst search (points to bg, bg_dd
+        or bg_ad)
 
-    fuse: is not None, contains the parameters used for fusing bursts
+    fuse : something
+        is not None, contains the parameters used for fusing bursts
 
-    E:  (list) FRET efficiency value for each burst (E = na/(na+nd)).
-    S:  [ALEX only] (list) stochiometry value for each burst (S = nt/(nt+naa)).
+    E : (list) 
+        FRET efficiency value for each burst (E = na/(na+nd)).
+    S : [ALEX only] (list) 
+        stochiometry value for each burst (S = nt/(nt+naa)).
 
     """
     def __init__(self, **kwargs):
@@ -727,10 +753,25 @@ class Data(DataContainer):
             pprint("DONE\n")
 
     def calc_bg(self, fun, time_s=60, **kwargs):
-        """Calc a BG rate for every "time" seconds of ph arrival times.
-        The BG functions are defined as bkg.calc_* in background.py.
+        """Compute time-dependent background rates for all the channels.
+        
+        Compute background rates for donor, acceptor and both detectors.
+        The backgrouns is computed every `time_s` seconds, making possible to 
+        track eventual variations during the measurement.
+        
+        Args:
+            fun (function): function for background estimation (example 
+                `bg.exp_fit`)
+            time_s (float, seconds): compute backgound each time_s seconds
+            kwargs: additional arguments to be passed to `fun`.
+        
+        The BG functions are defined as `bg.calc_*` in `background.py`.
+        
         Example:
             d.calc_bg(bg.exp_fit, time_s=20, tail_min_us=200)
+            
+        Returns:
+            None, all the results are saved in the object.
         """
         pprint(" - Calculating BG rates ... ")
 
@@ -973,26 +1014,40 @@ class Data(DataContainer):
     def burst_search_t(self, L=10, m=10, P=0.95, F=1., min_rate_cps=None, 
             nofret=False, max_rate=False, dither=False, ph_sel='DA', 
             verbose=False, mute=False):
-        """Perform burst search with specified parameters.
+        """Performs a burst search with specified parameters.
         
-        `L`, `m`: (int) min. burst size and numbero of ph for rate calculation
-        `P`: Probability to detect non-Poisson bursts. If not None this
-             overrides `F`.
-        `F`: (float) if `P` is None: min.rate/bg.rate ratio for burst search
-                     else: `P` refers to a Poisson rate = bg_rate*F
-        `min_rate`: (float or list/array) min. rate in cps for burst start.
-                    If not None has the precedence over `P` and `F`.
-                    If non-scalar, contains one rate per each channel.
-        `ph_sel`: (string) can be 'DA', 'D' or 'A'. Specifies the photon 
-                  selection on which to perform the burst search: 
-                  'DA' for donor+acceptor, 'D' or 'A' for donor or acceptor 
-                  photons.
+        This method performs a sliding-window burst search and does not 
+        require binning the timestamps. The burst starts when the rate of `m`
+        photons is above a minimum rate, and stops when the rate falls below
+        the threshold.
         
-        Note: when using `P` or `F` the background rate is needed so you 
-              should first call `.calc_bg()`.
+        The minimum rate can be explicitly specified (`min_rate`) or computed
+        as a function of the background rate (using `F` or `P`).
+        
+        Parameters:        
+            m (int): number of of consecutive photons used to compute the 
+                photon rate.
+            L (int): minimum number of photons in burst
+            P (float): Probability to detect non-Poisson bursts. If not None 
+                this overrides `F`.
+            F (float): if `P` is None: min.rate/bg.rate ratio for burst search
+                else: `P` refers to a Poisson rate = bg_rate*F
+            min_rate (float or list/array): min. rate in cps for burst start.
+                If not None has the precedence over `P` and `F`.
+                If non-scalar, contains one rate per each channel.
+            ph_sel (string): can be 'DA', 'D' or 'A'. Specifies the photon 
+                selection on which to perform the burst search: 'DA' for 
+                donor+acceptor, 'D' or 'A' for donor or acceptor photons.
+        
+        Note: 
+            when using `P` or `F` the background rate is needed so you 
+            should first call `.calc_bg()`.
               
         Example:
             d.burst_search_t(L=10, m=10, F=6, P=None, ph_sel='DA')
+            
+        Returns:
+            None, all the results are saved in the object.
         """
         pprint(" - Performing burst search (verbose=%s) ..." % verbose, mute)
         if min_rate_cps is not None:
