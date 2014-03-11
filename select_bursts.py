@@ -90,9 +90,11 @@ def naa(d, ich=0, th1=20, th2=1000):
 def nda(d, ich=0, th1=20, th2=1000, gamma=1., gamma1=None,
                       add_naa=False):
     """Select bursts with (nd+na >= th1) and (nd+na <= th2).
-    If `gamma` or `gamma1` is specified burst size is computed as:
+    If `gamma` or `gamma1` is specified burst size is computed as::
+    
         nd+na/gamma  (so th1 is the min. burst size for donly bursts)
         nd*gamma1+na (so th1 is the min. burst size for high FRET bursts)
+
     If data is ALEX and `add_naa` is True, `naa` is added to burst-size.
     """
     if gamma1 is not None:

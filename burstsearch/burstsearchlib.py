@@ -5,6 +5,31 @@
 #
 """
 Core burst search and photon counting functions.
+
+All the burst search functions return a 2-D array of shape Nx6, where N is 
+the number of bursts (burst array). The 6 columns contain burst data 
+(time start, width, number of photons, index of time start, index of time end, 
+time end).
+
+The burst array can be indexed of sliced along the first dimension (row wise
+or axis=0) to select one or more bursts. However to access specific burst 
+fields in the second dimension (columns or axis=1) the b_* utility functions 
+should be used. These is both clearer and less bug-prone than using column
+index to access burst data.
+
+For example, assume a burst array `mburst`. To take a slice of only the first 
+10 bursts you can do::
+
+    mburst2 = mburst[:10]   # new array with burst data of the first 10 bursts
+    
+Obtain the burst start fo all the bursts::
+    
+    b_start(mbursts)
+
+Obtain the burst size (number of photons) for burst 10 to 20::
+
+    b_size(mbursts[10:20])
+    
 """
 
 import numpy as np

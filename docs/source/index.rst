@@ -14,6 +14,7 @@ Contents:
    overview
    getting_started
    architecture
+   burst_selection
    data_class
 
 

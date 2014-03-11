@@ -83,20 +83,47 @@ bg_calc_exp_cdf = deprecate(bg.exp_fit, 'bg_calc_exp_cdf', 'bg.exp_cdf_fit')
 #
 
 def Select_bursts(d_orig, filter_fun, negate=False, nofret=False, **kwargs):
-    """Returns a new Data object with bursts selected according to filter_fun.
-    The passed 'filter_fun' is used to compute the mask for each channel.
-    Note that 'ph_times_m' is shared to save RAM, but 'mburst', 'nd', 'na',
-    'nt', 'bp' (ad 'naa' if ALEX) are new objects.
+    """Uses `filter_fun` to select a sub-set of bursts from `d_orig`.
+    
+    Arguments:
+        d_orig (Data object): the original Data() object to filter
+        filter_fun (fuction): function used for burst selection
+        negate (boolean): If True, negates (i.e. take the complementary)
+            of the selection returned by `filter_fun`. Default `False`.
+        nofret (boolean): If True do not recompute burst correction and FRET
+            efficiencies in the new retuerned object. Default `False`.
+    
+    Kwargs:
+        Any additional keyword argument is passed to `filter_fun()`.
+    
+    Returns:
+        d_new: a new Data() object containing the selected bursts.
+    
+    Warning:
+        This function is also avaliable with the shortcut name `Sel`.
+    
+    Note:
+        In order to save RAM `ph_times_m` is shared between `d_orig` and 
+        `d_new`. However, all the bursts data (`mburst`, `nd`, `na`, etc...) 
+        are new objects.
     """
     Masks, str_sel = Sel_mask(d_orig, filter_fun, negate=negate,
             return_str=True, **kwargs)
     d_sel = Sel_mask_apply(d_orig, Masks, nofret=nofret, str_sel=str_sel)
     return d_sel
+
+# Alias for :func:`Select_bursts`
 Sel = Select_bursts
 
 def Sel_mask(d_orig, filter_fun, negate=False, return_str=False, **kwargs):
     """Returns a list of nch masks to select bursts according to filter_fun.
     The passed 'filter_fun' is used to compute the mask for each channel.
+    
+    Use this function only if you want to apply a selection from one object
+    to a second object. Otherwise use :func:`Select_bursts`.
+
+    See also:
+        :func:`Select_bursts`, :func:`Sel_mask_apply`
     """
     ## Create the list of bool masks for the bursts selection
     M = [filter_fun(d_orig,i,**kwargs) for i in range(d_orig.nch)]
@@ -107,8 +134,14 @@ def Sel_mask(d_orig, filter_fun, negate=False, return_str=False, **kwargs):
 
 def Sel_mask_apply(d_orig, Masks, nofret=False, str_sel=''):
     """Returns a new Data object with bursts select according to Masks.
-    Note that 'ph_times_m' is shared to save RAM, but 'mburst', 'nd', 'na',
-    'nt', 'bp' (and 'naa' if ALEX) are new objects.
+    Note that 'ph_times_m' is shared to save RAM, but `mburst`, `nd`, `na`,
+    `nt`, `bp` (and `naa` if ALEX) are new objects.
+    
+    Use this function only if you want to apply a selection from one object
+    to a second object. Otherwise use :func:`Select_bursts`.
+        
+    See also:
+        :func:`Select_bursts`, :func:`Sel_mask`, 
     """
     ## Attributes of ds point to the same objects of d_orig
     ds = Data(**d_orig)
@@ -220,7 +253,23 @@ def find_burst(bursts, size, width_ms, clk_p=12.5e-9):
     return np.where((b_size(bursts) == size)*(abs(b_width(bursts)-width) < th))
 
 def b_fuse(mburst, ms=0, clk_p=12.5e-9):
-    """Fuse touching or nearby bursts in the Nx6 burst array 'mburst'."""
+    """Fuse bursts separated by less than `ms` (milli-secs).
+    
+    Note:
+        This function will fuse only 2 consecutive bursts. If there are groups
+        of 3 or more consecutive bursts all closer that `ms` the function
+        must be run several times to fuse all them together.
+    
+    Parameters:
+        mburst (2D array): Nx6 array of burst data, one row per burst
+            See `burstseach.burstseachlib.py` for details.
+        ms (float):
+            minimum waiting time between bursts (in millisec). Burst closer 
+            than that will be fuse in asingle burst.
+    
+    Returns:
+        new_mbursts (2D array): new array of burst data
+    """
     max_delay_clk = (ms*1e-3)/clk_p
     # Nearby bursts masks
     delays = (b_separation(mburst) <= max_delay_clk)
@@ -424,11 +473,15 @@ class Data(DataContainer):
     To add or delete data-attributes use `.add()` or `.delete()` methods.    
     In the follow all the standard data-attributes are listed.
     
-    .. Note:: attributes of type "*list*" contain one element per channel.
+    Note: 
+        Attributes of type "*list*" contain one element per channel.
+        Each element, in turn, can be an array. For example `.ph_times_m[i]`
+        is the array of timestamps for channel `i`; or `.nd[i]` is the array
+        of donor counts in each burst for channel `i`.
 
     **Measurement attributes**
     
-    Arguments:
+    Attributes:
         fname (string): measuremets file name
         nch (int): number of channels
         clk_p (float): clock period in seconds for timestamps in `ph_times_m`
@@ -440,14 +493,13 @@ class Data(DataContainer):
             May be scalar or same size as nch.
         gamma (float or array of floats): gamma factor.
             May be scalar or same size as nch.
+        A_em (list of boolean arrays):
+            boolean mask for `.ph_times_m[i]` for acceptor emission
         D_em (list of boolean arrays):  **[ALEX-only]**       
-            boolean mask for ph_times_m[i] for donor emission
-        A_em (list of boolean arrays):  **[ALEX-only]**       
-            boolean mask for ph_times_m[i] for acceptor emission
-        D_ex (list of boolean arrays):  **[ALEX-only]**       
-            boolean mask for ph_times_m[i] during donor excitation
-        A_ex (list of boolean arrays):  **[ALEX-only]**       
-            boolean mask for ph_times_m[i] during acceptor excitation
+            boolean mask for `.ph_times_m[i]` for donor emission
+        D_ex, A_ex (list of boolean arrays):  **[ALEX-only]**       
+            boolean mask for `.ph_times_m[i]` during donor or acceptor 
+            excitation
         D_ON, A_ON (2-element tuples of int ): **[ALEX-only]**
             start-end values for donor and acceptor excitation selection.
         alex_period (int): **[ALEX-only]**
@@ -456,27 +508,29 @@ class Data(DataContainer):
     **Background Attributes**
     
     These attributes contain the estimated background rate. Each arribute is
-    a list (one element per channel) of arrays. Each array contain several
+    a list (one element per channel) of arrays. Each array contains several
     rates computed every `time_s` seconds of measurements. `time_s` is an 
     argument passed to `.calc_bg()` method. Each `time_s` measurement slice
     is here called **`period`**.
 
-    Arguments:
+    Attributes:
         bg (list of arrays):  total background (donor + acceptor) during donor 
             excitation
-        bg_dd (list of arrays): donor emission during donor excitation
-        bg_ad (list of arrays): acceptor emission during donor excitation
-        bg_aa (list of arrays): acceptor emission during acceptor excitation
-        
+        bg_dd (list of arrays): background of donor emission during donor 
+            excitation
+        bg_ad (list of arrays): background of acceptor emission during donor 
+            excitation
+        bg_aa (list of arrays): background of acceptor emission during 
+            acceptor excitation
         nperiods (int): number of periods in which timestamps are splitted for 
             background calculation
         bg_fun (function): function used to compute the background rates
-        Lim (list): for each ch, is a list of pairs of index of 
-            `.ph_times_m[i]` for first and last photon in each period.
-        Ph_p (list): for each ch, is a list of pairs of arrival times for 
-            first and last photon of each period.
+        Lim (list): for each ch, is a list of index pairs for `.ph_times_m[i]` 
+            for **first** and **last** photon in each period.
+        Ph_p (list): for each ch, is a list of timestamps pairs for 
+            **first** and **last** photon of each period.
 
-    Old attributes (now just the per-ch mean of bg, bg_dd, bg_ad and bg_aa)::
+    Other attributes (per-ch mean of `bg`, `bg_dd`, `bg_ad` and `bg_aa`)::
     
         rate_m: array of bg rates for D+A channel pairs (ex. 4 for 4 spots)
         rate_dd: array of bg rates for D em (and D ex if ALEX)
@@ -485,7 +539,7 @@ class Data(DataContainer):
 
     **Burst search parameters (user input)**
 
-    Parameters:    
+    Attributes:    
         ph_sel (string): valid values 'DA' (default), 'D' or 'A'
             type of ph selection for burst search (donor, acceptor or both)
         m (int): number of consecutive timestamps used to compute the 
@@ -500,30 +554,34 @@ class Data(DataContainer):
     
     In the following, when not specified, in parameters marked as (list of 
     arrays) each array contains one element per bursts. `mburst` contain one 
-    "row" per burst. `TT` arrays contain one element per `period` (see 
-    background parameters above).
+    "row" per burst. `TT` arrays contain one element per `period` (see above:
+    background attributes).
     
-    Parameters:
-        mburst (list): 2-D array containing burst data. Each row is a bursts
-            and columns contain burst start, end, duration, size and indexes.
-            The proper way to access the fields these arrays is through the
+    Attributes:
+        mburst (list of arrays): list of 2-D arrays containing burst data. 
+            Each row contains data for 1 burst. Each column contains burst 
+            fields like burst start, end, duration, size and indexes.
+            The proper way to access these fields is through the
             function b_* (ex: b_start, b_end, b_width, b_size, etc...).
             
-        TT (list of arrays): T values (in sec.) for burst search. Each `T`
-            value is the maximum delay between `m` photons for a burst-start.
-        T (array): per-channel mean of `TT` parameter
+        TT (list of arrays): list of arrays of *T* values (in sec.). A *T*
+            value is the maximum delay between `m` photons to have a 
+            burst-start. Each channels has an array of *T* values, one for 
+            each background "period" (see above).
+        T (array): per-channel mean of `TT` 
     
-        nd (list of arrays): number of donor photons in each burst
-        na (list of arrays): number of acceptor photons in each burst
-        nt (list of arrays): number of total photons in each burst
+        nd, na (list of arrays): number of donor or acceptor photons during 
+            donor excitation in each burst
+        nt (list of arrays): total number photons (nd+na)
         naa (list of arrays): number of acceptor photons in each bursts
-            during accetor excitation **[ALEX only]**
+            during acceptor excitation **[ALEX only]**
         bp (list of arrays): time period for each burst. Same shape as `nd`. 
-            This is needed to identify the background rate to use.
-        bg_bs (list): background used for threshold computation in burst 
+            This is needed to identify the background rate for each burst.
+        bg_bs (list): background rates used for threshold computation in burst 
             search (is a reference to `bg`, `bg_dd` or `bg_ad`).
     
-        fuse: if not None, contains the parameters used for fusing bursts
+        fuse (None or float): if not None, the burst seaparation in ms below
+            which bursts have been fused (see `.fuse_bursts()`).
     
         E (list): FRET efficiency value for each burst:
                     E = na/(na + gamma*nd).
@@ -778,10 +836,10 @@ class Data(DataContainer):
         """Compute time-dependent background rates for all the channels.
         
         Compute background rates for donor, acceptor and both detectors.
-        The backgrouns is computed every `time_s` seconds, making possible to 
-        track eventual variations during the measurement.
+        The rates are computed every `time_s` seconds, allowing to 
+        track possible variations during the measurement.
         
-        Args:
+        Arguments:
             fun (function): function for background estimation (example 
                 `bg.exp_fit`)
             time_s (float, seconds): compute backgound each time_s seconds
@@ -791,7 +849,10 @@ class Data(DataContainer):
         `background` (imported as `bg` in burstlib).
         
         Example:
-            d.calc_bg(bg.exp_fit, time_s=20, tail_min_us=200)
+            Compute background with `bg.exp_fit`, every 20s, with a
+            threshold of 200us for photon waiting time::
+            
+               d.calc_bg(bg.exp_fit, time_s=20, tail_min_us=200)
             
         Returns:
             None, all the results are saved in the object.
