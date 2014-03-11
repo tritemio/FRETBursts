@@ -1063,8 +1063,8 @@ class Data(DataContainer):
                 donor+acceptor, 'D' or 'A' for donor or acceptor photons.
         
         Note: 
-            when using `P` or `F` the background rate is needed so you 
-            should first call `.calc_bg()`.
+            when using `P` or `F` the background rates are needed, so 
+            `.calc_bg()` must be called before the burst search.
               
         Example:
             d.burst_search_t(L=10, m=10, F=6, P=None, ph_sel='DA')
@@ -1382,10 +1382,14 @@ class Data(DataContainer):
     #
     def fit_E_m(self, E1=-1, E2=2, weights='size', gamma=1.):
         """Fit E in each channel with the mean using bursts in [E1,E2] range.
-        NOTE: This two fitting are equivalent (but the first is much faster):
-            fit_E_m(weights='size')
-            fit_E_minimize(kind='E_size', weights='sqrt')
-        However `fit_E_minimize()` does not provide a model curve.
+        
+        Note:
+            This two fitting are equivalent (but the first is much faster)::
+            
+                fit_E_m(weights='size')
+                fit_E_minimize(kind='E_size', weights='sqrt')
+            
+            However `fit_E_minimize()` does not provide a model curve.
         """
         Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
 
@@ -1473,18 +1477,22 @@ class Data(DataContainer):
             weights=None, gamma=1., **fit_kwargs):
         """Fit E in each channel with `fit_fun` using burst in [E1,E2] range.
         All the fitting functions are defined in `fit.gaussian_fitting`.
-
-        `weights`: None or a string that specifies the type of weights
-            If not None `weights` will be passed to `fret_fit.get_weights()`
-            NB: `weights` can be not None only when using fit functions that
-            accept weights (the ones ending in `_hist` or `_EM`)
-        `gamma`: passed to `fret_fit.get_weights()` to compute weights
+        
+        Parameters:
+            weights (string or None): specifies the type of weights
+                If not None `weights` will be passed to 
+                `fret_fit.get_weights()`. `weights` can be not-None only when
+                using fit functions that accept weights (the ones ending in 
+                `_hist` or `_EM`)
+            gamma (float): passed to `fret_fit.get_weights()` to compute 
+                weights
 
         All the additional arguments are passed to `fit_fun`. For example `p0`
         or `mu_fix` can be passed (see `fit.gaussian_fitting` for details).
 
-        Use this method for CDF/PDF or hist fitting.
-        For EM fitting use `fit_E_two_gauss_EM()`.
+        Note:
+            Use this method for CDF/PDF or hist fitting.
+            For EM fitting use `fit_E_two_gauss_EM()`.
         """
         if fit_fun.__name__.startswith("gaussian_fit"):
             fit_model = lambda x, p: SS.norm.pdf(x, p[0], p[1])
@@ -1542,7 +1550,7 @@ class Data(DataContainer):
         `weights` are multiplied *BEFORE* squaring the distance/error
         `dist` can be 'DeltaE' or 'SlopeEuclid'
         
-        Note::
+        Note:
             This method is still experimental
         """
         assert dist in ['DeltaE', 'SlopeEuclid']

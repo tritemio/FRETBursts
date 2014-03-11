@@ -1,6 +1,9 @@
 The "Data()" class
 ==================
 
+.. note::
+    Just try a note
+
 Description and attributes
 --------------------------
 
