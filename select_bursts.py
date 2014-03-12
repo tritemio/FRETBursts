@@ -4,10 +4,10 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-Contains functions to select bursts according to different criteria.
+Functions to select bursts according to different criteria.
 
-These functions are usually passed to the `Sel` function as a second parameter.
-For example::
+These functions are usually passed to the :func:`burstlib.Sel` as a second 
+parameter. For example::
 
     ds = Sel(d, select_bursts.E, th1=0.2, th2=0.6)
     

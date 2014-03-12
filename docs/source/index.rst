@@ -9,14 +9,10 @@ Welcome to FRETBursts's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
 
-   overview
-   getting_started
-   architecture
-   burst_selection
-   data_class
-
+    getting_started
+    reference_manual
 
 Indices and tables
 ==================
