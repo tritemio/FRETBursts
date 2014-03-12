@@ -17,8 +17,8 @@ DOCS
 https://docs.readthedocs.org/en/latest/builds.html
 
 API:
-- select_burts
-- background
+- select_burts [OK]
+- background [OK]
 - burst_plot
 - burst search
 - burstsearchlib.py

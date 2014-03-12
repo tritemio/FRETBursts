@@ -5,13 +5,14 @@
 #
 """
 Routines to compute the background from an array of timestamps. This module 
-is imported as `bg` by burstlib.py.
+is imported as `bg` by `burstlib.py`.
 
-The important functions are `bg.exp_fit` and `bg.exp_fit_cdf` that provide 
-two algorithms to estimate the background. These functions are not usually 
-called directly but passed to the `Data()` method `calc_bg` to compute the 
-background of a measurement.
+The important functions are :func:`exp_fit` and :func:`exp_cdf_fit` that 
+provide two (fast) algorithms to estimate the background without binning. 
+These functions are not usually called directly but passed to 
+:meth:`Data.calc_bg` to compute the background of a measurement.
 
+See also :func:`exp_hist_fit` for background estimation using an histogram fit.
 """
 
 import numpy as np
@@ -20,9 +21,19 @@ from fit.exp_fitting import expon_fit, expon_fit_cdf, expon_fit_hist
 from fit.gaussian_fitting import gaussian_fit_hist
 
 
-def exp_fit(ph, fit_fun=expon_fit, tail_min_p=0.1, tail_min_us=None,
+def raw_fit(ph, clk_p=12.5e-9):
+    """Compute the "raw" rate: (number of ph / duration). """
+    return ph.size/((ph[-1]-ph[0])*clk_p)
+
+
+def _exp_fit_generic(ph, fit_fun, tail_min_us=None, tail_min_p=0.1, 
                      clk_p=12.5e-9):
-    """Return BG rate for ph computed as mean of delays (above a min value).
+    """Computes BG rates on timestamp delays above a min. value.
+    
+    Compute a background rate, selecting waiting-times (delays) larger than a 
+    minimum threshold.
+    
+    You need to pass the specific fitting function as `fit_fun`.
     """
     dph = np.diff(ph)
     if tail_min_us is None:
@@ -32,18 +43,74 @@ def exp_fit(ph, fit_fun=expon_fit, tail_min_p=0.1, tail_min_us=None,
     Lambda = fit_fun(dph, s_min=tail_min)/clk_p
     return Lambda
 
-def exp_cdf_fit(ph, tail_min_p=0.1, tail_min_us=None, clk_p=12.5e-9):
-    """Return BG rate for ph computed fitting the exponential CDF of delays
+
+def exp_fit(ph, tail_min_us=None, clk_p=12.5e-9):
+    """Return a background rate using the MLE of mean of waiting-times.
+    
+    Compute a background rate, selecting waiting-times (delays) larger than a 
+    minimum threshold.
+
+    This function uses a MLE fit assuming an exponentially-distributed
+    population of waiting-times.
+
+    Arguments:
+        ph (array): timestamps array from which to extract the background
+        tail_min_us (float): minimum waiting-time in micro-secs
+        clk_p (float): clock period for timestamps in `ph`
+    
+    Returns:
+        Estimated background rate in cps.
+
+    See also:
+        :func:`exp_cdf_fit`, :func:`hist_fit`
     """
-    return exp_fit(ph, fit_fun=expon_fit_cdf, tail_min_p=tail_min_p,
-                       tail_min_us=tail_min_us, clk_p=clk_p)
+    return _exp_fit_generic(ph, fit_fun=expon_fit, 
+                            tail_min_us=tail_min_us, clk_p=clk_p)
 
-def raw_fit(ph, clk_p=12.5e-9):
-    """Compute the "raw" rate: (number of ph / duration). """
-    return ph.size/((ph[-1]-ph[0])*clk_p)
+def exp_cdf_fit(ph, tail_min_us=None, clk_p=12.5e-9):
+    """Return a background rate fitting the empirical CDF of waiting-times.
 
-def hist_fit(ph, tail_min_us, binw=0.1e-3, clk_p=12.5e-9):
-    """Returns the BG rate of ph calculated from the hist (PDF) of timetrace.
+    Compute a background rate, selecting waiting-times (delays) larger than a 
+    minimum threshold.
+
+    This function uses a curve fit of an exponetial CDF model to the empirical 
+    CDF of waiting-times.
+
+    Arguments:
+        ph (array): timestamps array from which to extract the background
+        tail_min_us (float): minimum waiting-time in micro-secs
+        clk_p (float): clock period for timestamps in `ph`
+    
+    Returns:
+        Estimated background rate in cps.
+        
+    See also:
+        :func:`exp_fit`, :func:`hist_fit`
+    """
+    return _exp_fit_generic(ph, fit_fun=expon_fit_cdf, 
+                            tail_min_us=tail_min_us, clk_p=clk_p)
+
+
+def exp_hist_fit(ph, tail_min_us, binw=0.1e-3, clk_p=12.5e-9):
+    """Return a background rate fitting histogram of waiting-times.
+
+    Compute a background rate, selecting waiting-times (delays) larger than a 
+    minimum threshold.
+
+    This function uses a curve fit to the histogram of waiting times, so it
+    requires binning.
+
+    Arguments:
+        ph (array): timestamps array from which to extract the background
+        tail_min_us (float): minimum waiting-time in micro-secs
+        binw (float): bin width for waiting times, in seconds.
+        clk_p (float): clock period for timestamps in `ph`
+    
+    Returns:
+        Estimated background rate in cps.
+        
+    See also:
+        :func:`exp_fit`, :func:`exp_cdf_fit`
     """
     assert np.size(ph) > 0
     dph = np.diff(ph)
@@ -52,6 +119,8 @@ def hist_fit(ph, tail_min_us, binw=0.1e-3, clk_p=12.5e-9):
     bins = np.arange(0, dph.max(), binw_clk)
     Lambda = expon_fit_hist(dph, bins=bins, s_min=tail_min)/clk_p
     return Lambda
+
+
 
 def histo(ph, bin_ms=10., t_max_s=None, clk_p=12.5e-9):
     """Returns an histogram and bins-centers of ph (ph arrival times)."""

@@ -8,4 +8,5 @@ Contents:
 
     data_class
     burst_selection
+    background
     files_description

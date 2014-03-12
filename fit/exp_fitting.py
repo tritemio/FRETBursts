@@ -4,7 +4,7 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-Generic functions to fit an exponential populations.
+Generic functions to fit exponential populations.
 """
 
 import numpy as np
@@ -14,8 +14,14 @@ from scipy.optimize import leastsq
 
 def expon_fit(s, s_min=0):
     """Eponential fit of samples s using MLE.
-    All samples < s_min are discarded (s_min must be >= 0).
-    Returns the lambda parameter (1/life-time) of the exponential.
+
+    Arguments:
+        s (array): array of exponetially-distributed samples
+        s_min (float): all samples < `s_min` are discarded 
+            (`s_min` must be >= 0).
+
+    Returns:
+        The lambda parameter (1/life-time) of the exponential.
     """
     if s_min > 0: s = s[s >= s_min]
     assert s.size > 0    
@@ -24,8 +30,14 @@ def expon_fit(s, s_min=0):
 
 def expon_fit_cdf(s, s_min=0):
     """Eponential fit of samples s using a curve fit to the empirical CDF.
-    All samples < s_min are discarded (s_min must be >= 0).
-    Returns the lambda parameter (1/life-time) of the exponential.
+
+    Arguments:
+        s (array): array of exponetially-distributed samples
+        s_min (float): all samples < `s_min` are discarded 
+            (`s_min` must be >= 0).
+
+    Returns:
+        The lambda parameter (1/life-time) of the exponential.
     """
     if s_min > 0: s = s[s >= s_min]
     assert s.size > 0    
@@ -38,8 +50,16 @@ def expon_fit_cdf(s, s_min=0):
 
 def expon_fit_hist(s, bins, s_min=0):
     """Eponential fit of samples s using a curve fit of the histogram.
-    All samples < s_min are discarded (s_min must be >= 0).
-    Returns the lambda parameter (1/life-time) of the exponential.
+
+    Arguments:
+        s (array): array of exponetially-distributed samples
+        bins (float or array): if float is the bin width, otherwise is the
+            array of bin edges (passed to `numpy.histogram`)
+        s_min (float): all samples < `s_min` are discarded 
+            (`s_min` must be >= 0).
+    
+    Returns:
+        The lambda parameter (1/life-time) of the exponential.
     """
     if s_min > 0: s = s[s >= s_min]
     assert s.size > 0
