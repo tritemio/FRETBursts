@@ -10,8 +10,8 @@ FRETBursts is distributed as source code. To run FRETBursts you need to
 These 3 steps are described below.
 
 
-Install python
---------------
+Installing python
+-----------------
 
 On all the main platforms, the preferred way to install python and all
 the scientific packages is using a python distribution like
@@ -33,27 +33,8 @@ FRETBursts is tested on Anaconda 1.9 or newer.
     The documentation is built using
     `Sphinx <http://sphinx-doc.org/>`__.
 
-
-Installing a compilers (optional)
----------------------------------
-
-Some core burst-search core functions can be optionally compiled to gain
-significant execution speed. This process requires a compiler to be
-installed.
-
-On **Linux** the preferred compiler is GCC, that is easily available for
-any distribution.
-
-On **Windows**, the MS Visual Studio compiler is preferred. To install
-it search on internet for the files VS2008ExpressWithSP1ENUX1504728.iso
-and GRMSDKX\_EN\_DVD.iso.
-
-On **Mac OSX** you should install the LLVM compiler included in Xcode
-(untested).
-
-
-Installing Git revision control system (suggested)
---------------------------------------------------
+Installing Git (optional)
+-------------------------
 
 FRETBursts uses `Git <http://git-scm.com/>`__ as revision control
 system. Installing Git is suggested for all users, because FRETBursts
@@ -93,9 +74,26 @@ current folder):
     git clone clone_URL
 
 
-Download the data-samples
--------------------------
+Downloading the data-samples
+----------------------------
 
 Data samples to run FRETBursts are provided separately from the source.
 You can download the datasets **here (TODO)**.
 
+
+Installing a compiler (optional)
+--------------------------------
+
+Some core burst-search core functions can be optionally compiled to gain
+significant execution speed. This process requires a compiler to be
+installed.
+
+On **Linux** the preferred compiler is GCC, that is easily available for
+any distribution.
+
+On **Windows**, the MS Visual Studio compiler is preferred. To install
+it search on internet for the files VS2008ExpressWithSP1ENUX1504728.iso
+and GRMSDKX\_EN\_DVD.iso.
+
+On **Mac OSX** you should install the LLVM compiler included in Xcode
+(untested).

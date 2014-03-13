@@ -13,6 +13,7 @@ Contents:
 
     getting_started
     reference_manual
+    cython
 
 Indices and tables
 ==================
