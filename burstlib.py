@@ -877,6 +877,7 @@ class Data(DataContainer):
         time_clk = time_s/self.clk_p
         BG, BG_dd, BG_ad, BG_aa, Lim, Ph_p = [], [], [], [], [], []
         rate_m, rate_dd, rate_ad, rate_aa = [], [], [], []
+        BG_err, BG_dd_err, BG_ad_err, BG_aa_err = [], [], [], []
         for ich, ph in enumerate(self.iter_ph_times()):
             nperiods = int(np.ceil(ph[-1]/time_clk))
             if not self.ALEX:
@@ -890,54 +891,57 @@ class Data(DataContainer):
                 ad_mask = self.A_em[ich]*self.D_ex[ich]
                 aa_mask = self.A_em[ich]*self.A_ex[ich]
 
-            bg, lim, ph_p = zeros(nperiods), [], []
-            bg_dd, bg_ad, bg_aa = [zeros(nperiods) for _ in [1, 1, 1]]
+            lim, ph_p = [], []
+            bg, bg_dd, bg_ad, bg_aa = [zeros(nperiods) for _ in xrange(4)]
+            zeros_list = [zeros(nperiods) for _ in xrange(4)]
+            bg_err, bg_dd_err, bg_ad_err, bg_aa_err = zeros_list
             for ip in xrange(nperiods):
                 i0 = 0 if ip == 0 else i1           # pylint: disable=E0601
                 i1 = (ph < (ip+1)*time_clk).sum()
 
                 ph_i = ph[i0:i1]
-                bg[ip] = fun(ph_i, tail_min_us=th_us, **kwargs)
+                bg[ip], bg_err[ip] = fun(ph_i, tail_min_us=th_us, **kwargs)
 
                 # This to support cases of D-only or A-only timestamps
                 # where self.A_em[ich] is a bool and not a bool-array
                 if type(dd_mask) is bool:
-                    if dd_mask: bg_dd[ip] = bg[ip]
+                    if dd_mask: bg_dd[ip], bg_dd_err[ip] = bg[ip], bg_err[ip]
                 else:
                     dd_mask_i = dd_mask[i0:i1]
                     if dd_mask_i.any():
-                        bg_dd[ip] = fun(
+                        bg_dd[ip], bg_dd_err[ip] = fun(
                                 ph_i[dd_mask_i], tail_min_us=thd_us, **kwargs)
 
                 if type(ad_mask) is bool:
-                    if ad_mask: bg_ad[ip] = bg[ip]
+                    if ad_mask: bg_ad[ip], bg_ad_err[ip] = bg[ip], bg_err[ip]
                 else:
                     ad_mask_i = ad_mask[i0:i1]
                     if ad_mask_i.any():
-                        bg_ad[ip] = fun(
+                        bg_ad[ip], bg_ad_err[ip] = fun(
                                 ph_i[ad_mask_i], tail_min_us=tha_us, **kwargs)
 
                 if self.ALEX and aa_mask.any():
                     aa_mask_i = aa_mask[i0:i1]
-                    bg_aa[ip] = fun(
+                    bg_aa[ip], bg_aa_err[ip] = fun(
                                 ph_i[aa_mask_i], tail_min_us=thaa_us, **kwargs)
 
                 lim.append((i0, i1-1))
                 ph_p.append((ph[i0], ph[i1-1]))
-            BG.append(bg)
-            Lim.append(lim)
-            Ph_p.append(ph_p)
-            BG_dd.append(bg_dd)
-            BG_ad.append(bg_ad)
-            BG_aa.append(bg_aa)
+            
+            Lim.append(lim); Ph_p.append(ph_p)            
+            BG.append(bg); BG_err.append(bg_err)
+            BG_dd.append(bg_dd); BG_dd_err.append(bg_dd_err)
+            BG_ad.append(bg_ad); BG_ad_err.append(bg_ad_err)
+            BG_aa.append(bg_aa); BG_aa_err.append(bg_aa_err)
             rate_m.append(bg.mean())
             rate_dd.append(bg_dd.mean())
             rate_ad.append(bg_ad.mean())
             if self.ALEX: rate_aa.append(bg_aa.mean())
-        self.add(bg=BG, bg_dd=BG_dd, bg_ad=BG_ad, bg_aa=BG_aa, rate_m=rate_m,
-                Lim=Lim, Ph_p=Ph_p, nperiods=nperiods, bg_fun=fun,
-                bg_time_s=time_s, ph_sel='DA',
-                rate_dd=rate_dd, rate_ad=rate_ad, rate_aa=rate_aa)
+        self.add(bg=BG, bg_dd=BG_dd, bg_ad=BG_ad, bg_aa=BG_aa, bg_err=BG_err, 
+                 bg_dd_err=BG_dd_err, bg_ad_err=BG_ad_err, bg_aa_err=BG_aa_err, 
+                 Lim=Lim, Ph_p=Ph_p, nperiods=nperiods, bg_fun=fun, 
+                 bg_time_s=time_s, ph_sel='DA', rate_m=rate_m, 
+                 rate_dd=rate_dd, rate_ad=rate_ad, rate_aa=rate_aa)
         pprint("[DONE]\n")
 
     def recompute_bg_lim_ph_p(self, ph_sel='D'):

@@ -17,13 +17,18 @@ See also :func:`exp_hist_fit` for background estimation using an histogram fit.
 
 import numpy as np
 from utils.misc import pprint
-from fit.exp_fitting import expon_fit, expon_fit_cdf, expon_fit_hist
+from fit import exp_fitting
 from fit.gaussian_fitting import gaussian_fit_hist
 
 
-def raw_fit(ph, clk_p=12.5e-9):
+def raw_fit(ph, clk_p=12.5e-9, residuals=False):
     """Compute the "raw" rate: (number of ph / duration). """
-    return ph.size/((ph[-1]-ph[0])*clk_p)
+    Lambda = ph.size/((ph[-1]-ph[0])*clk_p)
+    if residuals:
+        resid = exp_fitting.get_residuals(np.diff(ph), 1./(Lambda*clk_p))
+        return Lambda, np.abs(resid).max()*100
+    else:
+        return Lambda
 
 
 def _exp_fit_generic(ph, fit_fun, tail_min_us=None, tail_min_p=0.1, 
@@ -40,12 +45,14 @@ def _exp_fit_generic(ph, fit_fun, tail_min_us=None, tail_min_p=0.1,
         tail_min = dph.max()*tail_min_p
     else:
         tail_min = tail_min_us*1e-6/clk_p
-    Lambda = fit_fun(dph, s_min=tail_min)/clk_p
-    return Lambda
+    Lambda, residuals, s_size = fit_fun(dph, s_min=tail_min)
+    Lambda /= clk_p
+    #print s_size,
+    return Lambda, np.abs(residuals).max()*100
 
 
 def exp_fit(ph, tail_min_us=None, clk_p=12.5e-9):
-    """Return a background rate using the MLE of mean of waiting-times.
+    """Return a background rate using the MLE of mean waiting-times.
     
     Compute the background rate, selecting waiting-times (delays) larger 
     than a minimum threshold.
@@ -64,7 +71,7 @@ def exp_fit(ph, tail_min_us=None, clk_p=12.5e-9):
     See also:
         :func:`exp_cdf_fit`, :func:`hist_fit`
     """
-    return _exp_fit_generic(ph, fit_fun=expon_fit, 
+    return _exp_fit_generic(ph, fit_fun=exp_fitting.expon_fit, 
                             tail_min_us=tail_min_us, clk_p=clk_p)
 
 def exp_cdf_fit(ph, tail_min_us=None, clk_p=12.5e-9):
@@ -87,7 +94,7 @@ def exp_cdf_fit(ph, tail_min_us=None, clk_p=12.5e-9):
     See also:
         :func:`exp_fit`, :func:`hist_fit`
     """
-    return _exp_fit_generic(ph, fit_fun=expon_fit_cdf, 
+    return _exp_fit_generic(ph, fit_fun=exp_fitting.expon_fit_cdf, 
                             tail_min_us=tail_min_us, clk_p=clk_p)
 
 
@@ -120,12 +127,15 @@ def exp_hist_fit(ph, tail_min_us, binw=50e-6, clk_p=12.5e-9,
     dph = np.diff(ph)
     tail_min = tail_min_us*1e-6/clk_p
     binw_clk = binw/clk_p
-    bins = np.arange(0, dph.max(), binw_clk)
-    Lambda = expon_fit_hist(dph, bins=bins, s_min=tail_min, weights=weights)
+    bins = np.arange(0, dph.max() - tail_min + 1, binw_clk)
+    Lambda, residuals, s_size = exp_fitting.expon_fit_hist(dph, 
+                                bins=bins, s_min=tail_min, weights=weights)    
     Lambda /= clk_p
-    return Lambda
+    return Lambda, np.abs(residuals).max()*100
 
-
+##
+# Other functions
+#
 def histo(ph, bin_ms=10., t_max_s=None, clk_p=12.5e-9):
     """Returns an histogram and bins-centers of ph (ph arrival times)."""
     if t_max_s is not None:
