@@ -268,3 +268,36 @@ def load_manta_timestamps_pytables(fname):
                             parent_node='/timestamps_list')
 
     return timestamps_m, big_fifo, small_fifo
+
+
+def unroll_timestamps_ch64(timestamps, det, nbits=24, debug=True):
+    """Apply the rollover correction using the rollover "timestamp" on ch 64.
+    """
+    new_size = det.size - (det == 64).sum()
+    times_c = np.zeros(new_size, dtype='int64')
+    if debug:
+        det_c1 = np.zeros(new_size, dtype=det.dtype)
+    period_clk = 2**nbits
+    
+    t_istart = 0
+    epoch = 0
+    prev_idx = - 1
+    rollover_index = np.nonzero(det == 64)[0]
+    for epoch, rollover_idx in enumerate(rollover_index):
+        t_num = rollover_idx - prev_idx - 1
+        times_c[t_istart : t_istart + t_num] = \
+                timestamps[prev_idx + 1 : rollover_idx] + period_clk*epoch
+        if debug:
+            det_c1[t_istart : t_istart + t_num] = \
+                    det[prev_idx + 1 : rollover_idx]
+        t_istart += t_num
+        prev_idx = rollover_idx
+    # Compute last chunk after the last rollover timestamp  
+    times_c[t_istart:] = timestamps[prev_idx + 1 :] + period_clk*(epoch + 1)
+    if debug:
+        det_c1[t_istart:] =  det[prev_idx + 1 :]
+        
+    det_c = det[det != 64]
+    if debug:
+        assert (det_c == det_c1).all()
+    return times_c, det_c
