@@ -35,7 +35,9 @@ from scipy.stats import erlang
 from scipy.optimize import leastsq
 
 # Graphics imports
-from matplotlib.pyplot import *
+import matplotlib.pyplot as plt
+from matplotlib.pyplot import (plot, hist, xlabel, ylabel, grid, title, 
+                               gca, gcf)
 from matplotlib.patches import Rectangle
 from matplotlib.collections import PathCollection, PatchCollection
 from matplotlib.path import Path
