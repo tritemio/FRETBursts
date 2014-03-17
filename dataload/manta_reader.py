@@ -104,8 +104,8 @@ def load_raw_manta_data(fname, dtype='<u4'):
     return np.fromfile(fname, dtype=dtype)
 
 def get_timestamps_detectors(data, nbits=24):
-    """From raw uint32 words extrac timestamps and detector information.
-    Returns two arrays: timestamps (uint32) and detectors (uint8).
+    """From raw uint32 words extracts timestamps and detector fields.
+    Returns two arrays: timestamps (uint32) and detectors (uint32).
     """
     det = np.right_shift(data, nbits) + 1
     timestamps = np.bitwise_and(data,  2**nbits - 1)
@@ -214,7 +214,7 @@ def process_store(timestamps, det, out_fname, delta_rollover=1, nbits=24,
     if debug :
         assert (det < 49).all()
 
-    array_list_descr = 'List of arrays of %s (one per ch).'  
+    array_list_descr = 'List of arrays of %s (one per ch).'
     timestamps_m = PyTablesList(
             out_fname, overwrite=True, group_name='timestamps_list',
             group_descr=(array_list_descr % 'timestamps'))
@@ -253,7 +253,7 @@ def process_store(timestamps, det, out_fname, delta_rollover=1, nbits=24,
         timestamps_m.append(times64)
     timestamps_m.data_file.flush()
     return timestamps_m, full_big_fifo_m, full_small_fifo_m
-    
+
 def load_manta_timestamps_pytables(fname):
     """Load timestamps from HDF5 file `fname` saved with `process_store()`.
     """
