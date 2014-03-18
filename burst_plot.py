@@ -361,12 +361,13 @@ def timetrace_fret(d, i=0, alpha=0.3):
     plot(bl.b_start(b)*d.clk_p, d.E[i], 'o', mew=0, alpha=alpha)
     xlabel('Time (s)'); ylabel('E')
 
-def timetrace_bg(d, i=0):
+def timetrace_bg(d, i=0, nolegend=False):
     t = arange(d.bg[i].size)*d.bg_time_s
     plot(t, d.bg[i], 'k', lw=2, label="T: %d cps" % d.rate_m[i])
     plot(t, d.bg_dd[i], 'g', lw=2, label="D: %d cps" % d.rate_dd[i])
     plot(t, d.bg_ad[i], 'r', lw=2, label="A: %d cps" % d.rate_ad[i])
-    legend(loc='best', fancybox=True, frameon=False, ncol=3)
+    if not nolegend:
+        legend(loc='best', fancybox=True, frameon=False, ncol=3)
     xlabel("Time (s)"); ylabel("BG rate (cps)"); grid(True)
     plt.ylim(ymin=0)
 
@@ -962,9 +963,12 @@ def plot_mburstm_48ch(d, fun=scatter_width_size, sharex=True, sharey=True,
             continue
         ax = AX.ravel()[i]
         try:
-            if i == 0 and not nosuptitle: fig.suptitle(d.status())
-            ax.set_title(u'[%d] BG=%.1fk, #bu=%d' %\
-                    (i+1, d.rate_m[i]*1e-3, b.shape[0]), fontsize=12)
+            if i == 0 and not nosuptitle:
+                fig.suptitle(d.status())
+            s = u'[%d]' % (i+1)
+            if 'rate_m' in d: s += (' BG=%.1fk' % (d.rate_m[i]*1e-3))
+            if b is not None: s += (', #bu=%d' %  b.shape[0])
+            ax.set_title(s, fontsize=12)
         except:
             print "WARNING: No title in plots."
         ax.grid(pgrid)
