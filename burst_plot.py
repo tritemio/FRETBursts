@@ -7,7 +7,7 @@
 """
 This module defines all the plotting functions.
 
-The main plot function is `dplot()` that takes, as parameters, a `Data()` 
+The main plot function is `dplot()` that takes, as parameters, a `Data()`
 object and a 1-ch plot-function and creates a subplot for each channel.
 
 The 1-ch plot functions are usually called through `dplot` but can also be
@@ -36,19 +36,23 @@ from scipy.optimize import leastsq
 
 # Graphics imports
 import matplotlib.pyplot as plt
-from matplotlib.pyplot import (plot, hist, xlabel, ylabel, grid, title, 
+from matplotlib.pyplot import (plot, hist, xlabel, ylabel, grid, title, legend,
                                gca, gcf)
 from matplotlib.patches import Rectangle
-from matplotlib.collections import PathCollection, PatchCollection
-from matplotlib.path import Path
-import matplotlib.patches as patches
-from matplotlib.lines import Line2D
+from matplotlib.collections import PatchCollection
+#from matplotlib.collections import PathCollection
+#from matplotlib.path import Path
+#import matplotlib.patches as patches
+#from matplotlib.lines import Line2D
 
 # Local imports
-from utils.misc import binning, clk_to_s
+import burstlib as bl
+import background as bg
+from fit import gaussian_fitting
+from utils.misc import binning, clk_to_s, pprint
 from scroll_gui import ScrollingToolQT
 from fit.weighted_kde import gaussian_kde_w
-from gui_selection import *
+import gui_selection as gs
 
 #ip = get_ipython()
 #ip.magic("run -i scroll_gui.py")
@@ -59,13 +63,15 @@ params = {
         'font.size': 12,
         'legend.fontsize': 11,
     }
-try: rcParams.update(params)
-except: pass
+try:
+    plt.rcParams.update(params)
+except:
+    pass
 
 
 def bsavefig(d, s):
     """Save current figure with name in `d`, appending the string `s`."""
-    savefig(fig_dir+d.Name()+s)
+    plt.savefig(d.Name()+s)
 
 def mch_plot_bg(d, **kwargs):
     plot(r_[1:d.nch+1],[b.mean()*1e-3 for b in d.bg], lw=2, color='b',
@@ -97,7 +103,7 @@ def bg_plot(d, bg="bg"):
 
 ## ALEX
 def plot_alternation_hist(d, bins=100, **kwargs):
-    figure()
+    plt.figure()
     ph_times_t, det_t, period = d.ph_times_t, d.det_t, d.alex_period
     d_ch, a_ch = d.det_donor_accept
     d_em_t = (det_t == d_ch)
@@ -106,28 +112,30 @@ def plot_alternation_hist(d, bins=100, **kwargs):
     hist(ph_times_t[-d_em_t] % period, color='r', label='A', **kwargs)
 
     if d.D_ON[0] < d.D_ON[1]:
-        axvspan(d.D_ON[0], d.D_ON[1], color='g', alpha=0.1)
+        plt.axvspan(d.D_ON[0], d.D_ON[1], color='g', alpha=0.1)
     else:
-        axvspan(0,d.D_ON[1], color='g', alpha=0.1)
-        axvspan(d.D_ON[0], period, color='g', alpha=0.1)
+        plt.axvspan(0,d.D_ON[1], color='g', alpha=0.1)
+        plt.axvspan(d.D_ON[0], period, color='g', alpha=0.1)
 
     if d.A_ON[0] < d.A_ON[1]:
-        axvspan(d.A_ON[0], d.A_ON[1], color='r', alpha=0.1)
+        plt.axvspan(d.A_ON[0], d.A_ON[1], color='r', alpha=0.1)
     else:
-        axvspan(0, d.A_ON[1], color='r', alpha=0.1)
-        axvspan(d.A_ON[0], period, color='r', alpha=0.1)
+        plt.axvspan(0, d.A_ON[1], color='r', alpha=0.1)
+        plt.axvspan(d.A_ON[0], period, color='r', alpha=0.1)
 
     legend(loc='best')
 
 def plot_alternation_hist_sel(d, **kwargs):
-    figure()
+    plt.figure()
     ph_times, d_ex, period = d.get_ph_times(0), d.D_ex[0], d.alex_period
     bins = arange(0, period+1, period/100.)
     kwargs.update(bins=bins, alpha=0.2)
     hist(ph_times[d_ex] % period, color='g', label='D', **kwargs)
     hist(ph_times[-d_ex] % period, color='r', label='A', **kwargs)
-    axvline(d.D_ON[0], color='g', lw=2); axvline(d.D_ON[1], color='g', lw=2)
-    axvline(d.A_ON[0], color='r', lw=2); axvline(d.A_ON[1], color='r', lw=2)
+    plt.axvline(d.D_ON[0], color='g', lw=2);
+    plt.axvline(d.D_ON[1], color='g', lw=2)
+    plt.axvline(d.A_ON[0], color='r', lw=2);
+    plt.axvline(d.A_ON[1], color='r', lw=2)
     legend(loc='best')
 
 def hist2d_alex(d, i=0, vmin=2, vmax=0, bin_step=None,
@@ -137,7 +145,7 @@ def hist2d_alex(d, i=0, vmin=2, vmax=0, bin_step=None,
     if bin_step is not None: d.calc_alex_hist(bin_step=bin_step)
     AH, E_bins,S_bins, E_ax,S_ax = d.AH[i], d.E_bins,d.S_bins, d.E_ax,d.S_ax
 
-    colormap = get_cmap(cmap)
+    colormap = plt.get_cmap(cmap)
     if vmax <= vmin:
         #E_range = (E_bins > 0.4)*(E_bins < 0.8)
         S_range = (S_bins < 0.8)
@@ -146,17 +154,17 @@ def hist2d_alex(d, i=0, vmin=2, vmax=0, bin_step=None,
     if scatter:
         plot(d.E[i],d.S[i], 'o', mew=0, ms=scatter_ms, alpha=scatter_alpha,
                 color=scatter_color)
-    im = imshow(AH[:,::-1].T, interpolation=interp,
+    im = plt.imshow(AH[:,::-1].T, interpolation=interp,
             extent=(E_bins[0],E_bins[-1],S_bins[0],S_bins[-1]),
             vmin=vmin, vmax=vmax, cmap=colormap)
     im.cmap.set_under(under_color)
     im.cmap.set_over(over_color)
     gcf().colorbar(im)
-    xlim(-0.2,1.2); ylim(-0.2,1.2)
+    plt.xlim(-0.2,1.2); plt.ylim(-0.2,1.2)
     xlabel('E'); ylabel('S'); grid(color='gray')
     if gui_sel:
         # the selection object must be saved (otherwise will be destroyed)
-        hist2d_alex.gui_sel = rectSelection(gcf(), gca())
+        hist2d_alex.gui_sel = gs.rectSelection(gcf(), gca())
 
 def time_ph(d, i=0, num_ph=1e4, ph_istart=0):
     """Plot 'num_ph' ph starting at 'ph_istart' marking burst start/end."""
@@ -165,14 +173,14 @@ def time_ph(d, i=0, num_ph=1e4, ph_istart=0):
     ph_d = d.ph_times_m[i][SLICE][-d.A_em[i][SLICE]]
     ph_a = d.ph_times_m[i][SLICE][d.A_em[i][SLICE]]
 
-    BSLICE = (b_end(b) < ph_a[-1])
-    start, end = b_start(b[BSLICE]), b_end(b[BSLICE])
+    BSLICE = (bl.b_end(b) < ph_a[-1])
+    start, end = bl.b_start(b[BSLICE]), bl.b_end(b[BSLICE])
 
     u = d.clk_p # time scale
-    vlines(ph_d*u, 0, 1, color='k', alpha=0.02)
-    vlines(ph_a*u, 0, 1, color='k', alpha=0.02)
-    vlines(start*u, -0.5, 1.5, lw=3, color='g', alpha=0.5)
-    vlines(end*u, -0.5, 1.5, lw=3, color='r', alpha=0.5)
+    plt.vlines(ph_d*u, 0, 1, color='k', alpha=0.02)
+    plt.vlines(ph_a*u, 0, 1, color='k', alpha=0.02)
+    plt.vlines(start*u, -0.5, 1.5, lw=3, color='g', alpha=0.5)
+    plt.vlines(end*u, -0.5, 1.5, lw=3, color='r', alpha=0.5)
     xlabel("Time (s)")
 
 def plot_bt_overlay(d, i, bt):
@@ -184,9 +192,9 @@ def _plot_bursts(d, i, t_max_clk, pmax=1e3, pmin=0):
     b = d.mburst[i]
     if np.size(b) == 0: return
     pprint("CH %d burst..." % (i+1))
-    bs = b[b_start(b) < t_max_clk]
-    start = b_start(bs)*d.clk_p
-    end = b_end(bs)*d.clk_p
+    bs = b[bl.b_start(b) < t_max_clk]
+    start = bl.b_start(bs)*d.clk_p
+    end = bl.b_end(bs)*d.clk_p
     R, R2 = [], []
     width = end-start
     ax = gca()
@@ -245,7 +253,7 @@ def timetrace_da(d, i=0, bin_width=1e-3, bins=100000, bursts=False):
                 Th=False)
     xlabel('Time (s)'); ylabel('# ph')
     if i == 0:
-        timetrace_da.burst_sel = MultiAxPointSelection(gcf(), gca(), d)
+        timetrace_da.burst_sel = gs.MultiAxPointSelection(gcf(), gca(), d)
     else:
         timetrace_da.burst_sel.ax_list.append(gca())
 
@@ -262,7 +270,7 @@ def timetrace(d, i=0, bin_width=1e-3, bins=100000, bursts=False, F=None):
     _timetrace_bg(d, i, d.bg, bin_width=bin_width, F=F)
     xlabel('Time (s)'); ylabel('# ph')
     if i == 0:
-        timetrace.burst_sel = MultiAxPointSelection(gcf(), gca(), d)
+        timetrace.burst_sel = gs.MultiAxPointSelection(gcf(), gca(), d)
     else:
         timetrace.burst_sel.ax_list.append(gca())
 
@@ -273,13 +281,13 @@ def ratetrace(d, i=0, m=None, max_ph=1e6, pmax=1e6, bursts=False, F=None):
     if bursts:
         t_max_clk = ph[max_ph-1]
         _plot_bursts(d, i, t_max_clk, pmax=pmax)
-    rates = ph_rate(m, ph[:max_ph])/d.clk_p
-    times = ph_rate_t(m, ph[:max_ph])*d.clk_p
+    rates = bl.ph_rate(m, ph[:max_ph])/d.clk_p
+    times = bl.ph_rate_t(m, ph[:max_ph])*d.clk_p
     plot(times, rates, lw=1.2)
     _timetrace_bg(d, i, d.bg, F=F)
     xlabel('Time (s)'); ylabel('# ph')
     if i == 0:
-        ratetrace.burst_sel = MultiAxPointSelection(gcf(), gca(), d)
+        ratetrace.burst_sel = gs.MultiAxPointSelection(gcf(), gca(), d)
     else:
         ratetrace.burst_sel.ax_list.append(gca())
 
@@ -295,21 +303,21 @@ def ratetrace_da(d, i=0, m=None, max_ph=1e6, pmax=1e6, bursts=False, F=None):
     if bursts:
         t_max_clk = ph_d[max_ph-1]
         _plot_bursts(d, i, t_max_clk, pmax=pmax, pmin=-pmax)
-    r_d = ph_rate(m, ph_d[:max_ph])/d.clk_p
-    t_d = ph_rate_t(m, ph_d[:max_ph])*d.clk_p
-    r_a = ph_rate(m, ph_a[:max_ph])/d.clk_p
-    t_a = ph_rate_t(m, ph_a[:max_ph])*d.clk_p
+    r_d = bl.ph_rate(m, ph_d[:max_ph])/d.clk_p
+    t_d = bl.ph_rate_t(m, ph_d[:max_ph])*d.clk_p
+    r_a = bl.ph_rate(m, ph_a[:max_ph])/d.clk_p
+    t_a = bl.ph_rate_t(m, ph_a[:max_ph])*d.clk_p
     plot(t_d, r_d, 'g', lw=1.2)
     plot(t_a, -r_a, 'r', lw=1.2)
     if d.ALEX:
-        r_aa = ph_rate(m, ph_aa[:max_ph])/d.clk_p
-        t_aa = ph_rate_t(m, ph_aa[:max_ph])*d.clk_p
+        r_aa = bl.ph_rate(m, ph_aa[:max_ph])/d.clk_p
+        t_aa = bl.ph_rate_t(m, ph_aa[:max_ph])*d.clk_p
         plot(t_aa, -r_aa, 'm', lw=1.2)
     _timetrace_bg(d, i, d.bg_dd, F=F, color='k')
     _timetrace_bg(d, i, -r_[d.bg_ad], F=F, color='k')
     xlabel('Time (s)'); ylabel('# ph')
     if i == 0:
-        ratetrace_da.burst_sel = MultiAxPointSelection(gcf(), gca(), d)
+        ratetrace_da.burst_sel = gs.MultiAxPointSelection(gcf(), gca(), d)
     else:
         ratetrace_da.burst_sel.ax_list.append(gca())
 
@@ -330,8 +338,8 @@ def timetrace_alex(d, i=0, bin_width=1e-3, bins=100000, bursts=False, **plot_kw)
     assert ((tdd == taa) + (tdd == tad)).all()
     t = tdd[1:]*d.clk_p
 
-    axhline( d.m/d.T[i]*bin_width, color='b')
-    axhline(-d.m/d.T[i]*bin_width, color='b')
+    plt.axhline( d.m/d.T[i]*bin_width, color='b')
+    plt.axhline(-d.m/d.T[i]*bin_width, color='b')
 
     plot(t, tracedd, 'g', lw=1.5, alpha=0.8, label='DD', **plot_kw)
     plot(t, -tracead, 'r', lw=1.5, alpha=0.8, label='AD', **plot_kw)
@@ -339,18 +347,18 @@ def timetrace_alex(d, i=0, bin_width=1e-3, bins=100000, bursts=False, **plot_kw)
     xlabel('Time (s)'); ylabel('# ph')
     if bursts:
         imax = int((bins*bin_width)/d.clk_p)
-        tstart, istart, iend = b_start(b), b_istart(b), b_iend(b)
+        tstart, istart, iend = bl.b_start(b), bl.b_istart(b), bl.b_iend(b)
         burst_mask = (tstart < (bins*bin_width/d.clk_p))
-        start = d.ph_times_m[i][:imax][b_istart(b[burst_mask,:])]*d.clk_p
-        end = d.ph_times_m[i][:imax][b_iend(b[burst_mask,:])]*d.clk_p
-        vlines(start, -100,100, color='k')
-        vlines(end, -100,100, color='r')
+        start = d.ph_times_m[i][:imax][bl.b_istart(b[burst_mask,:])]*d.clk_p
+        end = d.ph_times_m[i][:imax][bl.b_iend(b[burst_mask,:])]*d.clk_p
+        plt.vlines(start, -100,100, color='k')
+        plt.vlines(end, -100,100, color='r')
         #for s,e in zip(start,end):
         #    axvspan(s, e, color='k', alpha=0.2)
 
 def timetrace_fret(d, i=0, alpha=0.3):
     b = d.mburst[i]
-    plot(b[:,itstart]*d.clk_p, d.E[i], 'o', mew=0, alpha=alpha)
+    plot(bl.b_start(b)*d.clk_p, d.E[i], 'o', mew=0, alpha=alpha)
     xlabel('Time (s)'); ylabel('E')
 
 def timetrace_bg(d, i=0):
@@ -359,7 +367,8 @@ def timetrace_bg(d, i=0):
     plot(t, d.bg_dd[i], 'g', lw=2, label="D: %d cps" % d.rate_dd[i])
     plot(t, d.bg_ad[i], 'r', lw=2, label="A: %d cps" % d.rate_ad[i])
     legend(loc='best', fancybox=True, frameon=False, ncol=3)
-    xlabel("Time (s)"); ylabel("BG rate (cps)"); ylim(ymin=0); grid(True)
+    xlabel("Time (s)"); ylabel("BG rate (cps)"); grid(True)
+    plt.ylim(ymin=0)
 
 def timetrace_b_rate(d, i=0):
     t = arange(d.bg[i].size)*d.bg_time_s
@@ -371,7 +380,9 @@ def timetrace_b_rate(d, i=0):
         assert t.size == b_rate.size
     plot(t, b_rate, lw=2, label="CH%d" % (i+1))
     legend(loc='best', fancybox=True, frameon=False, ncol=3)
-    xlabel("Time (s)"); ylabel("Burst per second"); ylim(ymin=0); grid(True)
+    xlabel("Time (s)"); ylabel("Burst per second"); grid(True)
+    plt.ylim(ymin=0)
+
 
 def hist_bg_fit_single(d, i=0, bp=0, bg='bg_dd', bin_width_us=10, yscale='log',
         F=0.15, **kwargs):
@@ -405,8 +416,8 @@ def hist_bg_fit_single(d, i=0, bp=0, bg='bg_dd', bin_width_us=10, yscale='log',
     ym = 0.5
     if 'normed' in hist_kwargs and hist_kwargs['normed']: ym = 0.1/ph.size
     legend(loc='best', fancybox=True)
-    xlim(0,1500)
-    ylim(ymin=ym)
+    plt.xlim(0,1500)
+    plt.ylim(ymin=ym)
 
 def hist_bg_fit(d, i=0, bp=0, bin_width_us=10, yscale='log',
                 t_min_us=300, **kwargs):
@@ -459,10 +470,10 @@ def hist_bg_fit(d, i=0, bp=0, bin_width_us=10, yscale='log',
             label="AA:  %d cps" % raa)
     ym = 0.5
     if plot_kw['normed']: ym = 0.1/ph.size
-    legend(loc='best', fancybox=True); ylim(ymin=ym)
+    plt.legend(loc='best', fancybox=True); plt.ylim(ymin=ym)
 
 def hist_ph_delays(d, i=0, time_min_s=0, time_max_s=30, bin_width_us=10,
-        mask=None, yscale='log', gfit_bin_ms=10, efit_tail_min_p=0.1,
+        mask=None, yscale='log', hfit_bin_ms=1, efit_tail_min_us=1000,
         **kwargs):
     """Histog. of ph delays and comparison with 3 BG fitting functions."""
     ph = d.ph_times_m[i].copy()
@@ -474,18 +485,19 @@ def hist_ph_delays(d, i=0, time_min_s=0, time_max_s=30, bin_width_us=10,
     xlabel(u'Ph delay time (μs)'); ylabel("# Ph")
 
     efun = lambda t, r: np.exp(-r*t)*r
-    re = bg_calc_exp(ph, tail_min_p=efit_tail_min_p)
-    rg = bg_calc_gauss(ph, bin_ms=gfit_bin_ms)
-    rc = bg_calc_exp_cdf(ph, tail_min_p=efit_tail_min_p)
+    re = bg.exp_fit(ph, tail_min_us=efit_tail_min_us)
+    rg = bg.exp_hist_fit(ph, tail_min_us=efit_tail_min_us, binw=hfit_bin_ms*1e3)
+    rc = bg.exp_cdf_fit(ph, tail_min_us=efit_tail_min_us)
     t = r_[0:1200]*1e-6
     F = 1 if 'normed' in kwargs else H[0].sum()*(bin_width_us)
     plot(t*1e6,0.65*F*efun(t,rc)*1e-6, lw=3, alpha=0.5, color='m',
-            label="%d cps - Exp CDF (tail_min_p=%.2f)" % (rc, efit_tail_min_p))
+            label="%d cps - Exp CDF (tail_min_p=%.2f)" % (rc, efit_tail_min_us))
     plot(t*1e6,0.65*F*efun(t,re)*1e-6, lw=3, alpha=0.5, color='r',
-            label="%d cps - Exp ML (tail_min_p=%.2f)" % (re, efit_tail_min_p))
+            label="%d cps - Exp ML (tail_min_p=%.2f)" % (re, efit_tail_min_us))
     plot(t*1e6,0.68*F*efun(t,rg)*1e-6, lw=3, alpha=0.5, color='g',
-            label=u"%d cps - Gauss (bin_ms=10) [Δ=%d%%]" % (rg, 100*(rg-re)/re))
-    legend(loc='best', fancybox=True)
+            label=u"%d cps - Hist (bin_ms=%d) [Δ=%d%%]" % (hfit_bin_ms, rg,
+                                                           100*(rg-re)/re))
+    plt.legend(loc='best', fancybox=True)
 
 def hist_mdelays(d, i=0, m=10, bins=r_[:10:0.02], normed=True, dense=False,
         t_max=-1, in_burst=None, no_bg_fit=True, hold=False):
@@ -527,9 +539,9 @@ def hist_mdelays(d, i=0, m=10, bins=r_[:10:0.02], normed=True, dense=False,
 
     title("I = %.1f %%" % (integr*100), fontsize='small')
     #text(0.8,0.8,"I = %.1f %%" % (integr*100), transform = gca().transAxes)
-    axvline(p01, color='k', label="BG dist. @ 1%")
-    axvline(th, color='k', ls='--', label="BG mean")
-    axvline(m/rate0/d.F, color='m', label="BS threshold (F=%d)" % d.F)
+    plt.axvline(p01, color='k', label="BG dist. @ 1%")
+    plt.axvline(th, color='k', ls='--', label="BG mean")
+    plt.axvline(m/rate0/d.F, color='m', label="BS threshold (F=%d)" % d.F)
     plot(epdf_x, epdf_y, lw=2, color='b', label="Delays dist.")
     #plot(epdf_x, convolve(epdf_y, gauss(15,2),'same'), lw=2, color='b')
     xlabel("Time (ms)")
@@ -584,9 +596,9 @@ def hist_mdelays2(d, i=0, m=10, bins=r_[:10:0.02], normed=True, dense=False,
 
     title("I = %.1f %%" % (integr*100), fontsize='small')
     #text(0.8,0.8,"I = %.1f %%" % (integr*100), transform = gca().transAxes)
-    axvline(p01, color='k', label="BG dist. @ 1%")
-    axvline(th, color='k', ls='--', label="BG mean")
-    axvline(m/rate0/d.F, color='m', label="BS threshold (F=%d)" % d.F)
+    plt.axvline(p01, color='k', label="BG dist. @ 1%")
+    plt.axvline(th, color='k', ls='--', label="BG mean")
+    plt.axvline(m/rate0/d.F, color='m', label="BS threshold (F=%d)" % d.F)
     plot(epdf_x, epdf_y, lw=2, color='b', label="Delays dist.")
     plot(epdf_x, epdfb_y, lw=2, color='r', label="Delays dist. (in burst)")
     #plot(epdf_x, convolve(epdf_y, gauss(15,2),'same'), lw=2, color='b')
@@ -612,23 +624,24 @@ def hist_mrates(d, i=0, m=10, bins=r_[0:20e3:20], yscale='log', normed=True,
 
 def scatter_width_size(i, d):
     b = d.mburst[i]
-    plot(b_width(b)*d.clk_p*1e3, d.nt[i],'o', mew=0,ms=3,alpha=0.7,color='blue')
+    plot(bl.b_width(b)*d.clk_p*1e3, d.nt[i], 'o', mew=0, ms=3, alpha=0.7,
+         color='blue')
     t_ms = arange(0,50)
     plot(t_ms,((d.m)/(d.T[i]))*t_ms*1e-3,'--', lw=2, color='k',
             label='Slope = m/T = min. rate = %1.0f cps' % (d.m/d.T[i]))
     plot(t_ms,d.rate_m[i]*t_ms*1e-3,'--', lw=2, color='r',
             label='Noise rate: BG*t')
     xlabel('Burst width (ms)'); ylabel('Burst size (# ph.)')
-    xlim(0,10); ylim(0,300)
+    plt.xlim(0,10); plt.ylim(0,300)
     legend(frameon=False)
 
 def scatter_rate_da(i, d):
     """Scatter of nd rate vs na rate (rates for each burst)."""
     b = d.mburst[i]
-    Rate = lambda nX: nX[i]/b_width(b)/d.clk_p*1e-3
+    Rate = lambda nX: nX[i]/bl.b_width(b)/d.clk_p*1e-3
     plot(Rate(d.nd), Rate(d.na), 'o', mew=0,ms=3,alpha=0.1,color='blue')
     xlabel('D burst rate (kcps)'); ylabel('A burst rate (kcps)')
-    xlim(-20,100); ylim(-20,100)
+    plt.xlim(-20,100); plt.ylim(-20,100)
     legend(frameon=False)
 
 def scatter_fret_size(i, d):
@@ -646,7 +659,7 @@ def scatter_fret_nd_na(d, i=0, show_fit=False, no_text=False, gamma=1.,
     if show_fit:
         fitted_E(d, i, F=1., no_E=no_text, ax=gca())
         if i==0 and not no_text:
-            figtext(0.4,0.01,get_fit_text(d),fontsize=14)
+            plt.figtext(0.4,0.01,get_fit_text(d),fontsize=14)
 
 def scatter_fret_width(i, d):
     b = d.mburst[i]
@@ -657,23 +670,23 @@ def scatter_fret_width(i, d):
 def scatter_da(d, i=0, alpha=0.3):
     plot(d.nd[i], d.na[i],'o', mew=0,ms=3, alpha=alpha, color='blue')
     xlabel('# donor ph.'); ylabel('# acceptor ph.')
-    xlim(-5,200); ylim(-5,120)
+    plt.xlim(-5,200); plt.ylim(-5,120)
 
 def scatter_naa_nt(d, i=0, alpha=0.5):
     plot(d.nt[i], d.naa[i],'o', mew=0,ms=3, alpha=alpha, color='blue')
     plot(arange(200), color='k', lw=2)
     xlabel('Total burst size (nd+na+naa)'); ylabel('Accept em-ex BS (naa)')
-    xlim(-5,200); ylim(-5,120)
+    plt.xlim(-5,200); plt.ylim(-5,120)
 
 def scatter_alex(d, i=0, alpha=0.2):
     plot(d.E[i], d.S[i], 'o', mew=0, ms=3, alpha=alpha)
     xlabel("E"); ylabel('S')
-    xlim(-0.2,1.2); ylim(-0.2,1.2)
+    plt.xlim(-0.2,1.2); plt.ylim(-0.2,1.2)
 
 def hist_width(d, i=0, bins=r_[0:10:0.025], yscale='log', density=True,
                **kwargs):
     b = d.mburst[i]
-    histog, bins = np.histogram(b_width(b)*d.clk_p*1e3, bins=bins,
+    histog, bins = np.histogram(bl.b_width(b)*d.clk_p*1e3, bins=bins,
                                 density=density)
     #bins *= d.clk_p  # (ms)
     bins = bins[:-1]#+(bins[1]-bins[0])/2.
@@ -683,7 +696,7 @@ def hist_width(d, i=0, bins=r_[0:10:0.025], yscale='log', density=True,
     gca().set_yscale(yscale)
     #fill_between(bins,0,histog,color='red', alpha=0.5)
     xlabel('Burst width (ms)'); ylabel('# Burst')
-    xlim(xmin=0); ylim(ymin=0)
+    plt.xlim(xmin=0); plt.ylim(ymin=0)
 
 def hist_size(d, i=0, vmax=1000, bins=r_[:1e3:2]-1, which='all', yscale='log',
         legend=True, **kwargs):
@@ -723,13 +736,13 @@ def hist_fret(d, i=0, bins=None, binw=0.02, show_fit=False, show_model=True,
     # kwargs overwrite plot_style
     plot_style.update(**_normalize_kwargs(kwargs))
     if weights is not None:
-        w = fret_fit.get_weights(d.nd[i], d.na[i], weights, gamma=gamma)
+        w = bl.fret_fit.get_weights(d.nd[i], d.na[i], weights, gamma=gamma)
         w *= w.size/w.sum()
         plot_style.update(weights=w)
     hist(1.*d.E[i], **plot_style)
     xlabel('FRET Efficiency'); ylabel('# Bursts')
     if normed: ylabel('PDF')
-    ylim(ymin=0); xlim(-0.2,1.2)
+    plt.ylim(ymin=0); plt.xlim(-0.2,1.2)
     if show_fit:
         F = 1 if normed else d.E[i].size*binw
         kw = dict(color=fit_color, alpha=fit_alpha, lw=fit_lw,
@@ -737,7 +750,7 @@ def hist_fret(d, i=0, bins=None, binw=0.02, show_fit=False, show_model=True,
         fitted_E(d, i, F=F, no_E=no_text, show_model=show_model,
                  verbose=verbose, two_gauss_model=two_gauss_model, **kw)
         if i == 1 and not no_text:
-            figtext(0.4, 0.01, get_fit_text(d), fontsize=14)
+            plt.figtext(0.4, 0.01, get_fit_text(d), fontsize=14)
 hist_E = hist_fret
 
 def _normalize_kwargs(kwargs):
@@ -754,7 +767,7 @@ def kde_fret(d, i=0, bandwidth=0.04, show_fit=False, show_model=False,
     """Plot the KDE for FRET distribution and optionally the fitted peak
     """
     E_ax = np.arange(-0.19, 1.19, 0.001)
-    w = fret_fit.get_weights(d.nd[i], d.na[i], weights=weights, gamma=gamma)
+    w = bl.fret_fit.get_weights(d.nd[i], d.na[i], weights=weights, gamma=gamma)
     kde = gaussian_kde_w(d.E[i], bw_method=bandwidth, weights=w)
     E_pdf = kde.evaluate(E_ax)
     if verbose: print 'KDE Integral:', np.trapz(E_pdf, E_ax)
@@ -769,7 +782,7 @@ def kde_fret(d, i=0, bandwidth=0.04, show_fit=False, show_model=False,
             plot_style.update(color=plot_style.pop('edgecolor'))
         plot(E_ax, E_pdf, **plot_style)
     else:
-        fill_between(E_ax, E_pdf, **plot_style)
+        plt.fill_between(E_ax, E_pdf, **plot_style)
     xlabel('FRET Efficiency')
     ylabel('PDF')
     if show_fit:
@@ -778,7 +791,7 @@ def kde_fret(d, i=0, bandwidth=0.04, show_fit=False, show_model=False,
         fitted_E(d, i, F=1, no_E=no_text, show_model=show_model,
                  verbose=verbose, **kw)
         if i==0 and not no_text:
-            figtext(0.4, 0.01, get_fit_text(d), fontsize=14)
+            plt.figtext(0.4, 0.01, get_fit_text(d), fontsize=14)
 
 def hist_fret_kde(d, i=0, bins=None, binw=0.02, bandwidth=0.04, show_fit=False,
         no_text=False, weights=None, gamma=1., **kwargs):
@@ -799,12 +812,12 @@ def get_fit_text(d, pylab=True):
     return fit_text
 
 def fitted_E(d, i=0, F=1, no_E=False, ax=None, show_model=True, verbose=False,
-             two_gauss_model=False, lw=2.5, color='k', alpha=0.5, 
+             two_gauss_model=False, lw=2.5, color='k', alpha=0.5,
              fillcolor=None):
     if ax is None:
         ax2 = gca()
     else:
-        ax2 = twinx(ax=ax)
+        ax2 = plt.twinx(ax=ax)
         ax2.grid(False)
 
     if d.fit_E_curve and show_model:
@@ -820,9 +833,9 @@ def fitted_E(d, i=0, F=1, no_E=False, ax=None, show_model=True, verbose=False,
         if fillcolor == None:
             ax2.plot(x, scale*y, lw=lw, alpha=alpha, color=color)
         else:
-            ax2.fill_between(x, scale*y, lw=lw, alpha=alpha, edgecolor=color, 
+            ax2.fill_between(x, scale*y, lw=lw, alpha=alpha, edgecolor=color,
                              facecolor=fillcolor, zorder=10)
-        if verbose: 
+        if verbose:
             print 'Fit Integral:', np.trapz(scale*y, x)
 
     ax2.axvline(d.E_fit[i], lw=3, color='r', ls='--', alpha=0.6)
@@ -838,17 +851,17 @@ def hist_S(d, i=0, fit=None, bins=None, **kwargs):
     Q = d.S[i]
     H = hist(Q, bins=bins, color='#4f8ae3', alpha=0.5, **kwargs)
     xlabel('S'); ylabel('# Bursts')
-    ylim(ymin=0); xlim(-0.2,1.2)
+    plt.ylim(ymin=0); plt.xlim(-0.2,1.2)
     sn = np.sqrt(Q.size)
     if fit == 'two_gauss':
-        mu1,sig1,mu2, sig2, a = two_gaussian_fit(Q)
+        mu1,sig1,mu2, sig2, a = gaussian_fitting.two_gaussian_fit_hist(Q)
         x = r_[-0.2:1.2:0.01]
         y = a*normpdf(x,mu1,sig1) + (1-a)*normpdf(x,mu2,sig2)
         print "D-only peak: %5.2f  - " % max([mu1,mu2]),
         mu = min([mu1,mu2])
         mu_sig = sig2/((1-a)*sn) if mu == mu2 else sig1/(a*sn)
     elif fit == 'gauss':
-        mu,sig = gaussian_fit(Q)
+        mu,sig = gaussian_fitting.gaussian_fit_hist(Q)
         x = r_[-0.2:1.2:0.01]
         y = normpdf(x,mu,sig)
         mu_sig = sig/sn # std dev. of the mu estimator
@@ -856,8 +869,8 @@ def hist_S(d, i=0, fit=None, bins=None, **kwargs):
     if fit == 'gauss' or fit == 'two_gauss':
         F = Q.size*(H[1][1]-H[1][0]) # Normalization factor
         plot(x,F*y, lw=2, alpha=0.5, color='k')
-        axvline(mu, lw=2, color='r', ls='--', alpha=0.5)
-        axvspan(mu-2*mu_sig,mu+2*mu_sig, color='r', alpha=0.1)
+        plt.axvline(mu, lw=2, color='r', ls='--', alpha=0.5)
+        plt.axvspan(mu-2*mu_sig,mu+2*mu_sig, color='r', alpha=0.1)
         print "Fitted S peak [CH%d]: %.2f " % (i+1,mu)
     elif fit is not None:
         print "Unrecognized fit name."
@@ -883,16 +896,16 @@ def hist_asymmetry(d, i=0, bins=None, **kwargs):
     data, s = asymmetry(d, i)
     h,x,_ = hist(data, alpha=0.5, bins=bins,**kwargs)
     width = x[1]-x[0]
-    h_mask_neg = (x<-1e-14)[:-1];h_mask_pos = (x>-1e-14)[:-1]
-    bh = (h-h[::-1])
-    bar(x[:-1],bh,width=width,color='red',alpha=0.6,linewidth=0)
+    h_mask_neg = (x<-1e-14)[:-1]; h_mask_pos = (x>-1e-14)[:-1]
+    bh = (h - h[::-1])
+    plt.bar(x[:-1], bh, width=width, color='red', alpha=0.6, linewidth=0)
     xlabel(s)#; title(s2, fontsize=12)
 
 
 ## Bursts stats
 def hist_rate_in_burst(d, i=0, bins=20):
     b = d.mburst[i]
-    rate = 1e-3*d.nt[i]/(b_width(b)*d.clk_p)
+    rate = 1e-3*d.nt[i]/(bl.b_width(b)*d.clk_p)
     hist(rate, bins=bins, color="blue")
     xlabel('In-burst ph. rate (kcps)'); ylabel('# Bursts')
     #xlim(xmin=d.L/2); ylim(ymin=0)
@@ -914,7 +927,7 @@ def splot(d, fun=scatter_width_size,
         scroll=False, pgrid=True, figsize=(10, 8), nosuptitle=False, ax=None,
         scale=True, **kwargs):
     if ax is None:
-        fig = figure(figsize=figsize)
+        fig = plt.figure(figsize=figsize)
         ax = fig.add_subplot(111)
     else:
         fig = ax.figure
@@ -930,11 +943,12 @@ def splot(d, fun=scatter_width_size,
     return ax, s
 
 def plot_mburstm_48ch(d, fun=scatter_width_size, sharex=True, sharey=True,
-        scroll=False, pgrid=True, figsize=(20,16), AX=None, nosuptitle=False, 
+        scroll=False, pgrid=True, figsize=(20,16), AX=None, nosuptitle=False,
         scale=True, **kwargs):
     ax_ny, ax_nx = 6, 8
     if AX is None:
-        fig, AX = subplots(ax_ny, ax_nx, figsize=figsize, sharex=sharex, sharey=sharey)
+        fig, AX = plt.subplots(ax_ny, ax_nx, figsize=figsize, sharex=sharex,
+                               sharey=sharey)
         fig.subplots_adjust(left=0.08, right=0.96, top=0.93, bottom=0.07,
                 wspace=0.05)
         old_ax = False
@@ -954,16 +968,16 @@ def plot_mburstm_48ch(d, fun=scatter_width_size, sharex=True, sharey=True,
         except:
             print "WARNING: No title in plots."
         ax.grid(pgrid)
-        sca(ax)
+        plt.sca(ax)
         fun(d, i, **kwargs)
     [a.set_xlabel('') for a in AX[:-1,:].ravel()]
     [a.set_ylabel('') for a in AX[:,1:].ravel()]
     if sharex:
-        setp([a.get_xticklabels() for a in AX[:-1,:].ravel()], visible=False)
+        plt.setp([a.get_xticklabels() for a in AX[:-1,:].ravel()], visible=False)
         [a.set_xlabel('') for a in AX[:-1,:].ravel()]
         if not old_ax: fig.subplots_adjust(hspace=0.15)
     if sharey:
-        setp([a.get_yticklabels() for a in AX[:,1]], visible=False)
+        plt.setp([a.get_yticklabels() for a in AX[:,1]], visible=False)
         fig.subplots_adjust(wspace=0.08)
         if scale: ax.autoscale(enable=True, axis='y')
     s = None
@@ -976,7 +990,8 @@ def plot_mburstm_8ch(d, fun=scatter_width_size, sharex=True,sharey=True,
         scroll=False,pgrid=True, figsize=(12,9), nosuptitle=False, AX=None,
         scale=True, **kwargs):
     if AX is None:
-        fig, AX = subplots(4,2,figsize=figsize, sharex=sharex, sharey=sharey)
+        fig, AX = plt.subplots(4,2,figsize=figsize, sharex=sharex,
+                               sharey=sharey)
         fig.subplots_adjust(left=0.08, right=0.96, top=0.93, bottom=0.07,
                 wspace=0.05)
         old_ax = False
@@ -996,17 +1011,17 @@ def plot_mburstm_8ch(d, fun=scatter_width_size, sharex=True,sharey=True,
         except:
             print "WARNING: No title in plots."
         ax.grid(pgrid)
-        sca(ax)
+        plt.sca(ax)
         fun(d, i, **kwargs)
         if i % 2 == 1: ax.yaxis.tick_right()
     [a.set_xlabel('') for a in AX[:-1,:].ravel()]
     [a.set_ylabel('') for a in AX[:,1:].ravel()]
     if sharex:
-        setp([a.get_xticklabels() for a in AX[:-1,:].ravel()], visible=False)
+        plt.setp([a.get_xticklabels() for a in AX[:-1,:].ravel()], visible=False)
         [a.set_xlabel('') for a in AX[:-1,:].ravel()]
         if not old_ax: fig.subplots_adjust(hspace=0.15)
     if sharey:
-        setp([a.get_yticklabels() for a in AX[:,1]], visible=False)
+        plt.setp([a.get_yticklabels() for a in AX[:,1]], visible=False)
         fig.subplots_adjust(wspace=0.08)
         if scale: ax.autoscale(enable=True, axis='y')
     s = None
@@ -1019,7 +1034,7 @@ def plot_mburstm_1ch(d, fun, scroll=False, pgrid=True, ax=None,
         figsize=(9,4.5),
         fignum=None, nosuptitle=False, **kwargs):
     if ax is None:
-        fig = figure(num=fignum, figsize=figsize)
+        fig = plt.figure(num=fignum, figsize=figsize)
         ax = fig.add_subplot(111)
     else:
         fig = ax.figure
@@ -1031,7 +1046,7 @@ def plot_mburstm_1ch(d, fun, scroll=False, pgrid=True, ax=None,
     except:
         print "WARNING: No title in plots."
     ax.grid(pgrid)
-    sca(ax)
+    plt.sca(ax)
     fun(d, **kwargs)
     s = None
     if scroll: s = ScrollingToolQT(fig)
@@ -1040,8 +1055,8 @@ def plot_mburstm_1ch(d, fun, scroll=False, pgrid=True, ax=None,
 def dplot(d, fun, **kwargs):
     if d.nch == 1:
         return plot_mburstm_1ch(d=d, fun=fun, **kwargs)
-    elif d.nch == 4:
-        return plot_mburstm_share(d=d, fun=fun, **kwargs)
+    #elif d.nch == 4:
+    #    return plot_mburstm_share(d=d, fun=fun, **kwargs)
     elif d.nch == 8:
         #return plot_mburstm_8ch_twin(d=d, fun=fun, **kwargs)
         return plot_mburstm_8ch(d=d, fun=fun, **kwargs)
@@ -1051,26 +1066,26 @@ def dplot(d, fun, **kwargs):
 
 def bplot(d, ich, b_index,  ph0=True, pad=0):
     """Plot a single burst in d.mburst[ich][b_index]."""
-    br = b_irange(d.mburst[ich], b_index, pad=pad)
+    br = bl.b_irange(d.mburst[ich], b_index, pad=pad)
     accept = d.A_em[ich][br]
     donor = -accept
     ph = d.ph_times_m[ich][br]
     if ph0: ph -= ph[0]
     dtime = (ph[donor])*d.clk_p*1e6
     atime = (ph[accept])*d.clk_p*1e6
-    vlines(dtime,0,1, lw=2, color='g', alpha=0.8)
-    vlines(atime,0,1, lw=2, color='r', alpha=0.8)
+    plt.vlines(dtime,0,1, lw=2, color='g', alpha=0.8)
+    plt.vlines(atime,0,1, lw=2, color='r', alpha=0.8)
     #plot(dtime, ones_like(ph[donor]), '^', color='g', alpha=0.5)
     #plot(atime, -ones_like(ph[accept]), 'o', color='r', alpha=0.5)
     xlabel("Time (us)")
     nd, na, nt = donor.sum(), accept.sum(), ph.size
     E = float(na)/(nt)
     title("#ph = %d, #D-ph = %d, #A-ph = %d, E = %.2f" % (nt,nd,na,E))
-    ylim(-10,10)
+    plt.ylim(-10,10)
 
 
 def bg_legend_8ch(d):
-    ax = gca(); fig = gcf()
+    ax = gca()
     L = ax.get_lines()[1::2]
     for i,l in enumerate(L):
         ich = i/3
@@ -1079,10 +1094,10 @@ def bg_legend_8ch(d):
         r = [d.rate_m[ich], d.rate_dd[ich], d.rate_ad[ich]]
         l.set_label("CH%d, %s %d cps" % (ich+1, s[x], r[x]))
     ax.legend()
-    draw()
+    plt.draw()
 
 def bg_legend_alex(d):
-    ax = gca(); fig = gcf()
+    ax = gca()
     L = ax.get_lines()[1::2]
     for i,l in enumerate(L):
         ich = i/4
@@ -1091,4 +1106,4 @@ def bg_legend_alex(d):
         r = [d.rate_m[ich], d.rate_dd[ich], d.rate_ad[ich], d.rate_aa[ich]]
         l.set_label("CH%d, %s %d cps" % (ich+1, s[x], r[x]))
     ax.legend()
-    draw()
+    plt.draw()
