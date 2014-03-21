@@ -962,15 +962,12 @@ def plot_mburstm_48ch(d, fun=scatter_width_size, sharex=True, sharey=True,
             timetrace_bg]) and b.size is 0:
             continue
         ax = AX.ravel()[i]
-        try:
-            if i == 0 and not nosuptitle:
-                fig.suptitle(d.status())
-            s = u'[%d]' % (i+1)
-            if 'rate_m' in d: s += (' BG=%.1fk' % (d.rate_m[i]*1e-3))
-            if b is not None: s += (', #bu=%d' %  b.shape[0])
-            ax.set_title(s, fontsize=12)
-        except:
-            print "WARNING: No title in plots."
+        if i == 0 and not nosuptitle:
+            fig.suptitle(d.status())
+        s = u'[%d]' % (i+1)
+        if 'rate_m' in d: s += (' BG=%.1fk' % (d.rate_m[i]*1e-3))
+        if b is not None: s += (', #bu=%d' %  b.shape[0])
+        ax.set_title(s, fontsize=12)
         ax.grid(pgrid)
         plt.sca(ax)
         fun(d, i, **kwargs)
@@ -1008,12 +1005,13 @@ def plot_mburstm_8ch(d, fun=scatter_width_size, sharex=True,sharey=True,
             timetrace_bg]) and b.size is 0:
             continue
         ax = AX.ravel()[i]
-        try:
-            if i == 0 and not nosuptitle: fig.suptitle(d.status())
-            ax.set_title(u'CH%d, BG=%dcps, T=%dμs, #bu=%d' %\
-                    (i+1, d.rate_m[i], d.T[i]*1e6, b.shape[0]), fontsize=12)
-        except:
-            print "WARNING: No title in plots."
+        if i == 0 and not nosuptitle:
+            fig.suptitle(d.status())
+        s = u'[%d]' % (i+1)
+        if 'rate_m' in d: s += (' BG=%.1fk' % (d.rate_m[i]*1e-3))
+        if 'T' in d: s += (', T=%dμs' % (d.T[i]*1e6))
+        if b is not None: s += (', #bu=%d' %  b.shape[0])
+        ax.set_title(s, fontsize=12)            
         ax.grid(pgrid)
         plt.sca(ax)
         fun(d, i, **kwargs)
