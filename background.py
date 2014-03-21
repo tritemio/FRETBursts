@@ -17,7 +17,8 @@ See also :func:`exp_hist_fit` for background estimation using an histogram fit.
 
 import numpy as np
 from utils.misc import pprint
-from fit.exp_fitting import expon_fit, expon_fit_cdf, expon_fit_hist
+from fit.exp_fitting import (expon_fit, expon_fit_cdf, expon_fit_hist,
+                             expon_fit_histw)
 from fit.gaussian_fitting import gaussian_fit_hist
 
 
@@ -120,6 +121,36 @@ def exp_hist_fit(ph, tail_min_us, binw=0.1e-3, clk_p=12.5e-9):
     Lambda = expon_fit_hist(dph, bins=bins, s_min=tail_min)/clk_p
     return Lambda
 
+
+def exp_histw_fit(ph, tail_min_us, binw=0.1e-3, clk_p=12.5e-9, weights=None):
+    """Return a background rate weighted LS fitting histogram of waiting-times.
+
+    Compute a background rate, selecting waiting-times (delays) larger than a 
+    minimum threshold.
+
+    This function uses a curve fit to the histogram of waiting times, so it
+    requires binning.
+
+    Arguments:
+        ph (array): timestamps array from which to extract the background
+        tail_min_us (float): minimum waiting-time in micro-secs
+        binw (float): bin width for waiting times, in seconds.
+        clk_p (float): clock period for timestamps in `ph`
+    
+    Returns:
+        Estimated background rate in cps.
+        
+    See also:
+        :func:`exp_fit`, :func:`exp_cdf_fit`
+    """
+    assert np.size(ph) > 0
+    dph = np.diff(ph)
+    tail_min = tail_min_us*1e-6/clk_p
+    binw_clk = binw/clk_p
+    bins = np.arange(0, dph.max(), binw_clk)
+    Lambda = expon_fit_histw(dph, bins=bins, s_min=tail_min, weights=weights)
+    Lambda /= clk_p
+    return Lambda
 
 
 def histo(ph, bin_ms=10., t_max_s=None, clk_p=12.5e-9):
