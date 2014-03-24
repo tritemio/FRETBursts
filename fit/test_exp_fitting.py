@@ -27,7 +27,7 @@ def test_expon_fit(sample):
     tau_fit = 1./lambda_fit
     relative_error = np.abs(tau_fit-sample_tau)/sample_tau
     print '\n [expon_fit] Fit (tau): %.2f  - Relative error: %.2f %%' % \
-            (tau_fit, relative_error)
+            (tau_fit, relative_error*100)
     assert relative_error < max_relative_error
 
 def test_expon_fit_cdf(sample):
@@ -35,15 +35,29 @@ def test_expon_fit_cdf(sample):
     tau_fit = 1./lambda_fit
     relative_error = np.abs(tau_fit-sample_tau)/sample_tau
     print '\n [expon_fit_cdf] Fit (tau): %.2f  - Relative error: %.2f %%' % \
-            (tau_fit, relative_error)
+            (tau_fit, relative_error*100)
     assert relative_error < max_relative_error
 
 def test_expon_fit_hist(sample):
-    lambda_fit = expon_fit_hist(sample, s_min=sample_min, bins=0.1e-3)
+    binw = sample_tau/50.
+    bins = np.arange(0, sample.max(), binw)
+    lambda_fit = expon_fit_hist(sample, s_min=sample_min, bins=bins)
     tau_fit = 1./lambda_fit
     relative_error = np.abs(tau_fit-sample_tau)/sample_tau
     print '\n [expon_fit_hist] Fit (tau): %.2f  - Relative error: %.2f %%' % \
-            (tau_fit, relative_error)
+            (tau_fit, relative_error*100)
+    assert relative_error < max_relative_error
+
+
+def test_expon_fit_histw(sample):
+    binw = sample_tau/50.
+    bins = np.arange(0, sample.max(), binw)
+    lambda_fit = expon_fit_hist(sample, s_min=sample_min, bins=bins,
+                                weights='hist_counts')
+    tau_fit = 1./lambda_fit
+    relative_error = np.abs(tau_fit-sample_tau)/sample_tau
+    print '\n [expon_fit_hist] Fit (tau): %.2f  - Relative error: %.2f %%' % \
+            (tau_fit, relative_error*100)
     assert relative_error < max_relative_error
 
 if __name__ == '__main__':

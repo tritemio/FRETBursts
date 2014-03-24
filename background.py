@@ -17,8 +17,7 @@ See also :func:`exp_hist_fit` for background estimation using an histogram fit.
 
 import numpy as np
 from utils.misc import pprint
-from fit.exp_fitting import (expon_fit, expon_fit_cdf, expon_fit_hist,
-                             expon_fit_histw)
+from fit.exp_fitting import expon_fit, expon_fit_cdf, expon_fit_hist
 from fit.gaussian_fitting import gaussian_fit_hist
 
 
@@ -92,7 +91,7 @@ def exp_cdf_fit(ph, tail_min_us=None, clk_p=12.5e-9):
                             tail_min_us=tail_min_us, clk_p=clk_p)
 
 
-def exp_hist_fit(ph, tail_min_us, binw=0.1e-3, clk_p=12.5e-9):
+def exp_hist_fit(ph, tail_min_us, binw=0.1e-3, weights=None, clk_p=12.5e-9):
     """Return a background rate fitting histogram of waiting-times.
 
     Compute a background rate, selecting waiting-times (delays) larger than a 
@@ -106,7 +105,8 @@ def exp_hist_fit(ph, tail_min_us, binw=0.1e-3, clk_p=12.5e-9):
         tail_min_us (float): minimum waiting-time in micro-secs
         binw (float): bin width for waiting times, in seconds.
         clk_p (float): clock period for timestamps in `ph`
-    
+        weights (None or string): type of weigths for the fit. Valid values
+            are None or 'hist_counts'.    
     Returns:
         Estimated background rate in cps.
         
