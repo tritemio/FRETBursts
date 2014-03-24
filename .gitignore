@@ -7,6 +7,8 @@ data/
 cache/*
 bak/*
 
+docs/source/_themes/
+
 notebooks/.ipynb_checkpoints/
 
 *build*

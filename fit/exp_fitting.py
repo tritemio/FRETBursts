@@ -13,7 +13,7 @@ from scipy.optimize import leastsq
 
 
 def expon_fit(s, s_min=0):
-    """Eponential fit of samples s using MLE.
+    """Exponential fit of samples s using MLE.
 
     Arguments:
         s (array): array of exponetially-distributed samples
@@ -29,7 +29,7 @@ def expon_fit(s, s_min=0):
     return 1./Tau
 
 def expon_fit_cdf(s, s_min=0):
-    """Eponential fit of samples s using a curve fit to the empirical CDF.
+    """Exponential fit of samples s using a curve fit to the empirical CDF.
 
     Arguments:
         s (array): array of exponetially-distributed samples
@@ -48,8 +48,8 @@ def expon_fit_cdf(s, s_min=0):
     Lambda = -L[0]
     return Lambda
 
-def expon_fit_hist(s, bins, s_min=0):
-    """Eponential fit of samples s using a curve fit of the histogram.
+def expon_fit_hist(s, bins, s_min=0, weights=None):
+    """Exponential fit of samples s using a curve fit of the histogram.
 
     Arguments:
         s (array): array of exponetially-distributed samples
@@ -57,6 +57,9 @@ def expon_fit_hist(s, bins, s_min=0):
             array of bin edges (passed to `numpy.histogram`)
         s_min (float): all samples < `s_min` are discarded 
             (`s_min` must be >= 0).
+        weights (None or string): if None no weights is applied.
+            if is 'hist_counts', each bin has a weight equal to its counts
+            if is 'inv_hist_counts', the weight is the inverse of the counts.
     
     Returns:
         The lambda parameter (1/life-time) of the exponential.
@@ -64,14 +67,26 @@ def expon_fit_hist(s, bins, s_min=0):
     if s_min > 0: s = s[s >= s_min]
     assert s.size > 0
     
-    H = np.histogram(s, bins=bins, density=True)
-    x = H[1][:-1] + 0.5*(H[1][1] - H[1][0])
-    y = H[0]
+    counts, bins = np.histogram(s, bins=bins, density=True)
+    x = bins[:-1] + 0.5*(bins[1] - bins[0])        
+    y = counts
+    x = x[y > 0]
+    y = y[y > 0]
     
-    exp_fun = lambda x, rate, x_min: np.exp(-(x - x_min)*rate)
-    err_fun = lambda rate, x, y, x_min: exp_fun(x, rate, x_min) - y
+    if weights is None:
+        w = np.ones(y.size)
+    elif weights == 'hist_counts':
+        w = np.sqrt(y*s.size*(bins[1]-bins[0]))
+    elif weights == 'inv_hist_counts':
+        w = np.sqrt(1./y*s.size*(bins[1]-bins[0]))
+    else:
+        raise ValueError('Weighting scheme not valid (use: None, or '
+                         '"hist_counts")')
     
-    res = leastsq(err_fun, x0=1./(s.mean() - s_min), args=(x, y, s_min))
+    exp_fun = lambda x, rate, x_min: rate*np.exp(-(x - x_min)*rate)
+    err_fun = lambda rate, x, y, x_min, w: (exp_fun(x, rate, x_min) - y)*w
+    
+    res = leastsq(err_fun, x0=1./(s.mean() - s_min), 
+                  args=(x, y, s_min, w))
     rate = res[0]
     return rate
-
