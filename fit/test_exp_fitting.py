@@ -39,8 +39,8 @@ def test_expon_fit_cdf(sample):
     assert relative_error < max_relative_error
 
 def test_expon_fit_hist(sample):
-    binw = sample_tau/50.
-    bins = np.arange(0, sample.max(), binw)
+    binw = sample_tau/20.
+    bins = np.arange(0, sample_tau*6, binw)
     lambda_fit = expon_fit_hist(sample, s_min=sample_min, bins=bins)
     tau_fit = 1./lambda_fit
     relative_error = np.abs(tau_fit-sample_tau)/sample_tau
@@ -48,10 +48,9 @@ def test_expon_fit_hist(sample):
             (tau_fit, relative_error*100)
     assert relative_error < max_relative_error
 
-
 def test_expon_fit_histw(sample):
-    binw = sample_tau/50.
-    bins = np.arange(0, sample.max(), binw)
+    binw = sample_tau/20.
+    bins = np.arange(0, sample_tau*6, binw)
     lambda_fit = expon_fit_hist(sample, s_min=sample_min, bins=bins,
                                 weights='hist_counts')
     tau_fit = 1./lambda_fit

@@ -59,7 +59,7 @@ def expon_fit_hist(s, bins, s_min=0, weights=None):
             (`s_min` must be >= 0).
         weights (None or string): if None no weights is applied.
             if is 'hist_counts', each bin has a weight equal to its counts
-            in the minimization.
+            if is 'inv_hist_counts', the weight is the inverse of the counts.
     
     Returns:
         The lambda parameter (1/life-time) of the exponential.
@@ -77,6 +77,8 @@ def expon_fit_hist(s, bins, s_min=0, weights=None):
         w = np.ones(y.size)
     elif weights == 'hist_counts':
         w = np.sqrt(y*s.size*(bins[1]-bins[0]))
+    elif weights == 'inv_hist_counts':
+        w = np.sqrt(1./y*s.size*(bins[1]-bins[0]))
     else:
         raise ValueError('Weighting scheme not valid (use: None, or '
                          '"hist_counts")')
