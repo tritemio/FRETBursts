@@ -47,11 +47,11 @@ def _exp_fit_generic(ph, fit_fun, tail_min_us=None, tail_min_p=0.1,
 def exp_fit(ph, tail_min_us=None, clk_p=12.5e-9):
     """Return a background rate using the MLE of mean of waiting-times.
     
-    Compute a background rate, selecting waiting-times (delays) larger than a 
-    minimum threshold.
+    Compute the background rate, selecting waiting-times (delays) larger 
+    than a minimum threshold.
 
-    This function uses a MLE fit assuming an exponentially-distributed
-    population of waiting-times.
+    This function performs a Maximum Likelihood (ML) fit. For
+    exponentially-distributed waiting-times this is the empirical mean.
 
     Arguments:
         ph (array): timestamps array from which to extract the background
@@ -70,11 +70,11 @@ def exp_fit(ph, tail_min_us=None, clk_p=12.5e-9):
 def exp_cdf_fit(ph, tail_min_us=None, clk_p=12.5e-9):
     """Return a background rate fitting the empirical CDF of waiting-times.
 
-    Compute a background rate, selecting waiting-times (delays) larger than a 
-    minimum threshold.
+    Compute the background rate, selecting waiting-times (delays) larger 
+    than a minimum threshold.
 
-    This function uses a curve fit of an exponetial CDF model to the empirical 
-    CDF of waiting-times.
+    This function performs a least square fit of an exponential Cumulative 
+    Distribution Function (CDF) to the empirical CDF of waiting-times.
 
     Arguments:
         ph (array): timestamps array from which to extract the background
@@ -91,51 +91,24 @@ def exp_cdf_fit(ph, tail_min_us=None, clk_p=12.5e-9):
                             tail_min_us=tail_min_us, clk_p=clk_p)
 
 
-def exp_hist_fit(ph, tail_min_us, binw=0.1e-3, weights=None, clk_p=12.5e-9):
-    """Return a background rate fitting histogram of waiting-times.
+def exp_hist_fit(ph, tail_min_us, binw=50e-6, clk_p=12.5e-9, 
+                  weights='hist_counts'):
+    """Compute background rate with WLS histogram fit of waiting-times.
 
-    Compute a background rate, selecting waiting-times (delays) larger than a 
-    minimum threshold.
+    Compute the background rate, selecting waiting-times (delays) larger 
+    than a minimum threshold.
 
-    This function uses a curve fit to the histogram of waiting times, so it
-    requires binning.
-
-    Arguments:
-        ph (array): timestamps array from which to extract the background
-        tail_min_us (float): minimum waiting-time in micro-secs
-        binw (float): bin width for waiting times, in seconds.
-        clk_p (float): clock period for timestamps in `ph`
-        weights (None or string): type of weigths for the fit. Valid values
-            are None or 'hist_counts'.    
-    Returns:
-        Estimated background rate in cps.
-        
-    See also:
-        :func:`exp_fit`, :func:`exp_cdf_fit`
-    """
-    assert np.size(ph) > 0
-    dph = np.diff(ph)
-    tail_min = tail_min_us*1e-6/clk_p
-    binw_clk = binw/clk_p
-    bins = np.arange(0, dph.max(), binw_clk)
-    Lambda = expon_fit_hist(dph, bins=bins, s_min=tail_min)/clk_p
-    return Lambda
-
-
-def exp_histw_fit(ph, tail_min_us, binw=0.1e-3, clk_p=12.5e-9, weights=None):
-    """Return a background rate weighted LS fitting histogram of waiting-times.
-
-    Compute a background rate, selecting waiting-times (delays) larger than a 
-    minimum threshold.
-
-    This function uses a curve fit to the histogram of waiting times, so it
-    requires binning.
+    This function performs a Weighed Least Squares (WLS) fit of the
+    histogram of waiting times to an exponential decay.
 
     Arguments:
         ph (array): timestamps array from which to extract the background
         tail_min_us (float): minimum waiting-time in micro-secs
         binw (float): bin width for waiting times, in seconds.
         clk_p (float): clock period for timestamps in `ph`
+        weights (None or string): if None no weights is applied.
+            if is 'hist_counts', each bin has a weight equal to its counts
+            if is 'inv_hist_counts', the weight is the inverse of the counts.
     
     Returns:
         Estimated background rate in cps.
@@ -148,7 +121,7 @@ def exp_histw_fit(ph, tail_min_us, binw=0.1e-3, clk_p=12.5e-9, weights=None):
     tail_min = tail_min_us*1e-6/clk_p
     binw_clk = binw/clk_p
     bins = np.arange(0, dph.max(), binw_clk)
-    Lambda = expon_fit_histw(dph, bins=bins, s_min=tail_min, weights=weights)
+    Lambda = expon_fit_hist(dph, bins=bins, s_min=tail_min, weights=weights)
     Lambda /= clk_p
     return Lambda
 
