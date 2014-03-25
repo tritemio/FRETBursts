@@ -22,6 +22,30 @@ import scipy.stats as ss
 from burstsearch.burstsearchlib import b_start, b_width, b_end, b_separation
 from utils.misc import clk_to_s
 
+
+def get_burst_size(d, ich=0, gamma=1., gamma1=None, add_naa=False):
+    """Return gamma corrected burst sizes for channel `ich`.
+
+    The gamma corrected size is computed as::
+    
+        1) nd + na/gamma  (so th1 is the min. burst size for donly bursts)
+        2) nd*gamma1 + na (so th1 is the min. burst size for high FRET bursts)
+    
+    If `gamma1` is not None, the definition (2) is used.
+    If `d.ALEX` and `add_naa` are True, `naa` is added to the burst size.
+    
+    Returns
+        Array of burst sizes for channel `ich`.
+    """
+    if gamma1 is not None:
+        burst_size = 1.*d.nd[ich]*gamma1 + d.na[ich]
+    else:
+        burst_size = d.nd[ich] + 1.*d.na[ich]/gamma
+    if d.ALEX and add_naa:
+        burst_size += d.naa[ich]
+    return burst_size
+  
+
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  BURSTS SELECTION FUNCTIONS
 #
@@ -90,48 +114,38 @@ def naa(d, ich=0, th1=20, th2=1000):
 def nda(d, ich=0, th1=20, th2=1000, gamma=1., gamma1=None,
                       add_naa=False):
     """Select bursts with (nd+na >= th1) and (nd+na <= th2).
-    If `gamma` or `gamma1` is specified burst size is computed as::
-    
-        nd+na/gamma  (so th1 is the min. burst size for donly bursts)
-        nd*gamma1+na (so th1 is the min. burst size for high FRET bursts)
 
-    If data is ALEX and `add_naa` is True, `naa` is added to burst-size.
+    `gamma`, `gamma1` and `add_naa` are passed to :func:`get_burst_size`
+    to compute the burst size.
     """
-    if gamma1 is not None:
-        burst_size = (1.*d.nd[ich]*gamma1 + d.na[ich])
-    else:
-        burst_size = (d.nd[ich] + 1.*d.na[ich]/gamma)
-    if d.ALEX and add_naa:
-        burst_size += d.naa[ich]
+    burst_size = get_burst_size(d, ich, gamma, gamma1, add_naa)   
     if d.nch > 1 and (np.size(th1) == d.nch): th1 = th1[ich]
     if d.nch > 1 and (np.size(th2) == d.nch): th2 = th2[ich]
     bursts_mask = (burst_size >= th1)*(burst_size <= th2)
     s = "nda_th%d" % th1
     if th2 < 1000: s +="_th2_%d" % th2
     return bursts_mask, s+str_G(gamma, gamma1)
-    
-def nda_percentile(d, ich=0, q=50, low=False,
-        gamma=1., gamma1=None):
+
+def nda_percentile(d, ich=0, q=50, low=False, gamma=1., gamma1=None, 
+                   add_naa=False):
     """Select bursts with SIZE >= q-percentile (or <= if `low` is True)
-    `gamma` and `gamma1` are used to compute SIZE like in nda()
+
+    `gamma`, `gamma1` and `add_naa` are passed to :func:`get_burst_size`
+    to compute the burst size.
     """
-    if gamma1 is not None:
-        burst_size = (1.*d.nd[ich]*gamma1 + d.na[ich])
-    else:
-        burst_size = (d.nd[ich] + 1.*d.na[ich]/gamma)
+    burst_size = get_burst_size(d, ich, gamma, gamma1, add_naa)   
     q_percentile = np.percentile(burst_size, q=q)
     if low: bursts_mask = (burst_size <= q_percentile)
     else: bursts_mask = (burst_size >= q_percentile)
     return bursts_mask, 'perc%d' % q
     
-def topN_nda(d, ich=0, N=500, gamma=1., gamma1=None):
+def topN_nda(d, ich=0, N=500, gamma=1., gamma1=None, add_naa=False):
     """Select the N biggest bursts in the channel.
-    `gamma` and `gamma1` are used to compute SIZE like in nda()
+    
+    `gamma`, `gamma1` and `add_naa` are passed to :func:`get_burst_size`
+    to compute the burst size.
     """
-    if gamma1 is not None:
-        burst_size = (1.*d.nd[ich]*gamma1 + d.na[ich])
-    else:
-        burst_size = (d.nd[ich] + 1.*d.na[ich]/gamma)
+    burst_size = get_burst_size(d, ich, gamma, gamma1, add_naa)
     index_sorted = burst_size.argsort()
     burst_mask = np.zeros(burst_size.size, dtype=bool)
     burst_mask[index_sorted[-N:]] = True
