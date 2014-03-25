@@ -826,9 +826,13 @@ def fitted_E(d, i=0, F=1, no_E=False, ax=None, show_model=True, verbose=False,
         y = d.fit_E_model(x, d.fit_E_res[i, :])
         scale = F*d.fit_E_model_F[i]
         if two_gauss_model:
-            m1, s1, m2, s2, a =  d.fit_E_res[i, :]
-            y1 = a*normpdf(x, m1, s1)
-            y2 = (1 - a)*normpdf(x, m2, s2)
+            if d.fit_E_res.shape[1] == 5:
+                m1, s1, m2, s2, a1 =  d.fit_E_res[i, :]
+                a2 = (1-a1)
+            elif d.fit_E_res.shape[1] == 6:
+                m1, s1, a1, m2, s2, a2 =  d.fit_E_res[i, :]
+            y1 = a1*normpdf(x, m1, s1)
+            y2 = a2*normpdf(x, m2, s2)
             ax2.plot(x, scale*y1, ls='--', lw=lw, alpha=alpha, color=color)
             ax2.plot(x, scale*y2, ls='--', lw=lw, alpha=alpha, color=color)
         if fillcolor == None:
@@ -1009,7 +1013,7 @@ def plot_mburstm_8ch(d, fun=scatter_width_size, sharex=True,sharey=True,
             fig.suptitle(d.status())
         s = u'[%d]' % (i+1)
         if 'rate_m' in d: s += (' BG=%.1fk' % (d.rate_m[i]*1e-3))
-        if 'T' in d: s += (', T=%dμs' % (d.T[i]*1e6))
+        if 'T' in d: s += (u', T=%dμs' % (d.T[i]*1e6))
         if b is not None: s += (', #bu=%d' %  b.shape[0])
         ax.set_title(s, fontsize=12)            
         ax.grid(pgrid)

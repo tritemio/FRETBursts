@@ -54,8 +54,10 @@ from fit.gaussian_fitting import (gaussian_fit_hist,
                                   gaussian_fit_cdf,
                                   two_gaussian_fit_hist,
                                   two_gaussian_fit_hist_min,
+                                  two_gaussian_fit_hist_min_ab,
                                   two_gaussian_fit_EM,
-                                  two_gauss_mix_pdf)
+                                  two_gauss_mix_pdf,
+                                  two_gauss_mix_ab,)
 
 
 def deprecate(function, old_name, new_name):
@@ -1564,6 +1566,11 @@ class Data(DataContainer):
             if 'mu0' not in fit_kwargs: fit_kwargs.update(mu0=0.5)
             if 'sigma0' not in fit_kwargs: fit_kwargs.update(sigma0=0.3)
             iE, nparam = 0, 2
+        elif fit_fun.__name__ == "two_gaussian_fit_hist_min_ab":
+            fit_model = two_gauss_mix_ab
+            if 'p0' not in fit_kwargs:
+                fit_kwargs.update(p0=[0, .05, 0.5, 0.6, 0.1, 0.5])
+            iE, nparam = 3, 6
         elif fit_fun.__name__.startswith("two_gaussian_fit"):
             fit_model = two_gauss_mix_pdf
             if 'p0' not in fit_kwargs:

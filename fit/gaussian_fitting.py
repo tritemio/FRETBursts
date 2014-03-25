@@ -23,6 +23,7 @@ Mixture of 2 Gaussian distribution fit::
 Also, some functions to fit 2-D gaussian distributions and mixtures are
 implemented (needs more testing).
 """
+from __future__ import division
 
 import numpy as np
 import numpy.random as R
@@ -31,10 +32,17 @@ import scipy.stats as S
 from scipy.special import erf
 from scipy.optimize import leastsq, minimize
 from scipy.ndimage.filters import gaussian_filter1d
-from pylab import normpdf
 
 #from scipy.stats import gaussian_kde
 from weighted_kde import gaussian_kde_w  # this version supports weights
+
+
+def normpdf(x, mu=0, sigma=1.):
+    """Return the normal pdf evaluated at `x`."""
+    assert sigma > 0    
+    u = (x-mu)/sigma
+    y = 1/(np.sqrt(2*np.pi)*sigma)*np.exp(-u*u/2)
+    return y
 
 ##
 # Single gaussian distribution
@@ -143,7 +151,7 @@ def gaussian_fit_cdf(s, mu0=0, sigma0=1, return_all=False, **leastsq_kwargs):
 
 def gaussian_fit_ml(s, mu_sigma_guess=[0.5, 1]):
     """Gaussian fit of samples s using the Maximum Likelihood (ML method).
-    Didactical, since S.norm.fit() implements the same method.    
+    Didactical, since scipy.stats.norm.fit() implements the same method.    
     """
     n = s.size
     ## Log-likelihood (to be maximized)
@@ -169,6 +177,11 @@ def two_gauss_mix_pdf(x, p):
     mu1, sig1, mu2, sig2, a = p
     return a*normpdf(x, mu1, sig1) + (1-a)*normpdf(x, mu2, sig2)
 
+def two_gauss_mix_ab(x, p):
+    """Mixture of two Gaussians with no area constrain."""
+    mu1, sig1, a1, mu2, sig2, a2 = p
+    return a1*normpdf(x, mu1, sig1) + a2*normpdf(x, mu2, sig2)
+
 def reorder_parameters(p):
     """Reorder 2-gauss mix params to have the 1st component with smaller mean.
     """
@@ -177,7 +190,16 @@ def reorder_parameters(p):
         p[4] = 1 - p[4]                   # "swap" the alpha of the mixture
     return p
 
+def reorder_parameters_ab(p):
+    """Reorder 2-gauss mix params to have the 1st component with smaller mean.
+    """
+    if p[0] > p[3]:
+        p = p[np.array([3, 4, 5, 0, 1, 2])]
+    return p
+
+
 def bound_check(val, bounds):
+    """Returns `val` clipped inside the interval `bounds`."""
     if bounds[0] is not None and val < bounds[0]:
         val = bounds[0]
     if bounds[1] is not None and val > bounds[1]:
@@ -413,7 +435,8 @@ def two_gaussian_fit_hist(s, bins=np.r_[-0.5:1.5:0.001], weights=None,
     p_new[-fix] = p
     p_new[fix] = p0_fix
     return reorder_parameters(p_new)
-    
+
+   
 def two_gaussian_fit_hist_min(s, bounds=None, method='L-BFGS-B', 
         bins=np.r_[-0.5:1.5:0.001], weights=None,  p0=[0.2,1,0.8,1,0.3], 
         fix_mu=[0,0], fix_sig=[0,0], fix_a=False, verbose=False):
@@ -455,6 +478,61 @@ def two_gaussian_fit_hist_min(s, bounds=None, method='L-BFGS-B',
     p_new[-fix] = res.x
     p_new[fix] = p0_fix
     return reorder_parameters(p_new)
+    
+def two_gaussian_fit_hist_min_ab(s, bounds=None, method='L-BFGS-B', 
+        bins=np.r_[-0.5:1.5:0.001], weights=None,  p0=[0.2,1,0.8,1,0.3], 
+        fix_mu=[0,0], fix_sig=[0,0], fix_a=[0,0], verbose=False):
+    """Histogram fit of sample `s` with 2-gaussian functions.
+    
+    Uses scipy.optimize.minimize allowing constrained minimization. Also
+    each parameter can be fixed.
+    
+    The order of the parameters is: mu1, sigma1, a1, mu2, sigma2, a2.
+    
+    Arguments:
+        method (string): one of the methods accepted by scipy `minimize()`
+        bounds (None or 6-element list): if not None, each element is a 
+            (min,max) pair of bounds for the corresponding parameter. This 
+            argument can be used only with L-BFGS-B, TNC or SLSQP methods. 
+            If bounds are used, parameters cannot be fixed
+        p0 (6-element list or array): initial guess or parameters
+        bins (int or array): bins passed to `np.histogram()`
+        weights (array): optional weights passed to `np.histogram()`
+        fix_a (tuple of bools): Whether to fix the amplitude of the gaussians
+        fix_mu (tuple of bools): Whether to fix the mean of the gaussians
+        fix_sig (tuple of bools): Whether to fix the sigma of the gaussians
+        verbose (boolean): allows printing fit information
+    
+    Returns:
+        Array of parameters for the 2-gaussians (6 elements)
+    """
+    nparams = 6
+    assert np.size(p0) == nparams
+    fix = np.array([fix_mu[0], fix_sig[0], fix_a[0], 
+                    fix_mu[1], fix_sig[1], fix_a[1]], dtype=bool)
+    p0 = np.asarray(p0)
+    p0_free = p0[-fix]
+    p0_fix = p0[fix]
+
+    counts, bins = np.histogram(s, bins=bins, weights=weights, density=True)
+    x = bins[:-1] + 0.5*(bins[1] - bins[0])
+    y = counts
+    assert x.size == y.size
+    
+    ## Fitting
+    def err_func(p, x, y, fix, p_fix, p_complete): 
+        p_complete[-fix] = p
+        p_complete[fix] = p_fix
+        return ((y - two_gauss_mix_ab(x, p_complete))**2).sum()
+    
+    p_complete = np.zeros(nparams)
+    res = minimize(err_func, x0=p0_free, args=(x, y, fix, p0_fix, p_complete),
+                    method=method, bounds=bounds)
+    if verbose: print(res)
+    p_new = np.zeros(nparams)
+    p_new[-fix] = res.x
+    p_new[fix] = p0_fix
+    return reorder_parameters_ab(p_new)
 
 def two_gaussian_fit_cdf(s, p0=[0., .05, .6, .1, .5],
                          fix_mu=[0, 0], fix_sig=[0, 0]):
