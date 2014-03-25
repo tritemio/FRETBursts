@@ -69,7 +69,7 @@ def exp_fit(ph, tail_min_us=None, clk_p=12.5e-9):
         Estimated background rate in cps.
 
     See also:
-        :func:`exp_cdf_fit`, :func:`hist_fit`
+        :func:`exp_cdf_fit`, :func:`exp_hist_fit`
     """
     return _exp_fit_generic(ph, fit_fun=exp_fitting.expon_fit, 
                             tail_min_us=tail_min_us, clk_p=clk_p)
@@ -92,7 +92,7 @@ def exp_cdf_fit(ph, tail_min_us=None, clk_p=12.5e-9):
         Estimated background rate in cps.
         
     See also:
-        :func:`exp_fit`, :func:`hist_fit`
+        :func:`exp_fit`, :func:`exp_hist_fit`
     """
     return _exp_fit_generic(ph, fit_fun=exp_fitting.expon_fit_cdf, 
                             tail_min_us=tail_min_us, clk_p=clk_p)

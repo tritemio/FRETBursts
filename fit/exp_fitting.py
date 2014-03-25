@@ -38,7 +38,7 @@ def get_residuals(s, tau_fit, offset=0.5):
     
     Returns:
         residuals (array): residuals of empirical CDF compared with analytical
-            CDF with time constant `tau_fit`.
+        CDF with time constant `tau_fit`.
     """
     x, y = get_ecdf(s, offset=offset)
     ye = expon.cdf(x, scale=tau_fit)
