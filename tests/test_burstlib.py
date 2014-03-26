@@ -18,18 +18,13 @@ import background as bg
 import burstlib as bl
 
 
-@pytest.fixture(scope="module")
-def data():
-    #fn = "12d_New_30p_320mW_steer_3.dat"
-    #dir_ = "2013-05-15/"
-    #fname = data_dir+dir_+fn
-    #BT = 0.038
-    #gamma = 0.43
-    #d = load_multispot8(fname=fname, BT=BT, gamma=gamma)
-    
+#DATASETS_DIR = u'/Users/anto/Dropbox/notebooks/frebursts_notebooks/data/'
+DATASETS_DIR = data_dir + "2013-05-15/"
+
+
+def load_dataset_1ch():
     fn = "0023uLRpitc_NTP_20dT_0.5GndCl.sm"
-    dir_ = u'/Users/anto/Dropbox/notebooks/frebursts_notebooks/data/'
-    fname = dir_ + fn
+    fname = DATASETS_DIR + fn
     d = load_usalex(fname=fname, BT=0.11, gamma=1.)
     d.add(det_donor_accept=(0, 1), alex_period=4000, 
           D_ON=(2850, 580), A_ON=(900, 2580))
@@ -37,6 +32,25 @@ def data():
 
     d.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
     d.burst_search_t(L=10, m=10, P=None, F=7, ph_sel='DA')
+    return d
+    
+def load_dataset_8ch():
+    fn = "12d_New_30p_320mW_steer_3.dat"
+    fname = DATASETS_DIR + fn
+    BT = 0.038
+    gamma = 0.43
+    d = load_multispot8(fname=fname, BT=BT, gamma=gamma)
+    d.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
+    d.burst_search_t(L=10, m=10, P=None, F=7, ph_sel='DA')
+    return d
+
+@pytest.fixture(scope="module", params=[
+                                    #load_dataset_1ch, 
+                                    load_dataset_8ch,
+                                    ])
+def data(request):
+    loader = request.param
+    d = loader()
     return d
 
 
@@ -100,6 +114,17 @@ def test_burst_fuse_0ms(data):
         for ph, mb in zip(df.ph_times_m, df.mburst):
             m = bl.ph_select(ph, mb)
             assert m.sum() == bl.b_size(mb).sum()
-#            
+
+def test_burst_size_da(data):
+    """Test that nd + na with no corrections is equal to b_size(mburst).
+    """
+    d = data
+    d.burst_search_t(L=10, m=10, P=None, F=7, ph_sel='DA', nofret=True)
+    d.cal_ph_num()
+    for mb, nd, na in zip(d.mburst, d.nd, d.na):
+        tot_size = bl.b_size(mb)
+        assert (tot_size == nd + na).all()
+  
+            
 if __name__ == '__main__':
     pytest.main("-x -v tests/test_burstlib.py")
