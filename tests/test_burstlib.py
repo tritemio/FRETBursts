@@ -124,7 +124,45 @@ def test_burst_size_da(data):
     for mb, nd, na in zip(d.mburst, d.nd, d.na):
         tot_size = bl.b_size(mb)
         assert (tot_size == nd + na).all()
-  
-            
+
+def test_get_burst_size(data):
+    """Test that get_burst_size() returns nd + na when gamma = 1.
+    """
+    d = data
+    d.burst_search_t(L=10, m=10, P=None, F=7, ph_sel='DA')
+    for ich, (nd, na) in enumerate(zip(d.nd, d.na)):
+        burst_size = bl.select_bursts.get_burst_size(d, ich)        
+        assert (burst_size == nd + na).all()
+
+def test_expand(data):
+    """Test method `expand()` for `Data()`."""
+    d = data
+    for ich, mb in enumerate(d.mburst):
+        if mb.size == 0: continue  # if no bursts skip this ch
+        nd, na, bg_d, bg_a, width = d.expand(ich, width=True)
+        width2 = bl.b_width(mb)*d.clk_p
+        period = d.bp[ich]
+        bg_d2 = d.bg_dd[ich][period] * width2
+        bg_a2 = d.bg_ad[ich][period] * width2
+        assert (width == width2).all()      
+        assert (nd == d.nd[ich]).all() and (na == d.na[ich]).all()
+        assert (bg_d == bg_d2).all() and (bg_a == bg_a2).all()
+        
+        
+def test_burst_corrections(data):
+    """Test background and bleed-through corrections."""
+    d = data
+    BT = d.get_BT_array()
+    
+    for ich, mb in enumerate(d.mburst):
+        if mb.size == 0: continue  # if no bursts skip this ch
+        nd, na, bg_d, bg_a, width = d.expand(ich, width=True)        
+        burst_size_raw = bl.b_size(mb)
+        
+        bt = BT[ich]
+        burst_size_raw2 = nd + na + bg_d + bg_a + bt*nd
+        assert np.allclose(burst_size_raw, burst_size_raw2)
+        
+                    
 if __name__ == '__main__':
     pytest.main("-x -v tests/test_burstlib.py")
