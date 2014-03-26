@@ -1352,13 +1352,13 @@ class Data(DataContainer):
                 sbr.append([])                
                 continue  # if no bursts skip this ch
             width = b_width(mb)*self.clk_p
-            size = b_size(mb)
+            raw_sizes = b_size(mb)
             period = self.bp[ich]
             bg_bursts = self.bg_dd[ich][period] * width
             bg_bursts += self.bg_ad[ich][period] * width
             if self.ALEX:
                 bg_bursts += self.bg_aa[ich][period] * width
-            sbr.append(1.*size/bg_bursts - 1)
+            sbr.append(1.*raw_sizes/bg_bursts - 1)
         self.add(sbr=sbr)
     ##
     # FRET and stochiometry methods
