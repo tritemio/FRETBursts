@@ -158,6 +158,14 @@ def width(d, ich=0, th1=0.5, th2=1):
     bursts_mask = (burst_width >= th1)*(burst_width <= th2)
     return bursts_mask, ''
 
+def sbr(d, ich=0, th1=0, th2=1e4):
+    """Select bursts with SBR between `th1` and `th2`."""
+    if 'sbr' not in d:
+        d.calc_sbr()
+    sbr_ich = d.sbr[ich]
+    bursts_mask = (sbr_ich >= th1)*(sbr_ich <= th2)
+    return bursts_mask, ''
+
 
 # Selection on burst rate
 def max_rate(d, ich=0, min_rate_p=0.1):

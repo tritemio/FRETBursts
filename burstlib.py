@@ -1228,7 +1228,7 @@ class Data(DataContainer):
         self.add(bg_corrected=True)
         for ich, mb in enumerate(self.mburst):
             if mb.size == 0: continue  # if no bursts skip this ch
-            width = mb[:, iwidth]*self.clk_p
+            width = b_width(mb)*self.clk_p
             period = self.bp[ich]
             self.nd[ich] -= self.bg_dd[ich][period] * width
             self.na[ich] -= self.bg_ad[ich][period] * width
@@ -1286,8 +1286,7 @@ class Data(DataContainer):
 
     def corrections(self, mute=False):
         """Apply both background BG and bleed-through (BT) corrections."""
-        if 'bg' in self: self.background_correction_t(mute=mute)
-        else: self.background_correction()
+        self.background_correction_t(mute=mute)
         self.bleed_through_correction(mute=mute)
 
     def update_bt(self, BT):
@@ -1348,18 +1347,13 @@ class Data(DataContainer):
         """
         sbr = []
         for ich, mb in enumerate(self.mburst):
-            if mb.size == 0: 
+            if mb.size == 0:
                 sbr.append([])                
-                continue  # if no bursts skip this ch
-            width = b_width(mb)*self.clk_p
-            raw_sizes = b_size(mb)
-            period = self.bp[ich]
-            bg_bursts = self.bg_dd[ich][period] * width
-            bg_bursts += self.bg_ad[ich][period] * width
-            if self.ALEX:
-                bg_bursts += self.bg_aa[ich][period] * width
-            sbr.append(1.*raw_sizes/bg_bursts - 1)
+                continue  # if no bursts skip this ch  
+            nd, na, bg_d, bg_a = self.expand()
+            sbr.append(1.*(nd + na)/(bg_d + bg_a))
         self.add(sbr=sbr)
+
     ##
     # FRET and stochiometry methods
     #
