@@ -880,6 +880,15 @@ def hist_S(d, i=0, fit=None, bins=None, **kwargs):
     elif fit is not None:
         print "Unrecognized fit name."
 
+def hist_sbr(d, ich=0, **hist_kwargs):
+    """Histogram of per-burst Signal-to-Background Ratio (SBR).
+    """
+    if not 'sbr' in d:
+        d.calc_sbr()
+    style_kwargs = dict(bins=np.r_[0:20:0.5])  # default style
+    style_kwargs.update(**hist_kwargs)
+    hist(d.sbr[ich], **style_kwargs)
+    xlabel('SBR'); ylabel('# Bursts')
 
 def hist_bleaching(d, i=0, bins=None,use_median=True, normalize=True, **kwargs):
     if bins is None: bins=arange(-1,1.01,0.1)

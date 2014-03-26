@@ -147,20 +147,12 @@ def Sel_mask_apply(d_orig, Masks, nofret=False, str_sel=''):
     """
     ## Attributes of ds point to the same objects of d_orig
     ds = Data(**d_orig)
-
-    ##
-    ## Alternative implementation (always applies corrections)
-    ##
-    # NOTE that boolean masking implies numpy array copy
-    # On the contrary slicing only makes a new view of the array
-    #new_mburst = [mburst[mask] for mburst,mask in zip(d_orig.mburst,Masks)]
-    #ds.add(mburst=new_mburst)
-    #ds.calc_fret(count_ph=True, corrections=True, dither=d_orig.dithering)
-    fields = ['mburst', 'nd', 'na', 'nt', 'bp']
-    if d_orig.ALEX: fields += ['naa']
-    if hasattr(d_orig, 'max_rate'): fields += ['max_rate']
-    for k in fields:
-        # Reading hint: think of d[k] as another name for (for ex.) d.nd, etc...
+    
+    ## Copy the per-burst fields that must be filtered
+    all_fields = ['mburst', 'nd', 'na', 'nt', 'bp', 'naa', 'max_rate', 'sbr']
+    used_fields = [field for field in all_fields if field in d_orig]
+    for k in used_fields:
+        # Reading hint: think of d[k] as another name for d.nd, etc...
 
         # Make new lists to contain the filtered data
         # (otherwise changing ds.nd[0] changes also d_orig.nd[0])
@@ -168,11 +160,13 @@ def Sel_mask_apply(d_orig, Masks, nofret=False, str_sel=''):
         # Assign also the attribute to maintain the same object interface
         setattr(ds,k,ds[k])
         # Assign the new data
-        for i,mask in enumerate(Masks):
+        for i, mask in enumerate(Masks):
             if d_orig[k][i].size == 0: continue # -> no bursts in current ch
             # Note that boolean masking implies numpy array copy
             # On the contrary slicing only makes a new view of the array
             ds[k][i] = d_orig[k][i][mask]
+    
+    # Recompute E and S
     if not nofret:
         ds.calc_fret(count_ph=False)
     # Add the annotation about the filter function
@@ -1362,9 +1356,10 @@ class Data(DataContainer):
             if mb.size == 0:
                 sbr.append([])                
                 continue  # if no bursts skip this ch  
-            nd, na, bg_d, bg_a = self.expand()
+            nd, na, bg_d, bg_a = self.expand(ich)
             sbr.append(1.*(nd + na)/(bg_d + bg_a))
         self.add(sbr=sbr)
+        return sbr
 
     ##
     # FRET and stochiometry methods
