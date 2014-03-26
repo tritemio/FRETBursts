@@ -770,8 +770,20 @@ class Data(DataContainer):
         p_dict.update(name=self.name(), Name=self.Name())
         return p_dict
 
-    def expand(self, ich, width=False):
-        """Return nd, na, bg_d, bg_a (and optionally width) for bursts in `ich`.
+    def expand(self, ich=0, width=False):
+        """Return per-burst D and A sizes (nd, na) and background (bg_d, bg_a).
+        
+        This method returns for each bursts the corrected signal counts and 
+        background counts in donor and acceptor channels. Optionally, the
+        burst width is also returned.
+        
+        Arguments:
+            ich (int): channel for the bursts (can be not 0 only in multi-spot)
+            width (bool): whether return also the burst duration (in seconds).
+        
+        Returns:
+            4 arrays: donor signal, accept signal, donor bg, acceptor bg.
+            If `width` is True returns also the bursts duration in seconds.
         """
         period = self.bp[ich]
         w = b_width(self.mburst[ich])*self.clk_p
@@ -1228,15 +1240,15 @@ class Data(DataContainer):
         self.add(bg_corrected=True)
         for ich, mb in enumerate(self.mburst):
             if mb.size == 0: continue  # if no bursts skip this ch
-            width = b_width(mb)*self.clk_p
-            period = self.bp[ich]
-            self.nd[ich] -= self.bg_dd[ich][period] * width
-            self.na[ich] -= self.bg_ad[ich][period] * width
+            period = self.bp[ich]            
+            nd, na, bg_d, bg_a, width = self.expand(ich, width=True)            
+            nd -= bg_d
+            na -= bg_a
             if relax_nt:
                 # This does not guarantee that nt = nd + na
                 self.nt[ich] -= self.bg[ich][period] * width
             else:
-                self.nt[ich] = self.nd[ich] + self.na[ich]
+                self.nt[ich] = nd + na
             if self.ALEX:
                 self.naa[ich] -= self.bg_aa[ich][period] * width
                 self.nt[ich] += self.naa[ich]
