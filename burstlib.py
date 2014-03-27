@@ -149,8 +149,7 @@ def Sel_mask_apply(d_orig, Masks, nofret=False, str_sel=''):
     ds = Data(**d_orig)
     
     ## Copy the per-burst fields that must be filtered
-    all_fields = ['mburst', 'nd', 'na', 'nt', 'bp', 'naa', 'max_rate', 'sbr']
-    used_fields = [field for field in all_fields if field in d_orig]
+    used_fields = [field for field in Data.burst_fields if field in d_orig]
     for k in used_fields:
         # Reading hint: think of d[k] as another name for d.nd, etc...
 
@@ -584,6 +583,15 @@ class Data(DataContainer):
         S (list): stochiometry value for each burst:
                     S = (gamma*nd + na) /(gamma*nd + na + naa)
     """
+    
+    # Central repository of attribute names containing per-burst data
+    # All this attributes are lists (1 element per ch) of arrays (1 element 
+    # per burst).
+    # They not necessarly exist. For example 'naa' exist only for ALEX
+    # data. Also none of them exist before performing a burst search.
+    burst_fields = ['E', 'S', 'mburst', 'nd', 'na', 'nt', 'bp', 'naa', 
+                    'max_rate', 'sbr']    
+    
     def __init__(self, **kwargs):
         # Default values
         init_kw = dict(ALEX=False, BT=0., gamma=1, chi_ch=1., s=[])
@@ -1146,6 +1154,11 @@ class Data(DataContainer):
             None, all the results are saved in the object.
         """
         pprint(" - Performing burst search (verbose=%s) ..." % verbose, mute)
+        # Erase any previous burst data
+        for k in self.burst_fields + ['fuse', 'lsb']:
+            if k in self: 
+                self.delete(k)        
+        
         if min_rate_cps is not None:
             self._burst_search_rate(m=m, L=L, min_rate_cps=min_rate_cps, 
                                     ph_sel=ph_sel, verbose=verbose)
@@ -1162,8 +1175,7 @@ class Data(DataContainer):
 
         self.add(m=m, L=L)  # P and F are saved in _calc_T()
         self.add(bg_corrected=False, bt_corrected=False, dithering=False)
-        for k in ['E', 'S', 'nd', 'na', 'naa', 'nt', 'fuse', 'lsb']:
-            if k in self: self.delete(k)
+
         if not nofret:
             pprint(" - Counting D and A ph and calculating FRET ... \n", mute)
             self.calc_fret(count_ph=True, corrections=True, dither=dither, 
