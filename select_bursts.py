@@ -166,6 +166,16 @@ def sbr(d, ich=0, th1=0, th2=1e4):
     bursts_mask = (sbr_ich >= th1)*(sbr_ich <= th2)
     return bursts_mask, ''
 
+def topN_sbr(d, ich=0, N=200):
+    """Select the top `N` bursts with hightest SBR."""
+    if 'sbr' not in d:
+        d.calc_sbr()
+    sbr_ich = d.sbr[ich]
+    index_sorted = sbr_ich.argsort()
+    burst_mask = np.zeros(sbr_ich.size, dtype=bool)
+    burst_mask[index_sorted[-N:]] = True
+    return burst_mask, 'top%d_sbr' % N
+
 
 # Selection on burst rate
 def max_rate(d, ich=0, min_rate_p=0.1):
