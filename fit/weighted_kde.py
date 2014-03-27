@@ -11,9 +11,9 @@ http://mail.scipy.org/pipermail/scipy-user/2013-May/034580.html
 """
 
 # Scipy imports.
-from scipy import linalg, special
-from numpy import (atleast_2d, reshape, zeros, newaxis, dot, exp, pi, sqrt,
-                   ravel, power, atleast_1d, squeeze, sum, transpose)
+#from scipy import linalg, special
+from numpy import (atleast_2d, reshape, zeros, newaxis, dot, exp, pi, sqrt,)
+                   #ravel, power, atleast_1d, squeeze, sum, transpose)
 import numpy as np
 
 
@@ -79,7 +79,7 @@ class gaussian_kde_w(object):
             for i in range(self.n):
                 diff = self.dataset[:, i, newaxis] - points
                 tdiff = dot(self.inv_cov, diff)
-                energy = sum(diff * tdiff,axis=0) / 2.0
+                energy = np.sum(diff * tdiff,axis=0) / 2.0
                 #result = result + exp(-energy)                 # weights mod
                 result = result + self.weights[i]*exp(-energy)  # weights mod
         else:
@@ -87,9 +87,9 @@ class gaussian_kde_w(object):
             for i in range(m):
                 diff = self.dataset - points[:, i, newaxis]
                 tdiff = dot(self.inv_cov, diff)
-                energy = sum(diff * tdiff, axis=0) / 2.0
-                #result[i] = sum(exp(-energy), axis=0)              # weights mod
-                result[i] = sum(self.weights*exp(-energy), axis=0)  # weights mod
+                energy = np.sum(diff * tdiff, axis=0) / 2.0
+                #result[i] = np.sum(exp(-energy), axis=0)              # weights mod
+                result[i] = np.sum(self.weights*exp(-energy), axis=0)  # weights mod
 
         result = result / self._norm_factor
         return result
