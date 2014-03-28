@@ -278,7 +278,7 @@ def unroll_timestamps_ch64(timestamps, det, nbits=24, debug=True):
     if debug:
         det_c1 = np.zeros(new_size, dtype=det.dtype)
     period_clk = 2**nbits
-    
+
     t_istart = 0
     epoch = 0
     prev_idx = - 1
@@ -292,11 +292,11 @@ def unroll_timestamps_ch64(timestamps, det, nbits=24, debug=True):
                     det[prev_idx + 1 : rollover_idx]
         t_istart += t_num
         prev_idx = rollover_idx
-    # Compute last chunk after the last rollover timestamp  
+    # Compute last chunk after the last rollover timestamp
     times_c[t_istart:] = timestamps[prev_idx + 1 :] + period_clk*(epoch + 1)
     if debug:
         det_c1[t_istart:] =  det[prev_idx + 1 :]
-        
+
     det_c = det[det != 64]
     if debug:
         assert (det_c == det_c1).all()

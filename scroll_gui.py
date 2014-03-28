@@ -23,7 +23,7 @@ class RangeToolQT(object):
         self.fig = fig
         self.xmin, self.xmax = fig.axes[0].get_xlim()
         self.ymin, self.ymax = fig.axes[0].get_ylim()
-        
+
         # Some handy shortcuts
         self.ax = self.fig.axes[0]
         self.draw = self.fig.canvas.draw
@@ -57,7 +57,7 @@ class mToolQT(object):
     def __init__(self, fig, plot_fun, *args, **kwargs):
         if 'bins' not in kwargs: kwargs.update(bins=np.r_[:10:0.02])
         if 't_max' not in kwargs: kwargs.update(t_max=-1)
-       
+
         # Save some variables
         self.fig = fig
         self.AX = kwargs['AX']
@@ -65,7 +65,7 @@ class mToolQT(object):
         self.f_args = args
         self.f_kwargs = kwargs
         self.time_max = args[0].time_max()
-        
+
         # Some handy shortcut
         self.draw = self.fig.canvas.draw
 
@@ -77,7 +77,7 @@ class mToolQT(object):
         self.m_spinbox.setKeyboardTracking(False)
         self.m_spinbox.setValue(self.f_kwargs['m'])
         self.m_spinbox.valueChanged.connect(self.par_changed)
-        
+
         blabel = QtGui.QLabel()
         blabel.setText("bin:")
         self.bin_spinbox = QtGui.QDoubleSpinBox()
@@ -87,7 +87,7 @@ class mToolQT(object):
         bins = self.f_kwargs['bins']
         self.bin_spinbox.setValue(bins[1]-bins[0])
         self.bin_spinbox.valueChanged.connect(self.par_changed)
-        
+
         tlabel = QtGui.QLabel()
         tlabel.setText("t max (s):")
         self.tmax_spinbox = QtGui.QDoubleSpinBox()
@@ -97,7 +97,7 @@ class mToolQT(object):
             kwargs['t_max'] = self.time_max
         self.tmax_spinbox.setValue(kwargs['t_max'])
         self.tmax_spinbox.valueChanged.connect(self.par_changed)
-        
+
         addWidget = fig.canvas.toolbar.addWidget
         addWidget(mlabel); addWidget(self.m_spinbox)
         addWidget(blabel); addWidget(self.bin_spinbox)
@@ -111,7 +111,7 @@ class mToolQT(object):
                 t_max = self.tmax_spinbox.value())
 
     def par_changed(self, *args):
-        #for ax in self.AX.ravel(): 
+        #for ax in self.AX.ravel():
         #    for i in range(len(ax.lines)): ax.lines.pop()
         #    #ax.clear()
         #print ".",
@@ -123,7 +123,7 @@ class mToolQT(object):
             print "all same"
             return
         #print new
-        
+
         if new['t_max'] > self.time_max:
             self.tmax_spinbox.setValue(self.time_max)
             self.save_params()
@@ -137,12 +137,12 @@ class mToolQT(object):
             print "bins out of range"
             return
         bins = np.arange(bins.min(),bins.max()+new['bin_w'],new['bin_w'])
-        
+
         self.save_params()
         self.f_kwargs.update(m=new['m'], t_max=new['t_max'], bins=bins)
         self.plot_fun(*self.f_args, **self.f_kwargs)
         self.draw()
-        
+
 class ScrollingToolQT(object):
     def __init__(self, fig, scroll_step=10):
         # Setup data range variables for scrolling
@@ -152,7 +152,7 @@ class ScrollingToolQT(object):
         self.width = 1 # axis units
         self.pos = 0   # axis units
         self.scale = 1e3 # conversion betweeen scrolling units and axis units
-        
+
         # Some handy shortcuts
         self.ax = self.fig.axes[0]
         self.draw = self.fig.canvas.draw
@@ -163,11 +163,11 @@ class ScrollingToolQT(object):
         QMainWin = fig.canvas.parent()
         toolbar = QtGui.QToolBar(QMainWin)
         QMainWin.addToolBar(QtCore.Qt.BottomToolBarArea, toolbar)
-        
+
         # Create the slider and spinbox for x-axis scrolling in toolbar
         self.set_slider(toolbar)
         self.set_spinbox(toolbar)
-        
+
         # Set the initial xlimits coherently with values in slider and spinbox
         self.ax.set_xlim(self.pos,self.pos+self.width)
         self.draw()
@@ -182,7 +182,7 @@ class ScrollingToolQT(object):
         self.slider.setPageStep(self.scroll_step*self.width*self.scale)
         self.slider.setValue(self.pos*self.scale) # set the initial position
         self.slider.valueChanged.connect(self.xpos_changed)
-        parent.addWidget(self.slider) 
+        parent.addWidget(self.slider)
 
     def set_spinbox(self, parent):
         self.spinb = QtGui.QDoubleSpinBox(parent=parent)
@@ -192,7 +192,7 @@ class ScrollingToolQT(object):
         self.spinb.setValue(self.width)   # set the initial width
         self.spinb.valueChanged.connect(self.xwidth_changed)
         parent.addWidget(self.spinb)
-        
+
     def xpos_changed(self, pos):
         #pprint("Position (in scroll units) %f\n" %pos)
         pos /= self.scale

@@ -14,16 +14,16 @@ import numpy as np
 
 from utils.misc import pprint
 
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-#  DATA LOADING 
-#  
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#  DATA LOADING
+#
 def read_int32_int32_file(fname, n_bytes_to_read=-1):
     """Read the data file with 32+32 bit format (int32 version)."""
     try: f = open(fname, 'rb')
-    except IOError: 
+    except IOError:
         fname += '.dat'
         f = open(fname, 'rb')
-    
+
     ## Reading the header
     l1 = f.readline(); l2 = f.readline(); l3 = f.readline()
     words_per_photon = l2.split()[-1]
@@ -38,8 +38,8 @@ def read_int32_int32_file(fname, n_bytes_to_read=-1):
     assert ((detector < 17)*(detector >= 0)).all()
     return ph_times, detector.astype('uint8')
 
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-#  DATA CONVERSION 
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#  DATA CONVERSION
 #
 
 def swap_donor_acceptor(detectors, nch=4):
@@ -52,7 +52,7 @@ def swap_donor_acceptor(detectors, nch=4):
     detectors[acceptors] = det_a + nch
     return detectors
 
-def load_data_ordered16(fname, n_bytes_to_read=-1, nch=8, swap_D_A=False, 
+def load_data_ordered16(fname, n_bytes_to_read=-1, nch=8, swap_D_A=False,
                         remap_D=False, remap_A=False):
     """Load data, unroll the 32bit overflow and order in increasing order."""
     pprint(' - Loading data "%s" ... ' % fname)
@@ -67,13 +67,13 @@ def load_data_ordered16(fname, n_bytes_to_read=-1, nch=8, swap_D_A=False,
         pprint("\n   - Inverting ACCEPTOR pixels order ... ")
         detector[detector > nch] = 2*nch+1-(detector[detector > nch] - nch)
         pprint(" [DONE]\n")
-    if swap_D_A: 
+    if swap_D_A:
         pprint("\n   - Swapping D and A channels ... ")
         detector = swap_donor_acceptor(detector, nch=8)
         pprint(" [DONE]\n")
     ph_times_m, red, ph_times_ma = unwind_uni(ph_times, detector)
     pprint("   [DONE Processing]\n")
-    
+
     return ph_times_m, red, ph_times_ma
 
 def unwind_uni(times, det, nch=8, times_nbit=28, debug=True):
@@ -89,7 +89,7 @@ def unwind_uni(times, det, nch=8, times_nbit=28, debug=True):
         t[1:] += np.cumsum((diff(t) < 0), dtype='int64')*(2**times_nbit)
         if debug: assert (np.diff(t) > 0).all()
         #print i, (t < 0).sum(), (diff(t) < 0).sum(), "\n"
-    
+
     ph_times_m, red = nch*[0], nch*[0]
     bones = lambda n: np.ones(n, dtype=bool)
     bzeros = lambda n: np.zeros(n, dtype=bool)
@@ -97,8 +97,8 @@ def unwind_uni(times, det, nch=8, times_nbit=28, debug=True):
         # Merge channels and sort
         ph_times_m[i] = np.hstack([times_ma[i], times_ma[i+nch]])
         index_sort = ph_times_m[i].argsort()
-        red[i] = np.hstack([bzeros(times_ma[i].size), 
-                            bones(times_ma[i+nch].size)]) 
+        red[i] = np.hstack([bzeros(times_ma[i].size),
+                            bones(times_ma[i+nch].size)])
         red[i] = red[i][index_sort]
         ph_times_m[i] = ph_times_m[i][index_sort]
     return ph_times_m, red, times_ma
@@ -124,10 +124,10 @@ def unwind_uni_c(times, det, nch=8, times_nbit=28, debug=True):
         t_a = t_a1.astype(int64)
         t_a += hstack([0, cumsum((diff(t_a1)<0), dtype=int16)])*ts_max
         del t_d1, t_a1
-        
+
         T = hstack([t_d, t_a])
         index_sort = T.argsort(kind='mergesort')
-        
+
         ph_times_m[ich] = T[index_sort]
         A_det[ich] = hstack([bzeros(t_d.size), bones(t_a.size)])[index_sort]
         del index_sort, T
@@ -147,15 +147,15 @@ def unwind_uni_o(times, det, nch=8, times_nbit=28, debug=True):
     for ich in xrange(nch):
         det_d, det_a = ich+1, ich+1+nch
         #a d_mask, a_mask = (det == det_d), (det == det_a)
-        
+
         #t_d, t_a = times[d_mask].astype(int64), times[a_mask].astype(int64)
         #t_d[1:] += cumsum((diff(t_d) < 0), dtype=int64)*expo
         #t_a[1:] += cumsum((diff(t_a) < 0), dtype=int64)*expo
-        
+
         #a t_d, t_a = times[d_mask], times[a_mask]
         t_d, t_a = times[det == det_d], times[det == det_a]
         # overflows must be < 2^16
-        step_d = np.cumsum((diff(t_d) < 0), dtype='int16') 
+        step_d = np.cumsum((diff(t_d) < 0), dtype='int16')
         step_a = np.cumsum((diff(t_a) < 0), dtype='int16')
 
         t1 = np.hstack([t_d, t_a]).astype('int64')

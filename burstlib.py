@@ -4,13 +4,13 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-This is the main library to import (or run) in order to load all the analysis 
+This is the main library to import (or run) in order to load all the analysis
 functions.
 
-`burstslib.py` defines the fundamental object `Data()` that contains both the 
+`burstslib.py` defines the fundamental object `Data()` that contains both the
 experimental data (attributes) and the high-level analysis routines (methods).
 
-Furthermore it loads all the remaining **FRETBursts** modules (except for 
+Furthermore it loads all the remaining **FRETBursts** modules (except for
 `loaders.py`).
 
 For usage example see the IPython Notebooks in sub-folder "notebooks".
@@ -28,10 +28,10 @@ import fret_fit
 
 from burstsearch.burstsearchlib import (
         itstart, iwidth, inum_ph, iistart, iiend, itend,
-        ba_pure_o, mch_count_ph_in_bursts, 
+        ba_pure_o, mch_count_ph_in_bursts,
         b_start, b_end, b_width,
-        b_istart, b_iend, b_size, 
-        b_rate, 
+        b_istart, b_iend, b_size,
+        b_rate,
         b_separation)
 
 try:
@@ -86,7 +86,7 @@ bg_calc_exp_cdf = deprecate(bg.exp_fit, 'bg_calc_exp_cdf', 'bg.exp_cdf_fit')
 
 def Select_bursts(d_orig, filter_fun, negate=False, nofret=False, **kwargs):
     """Uses `filter_fun` to select a sub-set of bursts from `d_orig`.
-    
+
     Arguments:
         d_orig (Data object): the original Data() object to filter
         filter_fun (fuction): function used for burst selection
@@ -94,19 +94,19 @@ def Select_bursts(d_orig, filter_fun, negate=False, nofret=False, **kwargs):
             of the selection returned by `filter_fun`. Default `False`.
         nofret (boolean): If True do not recompute burst correction and FRET
             efficiencies in the new retuerned object. Default `False`.
-    
+
     Kwargs:
         Any additional keyword argument is passed to `filter_fun()`.
-    
+
     Returns:
         d_new: a new Data() object containing the selected bursts.
-    
+
     Warning:
         This function is also avaliable with the shortcut name `Sel`.
-    
+
     Note:
-        In order to save RAM `ph_times_m` is shared between `d_orig` and 
-        `d_new`. However, all the bursts data (`mburst`, `nd`, `na`, etc...) 
+        In order to save RAM `ph_times_m` is shared between `d_orig` and
+        `d_new`. However, all the bursts data (`mburst`, `nd`, `na`, etc...)
         are new objects.
     """
     Masks, str_sel = Sel_mask(d_orig, filter_fun, negate=negate,
@@ -120,7 +120,7 @@ Sel = Select_bursts
 def Sel_mask(d_orig, filter_fun, negate=False, return_str=False, **kwargs):
     """Returns a list of nch masks to select bursts according to filter_fun.
     The passed 'filter_fun' is used to compute the mask for each channel.
-    
+
     Use this function only if you want to apply a selection from one object
     to a second object. Otherwise use :func:`Select_bursts`.
 
@@ -138,16 +138,16 @@ def Sel_mask_apply(d_orig, Masks, nofret=False, str_sel=''):
     """Returns a new Data object with bursts select according to Masks.
     Note that 'ph_times_m' is shared to save RAM, but `mburst`, `nd`, `na`,
     `nt`, `bp` (and `naa` if ALEX) are new objects.
-    
+
     Use this function only if you want to apply a selection from one object
     to a second object. Otherwise use :func:`Select_bursts`.
-        
+
     See also:
-        :func:`Select_bursts`, :func:`Sel_mask`, 
+        :func:`Select_bursts`, :func:`Sel_mask`,
     """
     ## Attributes of ds point to the same objects of d_orig
     ds = Data(**d_orig)
-    
+
     ## Copy the per-burst fields that must be filtered
     used_fields = [field for field in Data.burst_fields if field in d_orig]
     for k in used_fields:
@@ -164,7 +164,7 @@ def Sel_mask_apply(d_orig, Masks, nofret=False, str_sel=''):
             # Note that boolean masking implies numpy array copy
             # On the contrary slicing only makes a new view of the array
             ds[k][i] = d_orig[k][i][mask]
-    
+
     # Recompute E and S
     if not nofret:
         ds.calc_fret(count_ph=False)
@@ -249,19 +249,19 @@ def find_burst(bursts, size, width_ms, clk_p=12.5e-9):
 
 def b_fuse(mburst, ms=0, clk_p=12.5e-9):
     """Fuse bursts separated by less than `ms` (milli-secs).
-    
+
     Note:
         This function will fuse only 2 consecutive bursts. If there are groups
         of 3 or more consecutive bursts all closer that `ms` the function
         must be run several times to fuse all them together.
-    
+
     Parameters:
         mburst (2D array): Nx6 array of burst data, one row per burst
             See `burstseach.burstseachlib.py` for details.
         ms (float):
-            minimum waiting time between bursts (in millisec). Burst closer 
+            minimum waiting time between bursts (in millisec). Burst closer
             than that will be fuse in asingle burst.
-    
+
     Returns:
         new_mbursts (2D array): new array of burst data
     """
@@ -455,34 +455,34 @@ class DataContainer(dict):
 class Data(DataContainer):
     """
     Container for all the information (timestamps, bursts) of a dataset.
-    
+
     Data() contains all the information of a dataset (name, timestamps, bursts,
-    correction factors) and provides several methods to perform analysis 
-    (background estimation, burst search, FRET fitting, etc...). 
-    
+    correction factors) and provides several methods to perform analysis
+    (background estimation, burst search, FRET fitting, etc...).
+
     When loading a measurement file a Data() object is created by one
-    of the loader functions in `loaders.py`. Data() objects can be also 
-    created by some methods (`.copy()`, `.fuse_bursts()`, etc...) or by a 
+    of the loader functions in `loaders.py`. Data() objects can be also
+    created by some methods (`.copy()`, `.fuse_bursts()`, etc...) or by a
     "burst selection" with `Sel()` function.
-    
-    To add or delete data-attributes use `.add()` or `.delete()` methods.    
+
+    To add or delete data-attributes use `.add()` or `.delete()` methods.
     In the follow all the standard data-attributes are listed.
-    
-    Note: 
+
+    Note:
         Attributes of type "*list*" contain one element per channel.
         Each element, in turn, can be an array. For example `.ph_times_m[i]`
         is the array of timestamps for channel `i`; or `.nd[i]` is the array
         of donor counts in each burst for channel `i`.
 
     **Measurement attributes**
-    
+
     Attributes:
         fname (string): measuremets file name
         nch (int): number of channels
         clk_p (float): clock period in seconds for timestamps in `ph_times_m`
-        ph_times_m (list): list of timestamp arrays (int64). Each array 
+        ph_times_m (list): list of timestamp arrays (int64). Each array
             contains all the timestamps (donor+acceptor) in one channel.
-        A_em (list): list of boolean arrays marking acceptor timestamps. Each 
+        A_em (list): list of boolean arrays marking acceptor timestamps. Each
             array is a boolean mask for the corresponding ph_times_m array.
         BT (float or array of floats): bleedthrough or leakage fraction.
             May be scalar or same size as nch.
@@ -490,10 +490,10 @@ class Data(DataContainer):
             May be scalar or same size as nch.
         A_em (list of boolean arrays):
             boolean mask for `.ph_times_m[i]` for acceptor emission
-        D_em (list of boolean arrays):  **[ALEX-only]**       
+        D_em (list of boolean arrays):  **[ALEX-only]**
             boolean mask for `.ph_times_m[i]` for donor emission
-        D_ex, A_ex (list of boolean arrays):  **[ALEX-only]**       
-            boolean mask for `.ph_times_m[i]` during donor or acceptor 
+        D_ex, A_ex (list of boolean arrays):  **[ALEX-only]**
+            boolean mask for `.ph_times_m[i]` during donor or acceptor
             excitation
         D_ON, A_ON (2-element tuples of int ): **[ALEX-only]**
             start-end values for donor and acceptor excitation selection.
@@ -501,32 +501,32 @@ class Data(DataContainer):
             duration of the alternation period in clock cycles.
 
     **Background Attributes**
-    
+
     These attributes contain the estimated background rate. Each arribute is
     a list (one element per channel) of arrays. Each array contains several
-    rates computed every `time_s` seconds of measurements. `time_s` is an 
+    rates computed every `time_s` seconds of measurements. `time_s` is an
     argument passed to `.calc_bg()` method. Each `time_s` measurement slice
     is here called **`period`**.
 
     Attributes:
-        bg (list of arrays):  total background (donor + acceptor) during donor 
+        bg (list of arrays):  total background (donor + acceptor) during donor
             excitation
-        bg_dd (list of arrays): background of donor emission during donor 
+        bg_dd (list of arrays): background of donor emission during donor
             excitation
-        bg_ad (list of arrays): background of acceptor emission during donor 
+        bg_ad (list of arrays): background of acceptor emission during donor
             excitation
-        bg_aa (list of arrays): background of acceptor emission during 
+        bg_aa (list of arrays): background of acceptor emission during
             acceptor excitation
-        nperiods (int): number of periods in which timestamps are splitted for 
+        nperiods (int): number of periods in which timestamps are splitted for
             background calculation
         bg_fun (function): function used to compute the background rates
-        Lim (list): for each ch, is a list of index pairs for `.ph_times_m[i]` 
+        Lim (list): for each ch, is a list of index pairs for `.ph_times_m[i]`
             for **first** and **last** photon in each period.
-        Ph_p (list): for each ch, is a list of timestamps pairs for 
+        Ph_p (list): for each ch, is a list of timestamps pairs for
             **first** and **last** photon of each period.
 
     Other attributes (per-ch mean of `bg`, `bg_dd`, `bg_ad` and `bg_aa`)::
-    
+
         rate_m: array of bg rates for D+A channel pairs (ex. 4 for 4 spots)
         rate_dd: array of bg rates for D em (and D ex if ALEX)
         rate_da: array of bg rates for A em (and D ex if ALEX)
@@ -534,10 +534,10 @@ class Data(DataContainer):
 
     **Burst search parameters (user input)**
 
-    Attributes:    
+    Attributes:
         ph_sel (string): valid values 'DA' (default), 'D' or 'A'
             type of ph selection for burst search (donor, acceptor or both)
-        m (int): number of consecutive timestamps used to compute the 
+        m (int): number of consecutive timestamps used to compute the
             local rate during burst search
         L (int): min. number of photons for a burst to be identified and saved
         P (float, probability): valid values [0..1].
@@ -546,52 +546,52 @@ class Data(DataContainer):
         F (float): `(F * background_rate)` is the minimum rate for burst-start
 
     **Burst search data (available after burst search)**
-    
-    In the following, when not specified, in parameters marked as (list of 
-    arrays) each array contains one element per bursts. `mburst` contain one 
+
+    In the following, when not specified, in parameters marked as (list of
+    arrays) each array contains one element per bursts. `mburst` contain one
     "row" per burst. `TT` arrays contain one element per `period` (see above:
     background attributes).
-    
+
     Attributes:
-        mburst (list of arrays): list of 2-D arrays containing burst data. 
-            Each row contains data for 1 burst. Each column contains burst 
+        mburst (list of arrays): list of 2-D arrays containing burst data.
+            Each row contains data for 1 burst. Each column contains burst
             fields like burst start, end, duration, size and indexes.
             The proper way to access these fields is through the
             function b_* (ex: b_start, b_end, b_width, b_size, etc...).
-            
+
         TT (list of arrays): list of arrays of *T* values (in sec.). A *T*
-            value is the maximum delay between `m` photons to have a 
-            burst-start. Each channels has an array of *T* values, one for 
+            value is the maximum delay between `m` photons to have a
+            burst-start. Each channels has an array of *T* values, one for
             each background "period" (see above).
-        T (array): per-channel mean of `TT` 
-    
-        nd, na (list of arrays): number of donor or acceptor photons during 
+        T (array): per-channel mean of `TT`
+
+        nd, na (list of arrays): number of donor or acceptor photons during
             donor excitation in each burst
         nt (list of arrays): total number photons (nd+na)
         naa (list of arrays): number of acceptor photons in each bursts
             during acceptor excitation **[ALEX only]**
-        bp (list of arrays): time period for each burst. Same shape as `nd`. 
+        bp (list of arrays): time period for each burst. Same shape as `nd`.
             This is needed to identify the background rate for each burst.
-        bg_bs (list): background rates used for threshold computation in burst 
+        bg_bs (list): background rates used for threshold computation in burst
             search (is a reference to `bg`, `bg_dd` or `bg_ad`).
-    
+
         fuse (None or float): if not None, the burst seaparation in ms below
             which bursts have been fused (see `.fuse_bursts()`).
-    
+
         E (list): FRET efficiency value for each burst:
                     E = na/(na + gamma*nd).
         S (list): stochiometry value for each burst:
                     S = (gamma*nd + na) /(gamma*nd + na + naa)
     """
-    
+
     # Central repository of attribute names containing per-burst data
-    # All this attributes are lists (1 element per ch) of arrays (1 element 
+    # All this attributes are lists (1 element per ch) of arrays (1 element
     # per burst).
     # They not necessarly exist. For example 'naa' exist only for ALEX
     # data. Also none of them exist before performing a burst search.
-    burst_fields = ['E', 'S', 'mburst', 'nd', 'na', 'nt', 'bp', 'naa', 
-                    'max_rate', 'sbr']    
-    
+    burst_fields = ['E', 'S', 'mburst', 'nd', 'na', 'nt', 'bp', 'naa',
+                    'max_rate', 'sbr']
+
     def __init__(self, **kwargs):
         # Default values
         init_kw = dict(ALEX=False, BT=0., gamma=1, chi_ch=1., s=[])
@@ -774,15 +774,15 @@ class Data(DataContainer):
 
     def expand(self, ich=0, width=False):
         """Return per-burst D and A sizes (nd, na) and background (bg_d, bg_a).
-        
-        This method returns for each bursts the corrected signal counts and 
+
+        This method returns for each bursts the corrected signal counts and
         background counts in donor and acceptor channels. Optionally, the
         burst width is also returned.
-        
+
         Arguments:
             ich (int): channel for the bursts (can be not 0 only in multi-spot)
             width (bool): whether return also the burst duration (in seconds).
-        
+
         Returns:
             4 arrays: donor signal, accept signal, donor bg, acceptor bg.
             If `width` is True returns also the bursts duration in seconds.
@@ -850,26 +850,26 @@ class Data(DataContainer):
 
     def calc_bg(self, fun, time_s=60, **kwargs):
         """Compute time-dependent background rates for all the channels.
-        
+
         Compute background rates for donor, acceptor and both detectors.
-        The rates are computed every `time_s` seconds, allowing to 
+        The rates are computed every `time_s` seconds, allowing to
         track possible variations during the measurement.
-        
+
         Arguments:
-            fun (function): function for background estimation (example 
+            fun (function): function for background estimation (example
                 `bg.exp_fit`)
             time_s (float, seconds): compute backgound each time_s seconds
             kwargs: additional arguments to be passed to `fun`.
-        
+
         The background estimation functions are defined in the module
         `background` (imported as `bg` in burstlib).
-        
+
         Example:
             Compute background with `bg.exp_fit`, every 20s, with a
             threshold of 200us for photon waiting time::
-            
+
                d.calc_bg(bg.exp_fit, time_s=20, tail_min_us=200)
-            
+
         Returns:
             None, all the results are saved in the object.
         """
@@ -943,8 +943,8 @@ class Data(DataContainer):
 
                 lim.append((i0, i1-1))
                 ph_p.append((ph[i0], ph[i1-1]))
-            
-            Lim.append(lim); Ph_p.append(ph_p)            
+
+            Lim.append(lim); Ph_p.append(ph_p)
             BG.append(bg); BG_err.append(bg_err)
             BG_dd.append(bg_dd); BG_dd_err.append(bg_dd_err)
             BG_ad.append(bg_ad); BG_ad_err.append(bg_ad_err)
@@ -953,10 +953,10 @@ class Data(DataContainer):
             rate_dd.append(bg_dd.mean())
             rate_ad.append(bg_ad.mean())
             if self.ALEX: rate_aa.append(bg_aa.mean())
-        self.add(bg=BG, bg_dd=BG_dd, bg_ad=BG_ad, bg_aa=BG_aa, bg_err=BG_err, 
-                 bg_dd_err=BG_dd_err, bg_ad_err=BG_ad_err, bg_aa_err=BG_aa_err, 
-                 Lim=Lim, Ph_p=Ph_p, nperiods=nperiods, bg_fun=fun, 
-                 bg_time_s=time_s, ph_sel='DA', rate_m=rate_m, 
+        self.add(bg=BG, bg_dd=BG_dd, bg_ad=BG_ad, bg_aa=BG_aa, bg_err=BG_err,
+                 bg_dd_err=BG_dd_err, bg_ad_err=BG_ad_err, bg_aa_err=BG_aa_err,
+                 Lim=Lim, Ph_p=Ph_p, nperiods=nperiods, bg_fun=fun,
+                 bg_time_s=time_s, ph_sel='DA', rate_m=rate_m,
                  rate_dd=rate_dd, rate_ad=rate_ad, rate_aa=rate_aa)
         pprint("[DONE]\n")
 
@@ -1024,12 +1024,12 @@ class Data(DataContainer):
         TT, T, rate_th = [], [], []
         BG = {'DA': self.bg, 'D': self.bg_dd, 'A': self.bg_ad}
         for bg_ch, F_ch, P_ch in zip(BG[ph_sel], FF, PP):
-            # All "T" are in seconds            
+            # All "T" are in seconds
             Tch = find_T(m, F_ch, P_ch, bg_ch)
             TT.append(Tch)
             T.append(Tch.mean())
             rate_th.append(np.mean(m/Tch))
-        self.add(TT=TT, T=T, bg_bs=BG[ph_sel], FF=FF, PP=PP, F=F, P=P, 
+        self.add(TT=TT, T=T, bg_bs=BG[ph_sel], FF=FF, PP=PP, F=F, P=P,
                  rate_th=rate_th)
 
     def _select_ph_times(self, ph_sel):
@@ -1045,7 +1045,7 @@ class Data(DataContainer):
             PH = [p[a] for p, a in zip(self.iter_ph_times(), self.A_em)]
         return PH
 
-    def _burst_search_rate(self, m, L, min_rate_cps, ph_sel='DA', 
+    def _burst_search_rate(self, m, L, min_rate_cps, ph_sel='DA',
                            verbose=True):
         """Experimental burst search with one fixed rate.
         May break stuff downstream!!
@@ -1053,16 +1053,16 @@ class Data(DataContainer):
         Min_rate_cps = self._param_as_mch_array(min_rate_cps)
         mburst = []
         T_clk = (1.*m/Min_rate_cps)/self.clk_p
-        for ich, (ph, t_clk) in enumerate(zip(self.iter_ph_times(ph_sel), 
+        for ich, (ph, t_clk) in enumerate(zip(self.iter_ph_times(ph_sel),
                                           T_clk)):
             label = '%s CH%d' % (ph_sel, ich+1) if verbose else None
-            mb = ba(ph, L, m, t_clk, label=label, verbose=verbose) 
+            mb = ba(ph, L, m, t_clk, label=label, verbose=verbose)
             mburst.append(mb)
         self.add(mburst=mburst, min_rate_cps=Min_rate_cps, T=T_clk*self.clk_p)
 
     def _burst_search_TT(self, m, L, ph_sel='DA', verbose=True):
         """Compute burst search with params `m`, `L` on ph selection `ph_sel`
-        
+
         Requires a list of arrays `self.TT` with the max time-thresholds in
         the different burst periods for each channel (use `._calc_T()`).
         """
@@ -1115,52 +1115,52 @@ class Data(DataContainer):
             assert (mb[:, inum_ph] >= old_mb[:, inum_ph]).all()
         pprint('[DONE]\n')
 
-    def burst_search_t(self, L=10, m=10, P=0.95, F=1., min_rate_cps=None, 
-            nofret=False, max_rate=False, dither=False, ph_sel='DA', 
+    def burst_search_t(self, L=10, m=10, P=0.95, F=1., min_rate_cps=None,
+            nofret=False, max_rate=False, dither=False, ph_sel='DA',
             verbose=False, mute=False):
         """Performs a burst search with specified parameters.
-        
-        This method performs a sliding-window burst search and does not 
+
+        This method performs a sliding-window burst search and does not
         require binning the timestamps. The burst starts when the rate of `m`
         photons is above a minimum rate, and stops when the rate falls below
         the threshold.
-        
+
         The minimum rate can be explicitly specified (`min_rate`) or computed
         as a function of the background rate (using `F` or `P`).
-        
-        Parameters:        
-            m (int): number of of consecutive photons used to compute the 
+
+        Parameters:
+            m (int): number of of consecutive photons used to compute the
                 photon rate.
             L (int): minimum number of photons in burst
-            P (float): Probability to detect non-Poisson bursts. If not None 
+            P (float): Probability to detect non-Poisson bursts. If not None
                 this overrides `F`.
             F (float): if `P` is None: min.rate/bg.rate ratio for burst search
                 else: `P` refers to a Poisson rate = bg_rate*F
             min_rate (float or list/array): min. rate in cps for burst start.
                 If not None has the precedence over `P` and `F`.
                 If non-scalar, contains one rate per each channel.
-            ph_sel (string): can be 'DA', 'D' or 'A'. Specifies the photon 
-                selection on which to perform the burst search: 'DA' for 
+            ph_sel (string): can be 'DA', 'D' or 'A'. Specifies the photon
+                selection on which to perform the burst search: 'DA' for
                 donor+acceptor, 'D' or 'A' for donor or acceptor photons.
-        
-        Note: 
-            when using `P` or `F` the background rates are needed, so 
+
+        Note:
+            when using `P` or `F` the background rates are needed, so
             `.calc_bg()` must be called before the burst search.
-              
+
         Example:
             d.burst_search_t(L=10, m=10, F=6, P=None, ph_sel='DA')
-            
+
         Returns:
             None, all the results are saved in the object.
         """
         pprint(" - Performing burst search (verbose=%s) ..." % verbose, mute)
         # Erase any previous burst data
         for k in self.burst_fields + ['fuse', 'lsb']:
-            if k in self: 
-                self.delete(k)        
-        
+            if k in self:
+                self.delete(k)
+
         if min_rate_cps is not None:
-            self._burst_search_rate(m=m, L=L, min_rate_cps=min_rate_cps, 
+            self._burst_search_rate(m=m, L=L, min_rate_cps=min_rate_cps,
                                     ph_sel=ph_sel, verbose=verbose)
         else:
             # Compute TT
@@ -1178,7 +1178,7 @@ class Data(DataContainer):
 
         if not nofret:
             pprint(" - Counting D and A ph and calculating FRET ... \n", mute)
-            self.calc_fret(count_ph=True, corrections=True, dither=dither, 
+            self.calc_fret(count_ph=True, corrections=True, dither=dither,
                            mute=mute)
             pprint("   [DONE Counting D/A]\n", mute)
         if max_rate:
@@ -1246,8 +1246,8 @@ class Data(DataContainer):
         self.add(bg_corrected=True)
         for ich, mb in enumerate(self.mburst):
             if mb.size == 0: continue  # if no bursts skip this ch
-            period = self.bp[ich]            
-            nd, na, bg_d, bg_a, width = self.expand(ich, width=True)            
+            period = self.bp[ich]
+            nd, na, bg_d, bg_a, width = self.expand(ich, width=True)
             nd -= bg_d
             na -= bg_a
             if relax_nt:
@@ -1366,8 +1366,8 @@ class Data(DataContainer):
         sbr = []
         for ich, mb in enumerate(self.mburst):
             if mb.size == 0:
-                sbr.append([])                
-                continue  # if no bursts skip this ch  
+                sbr.append([])
+                continue  # if no bursts skip this ch
             nd, na, bg_d, bg_a = self.expand(ich)
             sbr.append(1.*(nd + na)/(bg_d + bg_a))
         self.add(sbr=sbr)
@@ -1376,7 +1376,7 @@ class Data(DataContainer):
     ##
     # FRET and stochiometry methods
     #
-    def calc_fret(self, count_ph=False, corrections=True, dither=False, 
+    def calc_fret(self, count_ph=False, corrections=True, dither=False,
                   mute=False):
         """Compute FRET (and Stoichiometry if ALEX) for each burst."""
         if count_ph: self.cal_ph_num()
@@ -1419,7 +1419,7 @@ class Data(DataContainer):
         s = name
         if 'L' in self: # burst search has been done
             if 'min_rate_cps' in self:
-                s += " BS_%s L%d m%d MR%d" % (self.ph_sel, self.L, self.m, 
+                s += " BS_%s L%d m%d MR%d" % (self.ph_sel, self.L, self.m,
                                               np.mean(self.min_rate_cps*1e-3))
             else:
                 s += " BS_%s L%d m%d P%s F%.1f" % \
@@ -1462,13 +1462,13 @@ class Data(DataContainer):
     #
     def fit_E_m(self, E1=-1, E2=2, weights='size', gamma=1.):
         """Fit E in each channel with the mean using bursts in [E1,E2] range.
-        
+
         Note:
             This two fitting are equivalent (but the first is much faster)::
-            
+
                 fit_E_m(weights='size')
                 fit_E_minimize(kind='E_size', weights='sqrt')
-            
+
             However `fit_E_minimize()` does not provide a model curve.
         """
         Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
@@ -1557,14 +1557,14 @@ class Data(DataContainer):
             weights=None, gamma=1., **fit_kwargs):
         """Fit E in each channel with `fit_fun` using burst in [E1,E2] range.
         All the fitting functions are defined in `fit.gaussian_fitting`.
-        
+
         Parameters:
             weights (string or None): specifies the type of weights
-                If not None `weights` will be passed to 
+                If not None `weights` will be passed to
                 `fret_fit.get_weights()`. `weights` can be not-None only when
-                using fit functions that accept weights (the ones ending in 
+                using fit functions that accept weights (the ones ending in
                 `_hist` or `_EM`)
-            gamma (float): passed to `fret_fit.get_weights()` to compute 
+            gamma (float): passed to `fret_fit.get_weights()` to compute
                 weights
 
         All the additional arguments are passed to `fit_fun`. For example `p0`
@@ -1634,7 +1634,7 @@ class Data(DataContainer):
         """Compute several versions of WEIGHTED std.dev. of the E estimator.
         `weights` are multiplied *BEFORE* squaring the distance/error
         `dist` can be 'DeltaE' or 'SlopeEuclid'
-        
+
         Note:
             This method is still experimental
         """

@@ -42,18 +42,18 @@ def load_spc(fname, return_extra_data=False):
 
     b = np.bitwise_and(data[:,1], int('0xFF', 16))
     ph_times = np.left_shift(b.astype('uint64'),16) + data[:,2] # [ b ][   a   ]
-    
+
     det = np.right_shift(data[:,1],8)
     nanotime = 4095 - np.bitwise_and(data[:,0], int('0xFFF',16))
     extra_data = np.right_shift(data[:,0],12).astype('uint8')
-    
+
     # extract the 13-th bit of every elemente in data[:,0]
     overflow = np.bitwise_and(np.right_shift(data[:,0],13), 1)
     overflow = np.cumsum(overflow, dtype='uint64')
 
-    # concatenate of the MSB given by the overflow integration 
+    # concatenate of the MSB given by the overflow integration
     ph_times += np.left_shift(overflow,24)
-    
+
     # sanity checks
     assert ph_times.shape == det.shape
     assert ph_times.shape == nanotime.shape
@@ -61,7 +61,7 @@ def load_spc(fname, return_extra_data=False):
     # The first ph has always detector==1, seems odd so I exclude it
     if return_extra_data:
         return ph_times[1:], det[1:], nanotime[1:], extra_data[1:]
-    else:    
+    else:
         return ph_times[1:], det[1:], nanotime[1:]
 
 

@@ -4,8 +4,8 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-From this module import the find_optimal_T() function to calculate the 
-T value for burst search that gives a probability to detect noise as burst 
+From this module import the find_optimal_T() function to calculate the
+T value for burst search that gives a probability to detect noise as burst
 below a threshold (P_user), for a given value of m (burst search parameter).
 
 Implementation details:
@@ -39,7 +39,7 @@ def find_optimal_T(bg_rate, m, P):
 
 def find_optimal_T_chi2(bg_rate, m, P):
     """Returns the min. T so that bg_rate is <= than lower_conf_rate(m,T,P).
-    
+
     This is equivalent but much faster than find_optimal_T_iter().
     Note: This is based on the confidence intervall of multiple exponential
     """
@@ -55,26 +55,26 @@ def find_optimal_threshold(m, P):
 
 def prob_noise_above_th(rate, T, m):
     """Returns the probability that noise is above the burst search threshold.
-    
-    Basically is the probability that a poisson process with rate "rate" had 
+
+    Basically is the probability that a poisson process with rate "rate" had
     "m" or more events in a time window "T".
     """
     return poisson(rate*T).sf(m-1)
 _p = prob_noise_above_th
 
-def prob_noise_above_th_test_version(rate, T, m): 
+def prob_noise_above_th_test_version(rate, T, m):
     """Returns the probability that noise is above the burst search threshold.
-    
-    Same as prob_noise_above_th() but compute ARITHMETICALLY the probability 
+
+    Same as prob_noise_above_th() but compute ARITHMETICALLY the probability
     adding up the PDF from m to a very high integer (mean + 9std_dev).
-    
+
     WARNING: Test version, significantly slower!!
     """
     rate = float(rate)
     T = float(T)
     n_poiss = rate*T
     if m < (n_poiss) - 9*np.sqrt(n_poiss): return 1. #
-    
+
     s = 0.
     for i in np.arange(m,int(rate*T + 9*np.sqrt(rate*T))+1):
         s += reduce(lambda x,y: x*y, [(n_poiss/j) for j in range(1,i+1)])
@@ -87,9 +87,9 @@ _p2 = prob_noise_above_th_test_version
 def find_optimal_T_iter(bg_rate, m, P_user, max_iter=int(1e6), debug=False):
     """Returns the T (sec.) that assure prob. P_user or less to have noise.
 
-    Given a background rate (bg_rate) find a T such as Poiss{bg_rate*T} has 
+    Given a background rate (bg_rate) find a T such as Poiss{bg_rate*T} has
     probability to have m or more events (k >= m) lesser than P_user.
-    
+
     In other words find the max T that satisfies: poisson(lam*T).sf(m) < P_user
     """
 
@@ -192,24 +192,24 @@ if __name__ == '__main__':
     # Reference results for P = 10%, 1%, 0.1%
     Output = """
  P_user = 10.00 %, T values in ms:
-               3        5       10       20       50 
-     100    11.016   24.313   62.188  145.250  411.750 
-    1000     1.102    2.432    6.219   14.523   41.156 
-    2000     0.551    1.216    3.109    7.262   20.578 
-    5000     0.220    0.486    1.244    2.904    8.234 
+               3        5       10       20       50
+     100    11.016   24.313   62.188  145.250  411.750
+    1000     1.102    2.432    6.219   14.523   41.156
+    2000     0.551    1.216    3.109    7.262   20.578
+    5000     0.220    0.486    1.244    2.904    8.234
 
  P_user = 1.00 %
-               3        5       10       20       50 
-     100     4.359   12.789   41.281  110.813  350.250 
-    1000     0.436    1.278    4.129   11.078   35.031 
-    2000     0.218    0.639    2.064    5.539   17.516 
-    5000     0.087    0.256    0.826    2.215    7.004 
+               3        5       10       20       50
+     100     4.359   12.789   41.281  110.813  350.250
+    1000     0.436    1.278    4.129   11.078   35.031
+    2000     0.218    0.639    2.064    5.539   17.516
+    5000     0.087    0.256    0.826    2.215    7.004
 
  P_user = 0.10 %
-               3        5       10       20       50 
-     100     1.905    7.391   29.594   89.563  309.500 
-    1000     0.190    0.739    2.959    8.953   30.953 
-    2000     0.095    0.370    1.479    4.477   15.477 
-    5000     0.038    0.148    0.592    1.791    6.191 
+               3        5       10       20       50
+     100     1.905    7.391   29.594   89.563  309.500
+    1000     0.190    0.739    2.959    8.953   30.953
+    2000     0.095    0.370    1.479    4.477   15.477
+    5000     0.038    0.148    0.592    1.791    6.191
 
 """

@@ -4,7 +4,7 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-This is the main file that loads the FRETBursts software, except for the plot 
+This is the main file that loads the FRETBursts software, except for the plot
 functions.
 
 This file imports two modules:

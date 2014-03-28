@@ -20,7 +20,7 @@ max_relative_error = 0.05
 def sample():
     np.random.seed(1)
     return SS.expon.rvs(size=sample_size, scale=sample_tau)
-    
+
 
 def test_expon_fit(sample):
     lambda_fit, err, size = expon_fit(sample, s_min=sample_min)

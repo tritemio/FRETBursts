@@ -6,36 +6,36 @@
 """
 Core burst search and photon counting functions.
 
-All the burst search functions return a 2-D array of shape Nx6, where N is 
-the number of bursts (burst array). The 6 columns contain burst data 
-(time start, width, number of photons, index of time start, index of time end, 
+All the burst search functions return a 2-D array of shape Nx6, where N is
+the number of bursts (burst array). The 6 columns contain burst data
+(time start, width, number of photons, index of time start, index of time end,
 time end).
 
 The burst array can be indexed of sliced along the first dimension (row wise
-or axis=0) to select one or more bursts. However to access specific burst 
-fields in the second dimension (columns or axis=1) the b_* utility functions 
+or axis=0) to select one or more bursts. However to access specific burst
+fields in the second dimension (columns or axis=1) the b_* utility functions
 should be used. These is both clearer and less bug-prone than using column
 index to access burst data.
 
-For example, assume a burst array `mburst`. To take a slice of only the first 
+For example, assume a burst array `mburst`. To take a slice of only the first
 10 bursts you can do::
 
     mburst2 = mburst[:10]   # new array with burst data of the first 10 bursts
-    
+
 Obtain the burst start fo all the bursts::
-    
+
     b_start(mbursts)
 
 Obtain the burst size (number of photons) for burst 10 to 20::
 
     b_size(mbursts[10:20])
-    
+
 """
 
 import numpy as np
 from utils.misc import pprint
 
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  GLOBAL VARIABLES
 #
 
@@ -49,33 +49,33 @@ def b_start(b):
 
 def b_end(b):
     """Time of last ph in burst"""
-    return b[:, itend]          
+    return b[:, itend]
 
 def b_width(b):
     """Burst width in clk cycles"""
-    return b[:, iwidth]  
+    return b[:, iwidth]
 
 def b_istart(b):
     """Index of 1st ph in burst"""
-    return b[:, iistart]     
+    return b[:, iistart]
 
 def b_iend(b):
     """Index of last ph in burst"""
-    return b[:, iiend]     
+    return b[:, iiend]
 
 def b_size(b):
     """Number of ph in the burst"""
-    return b[:, inum_ph]     
+    return b[:, inum_ph]
 
 def b_rate(b):
     """Mean rate of ph in burst"""
-    return 1.*b_size(b)/b_width(b)    
+    return 1.*b_size(b)/b_width(b)
 
 def b_separation(b):
     """Separation between nearby bursts"""
-    return b_start(b)[1:] - b_end(b)[:-1]   
+    return b_start(b)[1:] - b_end(b)[:-1]
 
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  LOW-LEVEL BURST SEARCH FUNCTIONS
 #
 
@@ -94,7 +94,7 @@ def wba(t,L,m,T):
             in_burst = False
             burst_end = t[i-1+m]
             if i-1+m - i_start >= L:
-                bursts.append([burst_start,burst_end-burst_start, 
+                bursts.append([burst_start,burst_end-burst_start,
                     i-1+m-i_start])
     return np.array(bursts)
 
@@ -110,8 +110,8 @@ def ba_pure(t,L,m,T,label='Burst search'):
                 i_start = i
                 in_burst = True
         elif in_burst:
-            # Note that i_end is the index of the last ph in the current time 
-            # window, while the last ph in a burst is (i_end-1). 
+            # Note that i_end is the index of the last ph in the current time
+            # window, while the last ph in a burst is (i_end-1).
             # Note however that the number of ph in a burst is (i_end-i_start),
             # not (i_end-1)-i_start as may erroneously appears at first glace.
             in_burst = False
@@ -164,7 +164,7 @@ def ba_pure_a(t,L,m,T,label='Burst search'):
     return np.array(bursts, dtype=np.int64)[:iburst]
 
 
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  Functions to count D and A ph in bursts
 #
 
@@ -183,7 +183,7 @@ def count_ph_in_bursts(bursts, mask):
 
 def mch_count_ph_in_bursts(mburst, Mask):
     """Counts num ph in each burst counting only ph in Mask (multi-ch version).
-    
+
     mburst: is a list of burst data (Nx4 array), one per ch.
     Mask: is a list of ph masks (one per ch), same size as ph_time_m used for
           burst search.

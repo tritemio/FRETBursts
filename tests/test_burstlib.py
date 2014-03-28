@@ -26,14 +26,14 @@ def load_dataset_1ch():
     fn = "0023uLRpitc_NTP_20dT_0.5GndCl.sm"
     fname = DATASETS_DIR + fn
     d = load_usalex(fname=fname, BT=0.11, gamma=1.)
-    d.add(det_donor_accept=(0, 1), alex_period=4000, 
+    d.add(det_donor_accept=(0, 1), alex_period=4000,
           D_ON=(2850, 580), A_ON=(900, 2580))
     usalex_apply_period(d)
 
     d.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
     d.burst_search_t(L=10, m=10, P=None, F=7, ph_sel='DA')
     return d
-    
+
 def load_dataset_8ch():
     fn = "12d_New_30p_320mW_steer_3.dat"
     fname = DATASETS_DIR + fn
@@ -45,7 +45,7 @@ def load_dataset_8ch():
     return d
 
 @pytest.fixture(scope="module", params=[
-                                    #load_dataset_1ch, 
+                                    #load_dataset_1ch,
                                     load_dataset_8ch,
                                     ])
 def data(request):
@@ -58,7 +58,7 @@ def data(request):
 # Test functions
 #
 def test_b_functions(data):
-    itstart, iwidth, inum_ph, iistart, iiend, itend = 0, 1, 2, 3, 4, 5    
+    itstart, iwidth, inum_ph, iistart, iiend, itend = 0, 1, 2, 3, 4, 5
     d = data
     for mb in d.mburst:
         assert (bl.b_start(mb) == mb[:, itstart]).all()
@@ -68,18 +68,18 @@ def test_b_functions(data):
         assert (bl.b_iend(mb) == mb[:, iiend]).all()
         assert (bl.b_size(mb) == mb[:, inum_ph]).all()
 
-        rate = 1.*mb[:, inum_ph]/mb[:, iwidth]        
+        rate = 1.*mb[:, inum_ph]/mb[:, iwidth]
         assert (bl.b_rate(mb) == rate).all()
 
-        separation = mb[1:, itstart] - mb[:-1, itend]     
+        separation = mb[1:, itstart] - mb[:-1, itend]
         assert (bl.b_separation(mb) == separation).all()
-        
+
         assert (bl.b_end(mb) > bl.b_start(mb)).all()
 
-        
+
 def test_b_end_b_iend(data):
     """Test coherence between b_end() and b_iend()"""
-    d = data    
+    d = data
     for ph, mb in zip(d.ph_times_m, d.mburst):
         assert (ph[bl.b_iend(mb)] == bl.b_end(mb)).all()
 
@@ -131,7 +131,7 @@ def test_get_burst_size(data):
     d = data
     d.burst_search_t(L=10, m=10, P=None, F=7, ph_sel='DA')
     for ich, (nd, na) in enumerate(zip(d.nd, d.na)):
-        burst_size = bl.select_bursts.get_burst_size(d, ich)        
+        burst_size = bl.select_bursts.get_burst_size(d, ich)
         assert (burst_size == nd + na).all()
 
 def test_expand(data):
@@ -144,25 +144,25 @@ def test_expand(data):
         period = d.bp[ich]
         bg_d2 = d.bg_dd[ich][period] * width2
         bg_a2 = d.bg_ad[ich][period] * width2
-        assert (width == width2).all()      
+        assert (width == width2).all()
         assert (nd == d.nd[ich]).all() and (na == d.na[ich]).all()
         assert (bg_d == bg_d2).all() and (bg_a == bg_a2).all()
-        
-        
+
+
 def test_burst_corrections(data):
     """Test background and bleed-through corrections."""
     d = data
     BT = d.get_BT_array()
-    
+
     for ich, mb in enumerate(d.mburst):
         if mb.size == 0: continue  # if no bursts skip this ch
-        nd, na, bg_d, bg_a, width = d.expand(ich, width=True)        
+        nd, na, bg_d, bg_a, width = d.expand(ich, width=True)
         burst_size_raw = bl.b_size(mb)
-        
+
         bt = BT[ich]
         burst_size_raw2 = nd + na + bg_d + bg_a + bt*nd
         assert np.allclose(burst_size_raw, burst_size_raw2)
-        
-                    
+
+
 if __name__ == '__main__':
     pytest.main("-x -v tests/test_burstlib.py")

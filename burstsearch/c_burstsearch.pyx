@@ -56,7 +56,7 @@ def ba_pure_c(np.ndarray[np.int64_t, ndim=1] t,
     assert t.dtype == np.int64
     pprint('C Burst search (pure): %s\n'%label)
     #bursts = []
-    cdef np.ndarray[np.int64_t, ndim=2] bursts = np.zeros((3e3, 6), 
+    cdef np.ndarray[np.int64_t, ndim=2] bursts = np.zeros((3e3, 6),
 		    dtype=np.int64)
     iburst = 0
     in_burst = 0
@@ -67,8 +67,8 @@ def ba_pure_c(np.ndarray[np.int64_t, ndim=1] t,
                 i_start = i
                 in_burst = 1
         elif in_burst:
-            # Note that i_end is the index of the last ph in the current time 
-            # window, while the last ph in a burst is (i_end-1). 
+            # Note that i_end is the index of the last ph in the current time
+            # window, while the last ph in a burst is (i_end-1).
             # Note however that the number of ph in a burst is (i_end-i_start),
             # not (i_end-1)-i_start as may erroneously appears at first glace.
             in_burst = 0
@@ -85,13 +85,13 @@ def ba_pure_c(np.ndarray[np.int64_t, ndim=1] t,
                 iburst += 1
     return np.array(bursts, dtype=np.int64)[:iburst]
 
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  Functions to count D and A ph in bursts
 #
 
 def c_mch_count_ph_in_bursts(mburst, Mask):
     """Counts num ph in each burst counting only ph in Mask (multi-ch version).
-    
+
     mburst: is a list of burst data (Nx4 array), one per ch.
     Mask: is a list of ph masks (one per ch), same size as ph_time_m used for
           burst search.

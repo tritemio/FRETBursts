@@ -10,13 +10,13 @@ SM Format, written by the LV program in WeissLab us-ALEX setup
 A SM file is composed by two parts:
 
   - 166 bytes: an header
-  - the remainig bytes: the data 
+  - the remainig bytes: the data
   - 26 bytes of trailing cruft
 
-The data is a list of 96-bit records that contain for each ph (count) 
+The data is a list of 96-bit records that contain for each ph (count)
 the detection time and the detector.
 
-The first 64-bit of each record are the ph time, and the remainig 16-bit 
+The first 64-bit of each record are the ph time, and the remainig 16-bit
 are the detector.
 
 ::
@@ -28,7 +28,7 @@ are the detector.
            '-------'   '-------'   '-------'
             data[0]     data[1]     data[2]
 
-The data is in unsigned big endian (>) format. 
+The data is in unsigned big endian (>) format.
 
 For efficiency the data is read as a list of B.E. (>) uint32 and then
 recomposed in ph_times and det. (NB: Old not very efficient approach)
@@ -59,10 +59,10 @@ def load_sm_new(fname, header=166):
     except IOError: f = open(fname+'.sm', 'rb')
     f.seek(header)
     byte_string = f.read()
-    
+
     # Description of the record element in the file
     sm_dtype = np.dtype([('timestamp', '>i8'), ('detector', '>u4')])
-    
+
     # Remove the end of the file
     end_field1 = 4
     end_str = 'End Of Run'
@@ -77,20 +77,20 @@ def _decode_header(header):
     """Decode the header of a .sm file. UNUSED."""
     # List of ASCII strings in the header
     str_list = [
-            'Simple', 'Arrival Time Counter', 
+            'Simple', 'Arrival Time Counter',
             'Time High', 'Time Low',
             'Ch 1', 'Ch 2'
             ]
-    
+
     # List of ASCII byte fields lengths
     field_list = [12, 8, 12, 24, 55, 4]
-    
+
     str_len = len(''.join(str_list))
     field_len = reduce(lambda x,y: x+y, field_list)
 
     assert len(str_list) == len(field_list)
     assert str_len + field_len == len(header)
-    
+
     Fields = []
     Strings = []
     pos = 0

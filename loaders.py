@@ -4,12 +4,12 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-This module contains (at least) one function for each supported data file 
-format. The loader functions load data from a specific format and 
+This module contains (at least) one function for each supported data file
+format. The loader functions load data from a specific format and
 initialize a new `Data()` object containing the data.
 
-This file contains only the high-level function to load a data-file and 
-to return a `Data()` object. The low-level functions that perform the binary 
+This file contains only the high-level function to load a data-file and
+to return a `Data()` object. The low-level functions that perform the binary
 loading and preprocessing are placed in the `dataload` folder.
 """
 
@@ -96,7 +96,7 @@ def load_multispot48(fname, BT=0, gamma=1., reprocess=False,
     else:
         pprint(' - Loading file: %s ... ' % fname)
         ## Load data from raw file and store it in a HDF5 file
-        data = load_xavier_manta_data(fname, i_start=i_start, i_stop=i_stop, 
+        data = load_xavier_manta_data(fname, i_start=i_start, i_stop=i_stop,
                                       debug=debug)
         pprint('DONE.\n - Extracting timestamps and detectors ... ')
         timestamps, det = get_timestamps_detectors(data, nbits=24)
