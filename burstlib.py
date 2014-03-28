@@ -821,6 +821,11 @@ class Data(DataContainer):
                 for ph, mb in zip(self.iter_ph_times(), self.mburst)]
         self.add(max_rate=Max_Rate)
 
+    def delete_burst_data(self):
+        """Erase any possible burst data"""
+        for k in self.burst_fields + ['fuse', 'lsb']:
+            if k in self:
+                self.delete(k)
     ##
     # Background analysis methods
     #
@@ -1155,9 +1160,7 @@ class Data(DataContainer):
         """
         pprint(" - Performing burst search (verbose=%s) ..." % verbose, mute)
         # Erase any previous burst data
-        for k in self.burst_fields + ['fuse', 'lsb']:
-            if k in self:
-                self.delete(k)
+        self.delete_burst_data()
 
         if min_rate_cps is not None:
             self._burst_search_rate(m=m, L=L, min_rate_cps=min_rate_cps,
