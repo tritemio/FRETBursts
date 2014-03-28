@@ -33,6 +33,7 @@ from matplotlib.mlab import normpdf
 from scipy.signal import gaussian
 from scipy.stats import erlang
 from scipy.optimize import leastsq
+from scipy.interpolate import UnivariateSpline
 
 # Graphics imports
 import matplotlib.pyplot as plt
@@ -47,6 +48,7 @@ from matplotlib.collections import PatchCollection
 
 # Local imports
 import burstlib as bl
+import burstlib_ext as bext
 import background as bg
 from fit import gaussian_fitting
 from utils.misc import binning, clk_to_s, pprint
@@ -500,109 +502,77 @@ def hist_ph_delays(d, i=0, time_min_s=0, time_max_s=30, bin_width_us=10,
                                                            100*(rg-re)/re))
     plt.legend(loc='best', fancybox=True)
 
-def hist_mdelays(d, i=0, m=10, bins=r_[:10:0.02], normed=True, dense=False,
-        t_max=-1, in_burst=None, no_bg_fit=True, hold=False):
-    """Histogram of m-ph delays."""
-    ax = gca()
-    if not hold:
-        #ax.clear()
-        for _ind in range(len(ax.lines)): ax.lines.pop()
-
-    if t_max == -1 or t_max is None: t_max = d.time_max()
-    if in_burst is None:
-        ph = d.ph_times_m[i]
-    elif in_burst:
-        ph = d.ph_times_m[i][d.ph_in_burst[i]] # select ph in bursts
-    else:
-        ph = d.ph_times_m[i][-d.ph_in_burst[i]] # select ph NOT in bursts
-    ph = ph[ph<t_max/d.clk_p]
-    if dense:
-        ph_mdelays = (ph[m-1:]-ph[:ph.size-m+1])*d.clk_p*1e3
-    else:
-        ph_mdelays = np.diff(ph[::m])*d.clk_p*1e3
-
-    gauss = lambda M,std: gaussian(M,std)/gaussian(M,std).sum()
-
-    # Compute the PDF through histograming
-    H = np.histogram(ph_mdelays, bins=bins, normed=normed)
-    epdf_x = 0.5*(H[1][:-1]+H[1][1:])
-    epdf_y = H[0]
-
-    # Compute BG distrib. quantities
-    rate0 = d.bg[i].mean()/1e3
-    bg_dist = erlang(m, scale=1./rate0)
-    p01 = bg_dist.ppf(0.001)
-    th_p = p01
-    th_p = m/rate0/d.F
-    integr = np.trapz(x=epdf_x[epdf_x<th_p], y=epdf_y[epdf_x<th_p])
-
-    th = bg_dist.mean()*1.
-
-    title("I = %.1f %%" % (integr*100), fontsize='small')
-    #text(0.8,0.8,"I = %.1f %%" % (integr*100), transform = gca().transAxes)
-    plt.axvline(p01, color='k', label="BG dist. @ 1%")
-    plt.axvline(th, color='k', ls='--', label="BG mean")
-    plt.axvline(m/rate0/d.F, color='m', label="BS threshold (F=%d)" % d.F)
-    plot(epdf_x, epdf_y, lw=2, color='b', label="Delays dist.")
-    #plot(epdf_x, convolve(epdf_y, gauss(15,2),'same'), lw=2, color='b')
-    xlabel("Time (ms)")
-    if not no_bg_fit:
-        ## Fitting the BG portion of the PDF to an Erlang
-        _x = epdf_x[epdf_x>th]
-        _y = epdf_y[epdf_x>th]
-        fit_fun = lambda x, a: a*bg_dist.pdf(x)
-        errfunc = lambda p, x, y: fit_fun(x, p[0]) - y
-        p,v = leastsq(errfunc, x0=[0.9], args=(_x,_y))
-        #print p, v
-        plot(epdf_x, p[0]*bg_dist.pdf(epdf_x), lw=3, color='k', alpha=0.5)
-        plot(epdf_x, epdf_y-p[0]*bg_dist.pdf(epdf_x), lw=1.5, color='r')
-        gca().set_title("I = %.1f %%, BG = %d %%" % (integr*100, p[0]*100))
-
-def hist_mdelays2(d, i=0, m=10, bins=r_[:10:0.02], normed=True, dense=False,
-        t_max=-1, no_bg_fit=True, hold=False):
+def hist_mdelays(d, i=0, m=10, bins_s=(0, 10, 0.02), bp=0,
+                  no_bg_fit=True, hold=False, bg_ppf=0.01, ph_sel='DA',
+                  spline=True, s=1., bg_fit=True, bg_F=0.8):
     """Histogram of m-ph delays (all ph vs in-burst ph)."""
     ax = gca()
     if not hold:
         #ax.clear()
         for _ind in range(len(ax.lines)): ax.lines.pop()
-    if t_max == -1 or t_max is None: t_max = d.time_max()
-    ph = d.ph_times_m[i]
-    ph = ph[ph<t_max/d.clk_p]
-    phb = ph[d.ph_in_burst[i][ph<t_max/d.clk_p]] # select ph in bursts
-    if dense:
-        ph_mdelays = (ph[m-1:]-ph[:ph.size-m+1])*d.clk_p*1e3
+
+    results = bext.calc_mdelays_hist(
+                        d=d, ich=i, m=m, bp=bp, bins_s=bins_s, ph_sel=ph_sel,
+                        bursts=True, bg_fit=bg_fit, bg_F=bg_F)
+    bin_x, histog_y = results[:2]
+    bg_dist = results[2]
+    rate_ch_kcps = 1./bg_dist.kwds['scale']  # extract the rate
+    if bg_fit:
+        a, rate_kcps = results[3:5]
+
+    mdelays_hist_y = histog_y[0]
+    mdelays_b_hist_y = histog_y[1]
+
+    # Center of mass (COM)
+    binw = bins_s[2]
+    com = np.sum(bin_x*mdelays_hist_y)*binw
+    com_b = np.sum(bin_x*mdelays_b_hist_y)*binw
+    #print com, com_b
+
+    # Compute a spline smoothing of the PDF
+    mdelays_spline = UnivariateSpline(bin_x, mdelays_hist_y, s=s*com)
+    mdelays_b_spline = UnivariateSpline(bin_x, mdelays_b_hist_y, s=s*com_b)
+    mdelays_spline_y = mdelays_spline(bin_x)
+    mdelays_b_spline_y = mdelays_b_spline(bin_x)
+    if spline:
+        mdelays_pdf_y = mdelays_spline_y
+        mdelays_b_pdf_y = mdelays_b_spline_y
     else:
-        ph_mdelays = np.diff(ph[::m])*d.clk_p*1e3
-        phb_mdelays = np.diff(phb[::m])*d.clk_p*1e3
+        mdelays_pdf_y = mdelays_hist_y
+        mdelays_b_pdf_y = mdelays_b_hist_y
 
-    gauss = lambda M,std: gaussian(M,std)/gaussian(M,std).sum()
+    # Thresholds and integrals
+    max_delay_th_P = bg_dist.ppf(bg_ppf)
+    max_delay_th_F = m/rate_ch_kcps/d.F
 
-    # Compute the PDF through histograming
-    H = np.histogram(ph_mdelays, bins=bins, normed=normed)
-    epdf_x = 0.5*(H[1][:-1]+H[1][1:])
-    epdf_y = H[0]
+    burst_domain = bin_x < max_delay_th_F
+    burst_integral = np.trapz(x=bin_x[burst_domain],
+                              y=mdelays_hist_y[burst_domain])
 
-    H = np.histogram(phb_mdelays, bins=bins, normed=normed)
-    epdfb_y = H[0]*phb_mdelays.size/float(ph_mdelays.size)
-
-    # Compute BG distrib. quantities
-    rate0 = d.bg[i].mean()/1e3
-    bg_dist = erlang(m, scale=1./rate0)
-    p01 = bg_dist.ppf(0.001)
-    th_p = p01
-    th_p = m/rate0/d.F
-    integr = np.trapz(x=epdf_x[epdf_x<th_p], y=epdf_y[epdf_x<th_p])
-
-    th = bg_dist.mean()*1.
-
-    title("I = %.1f %%" % (integr*100), fontsize='small')
+    title("I = %.1f %%" % (burst_integral*100), fontsize='small')
     #text(0.8,0.8,"I = %.1f %%" % (integr*100), transform = gca().transAxes)
-    plt.axvline(p01, color='k', label="BG dist. @ 1%")
-    plt.axvline(th, color='k', ls='--', label="BG mean")
-    plt.axvline(m/rate0/d.F, color='m', label="BS threshold (F=%d)" % d.F)
-    plot(epdf_x, epdf_y, lw=2, color='b', label="Delays dist.")
-    plot(epdf_x, epdfb_y, lw=2, color='r', label="Delays dist. (in burst)")
-    #plot(epdf_x, convolve(epdf_y, gauss(15,2),'same'), lw=2, color='b')
+
+    ## MDelays plot
+    plot(bin_x, mdelays_pdf_y, lw=2, color='b', alpha=0.5,
+         label="Delays dist.")
+    plot(bin_x, mdelays_b_pdf_y, lw=2, color='r', alpha=0.5,
+         label="Delays dist. (in burst)")
+    plt.axvline(max_delay_th_P, color='k',
+                label="BG ML dist. @ %.1f%%" % (bg_ppf*100))
+    plt.axvline(max_delay_th_F, color='m',
+                label="BS threshold (F=%d)" % d.F)
+
+    ## Bg distribution plots
+    bg_dist_y = bg_dist.pdf(bin_x)
+    ibin_x_bg_mean = np.abs(bin_x - bg_dist.mean()).argmin()
+    bg_dist_y *= mdelays_pdf_y[ibin_x_bg_mean]/bg_dist_y[ibin_x_bg_mean]
+    plot(bin_x, bg_dist_y, '--k', alpha=1.,
+         label='BG ML dist.')
+    plt.axvline(bg_dist.mean(), color='k', ls='--', label="BG mean")
+    if bg_fit:
+        bg_y = a*erlang.pdf(bin_x, a=m, scale=1./rate_kcps)
+        plot(bin_x, bg_y, '--k', alpha=1.)
+    plt.legend(ncol=2, frameon=False)
     xlabel("Time (ms)")
 
 def hist_mrates(d, i=0, m=10, bins=r_[0:20e3:20], yscale='log', normed=True,
@@ -1024,7 +994,7 @@ def plot_mburstm_8ch(d, fun=scatter_width_size, sharex=True,sharey=True,
         if 'rate_m' in d: s += (' BG=%.1fk' % (d.rate_m[i]*1e-3))
         if 'T' in d: s += (u', T=%dμs' % (d.T[i]*1e6))
         if b is not None: s += (', #bu=%d' %  b.shape[0])
-        ax.set_title(s, fontsize=12)            
+        ax.set_title(s, fontsize=12)
         ax.grid(pgrid)
         plt.sca(ax)
         fun(d, i, **kwargs)
