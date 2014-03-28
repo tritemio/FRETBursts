@@ -21,14 +21,19 @@ from fit import exp_fitting
 from fit.gaussian_fitting import gaussian_fit_hist
 
 
-def raw_fit(ph, clk_p=12.5e-9, residuals=False):
-    """Compute the "raw" rate: (number of ph / duration). """
+def raw_fit(ph, clk_p=12.5e-9, residuals=False, tail_min_us=None):
+    """Compute the "raw" rate: (number of ph / duration).
+
+    Note:
+        `tail_min_us` argument is there only to have the same signature
+        of the other background fit functions but is ignored.
+    """
     Lambda = ph.size/((ph[-1]-ph[0])*clk_p)
     if residuals:
         resid = exp_fitting.get_residuals(np.diff(ph), 1./(Lambda*clk_p))
         return Lambda, np.abs(resid).max()*100
     else:
-        return Lambda
+        return Lambda, 0
 
 
 def _exp_fit_generic(ph, fit_fun, tail_min_us=None, tail_min_p=0.1, 
