@@ -71,6 +71,15 @@ except:
     pass
 
 
+def _normalize_kwargs(kwargs):
+    if 'ec' in kwargs:
+        kwargs.update(edgecolor=kwargs.pop('ec'))
+    if 'fc' in kwargs:
+        kwargs.update(facecolor=kwargs.pop('fc'))
+    return kwargs
+
+
+
 def bsavefig(d, s):
     """Save current figure with name in `d`, appending the string `s`."""
     plt.savefig(d.Name()+s)
@@ -358,12 +367,47 @@ def timetrace_alex(d, i=0, bin_width=1e-3, bins=100000, bursts=False, **plot_kw)
         #for s,e in zip(start,end):
         #    axvspan(s, e, color='k', alpha=0.2)
 
-def timetrace_fret(d, i=0, alpha=0.3):
+def sort_burst_sizes(sizes, levels=np.arange(1, 102, 20)):
+    """Return a list of masks that split `sizes` in levels.
+    """
+    masks = []
+    for level1, level2 in zip(levels[:-1], levels[1:]):
+        masks.append((sizes >= level1)*(sizes < level2))
+    masks.append(sizes >= level2)
+    return masks
+
+def timetrace_fret(d, i=0, gamma=1., **kwargs):
+    """Timetrace of burst FRET vs time. Uses `plot`."""
     b = d.mburst[i]
-    plot(bl.b_start(b)*d.clk_p, d.E[i], 'o', mew=0, alpha=alpha)
+    bsizes = bl.select_bursts.get_burst_size(d, ich=i, gamma=gamma)
+
+    style_kwargs = dict(marker='o', mew=0.5, color='b', mec='grey', alpha=0.4, ls='')
+    style_kwargs.update(**kwargs)
+
+    t, E = bl.b_start(b)*d.clk_p, d.E[i]
+    levels = sort_burst_sizes(bsizes)
+    for ilev, level in enumerate(levels):
+        plt.plot(t[level], E[level], ms=np.sqrt((ilev+1)*15),
+                 **style_kwargs)
+    plt.plot(bl.b_start(b)*d.clk_p, d.E[i], '-k', alpha=0.1, lw=1)
+    xlabel('Time (s)'); ylabel('E')
+    if i == 0:
+        timetrace_fret.burst_sel = gs.MultiAxPointSelection(gcf(), gca(), d)
+    else:
+        timetrace_fret.burst_sel.ax_list.append(gca())
+
+def timetrace_fret_scatter(d, i=0, gamma=1., **kwargs):
+    """Timetrace of burst FRET vs time. Uses `scatter` (slow)."""
+    b = d.mburst[i]
+    bsizes = bl.select_bursts.get_burst_size(d, ich=i, gamma=gamma)
+
+    style_kwargs = dict(s=bsizes, marker='o', alpha=0.5)
+    style_kwargs.update(**kwargs)
+    plt.scatter(bl.b_start(b)*d.clk_p, d.E[i], **style_kwargs)
     xlabel('Time (s)'); ylabel('E')
 
 def timetrace_bg(d, i=0, nolegend=False):
+    """Timetrace of background rate."""
     t = arange(d.bg[i].size)*d.bg_time_s
     plot(t, d.bg[i], 'k', lw=2, label="T: %d cps" % d.rate_m[i])
     plot(t, d.bg_dd[i], 'g', lw=2, label="D: %d cps" % d.rate_dd[i])
@@ -374,6 +418,7 @@ def timetrace_bg(d, i=0, nolegend=False):
     plt.ylim(ymin=0)
 
 def timetrace_b_rate(d, i=0):
+    """Timetrace of bursts-per-second in each period."""
     t = arange(d.bg[i].size)*d.bg_time_s
     b_rate = r_[[(d.bp[i] == p).sum() for p in xrange(d.bp[i].max()+1)]]
     b_rate /= d.bg_time_s
@@ -724,13 +769,6 @@ def hist_fret(d, i=0, bins=None, binw=0.02, show_fit=False, show_model=True,
             plt.figtext(0.4, 0.01, get_fit_text(d), fontsize=14)
 hist_E = hist_fret
 
-def _normalize_kwargs(kwargs):
-    if 'ec' in kwargs:
-        kwargs.update(edgecolor=kwargs.pop('ec'))
-    if 'fc' in kwargs:
-        kwargs.update(facecolor=kwargs.pop('fc'))
-    return kwargs
-
 def kde_fret(d, i=0, bandwidth=0.04, show_fit=False, show_model=False,
              weights=None, gamma=1., no_text=False, verbose=False,
              fit_color='k', fit_alpha=0.5, fit_lw=2.5, fit_fillcolor=None,
@@ -985,7 +1023,7 @@ def plot_mburstm_8ch(d, fun=scatter_width_size, sharex=True,sharey=True,
     for i in xrange(d.nch):
         b = d.mburst[i] if 'mburst' in d else None
         if (not fun in [timetrace, ratetrace, hist_bg_fit_single, hist_bg_fit,
-            timetrace_bg]) and b.size is 0:
+            timetrace_bg]) and np.size(b) == 0:
             continue
         ax = AX.ravel()[i]
         if i == 0 and not nosuptitle:
@@ -1012,7 +1050,7 @@ def plot_mburstm_8ch(d, fun=scatter_width_size, sharex=True,sharey=True,
     s = None
     if scroll: s = ScrollingToolQT(fig)
     #s = RangeToolQT(fig)
-    return AX,s
+    return AX, s
 
 def plot_mburstm_1ch(d, fun, scroll=False, pgrid=True, ax=None,
         #figsize=(7.5625,3.7125),

@@ -16,6 +16,8 @@ NOTE: Needs cleanups, comments and optimization (see examples in utils/ folder)
 import numpy as np
 from PySide import QtGui, QtCore
 
+from utils.misc import pprint
+
 
 class RangeToolQT(object):
     def __init__(self, fig):
@@ -144,8 +146,11 @@ class mToolQT(object):
         self.draw()
 
 class ScrollingToolQT(object):
-    def __init__(self, fig, scroll_step=10):
+    def __init__(self, fig, scroll_step=10, debug=False):
         # Setup data range variables for scrolling
+        self.debug = debug
+        if self.debug: pprint('ScrollingToolQT init\n')
+
         self.fig = fig
         self.scroll_step = scroll_step
         self.xmin, self.xmax = fig.axes[0].get_xlim()
@@ -169,10 +174,11 @@ class ScrollingToolQT(object):
         self.set_spinbox(toolbar)
 
         # Set the initial xlimits coherently with values in slider and spinbox
-        self.ax.set_xlim(self.pos,self.pos+self.width)
+        self.ax.set_xlim(self.pos, self.pos + self.width)
         self.draw()
 
     def set_slider(self, parent):
+        if self.debug: pprint('ScrollingToolQT set_slider\n')
         self.slider = QtGui.QSlider(QtCore.Qt.Horizontal, parent=parent)
         self.slider.setTickPosition(QtGui.QSlider.TicksAbove)
         self.slider.setTickInterval((self.xmax-self.xmin)/10.*self.scale)
@@ -185,6 +191,7 @@ class ScrollingToolQT(object):
         parent.addWidget(self.slider)
 
     def set_spinbox(self, parent):
+        if self.debug: pprint('ScrollingToolQT set_spinbox\n')
         self.spinb = QtGui.QDoubleSpinBox(parent=parent)
         self.spinb.setDecimals(3)
         self.spinb.setRange(0.001,3600.)
@@ -194,13 +201,13 @@ class ScrollingToolQT(object):
         parent.addWidget(self.spinb)
 
     def xpos_changed(self, pos):
-        #pprint("Position (in scroll units) %f\n" %pos)
+        if self.debug: pprint("Position (in scroll units) %f\n" %pos)
         pos /= self.scale
         self.ax.set_xlim(pos, pos+self.width)
         self.draw()
 
     def xwidth_changed(self, width):
-        #pprint("Width (axis units) %f\n" % step)
+        if self.debug: pprint("Width (axis units) %f\n" % width)
         if width <= 0: return
         self.width = width
         self.slider.setSingleStep(self.width*self.scale/5.)
