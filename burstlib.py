@@ -858,6 +858,19 @@ class Data(DataContainer):
             pickle.dump(D, open(fname,'wb'), -1)
             pprint("DONE\n")
 
+    def _get_auto_bg_th_arrays(self, F_bg=2, tail_min_us=250):
+        """Return a dict of threshold values for background estimation."""
+        selections = ['DA', 'D', 'A']
+        if self.ALEX: selections += ['AA']
+        Th_us = {}
+        for ph_sel in selections:
+            th_us = np.zeros(self.nch)
+            for ich, ph in enumerate(self.iter_ph_times(ph_sel=ph_sel)):
+                bg_rate, _ = bg.exp_fit(ph, tail_min_us=tail_min_us)
+                th_us[ich] = 1e6*F_bg/bg_rate
+            Th_us[ph_sel] = th_us
+        return Th_us
+
     def _get_bg_th_arrays(self, tail_min_us):
         """Return a dict of threshold values for background estimation."""
         if np.size(tail_min_us) == 1:
@@ -909,7 +922,7 @@ class Data(DataContainer):
 
         if tail_min_us == 'auto':
             # TODO: implement automatic threshold computation
-            Th_us = self.get_auto_bg_th_arrays(F_bg=F_bg)
+            Th_us = self._get_auto_bg_th_arrays(F_bg=F_bg)
         else:
             Th_us = self._get_bg_th_arrays(tail_min_us)
 
