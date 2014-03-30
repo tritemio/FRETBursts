@@ -477,14 +477,14 @@ class Data(DataContainer):
     **Measurement attributes**
 
     Attributes:
-        fname (string): measuremets file name
+        fname (string): measurements file name
         nch (int): number of channels
         clk_p (float): clock period in seconds for timestamps in `ph_times_m`
         ph_times_m (list): list of timestamp arrays (int64). Each array
             contains all the timestamps (donor+acceptor) in one channel.
         A_em (list): list of boolean arrays marking acceptor timestamps. Each
             array is a boolean mask for the corresponding ph_times_m array.
-        BT (float or array of floats): bleedthrough or leakage fraction.
+        BT (float or array of floats): bleed-through or leakage fraction.
             May be scalar or same size as nch.
         gamma (float or array of floats): gamma factor.
             May be scalar or same size as nch.
@@ -502,7 +502,7 @@ class Data(DataContainer):
 
     **Background Attributes**
 
-    These attributes contain the estimated background rate. Each arribute is
+    These attributes contain the estimated background rate. Each attribute is
     a list (one element per channel) of arrays. Each array contains several
     rates computed every `time_s` seconds of measurements. `time_s` is an
     argument passed to `.calc_bg()` method. Each `time_s` measurement slice
@@ -517,7 +517,7 @@ class Data(DataContainer):
             excitation
         bg_aa (list of arrays): background of acceptor emission during
             acceptor excitation
-        nperiods (int): number of periods in which timestamps are splitted for
+        nperiods (int): number of periods in which timestamps are split for
             background calculation
         bg_fun (function): function used to compute the background rates
         Lim (list): for each ch, is a list of index pairs for `.ph_times_m[i]`
@@ -575,12 +575,12 @@ class Data(DataContainer):
         bg_bs (list): background rates used for threshold computation in burst
             search (is a reference to `bg`, `bg_dd` or `bg_ad`).
 
-        fuse (None or float): if not None, the burst seaparation in ms below
+        fuse (None or float): if not None, the burst separation in ms below
             which bursts have been fused (see `.fuse_bursts()`).
 
         E (list): FRET efficiency value for each burst:
                     E = na/(na + gamma*nd).
-        S (list): stochiometry value for each burst:
+        S (list): stoichiometry value for each burst:
                     S = (gamma*nd + na) /(gamma*nd + na + naa)
     """
 
@@ -858,7 +858,20 @@ class Data(DataContainer):
             pickle.dump(D, open(fname,'wb'), -1)
             pprint("DONE\n")
 
-    def calc_bg(self, fun, time_s=60, **kwargs):
+    def _get_bg_th_arrays(self, tail_min_us):
+        """Return a dict of threshold values for background estimation."""
+        if np.size(tail_min_us) == 1:
+            tail_min_us = np.repeat(tail_min_us, 4)
+        elif np.size(tail_min_us) == 3:
+            tail_min_us = np.hstack((tail_min_us, 1))
+        elif np.size(tail_min_us) == 4:
+            tail_min_us = np.asarray(tail_min_us)
+        Th_us = {}
+        for i, key in enumerate(['DA', 'D', 'A', 'AA']):
+            Th_us[key] = np.ones(self.nch)*tail_min_us[i]
+        return Th_us
+
+    def calc_bg(self, fun, time_s=60, tail_min_us=500, F_bg=2, **kwargs):
         """Compute time-dependent background rates for all the channels.
 
         Compute background rates for donor, acceptor and both detectors.
@@ -868,7 +881,16 @@ class Data(DataContainer):
         Arguments:
             fun (function): function for background estimation (example
                 `bg.exp_fit`)
-            time_s (float, seconds): compute backgound each time_s seconds
+            time_s (float, seconds): compute background each time_s seconds
+            tail_min_us (float, tuple or string): min threshold in us for
+                photon waiting times to use in background estimation.
+                If float is the same threshold for DA, D, A and AA photons and
+                for all the channels.
+                If a 3 or 4 element tuple each value is used for DA, D, A
+                and (if ALEX) AA photons. Same value for all channels.
+                If 'auto', the threshold is compute for each stream (DA, D, A,
+                AA) and for each channel as `bg_F * raw_rate`. `raw_rate` is
+                the total number of photons divided by the duration.
             kwargs: additional arguments to be passed to `fun`.
 
         The background estimation functions are defined in the module
@@ -885,19 +907,11 @@ class Data(DataContainer):
         """
         pprint(" - Calculating BG rates ... ")
 
-        if 'tail_min_us' in kwargs:
-            tail_min_us = kwargs.pop('tail_min_us')
-            if np.size(tail_min_us) == 1:
-                th_us = thd_us = tha_us = thaa_us = tail_min_us
-            elif np.size(tail_min_us) == 3:
-                th_us, thd_us, tha_us = tail_min_us
-            elif  np.size(tail_min_us) == 4:
-                th_us, thd_us, tha_us, thaa_us = tail_min_us
-            else:
-                raise ValueError('`tail_min_us` must be of size 1, 3 or 4.')
+        if tail_min_us == 'auto':
+            # TODO: implement automatic threshold computation
+            Th_us = self.get_auto_bg_th_arrays(F_bg=F_bg)
         else:
-            th_us = thd_us = tha_us = thaa_us = 300
-            print 'Warning: no threshold specified, using default (300)'
+            Th_us = self._get_bg_th_arrays(tail_min_us)
 
         kwargs.update(clk_p=self.clk_p)
         time_clk = time_s/self.clk_p
@@ -926,36 +940,40 @@ class Data(DataContainer):
                 i1 = (ph < (ip+1)*time_clk).sum()
 
                 ph_i = ph[i0:i1]
-                bg[ip], bg_err[ip] = fun(ph_i, tail_min_us=th_us, **kwargs)
+                bg[ip], bg_err[ip] = fun(ph_i, tail_min_us=Th_us['DA'][ich],
+                                         **kwargs)
 
                 # This to support cases of D-only or A-only timestamps
                 # where self.A_em[ich] is a bool and not a bool-array
                 if type(dd_mask) is bool:
-                    if dd_mask: bg_dd[ip], bg_dd_err[ip] = bg[ip], bg_err[ip]
-                else:
-                    dd_mask_i = dd_mask[i0:i1]
-                    if dd_mask_i.any():
-                        bg_dd[ip], bg_dd_err[ip] = fun(
-                                ph_i[dd_mask_i], tail_min_us=thd_us, **kwargs)
-
+                    if dd_mask:
+                        bg_dd[ip], bg_dd_err[ip] = bg[ip], bg_err[ip]
+                        continue
                 if type(ad_mask) is bool:
-                    if ad_mask: bg_ad[ip], bg_ad_err[ip] = bg[ip], bg_err[ip]
-                else:
-                    ad_mask_i = ad_mask[i0:i1]
-                    if ad_mask_i.any():
-                        bg_ad[ip], bg_ad_err[ip] = fun(
-                                ph_i[ad_mask_i], tail_min_us=tha_us, **kwargs)
+                    if ad_mask:
+                        bg_ad[ip], bg_ad_err[ip] = bg[ip], bg_err[ip]
+                        continue
+
+                dd_mask_i = dd_mask[i0:i1]
+                if dd_mask_i.any():
+                    bg_dd[ip], bg_dd_err[ip] = fun(ph_i[dd_mask_i],
+                                       tail_min_us=Th_us['D'][ich], **kwargs)
+
+                ad_mask_i = ad_mask[i0:i1]
+                if ad_mask_i.any():
+                    bg_ad[ip], bg_ad_err[ip] = fun(ph_i[ad_mask_i],
+                                       tail_min_us=Th_us['A'][ich], **kwargs)
 
                 if self.ALEX and aa_mask.any():
                     aa_mask_i = aa_mask[i0:i1]
-                    bg_aa[ip], bg_aa_err[ip] = fun(
-                                ph_i[aa_mask_i], tail_min_us=thaa_us, **kwargs)
+                    bg_aa[ip], bg_aa_err[ip] = fun(ph_i[aa_mask_i],
+                                       tail_min_us=Th_us['AA'][ich], **kwargs)
 
                 lim.append((i0, i1-1))
                 ph_p.append((ph[i0], ph[i1-1]))
 
-            Lim.append(lim); Ph_p.append(ph_p)
-            BG.append(bg); BG_err.append(bg_err)
+            Lim.append(lim);     Ph_p.append(ph_p)
+            BG.append(bg);       BG_err.append(bg_err)
             BG_dd.append(bg_dd); BG_dd_err.append(bg_dd_err)
             BG_ad.append(bg_ad); BG_ad_err.append(bg_ad_err)
             BG_aa.append(bg_aa); BG_aa_err.append(bg_aa_err)
@@ -1139,7 +1157,7 @@ class Data(DataContainer):
         as a function of the background rate (using `F` or `P`).
 
         Parameters:
-            m (int): number of of consecutive photons used to compute the
+            m (int): number of consecutive photons used to compute the
                 photon rate.
             L (int): minimum number of photons in burst
             P (float): Probability to detect non-Poisson bursts. If not None
