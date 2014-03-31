@@ -68,19 +68,19 @@ plt.rcParams.update(params)
 ##
 #  Utility functions
 #
-def _normalize_line2d_kwargs(kwargs):
-    long_names = dict(c='color', ls='linestyle', lw='linewidth',
-                      mec='markeredgecolor', mew='markeredgewidth',
-                      mfc='markerfacecolor', ms='markersize',)
+def _normalize_kwargs(kwargs, kind='patch'):
+    """Convert matplotlib keywords from short to long form."""
+    if kind == 'line2d':
+        long_names = dict(c='color', ls='linestyle', lw='linewidth',
+                          mec='markeredgecolor', mew='markeredgewidth',
+                          mfc='markerfacecolor', ms='markersize',)
+    elif kind == 'patch':
+        long_names = dict(c='color', ls='linestyle', lw='linewidth',
+                          ec='edgecolor', fc='facecolor',)
     for short_name in long_names:
-        kwargs[long_names[short_name]] = kwargs.pop(short_name)
-
-def _normalize_patch_kwargs(kwargs):
-    long_names = dict(c='color', ls='linestyle', lw='linewidth',
-                      ec='edgecolor', fc='facecolor',)
-    for short_name in long_names:
-        kwargs[long_names[short_name]] = kwargs.pop(short_name)
-
+        if short_name in kwargs:
+            kwargs[long_names[short_name]] = kwargs.pop(short_name)
+    return kwargs
 
 def bsavefig(d, s):
     """Save current figure with name in `d`, appending the string `s`."""
@@ -517,7 +517,7 @@ def hist_fret(d, i=0, bins=None, binw=0.02, show_fit=False, show_model=True,
                         facecolor='#80b3ff', edgecolor='#5f8dd3',
                         linewidth=1.5, alpha=1)
     # kwargs overwrite style_kwargs
-    style_kwargs.update(**_normalize_patch_kwargs(kwargs))
+    style_kwargs.update(**_normalize_kwargs(kwargs))
     if weights is not None:
         w = bl.fret_fit.get_weights(d.nd[i], d.na[i], weights, gamma=gamma)
         w *= w.size/w.sum()
@@ -551,7 +551,7 @@ def kde_fret(d, i=0, bandwidth=0.04, show_fit=False, show_model=False,
     style_kwargs = dict(facecolor='#80b3ff', edgecolor='#5f8dd3',
                         linewidth=1.5, alpha=1)
     # kwargs overwrite plot_style
-    style_kwargs.update(**_normalize_patch_kwargs(kwargs))
+    style_kwargs.update(**_normalize_kwargs(kwargs))
     if style_kwargs['facecolor'] is None:
         style_kwargs.pop('facecolor')
         if not 'color' in style_kwargs:
