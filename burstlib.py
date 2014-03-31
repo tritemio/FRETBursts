@@ -1650,7 +1650,9 @@ class Data(DataContainer):
         # Save enough info to generate a fit plot (see hist_fret in burst_plot)
         self.add(fit_E_res=fit_res, fit_E_name=fit_fun.__name__,
                 E_fit=fit_res[:,iE], fit_E_curve=True, fit_E_E1=E1,fit_E_E2=E2,
-                fit_E_model=fit_model, fit_E_model_F=fit_model_F)
+                fit_E_model=fit_model, fit_E_model_F=fit_model_F,
+                fit_E_weights=weights, fit_E_gamma=gamma,
+                fit_E_kwargs=fit_kwargs)
         return self.E_fit
 
     def fit_from(self, D):
