@@ -371,12 +371,12 @@ def timetrace_fret_scatter(d, i=0, gamma=1., **kwargs):
 def timetrace_bg(d, i=0, nolegend=False):
     """Timetrace of background rates."""
     t = arange(d.bg[i].size)*d.bg_time_s
-    plot(t, d.bg[i], 'k', lw=2, label="T: %d cps" % d.rate_m[i])
-    plot(t, d.bg_dd[i], 'g', lw=2, label="D: %d cps" % d.rate_dd[i])
-    plot(t, d.bg_ad[i], 'r', lw=2, label="A: %d cps" % d.rate_ad[i])
+    plot(t, 1e-3*d.bg[i], 'k', lw=2, label="T: %d cps" % d.rate_m[i])
+    plot(t, 1e-3*d.bg_dd[i], 'g', lw=2, label="D: %d cps" % d.rate_dd[i])
+    plot(t, 1e-3*d.bg_ad[i], 'r', lw=2, label="A: %d cps" % d.rate_ad[i])
     if not nolegend:
         legend(loc='best', fancybox=True, frameon=False, ncol=3)
-    xlabel("Time (s)"); ylabel("BG rate (cps)"); grid(True)
+    xlabel("Time (s)"); ylabel("BG rate (kcps)"); grid(True)
     plt.ylim(ymin=0)
 
 def timetrace_b_rate(d, i=0):
@@ -440,6 +440,7 @@ def _fitted_E_plot(d, i=0, F=1, no_E=False, ax=None, show_model=True,
         y = d.fit_E_model(x, d.fit_E_res[i, :])
         scale = F*d.fit_E_model_F[i]
         if two_gauss_model:
+            assert d.fit_E_res.shape[1] > 2
             if d.fit_E_res.shape[1] == 5:
                 m1, s1, m2, s2, a1 =  d.fit_E_res[i, :]
                 a2 = (1-a1)
