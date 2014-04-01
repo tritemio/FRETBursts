@@ -921,7 +921,6 @@ class Data(DataContainer):
         pprint(" - Calculating BG rates ... ")
 
         if tail_min_us == 'auto':
-            # TODO: implement automatic threshold computation
             Th_us = self._get_auto_bg_th_arrays(F_bg=F_bg)
         else:
             Th_us = self._get_bg_th_arrays(tail_min_us)
@@ -1399,7 +1398,7 @@ class Data(DataContainer):
         BT *= self.chi_ch
         return BT
 
-    def calc_sbr(self):
+    def calc_sbr(self, gamma=1.):
         """Return Signal-to-background ratio for each burst.
         """
         sbr = []
@@ -1408,7 +1407,8 @@ class Data(DataContainer):
                 sbr.append([])
                 continue  # if no bursts skip this ch
             nd, na, bg_d, bg_a = self.expand(ich)
-            sbr.append(1.*(nd + na)/(bg_d + bg_a))
+            burst_sizes = select_bursts.get_burst_size(self, ich, gamma=gamma)
+            sbr.append(1.*burst_sizes/(bg_d + bg_a))
         self.add(sbr=sbr)
         return sbr
 
