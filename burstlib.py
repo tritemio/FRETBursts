@@ -623,46 +623,76 @@ class Data(DataContainer):
                 setattr(new_d, k, new_d[k])
         return new_d
 
+    def iter_ph_masks(self, ph_sel='DA'):
+        """Iterator returning masks for `ph_sel` photons.
+
+        Arguments:
+            ph_sel (string): can be 'DA', D', 'A' or 'AA' and indicates the
+                photons selection. 'DA' all photons, 'D' donor photons
+                during donor excitation, 'A' acceptor photon during donor
+                excitation, 'AA' acceptor photons during acceptor excitation.
+        """
+        for ich in xrange(self.nch):
+            yield self.get_ph_mask(ich, ph_sel=ph_sel)
+
+    def get_ph_mask(self, ich, ph_sel='DA'):
+        """Returns a mask for `ph_sel` photons in channel `ich`.
+
+        Arguments:
+            ph_sel (string): can be 'DA', D', 'A' or 'AA' and indicates the
+                photons selection. 'DA' all photons, 'D' donor photons
+                during donor excitation, 'A' acceptor photon during donor
+                excitation, 'AA' acceptor photons during acceptor excitation.
+        """
+        assert ph_sel in ['DA', 'D', 'A', 'AA']
+        if ph_sel == 'DA':
+            # Note that slice(None) is equivalent to [:].
+            # Also, numpy arrays are not copies when sliced.
+            # So getting all photons (DA) with this mask is efficient
+            return slice(None)
+        elif ph_sel == 'D':
+            return self.get_D_em_D_ex(ich)
+        elif ph_sel == 'A':
+            return self.get_A_em_D_ex(ich)
+        elif ph_sel == 'AA':
+            if not self.ALEX:
+                raise ValueError('Selection "AA" is valid only for ALEX data')
+            return self.get_A_em_A_ex(ich)
+
     def iter_ph_times(self, ph_sel='DA'):
         """Iterator that returns the arrays of timestamps in `.ph_times_m`.
-        This method always returns in-memory arrays, even when ph_times_m
-        is a disk-baked list of arrays.
-        `ph_sel` can be 'DA', D' or 'A' and allows to retrive timstamps for
-        donor-acceptor, donor or acceptor emission.
+
+        Arguments:
+            ph_sel (string): can be 'DA', D', 'A' or 'AA' and indicates the
+                photons selection. 'DA' all photons, 'D' donor photons
+                during donor excitation, 'A' acceptor photon during donor
+                excitation, 'AA' acceptor photons during acceptor excitation.
         """
         for ich in xrange(self.nch):
             yield self.get_ph_times(ich, ph_sel=ph_sel)
 
     def get_ph_times(self, ich, ph_sel='DA'):
-        """Returns timestamps array for channel `ich`.
+        """Returns the timestamps array for channel `ich`.
+
         This method always returns in-memory arrays, even when ph_times_m
         is a disk-baked list of arrays.
-        `ph_sel` can be 'DA', D' or 'A' and allows to retrive timstamps for
-        donor-acceptor, donor or acceptor emission.
+
+        Arguments:
+            ph_sel (string): can be 'DA', D', 'A' or 'AA' and indicates the
+                photons selection. 'DA' all photons, 'D' donor photons
+                during donor excitation, 'A' acceptor photon during donor
+                excitation, 'AA' acceptor photons during acceptor excitation.
         """
         assert ph_sel in ['DA', 'D', 'A', 'AA']
         ph = self.ph_times_m[ich]
+
+        # If not a list is an on-disk array, and needs to be loaded (with [:])
         if type(self.ph_times_m) is not list:
             ph = ph[:]
 
-        if ph_sel == 'DA':
-            return ph
-        elif ph_sel == 'D':
-            if self.ALEX:
-                return ph[self.get_D_ex(ich)*self.get_D_em(ich)]
-            else:
-                return ph[self.get_D_em(ich)]
-        elif ph_sel == 'A':
-            if self.ALEX:
-                return ph[self.get_D_ex(ich)*self.get_A_em(ich)]
-            else:
-                return ph[self.get_A_em(ich)]
-        elif ph_sel == 'AA':
-            if not self.ALEX:
-                raise ValueError('Selection "AA" is valid only for ALEX data')
-            return ph[self.A_ex[ich]*self.A_em[ich]]
+        return ph[self.get_ph_mask(ich, ph_sel=ph_sel)]
 
-    def _get_mask(self, ich, mask_name, negate=False):
+    def _get_ph_mask_single(self, ich, mask_name, negate=False):
         """Get the bool array `mask_name` for channel `ich`.
         If the bool array is a scalar return a slice (full or empty)
         """
@@ -670,24 +700,44 @@ class Data(DataContainer):
         if negate:
             mask = np.logical_not(mask)
         if len(mask.shape) == 0:
+            # If mask is a boolean scalar, select all or nothing
             mask = slice(None) if mask else slice(0)
         return mask
 
     def get_A_em(self, ich):
         """Returns a mask to select photons detected in the acceptor ch."""
-        return self._get_mask(ich, 'A_em')
+        return self._get_ph_mask_single(ich, 'A_em')
 
     def get_D_em(self, ich):
         """Returns a mask to select photons detected in the donor ch."""
-        return self._get_mask(ich, 'A_em', negate=True)
+        return self._get_ph_mask_single(ich, 'A_em', negate=True)
 
     def get_A_ex(self, ich):
         """Returns a mask to select photons in acceptor-excitation periods."""
-        return self._get_mask(ich, 'A_ex')
+        return self._get_ph_mask_single(ich, 'A_ex')
 
     def get_D_ex(self, ich):
         """Returns a mask to select photons in donor-excitation periods."""
-        return self._get_mask(ich, 'D_ex')
+        return self._get_ph_mask_single(ich, 'D_ex')
+
+    def get_D_em_D_ex(self, ich):
+        """Returns a mask of donor photons during donor-excitation."""
+        if self.ALEX:
+            return self.get_D_em(ich)*self.get_D_ex(ich)
+        else:
+            return self.get_D_em(ich)
+
+    def get_A_em_D_ex(self, ich):
+        """Returns a mask of acceptor photons during donor-excitation."""
+        if self.ALEX:
+            return self.get_A_em(ich)*self.get_D_ex(ich)
+        else:
+            return self.get_A_em(ich)
+
+    def get_A_em_A_ex(self, ich):
+        """Returns a mask of acceptor photons during acceptor-excitation."""
+        return self.get_A_em(ich)*self.get_A_ex(ich)
+
 
     def slice_ph(self, time_s1=0, time_s2=None, s='slice'):
         """Return a new Data object with ph in [`time_s1`,`time_s2`] (seconds)
@@ -1005,7 +1055,6 @@ class Data(DataContainer):
         `ph_sel` (can be 'D','A', or 'DA') selects the timestamps (donor,
         acceptor or both) on which self.Lim and selp.Ph_p are computed.
         """
-        assert ph_sel in ['DA', 'D', 'A']
         if 'ph_sel' in self and self.ph_sel == ph_sel: return
 
         pprint(" - Recomputing limits for current ph selection (%s) ... " % \
@@ -1071,19 +1120,6 @@ class Data(DataContainer):
             rate_th.append(np.mean(m/Tch))
         self.add(TT=TT, T=T, bg_bs=BG[ph_sel], FF=FF, PP=PP, F=F, P=P,
                  rate_th=rate_th)
-
-    def _select_ph_times(self, ph_sel):
-        """Return a list of ph_times with photons specified by `ph_sel`.
-        `ph_sel` is a string that can be 'D', 'A' or 'DA'.
-        """
-        assert ph_sel in ['DA', 'D', 'A']
-        if ph_sel == 'DA':
-            PH = self.ph_times_m
-        elif ph_sel == 'D':
-            PH = [p[-a] for p, a in zip(self.iter_ph_times(), self.A_em)]
-        elif ph_sel == 'A':
-            PH = [p[a] for p, a in zip(self.iter_ph_times(), self.A_em)]
-        return PH
 
     def _burst_search_rate(self, m, L, min_rate_cps, ph_sel='DA',
                            verbose=True):

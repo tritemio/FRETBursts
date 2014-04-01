@@ -19,12 +19,12 @@ import burstlib as bl
 
 
 #DATASETS_DIR = u'/Users/anto/Dropbox/notebooks/frebursts_notebooks/data/'
-DATASETS_DIR = data_dir + "2013-05-15/"
+DATASETS_DIR = data_dir
 
 
 def load_dataset_1ch():
     fn = "0023uLRpitc_NTP_20dT_0.5GndCl.sm"
-    fname = DATASETS_DIR + fn
+    fname = DATASETS_DIR + 'alex/131126/' + fn
     d = load_usalex(fname=fname, BT=0.11, gamma=1.)
     d.add(det_donor_accept=(0, 1), alex_period=4000,
           D_ON=(2850, 580), A_ON=(900, 2580))
@@ -36,7 +36,7 @@ def load_dataset_1ch():
 
 def load_dataset_8ch():
     fn = "12d_New_30p_320mW_steer_3.dat"
-    fname = DATASETS_DIR + fn
+    fname = DATASETS_DIR + "2013-05-15/" + fn
     BT = 0.038
     gamma = 0.43
     d = load_multispot8(fname=fname, BT=BT, gamma=gamma)
@@ -57,6 +57,29 @@ def data(request):
 ##
 # Test functions
 #
+def test_ph_selection(data):
+    """Test phpton selection DA, D, A, AA."""
+    d = data
+
+    for ich, ph in enumerate(d.iter_ph_times()):
+        assert (ph == d.ph_times_m[ich]).all()
+
+    for ich, ph in enumerate(d.iter_ph_times('D')):
+        if d.ALEX:
+            assert (ph == d.ph_times_m[ich][d.D_em[ich]*d.D_ex[ich]]).all()
+        else:
+            assert (ph == d.ph_times_m[ich][-d.A_em[ich]]).all()
+
+    for ich, ph in enumerate(d.iter_ph_times('A')):
+        if d.ALEX:
+            assert (ph == d.ph_times_m[ich][d.A_em[ich]*d.D_ex[ich]]).all()
+        else:
+            assert (ph == d.ph_times_m[ich][d.A_em[ich]]).all()
+
+    if d.ALEX:
+        for ich, ph in enumerate(d.iter_ph_times('AA')):
+            assert (ph == d.ph_times_m[ich][d.A_em[ich]*d.A_ex[ich]]).all()
+
 def test_b_functions(data):
     itstart, iwidth, inum_ph, iistart, iiend, itend = 0, 1, 2, 3, 4, 5
     d = data
@@ -121,9 +144,16 @@ def test_burst_size_da(data):
     d = data
     d.burst_search_t(L=10, m=10, P=None, F=7, ph_sel='DA', nofret=True)
     d.cal_ph_num()
-    for mb, nd, na in zip(d.mburst, d.nd, d.na):
-        tot_size = bl.b_size(mb)
-        assert (tot_size == nd + na).all()
+    if d.ALEX:
+        for mb, nd, na, naa in zip(d.mburst, d.nd, d.na, d.naa):
+            tot_size = bl.b_size(mb)
+            tot_size2 = nd + na + naa
+            assert np.allclose(tot_size, tot_size2)
+    else:
+        for mb, nd, na in zip(d.mburst, d.nd, d.na):
+            tot_size = bl.b_size(mb)
+            assert (tot_size == nd + na).all()
+
 
 def test_get_burst_size(data):
     """Test that get_burst_size() returns nd + na when gamma = 1.
