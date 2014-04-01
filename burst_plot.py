@@ -90,7 +90,39 @@ def bsavefig(d, s):
 #  Multi-channel plot functions
 #
 
-## ALEX
+def mch_plot_bg(d, **kwargs):
+    """Plot background vs channel for DA, D and A photons."""
+    plot(r_[1:d.nch+1],[b.mean()*1e-3 for b in d.bg], lw=2, color='b',
+            label=' T', **kwargs)
+    plot(r_[1:d.nch+1],[b.mean()*1e-3 for b in d.bg_dd], color='g', lw=2,
+            label=' D', **kwargs)
+    plot(r_[1:d.nch+1],[b.mean()*1e-3 for b in d.bg_ad], color='r', lw=2,
+            label=' A', **kwargs)
+    xlabel("CH"); ylabel("kcps"); grid(True); legend(loc='best')
+    title(d.name())
+
+def mch_plot_bg_ratio(d):
+    """Plot ratio of A over D background vs channel."""
+    plot(r_[1:d.nch+1],[ba.mean()/bd.mean() for bd,ba in zip(d.bg_dd,d.bg_ad)],
+            color='g', lw=2, label='A/D')
+    xlabel("CH"); ylabel("BG Ratio A/D"); grid(True)
+    title("BG Ratio A/D "+d.name())
+
+def mch_plot_bsize(d):
+    """Plot mean burst size vs channel."""
+    CH = np.arange(1, d.nch+1)
+    plot(CH, [b.mean() for b in d.nt], color='b', lw=2, label=' T')
+    plot(CH, [b.mean() for b in d.nd], color='g', lw=2, label=' D')
+    plot(CH, [b.mean() for b in d.na], color='r', lw=2, label=' A')
+    xlabel("CH"); ylabel("Mean burst size")
+    grid(True)
+    legend(loc='best')
+    title(d.name())
+
+
+##
+#  ALEX alternation period plots
+#
 def plot_alternation_hist(d, bins=100, **kwargs):
     plt.figure()
     ph_times_t, det_t, period = d.ph_times_t, d.det_t, d.alex_period
@@ -127,33 +159,10 @@ def plot_alternation_hist_sel(d, **kwargs):
     plt.axvline(d.A_ON[1], color='r', lw=2)
     legend(loc='best')
 
-def hist2d_alex(d, i=0, vmin=2, vmax=0, bin_step=None,
-                interp='bicubic', cmap='hot', under_color='white',
-                over_color='white', scatter=True, scatter_ms=3,
-                scatter_color='orange', scatter_alpha=0.2, gui_sel=False):
-    if bin_step is not None: d.calc_alex_hist(bin_step=bin_step)
-    AH, E_bins,S_bins, E_ax,S_ax = d.AH[i], d.E_bins,d.S_bins, d.E_ax,d.S_ax
 
-    colormap = plt.get_cmap(cmap)
-    if vmax <= vmin:
-        #E_range = (E_bins > 0.4)*(E_bins < 0.8)
-        S_range = (S_bins < 0.8)
-        vmax = AH[:,S_range].max()
-        if vmax <= vmin: vmax = 10*vmin
-    if scatter:
-        plot(d.E[i],d.S[i], 'o', mew=0, ms=scatter_ms, alpha=scatter_alpha,
-                color=scatter_color)
-    im = plt.imshow(AH[:,::-1].T, interpolation=interp,
-            extent=(E_bins[0],E_bins[-1],S_bins[0],S_bins[-1]),
-            vmin=vmin, vmax=vmax, cmap=colormap)
-    im.cmap.set_under(under_color)
-    im.cmap.set_over(over_color)
-    gcf().colorbar(im)
-    plt.xlim(-0.2,1.2); plt.ylim(-0.2,1.2)
-    xlabel('E'); ylabel('S'); grid(color='gray')
-    if gui_sel:
-        # the selection object must be saved (otherwise will be destroyed)
-        hist2d_alex.gui_sel = gs.rectSelection(gcf(), gca())
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##  Multi-channel plots
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ##
 #  Timetrace plots
@@ -610,6 +619,35 @@ def hist_S(d, i=0, fit=None, bins=None, **kwargs):
     elif fit is not None:
         print "Unrecognized fit name."
 
+def hist2d_alex(d, i=0, vmin=2, vmax=0, bin_step=None,
+                interp='bicubic', cmap='hot', under_color='white',
+                over_color='white', scatter=True, scatter_ms=3,
+                scatter_color='orange', scatter_alpha=0.2, gui_sel=False):
+    """Plot 2D ALEX histogram and scatterplot overlay."""
+    if bin_step is not None: d.calc_alex_hist(bin_step=bin_step)
+    AH, E_bins,S_bins, E_ax,S_ax = d.AH[i], d.E_bins,d.S_bins, d.E_ax,d.S_ax
+
+    colormap = plt.get_cmap(cmap)
+    if vmax <= vmin:
+        #E_range = (E_bins > 0.4)*(E_bins < 0.8)
+        S_range = (S_bins < 0.8)
+        vmax = AH[:,S_range].max()
+        if vmax <= vmin: vmax = 10*vmin
+    if scatter:
+        plot(d.E[i],d.S[i], 'o', mew=0, ms=scatter_ms, alpha=scatter_alpha,
+                color=scatter_color)
+    im = plt.imshow(AH[:,::-1].T, interpolation=interp,
+            extent=(E_bins[0],E_bins[-1],S_bins[0],S_bins[-1]),
+            vmin=vmin, vmax=vmax, cmap=colormap)
+    im.cmap.set_under(under_color)
+    im.cmap.set_over(over_color)
+    gcf().colorbar(im)
+    plt.xlim(-0.2,1.2); plt.ylim(-0.2,1.2)
+    xlabel('E'); ylabel('S'); grid(color='gray')
+    if gui_sel:
+        # the selection object must be saved (otherwise will be destroyed)
+        hist2d_alex.gui_sel = gs.rectSelection(gcf(), gca())
+
 def hist_sbr(d, ich=0, **hist_kwargs):
     """Histogram of per-burst Signal-to-Background Ratio (SBR).
     """
@@ -622,7 +660,8 @@ def hist_sbr(d, ich=0, **hist_kwargs):
 
 def hist_bg_fit_single(d, i=0, bp=0, bg='bg_dd', bin_width_us=10, yscale='log',
         F=0.15, **kwargs):
-    """Histog. of ph-delays compared with BG fitting in burst period 'bp'."""
+    """Histog. of ph-delays compared with BG fitting in burst period 'bp'.
+    """
     l1, l2 = d.Lim[i][bp][0], d.Lim[i][bp][1]
     ph = d.ph_times_m[i][l1:l2+1]*d.clk_p
     a_em = d.A_em[i][l1:l2+1]
@@ -657,7 +696,8 @@ def hist_bg_fit_single(d, i=0, bp=0, bg='bg_dd', bin_width_us=10, yscale='log',
 
 def hist_bg_fit(d, i=0, bp=0, bin_width_us=10, yscale='log',
                 t_min_us=300, **kwargs):
-    """Histog. of ph-delays compared with BG fitting in burst period 'bp'."""
+    """Histog. of ph-delays compared with BG fitting in burst period 'bp'.
+    """
     l1, l2 = d.Lim[i][bp][0], d.Lim[i][bp][1]
     ph = d.ph_times_m[i][l1:l2+1]*d.clk_p
 
@@ -711,7 +751,8 @@ def hist_bg_fit(d, i=0, bp=0, bin_width_us=10, yscale='log',
 def hist_ph_delays(d, i=0, time_min_s=0, time_max_s=30, bin_width_us=10,
         mask=None, yscale='log', hfit_bin_ms=1, efit_tail_min_us=1000,
         **kwargs):
-    """Histog. of ph delays and comparison with 3 BG fitting functions."""
+    """Histog. of ph delays and comparison with 3 BG fitting functions.
+    """
     ph = d.ph_times_m[i].copy()
     if mask is not None: ph = ph[mask[i]]
     ph = ph[(ph < time_max_s/d.clk_p)*(ph > time_min_s/d.clk_p)]
@@ -931,38 +972,14 @@ def scatter_alex(d, i=0, alpha=0.2):
     plt.xlim(-0.2,1.2); plt.ylim(-0.2,1.2)
 
 
-##
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  High-level plot wrappers
-#
-
-def wplot(*args, **kwargs):
-    AX, s = plot_mburstm_8ch(*args, **kwargs)
-    kwargs.update(AX=AX)
-    q = gs.mToolQT(gcf(), plot_mburstm_8ch, *args, **kwargs)
-    return AX, q
-
-def splot(d, fun=scatter_width_size,
-        scroll=False, pgrid=True, figsize=(10, 8), nosuptitle=False, ax=None,
-        scale=True, **kwargs):
-    if ax is None:
-        fig = plt.figure(figsize=figsize)
-        ax = fig.add_subplot(111)
-    else:
-        fig = ax.figure
-    for i in xrange(d.nch):
-        try:
-            if i == 0 and not nosuptitle: fig.set_title(d.status())
-        except:
-            print "WARNING: No title in plots."
-        ax.grid(pgrid)
-        fun(d, i, **kwargs)
-    s = None
-    if scroll: s = ScrollingToolQT(fig)
-    return ax, s
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def plot_mburstm_48ch(d, fun=scatter_width_size, sharex=True, sharey=True,
         scroll=False, pgrid=True, figsize=(20,16), AX=None, nosuptitle=False,
         scale=True, **kwargs):
+    """Plot wrapper for 48-spot measurements. Use `dplot` instead."""
     ax_ny, ax_nx = 6, 8
     if AX is None:
         fig, AX = plt.subplots(ax_ny, ax_nx, figsize=figsize, sharex=sharex,
@@ -1006,6 +1023,7 @@ def plot_mburstm_48ch(d, fun=scatter_width_size, sharex=True, sharey=True,
 def plot_mburstm_8ch(d, fun=scatter_width_size, sharex=True,sharey=True,
         scroll=False,pgrid=True, figsize=(12,9), nosuptitle=False, AX=None,
         scale=True, **kwargs):
+    """Plot wrapper for 8-spot measurements. Use `dplot` instead."""
     if AX is None:
         fig, AX = plt.subplots(4,2,figsize=figsize, sharex=sharex,
                                sharey=sharey)
@@ -1051,6 +1069,7 @@ def plot_mburstm_1ch(d, fun, scroll=False, pgrid=True, ax=None,
         #figsize=(7.5625,3.7125),
         figsize=(9,4.5),
         fignum=None, nosuptitle=False, **kwargs):
+    """Plot wrapper for single-spot measurements. Use `dplot` instead."""
     if ax is None:
         fig = plt.figure(num=fignum, figsize=figsize)
         ax = fig.add_subplot(111)
@@ -1071,15 +1090,42 @@ def plot_mburstm_1ch(d, fun, scroll=False, pgrid=True, ax=None,
     return ax, s
 
 def dplot(d, fun, **kwargs):
+    """Main plot wrapper for single and multi-spot measurements."""
     if d.nch == 1:
         return plot_mburstm_1ch(d=d, fun=fun, **kwargs)
-    #elif d.nch == 4:
-    #    return plot_mburstm_share(d=d, fun=fun, **kwargs)
     elif d.nch == 8:
-        #return plot_mburstm_8ch_twin(d=d, fun=fun, **kwargs)
         return plot_mburstm_8ch(d=d, fun=fun, **kwargs)
     elif d.nch == 48:
         return plot_mburstm_48ch(d=d, fun=fun, **kwargs)
+
+##
+#  Other plot wrapper functions
+#
+
+def wplot(*args, **kwargs):
+    AX, s = plot_mburstm_8ch(*args, **kwargs)
+    kwargs.update(AX=AX)
+    q = gs.mToolQT(gcf(), plot_mburstm_8ch, *args, **kwargs)
+    return AX, q
+
+def splot(d, fun=scatter_width_size,
+        scroll=False, pgrid=True, figsize=(10, 8), nosuptitle=False, ax=None,
+        scale=True, **kwargs):
+    if ax is None:
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_subplot(111)
+    else:
+        fig = ax.figure
+    for i in xrange(d.nch):
+        try:
+            if i == 0 and not nosuptitle: fig.set_title(d.status())
+        except:
+            print "WARNING: No title in plots."
+        ax.grid(pgrid)
+        fun(d, i, **kwargs)
+    s = None
+    if scroll: s = ScrollingToolQT(fig)
+    return ax, s
 
 ##
 #  Other misc plot functions
