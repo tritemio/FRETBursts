@@ -1257,8 +1257,15 @@ class Data(DataContainer):
             self.cal_max_rate(m=3)
             pprint("[DONE]\n", mute)
 
-    def cal_ph_num(self):
-        """After burst search computes number of D and A ph in each burst.
+    def cal_ph_num(self, alex_all=False):
+        """Computes number of D, A (and AA) photons in each burst.
+
+        Arguments:
+            alex_all (bool): if True and self.ALEX is True, computes also the
+                donor channel photons during acceptor excitation (`nda`)
+        Returns:
+            Saves `nd`, `na`, `nt` (and eventually `naa`, `nda`) in self.
+            Returns nothing.
         """
         if not self.ALEX:
             A_em = [self.get_A_em(ich) for ich in xrange(self.nch)]
@@ -1282,6 +1289,11 @@ class Data(DataContainer):
             Mask = [a_em*a_ex for a_em, a_ex in zip(self.A_em, self.A_ex)]
             naa = mch_count_ph_in_bursts(self.mburst, Mask)
             self.add(naa=naa)
+
+            if alex_all:
+                Mask = [d_em*a_ex for d_em, a_ex in zip(self.D_em, self.A_ex)]
+                nda = mch_count_ph_in_bursts(self.mburst, Mask)
+                self.add(nda=nda)
 
             nt = [d+a+aa for d, a, aa in zip(nd, na, naa)]
             assert (nt[0] == na[0] + nd[0] + naa[0]).all()
@@ -1375,7 +1387,7 @@ class Data(DataContainer):
         return chi_ch
 
     def corrections(self, mute=False):
-        """Apply both background BG and bleed-through (BT) corrections."""
+        """Apply both background (BG) and bleed-through (BT) corrections."""
         self.background_correction_t(mute=mute)
         self.bleed_through_correction(mute=mute)
 

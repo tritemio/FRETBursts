@@ -45,7 +45,7 @@ def load_dataset_8ch():
     return d
 
 @pytest.fixture(scope="module", params=[
-                                    #load_dataset_1ch,
+                                    load_dataset_1ch,
                                     load_dataset_8ch,
                                     ])
 def data(request):
@@ -143,11 +143,11 @@ def test_burst_size_da(data):
     """
     d = data
     d.burst_search_t(L=10, m=10, P=None, F=7, ph_sel='DA', nofret=True)
-    d.cal_ph_num()
+    d.cal_ph_num(alex_all=True)
     if d.ALEX:
-        for mb, nd, na, naa in zip(d.mburst, d.nd, d.na, d.naa):
+        for mb, nd, na, naa, nda in zip(d.mburst, d.nd, d.na, d.naa, d.nda):
             tot_size = bl.b_size(mb)
-            tot_size2 = nd + na + naa
+            tot_size2 = nd + na + naa + nda
             assert np.allclose(tot_size, tot_size2)
     else:
         for mb, nd, na in zip(d.mburst, d.nd, d.na):
@@ -182,6 +182,8 @@ def test_expand(data):
 def test_burst_corrections(data):
     """Test background and bleed-through corrections."""
     d = data
+    d.cal_ph_num(alex_all=True)
+    d.corrections()
     BT = d.get_BT_array()
 
     for ich, mb in enumerate(d.mburst):
@@ -190,8 +192,15 @@ def test_burst_corrections(data):
         burst_size_raw = bl.b_size(mb)
 
         bt = BT[ich]
-        burst_size_raw2 = nd + na + bg_d + bg_a + bt*nd
-        assert np.allclose(burst_size_raw, burst_size_raw2)
+        if d.ALEX:
+            nda, naa = d.nda[ich], d.naa[ich]
+            period = d.bp[ich]
+            bg_aa = d.bg_aa[ich][period]*width
+            burst_size_raw2 = nd + na + bg_d + bg_a + bt*nd + naa + nda + bg_aa
+            assert np.allclose(burst_size_raw, burst_size_raw2)
+        else:
+            burst_size_raw2 = nd + na + bg_d + bg_a + bt*nd
+            assert np.allclose(burst_size_raw, burst_size_raw2)
 
 
 if __name__ == '__main__':
