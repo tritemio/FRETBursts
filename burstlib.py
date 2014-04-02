@@ -827,7 +827,7 @@ class Data(DataContainer):
         p_dict.update(name=self.name(), Name=self.Name())
         return p_dict
 
-    def expand(self, ich=0, width=False):
+    def expand(self, ich=0, alex_naa=False, width=False):
         """Return per-burst D and A sizes (nd, na) and background (bg_d, bg_a).
 
         This method returns for each bursts the corrected signal counts and
@@ -836,20 +836,29 @@ class Data(DataContainer):
 
         Arguments:
             ich (int): channel for the bursts (can be not 0 only in multi-spot)
-            width (bool): whether return also the burst duration (in seconds).
+            alex_naa (bool): if True and self.ALEX, returns burst sizes and
+                background also for acceptor photons during accept. excitation
+            width (bool): whether return the burst duration (in seconds).
 
         Returns:
-            4 arrays: donor signal, accept signal, donor bg, acceptor bg.
-            If `width` is True returns also the bursts duration in seconds.
+            List of arrays: nd, na, donor bg, acceptor bg.
+            If `alex_naa` is True returns: nd, na, naa, bg_d, bg_a, bg_aa
+            If `width` is True returns the bursts duration (in sec.) as last
+            element.
         """
         period = self.bp[ich]
         w = b_width(self.mburst[ich])*self.clk_p
         bg_a = self.bg_ad[ich][period]*w
         bg_d = self.bg_dd[ich][period]*w
-        if width:
-            return self.nd[ich], self.na[ich], bg_d, bg_a, w
+        res = [self.nd[ich], self.na[ich]]
+        if self.ALEX and alex_naa:
+            bg_aa = self.bg_aa[ich][period]*w
+            res.extend([self.naa[ich], bg_d, bg_a, bg_aa])
         else:
-            return self.nd[ich], self.na[ich], bg_d, bg_a
+            res.extend([bg_d, bg_a])
+        if width:
+            res.append(w)
+        return res
 
     def time_max(self):
         """Return the measurement time (last photon) in seconds."""
