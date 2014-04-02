@@ -43,7 +43,7 @@ except:
     print " - Fallback to pure python burst search."
 try:
     from burstsearch.c_burstsearch import c_mch_count_ph_in_bursts
-    mch_count_ph_in_bursts = c_mch_count_ph_in_bursts
+    #mch_count_ph_in_bursts = c_mch_count_ph_in_bursts
     print " - Optimized ph_count (cython) loaded."
 except:
     print " - Fallback to pure python ph_count."
@@ -916,8 +916,9 @@ class Data(DataContainer):
         for ph_sel in selections:
             th_us = np.zeros(self.nch)
             for ich, ph in enumerate(self.iter_ph_times(ph_sel=ph_sel)):
-                bg_rate, _ = bg.exp_fit(ph, tail_min_us=tail_min_us)
-                th_us[ich] = 1e6*F_bg/bg_rate
+                if ph.size > 0:
+                    bg_rate, _ = bg.exp_fit(ph, tail_min_us=tail_min_us)
+                    th_us[ich] = 1e6*F_bg/bg_rate
             Th_us[ph_sel] = th_us
         return Th_us
 
@@ -1271,11 +1272,12 @@ class Data(DataContainer):
         """After burst search computes number of D and A ph in each burst.
         """
         if not self.ALEX:
-            A_em = self.A_em
-            if type(A_em[0]) is bool:
-                bool_funcs = [np.ones if v else np.zeros for v in A_em]
+            A_em = [self.get_A_em(ich) for ich in xrange(self.nch)]
+            if type(A_em[0]) is slice:
+                bool_funcs = [np.ones if v == slice(None) else np.zeros
+                                                                for v in A_em]
                 A_em = [bfunc(ph.shape, dtype=bool) for ph, bfunc in
-                                    zip(self.ph_times_m, bool_funcs)]
+                                           zip(self.ph_times_m, bool_funcs)]
             na = mch_count_ph_in_bursts(self.mburst, Mask=A_em)
             nt = [b[:, inum_ph].astype(float) if b.size > 0 else np.array([])\
                     for b in self.mburst]
