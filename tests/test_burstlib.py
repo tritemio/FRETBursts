@@ -165,7 +165,7 @@ def test_expand(data):
 def test_burst_corrections(data):
     """Test background and bleed-through corrections."""
     d = data
-    d.cal_ph_num(alex_all=True)
+    d.calc_ph_num(alex_all=True)
     d.corrections()
     BT = d.get_BT_array()
 
@@ -190,7 +190,7 @@ def test_burst_size_da(data):
     """
     d = data
     #d.burst_search_t(L=10, m=10, P=None, F=7, ph_sel='DA', nofret=True)
-    d.cal_ph_num(alex_all=True)
+    d.calc_ph_num(alex_all=True)
     if d.ALEX:
         for mb, nd, na, naa, nda in zip(d.mburst, d.nd, d.na, d.naa, d.nda):
             tot_size = bl.b_size(mb)

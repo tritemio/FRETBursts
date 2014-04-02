@@ -879,7 +879,7 @@ class Data(DataContainer):
         """Return masks of ph inside bursts."""
         self.ph_in_burst = mch_ph_select(self.ph_times_m, self.mburst)
 
-    def cal_max_rate(self, m):
+    def calc_max_rate(self, m):
         """Compute the max m-photon rate reached in each burst."""
         Max_Rate = [b_rate_max(mb, ph, m=m)/self.clk_p
                 for ph, mb in zip(self.iter_ph_times(), self.mburst)]
@@ -1263,10 +1263,10 @@ class Data(DataContainer):
             pprint("   [DONE Counting D/A]\n", mute)
         if max_rate:
             pprint(" - Computing max rates in burst ...", mute)
-            self.cal_max_rate(m=3)
+            self.calc_max_rate(m=3)
             pprint("[DONE]\n", mute)
 
-    def cal_ph_num(self, alex_all=False):
+    def calc_ph_num(self, alex_all=False):
         """Computes number of D, A (and AA) photons in each burst.
 
         Arguments:
@@ -1413,7 +1413,7 @@ class Data(DataContainer):
             self.add(BT=BT, bt_corrected=False)
             old_bg_corrected = self.bg_corrected
             old_dithering = self.dithering
-            self.cal_ph_num()       # recomupte uncorrected na,nd...
+            self.calc_ph_num()       # recomupte uncorrected na,nd...
             if old_bg_corrected: self.background_correction_t()
             self.bleed_through_correction()
             if old_dithering: self.dither(self.lsb)
@@ -1488,7 +1488,7 @@ class Data(DataContainer):
     def calc_fret(self, count_ph=False, corrections=True, dither=False,
                   mute=False):
         """Compute FRET (and Stoichiometry if ALEX) for each burst."""
-        if count_ph: self.cal_ph_num()
+        if count_ph: self.calc_ph_num()
         if dither: self.dither(mute=mute)
         if corrections: self.corrections(mute=mute)
         self.calculate_fret_eff()
