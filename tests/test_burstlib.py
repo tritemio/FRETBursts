@@ -138,28 +138,11 @@ def test_burst_fuse_0ms(data):
             m = bl.ph_select(ph, mb)
             assert m.sum() == bl.b_size(mb).sum()
 
-def test_burst_size_da(data):
-    """Test that nd + na with no corrections is equal to b_size(mburst).
-    """
-    d = data
-    d.burst_search_t(L=10, m=10, P=None, F=7, ph_sel='DA', nofret=True)
-    d.cal_ph_num(alex_all=True)
-    if d.ALEX:
-        for mb, nd, na, naa, nda in zip(d.mburst, d.nd, d.na, d.naa, d.nda):
-            tot_size = bl.b_size(mb)
-            tot_size2 = nd + na + naa + nda
-            assert np.allclose(tot_size, tot_size2)
-    else:
-        for mb, nd, na in zip(d.mburst, d.nd, d.na):
-            tot_size = bl.b_size(mb)
-            assert (tot_size == nd + na).all()
-
-
 def test_get_burst_size(data):
     """Test that get_burst_size() returns nd + na when gamma = 1.
     """
     d = data
-    d.burst_search_t(L=10, m=10, P=None, F=7, ph_sel='DA')
+    #d.burst_search_t(L=10, m=10, P=None, F=7, ph_sel='DA')
     for ich, (nd, na) in enumerate(zip(d.nd, d.na)):
         burst_size = bl.select_bursts.get_burst_size(d, ich)
         assert (burst_size == nd + na).all()
@@ -201,6 +184,22 @@ def test_burst_corrections(data):
         else:
             burst_size_raw2 = nd + na + bg_d + bg_a + bt*nd
             assert np.allclose(burst_size_raw, burst_size_raw2)
+
+def test_burst_size_da(data):
+    """Test that nd + na with no corrections is equal to b_size(mburst).
+    """
+    d = data
+    #d.burst_search_t(L=10, m=10, P=None, F=7, ph_sel='DA', nofret=True)
+    d.cal_ph_num(alex_all=True)
+    if d.ALEX:
+        for mb, nd, na, naa, nda in zip(d.mburst, d.nd, d.na, d.naa, d.nda):
+            tot_size = bl.b_size(mb)
+            tot_size2 = nd + na + naa + nda
+            assert np.allclose(tot_size, tot_size2)
+    else:
+        for mb, nd, na in zip(d.mburst, d.nd, d.na):
+            tot_size = bl.b_size(mb)
+            assert (tot_size == nd + na).all()
 
 
 if __name__ == '__main__':
