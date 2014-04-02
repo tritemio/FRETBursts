@@ -1443,8 +1443,17 @@ class Data(DataContainer):
         BT *= self.chi_ch
         return BT
 
-    def calc_sbr(self, gamma=1.):
-        """Return Signal-to-background ratio for each burst.
+    def calc_sbr(self, ph_sel='DA', gamma=1.):
+        """Return Signal-to-Background Ratio (SBR) for each burst.
+
+        Arguments:
+            ph_sel (string): Valid values 'DA', 'D', 'A', 'AA'. Which photons
+                count as signal (donor + acceptor, donor).
+            gamma (float): gamma value used to compute corrected burst size
+                in the case `ph_sel` is 'DA'. Ignored otherwise.
+        Returns:
+            A list of arrays (one per channel) with one value per burst.
+            The list is also saved in `sbr` attribute.
         """
         sbr = []
         for ich, mb in enumerate(self.mburst):
@@ -1452,8 +1461,12 @@ class Data(DataContainer):
                 sbr.append([])
                 continue  # if no bursts skip this ch
             nd, na, bg_d, bg_a = self.expand(ich)
-            burst_sizes = select_bursts.get_burst_size(self, ich, gamma=gamma)
-            sbr.append(1.*burst_sizes/(bg_d + bg_a))
+
+            signal = dict(
+                DA = select_bursts.get_burst_size(self, ich, gamma=gamma),
+                D = nd, A = na, AA = self.naa[ich])
+
+            sbr.append(1.*signal[ph_sel]/(bg_d + bg_a))
         self.add(sbr=sbr)
         return sbr
 
