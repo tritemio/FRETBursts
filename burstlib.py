@@ -982,16 +982,22 @@ class Data(DataContainer):
         BG_err, BG_dd_err, BG_ad_err, BG_aa_err = [], [], [], []
         for ich, ph in enumerate(self.iter_ph_times()):
             nperiods = int(np.ceil(ph[-1]/time_clk))
-            if not self.ALEX:
-                ad_mask = self.A_em[ich]
-                if type(ad_mask) is bool:
-                    dd_mask =  not ad_mask
-                else:
-                    dd_mask = -ad_mask
-            else:
-                dd_mask = self.D_em[ich]*self.D_ex[ich]
-                ad_mask = self.A_em[ich]*self.D_ex[ich]
-                aa_mask = self.A_em[ich]*self.A_ex[ich]
+
+            dd_mask = self.get_ph_mask(ich, ph_sel='D')
+            ad_mask = self.get_ph_mask(ich, ph_sel='A')
+            if self.ALEX:
+                aa_mask = self.get_ph_mask(ich, ph_sel='AA')
+
+#            if not self.ALEX:
+#                ad_mask = self.A_em[ich]
+#                if type(ad_mask) is bool:
+#                    dd_mask =  not ad_mask
+#                else:
+#                    dd_mask = -ad_mask
+#            else:
+#                dd_mask = self.D_em[ich]*self.D_ex[ich]
+#                ad_mask = self.A_em[ich]*self.D_ex[ich]
+#                aa_mask = self.A_em[ich]*self.A_ex[ich]
 
             lim, ph_p = [], []
             bg, bg_dd, bg_ad, bg_aa = [zeros(nperiods) for _ in xrange(4)]
@@ -1007,14 +1013,14 @@ class Data(DataContainer):
 
                 # This to support cases of D-only or A-only timestamps
                 # where self.A_em[ich] is a bool and not a bool-array
-                if type(dd_mask) is bool:
-                    if dd_mask:
-                        bg_dd[ip], bg_dd_err[ip] = bg[ip], bg_err[ip]
-                        continue
-                if type(ad_mask) is bool:
-                    if ad_mask:
-                        bg_ad[ip], bg_ad_err[ip] = bg[ip], bg_err[ip]
-                        continue
+                # In this case, one among `dd_mask` and `ad_mask` will be
+                # slice(none) (all-elements selection)
+                if dd_mask == slice(None):
+                    bg_dd[ip], bg_dd_err[ip] = bg[ip], bg_err[ip]
+                    continue
+                if ad_mask == slice(None):
+                    bg_ad[ip], bg_ad_err[ip] = bg[ip], bg_err[ip]
+                    continue
 
                 dd_mask_i = dd_mask[i0:i1]
                 if dd_mask_i.any():
