@@ -1457,8 +1457,8 @@ class Data(DataContainer):
         """Return Signal-to-Background Ratio (SBR) for each burst.
 
         Arguments:
-            ph_sel (string): Valid values 'DA', 'D', 'A', 'AA'. Which photons
-                count as signal (donor + acceptor, donor).
+            ph_sel (string): Valid values 'DA', 'D', 'A'. Which photons
+                selection use for SBR.
             gamma (float): gamma value used to compute corrected burst size
                 in the case `ph_sel` is 'DA'. Ignored otherwise.
         Returns:
@@ -1474,9 +1474,11 @@ class Data(DataContainer):
 
             signal = dict(
                 DA = select_bursts.get_burst_size(self, ich, gamma=gamma),
-                D = nd, A = na, AA = self.naa[ich])
+                D = nd, A = na)
 
-            sbr.append(1.*signal[ph_sel]/(bg_d + bg_a))
+            background = dict(DA = bg_d + bg_a, D = bg_d, A = bg_a)
+
+            sbr.append(1.*signal[ph_sel]/background[ph_sel])
         self.add(sbr=sbr)
         return sbr
 
