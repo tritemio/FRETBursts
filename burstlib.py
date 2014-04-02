@@ -1175,12 +1175,13 @@ class Data(DataContainer):
         """
         assert ph_sel in ['A', 'D']
         pprint(' - Fixing  burst data to refer to ph_times_m ... ')
-        Mask = self.A_em if ph_sel == 'A' else [-a for a in self.A_em]
         old_MBurst = [mb.copy() for mb in self.mburst]
+
         # Note that mburst is modified in-place
-        for mburst, ph_times, mask in \
-                    zip(self.mburst, self.iter_ph_times(), Mask):
-            index = np.arange(ph_times.size, dtype=np.int32)
+        it_ph_masks = self.iter_ph_masks(ph_sel=ph_sel)
+        ph_sizes = [ph.size for ph in self.iter_ph_times()]
+        for mburst, ph_size, mask in zip(self.mburst, ph_sizes, it_ph_masks):
+            index = np.arange(ph_size, dtype=np.int32)
             mburst[:, iistart] = index[mask][mburst[:, iistart]]
             mburst[:, iiend] = index[mask][mburst[:, iiend]]
             mburst[:, inum_ph] = mburst[:, iiend] - mburst[:, iistart] + 1
