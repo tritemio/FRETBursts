@@ -989,17 +989,6 @@ class Data(DataContainer):
             if self.ALEX:
                 aa_mask = self.get_ph_mask(ich, ph_sel='AA')
 
-#            if not self.ALEX:
-#                ad_mask = self.A_em[ich]
-#                if type(ad_mask) is bool:
-#                    dd_mask =  not ad_mask
-#                else:
-#                    dd_mask = -ad_mask
-#            else:
-#                dd_mask = self.D_em[ich]*self.D_ex[ich]
-#                ad_mask = self.A_em[ich]*self.D_ex[ich]
-#                aa_mask = self.A_em[ich]*self.A_ex[ich]
-
             lim, ph_p = [], []
             bg, bg_dd, bg_ad, bg_aa = [zeros(nperiods) for _ in xrange(4)]
             zeros_list = [zeros(nperiods) for _ in xrange(4)]
@@ -1012,14 +1001,14 @@ class Data(DataContainer):
                 bg[ip], bg_err[ip] = fun(ph_i, tail_min_us=Th_us['DA'][ich],
                                          **kwargs)
 
-                # This to support cases of D-only or A-only timestamps
+                # This supports cases of D-only or A-only timestamps
                 # where self.A_em[ich] is a bool and not a bool-array
-                # In this case, one among `dd_mask` and `ad_mask` will be
-                # slice(none) (all-elements selection)
-                if dd_mask == slice(None):
+                # In this case, either `dd_mask` or `ad_mask` is
+                # slice(None) (all-elements selection)
+                if type(dd_mask) is slice and dd_mask == slice(None):
                     bg_dd[ip], bg_dd_err[ip] = bg[ip], bg_err[ip]
                     continue
-                if ad_mask == slice(None):
+                if type(ad_mask) is slice and ad_mask == slice(None):
                     bg_ad[ip], bg_ad_err[ip] = bg[ip], bg_err[ip]
                     continue
 
