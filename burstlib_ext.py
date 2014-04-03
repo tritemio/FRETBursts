@@ -113,3 +113,22 @@ def calc_mdelays_hist(d, ich=0, m=10, bp=(0, -1), bins_s=(0, 10, 0.02),
         results.extend([a, rate_kcps])
 
     return results
+
+def burst_data_period_mean(dx, burst_data):
+    """Compute mean `bursts_data` in each period.
+
+    Arguments:
+        burst_data (list of arrays): one array per channel,
+            each array hase one element per burst.
+
+    Returns:
+        2D of arrays with shape (nch, nperiods).
+
+    Example:
+        burst_period_mean(dx, dx.nt)
+    """
+    mean_burst_data = np.zeros((dx.nch, dx.nperiods))
+    for ich, (b_data_ch, period) in enumerate(zip(burst_data, dx.bp)):
+        for iperiod in xrange(dx.nperiods):
+            mean_burst_data[ich, iperiod] = b_data_ch[period == iperiod].mean()
+    return mean_burst_data
