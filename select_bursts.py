@@ -151,6 +151,15 @@ def topN_nda(d, ich=0, N=500, gamma=1., gamma1=None, add_naa=False):
     burst_mask[index_sorted[-N:]] = True
     return burst_mask, 'topN%d%s' % (N, str_G(gamma,gamma1))
 
+def topN_max_rate(d, ich=0, N=500):
+    """Select `N` bursts with the highest max burst rate.
+    """
+    max_burst_rate = d.max_rate[ich]
+    index_sorted = max_burst_rate.argsort()
+    burst_mask = np.zeros(max_burst_rate.size, dtype=bool)
+    burst_mask[index_sorted[-N:]] = True
+    return burst_mask, 'topN_MaxRate%d' % N
+
 def width(d, ich=0, th1=0.5, th2=1):
     """Select bursts with width between th1 and th2 (ms)."""
     th1, th2 = th1*1e-3/d.clk_p, th2*1e-3/d.clk_p
