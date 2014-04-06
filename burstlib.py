@@ -1277,16 +1277,20 @@ class Data(DataContainer):
             Returns nothing.
         """
         if not self.ALEX:
+            nt = [b_size(b).astype(float) if b.size > 0 else np.array([])\
+                        for b in self.mburst]
             A_em = [self.get_A_em(ich) for ich in xrange(self.nch)]
             if type(A_em[0]) is slice:
-                bool_funcs = [np.ones if v == slice(None) else np.zeros
-                                                                for v in A_em]
-                A_em = [bfunc(ph.shape, dtype=bool) for ph, bfunc in
-                                           zip(self.ph_times_m, bool_funcs)]
-            na = mch_count_ph_in_bursts(self.mburst, Mask=A_em)
-            nt = [b[:, inum_ph].astype(float) if b.size > 0 else np.array([])\
-                    for b in self.mburst]
-            nd = [t-a for t, a in zip(nt, na)]
+                # This to support the case of A-only or D-only data
+                n0 = [np.zeros(mb.shape[0]) for mb in self.mburst]
+                if A_em[0] == slice(None):
+                    nd, na = n0, nt    # A-only case
+                elif A_em[0] == slice(0):
+                    nd, na = nt, n0    # D-only case
+            else:
+                # This is the usual case with photons in both D and A channel
+                na = mch_count_ph_in_bursts(self.mburst, Mask=A_em)
+                nd = [t - a for t, a in zip(nt, na)]
             assert (nt[0] == na[0] + nd[0]).all()
         if self.ALEX:
             Mask = [d_em*d_ex for d_em, d_ex in zip(self.D_em, self.D_ex)]
