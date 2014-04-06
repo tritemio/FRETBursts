@@ -12,7 +12,7 @@ In FRETBursts this can be easily accomplished using the function
 as parameters. :func:`Select_bursts` returns a new :class:`Data` object
 containing only the new sub-set of bursts. A new selection applied to this
 new object as well. In this way, different 
-selection criteteria can be freely combined in orther to obtain a 
+selection criteria can be freely combined in order to obtain a 
 burst population satisfying arbitrary constrains.
 
 FRETBursts provider a large number of 

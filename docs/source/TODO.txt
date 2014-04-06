@@ -8,7 +8,7 @@ CODE
 - handle unit test with both multi-spot and single-spot Data [DONE]
 - Put docs in git and build in separate folder (redo sphinx-quickstart) [DONE]
 - Use seaborn for plots (KDE, rugs, normal fit are handled)  [POSTPONED]
-- 2D KDE for ALEX and lateral histograms
+- 2D KDE for ALEX and lateral histograms [POSTPONED]
 
 
 DOCS
@@ -21,8 +21,8 @@ API:
 - select_burts [OK]
 - background [OK]
 - burst_plot
-- burst search
-- burstsearchlib.py
+- burst search [OK]
+- burstsearchlib.py [OK]
 
 Workflow
 - Quick and dirty example

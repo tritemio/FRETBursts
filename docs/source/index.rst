@@ -9,7 +9,7 @@ Welcome to FRETBursts's documentation!
 Contents:
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
 
     getting_started
     reference_manual

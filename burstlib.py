@@ -818,7 +818,7 @@ class Data(DataContainer):
     def get_params(self):
         """Returns a plain dict containing only parameters and no arrays.
         This can be used as a summary of data analysis parameters.
-        An addtional keys `name' and `Names` are added with values
+        An additional keys `name' and `Names` are added with values
         from `.name()` and `.Name()`.
         """
         p_names = ['fname', 'clk_p', 'nch', 'ph_sel', 'L', 'm', 'F', 'P',
@@ -848,7 +848,7 @@ class Data(DataContainer):
 
         Returns:
             List of arrays: nd, na, donor bg, acceptor bg.
-            If `alex_naa` is True returns: nd, na, naa, bg_d, bg_a, bg_aa
+            If `alex_naa` is True returns: nd, na, naa, bg_d, bg_a, bg_aa.
             If `width` is True returns the bursts duration (in sec.) as last
             element.
         """
@@ -968,8 +968,11 @@ class Data(DataContainer):
                 If a 3 or 4 element tuple each value is used for DA, D, A
                 and (if ALEX) AA photons. Same value for all channels.
                 If 'auto', the threshold is compute for each stream (DA, D, A,
-                AA) and for each channel as `bg_F * raw_rate`. `raw_rate` is
-                the total number of photons divided by the duration.
+                AA) and for each channel as `bg_F * rate_ml0`. `rate_ml0` is
+                an initial estimation of the rate perfumed using :func:`bg.exp_fit`
+		and a fixed threshold of 300us.
+	    F_bg (float): when `tail_min_us` is 'auto', is the factor by which the
+		initial background estimation if multiplied to compute the threshold.
             kwargs: additional arguments to be passed to `fun`.
 
         The background estimation functions are defined in the module
@@ -1334,8 +1337,15 @@ class Data(DataContainer):
                 bt_corrected=False, bg_corrected=False, dithering=False)
 
     def fuse_bursts(self, ms=0, process=True):
-        """Return a new Data() fusing bursts separated by less than ms.
-        If process==True, it applies corrections and (re)compute FRET.
+        """Return a new :class:`Data` object with nearby bursts fused together.
+
+        Arguments:
+            ms (float): fuse all burst separated by less than `ms` millisecs.
+                If < 0 no burst is fused. Note that with ms = 0, overlapping
+                bursts are fused.
+            process (bool): if True (default), reprocess the burst data in
+                the new object applying corrections and computing FRET.
+
         """
         if ms < 0: return self
         mburst = mch_fuse_bursts(self.mburst, ms=ms, clk_p=self.clk_p)
@@ -1507,24 +1517,24 @@ class Data(DataContainer):
         return sbr
 
     ##
-    # FRET and stochiometry methods
+    # FRET and stoichiometry methods
     #
     def calc_fret(self, count_ph=False, corrections=True, dither=False,
                   mute=False, pure_python=False):
-        """Compute FRET (and Stoichiometry if ALEX) for each burst.
+        """Compute FRET (and stoichiometry if ALEX) for each burst.
 
         This is an high-level functions that can be run after burst search.
-        By default, it will count Donor and Acceptor photons, perfom
+        By default, it will count Donor and Acceptor photons, perform
         corrections (background, bleed-through), and compute gamma-corrected
-        FRET efficiencies (and Stoichiometry if ALEX).
+        FRET efficiencies (and stoichiometry if ALEX).
 
         Arguments:
-            count_ph (bool): if True (default), calls :method:`calc_ph_num` to
+            count_ph (bool): if True (default), calls :meth:`calc_ph_num` to
                 counts Donor and Acceptor photons in each bursts
             corrections (bool):  if True (default), applies background and
                 bleed-through correction to burst data
-            dither (bool): Default False. Whether to apply dithering to
-                burst size.
+            dither (bool): whether to apply dithering to burst size.
+                Default False.
             mute (bool): whether to mute all the printed output. Default False.
             pure_python (bool): if True, uses the pure python functions even
                 when the optimized Cython functions are available.

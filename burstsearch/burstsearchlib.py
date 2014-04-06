@@ -4,33 +4,35 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-Core burst search and photon counting functions.
+The module :mod:`burstsearch.burstsearchlib` provides the low-level (or core)
+burst search and photon counting functions.
 
 All the burst search functions return a 2-D array (burst array) of shape Nx6,
 where N is the number of bursts. The 6 columns contain the burst data.
 
-The burst array can be indexed of sliced along the first dimension (row wise
-or axis=0) to select one or more bursts. However it is discouraged to access
-specific burst fields in the second dimension (columns or axis=1). The proper
-way to access burst data is using the burst-data functions (starting with
-`b_`). These functions are both clearer and less bug-prone than using column
-index. In other terms the second dimension of burst-array should be considered
-opaque.
+In order to select one or more bursts, the burst array can be indexed or
+sliced along the first dimension (row wise or axis=0). The second dimension
+(columns) of the burst-array should be considered opaque, and the burst-data
+functions (starting with `b_`) should be used to access it (instead of the
+indexing the column). Using the `b_*` functions is both clearer and less
+bug-prone than using a column index.
 
 The list of burst-data functions is: :func:`b_start`, :func:`b_end`,
 :func:`b_size`, :func:`b_width`, :func:`b_istart`, :func:`b_istart`,
-:func:`b_iend`, :func:`b_rate`, :func:`b_separation`.
+:func:`b_iend`, :func:`b_rate`, :func:`b_separation`. You can note that they
+are more than 6 because some of them return additional quantities derived
+from the burst array columns.
 
-For example, assume a burst array `mburst`. To take a slice of only the first
-10 bursts you can do::
+As an example, assume having a burst array `mburst`. To take a slice of only
+the first 10 bursts you can do::
 
-    mburst2 = mburst[:10]   # new array with burst data of the first 10 bursts
+    mburst10 = mburst[:10]   # new array with burst data of the first 10 bursts
 
-Obtain the burst start of all the bursts::
+To obtain the burst start of all the bursts::
 
     b_start(mbursts)
 
-Obtain the burst size (number of photons) for 10-th to 20-th burst::
+To obtain the burst size (number of photons) for the 10-th to 20-th burst::
 
     b_size(mbursts[10:20])
 
