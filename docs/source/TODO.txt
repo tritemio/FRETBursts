@@ -2,12 +2,12 @@ CODE
 ====
 
 - fix or delete burst_plot functions using bleaching or asymmetry
-- rename Cython functions with _cy or _c suffix
-- move logic to load python or cython functions to burstsearch module
-- integrate apply_usalex load functions to a method in Data
-- handle unit test with both multi-spot and single-spot Data
-- Put docs in git and build in separate folder (redo sphinx-quickstart)
-- Use seaborn for plots (KDE, rugs, normal fit are handled)
+- rename Cython functions with _cy or _c suffix [DONE]
+- move logic to load python or cython functions to burstsearch module [DONE]
+- integrate apply_usalex load functions to a method in Data [POSTPONED]
+- handle unit test with both multi-spot and single-spot Data [DONE]
+- Put docs in git and build in separate folder (redo sphinx-quickstart) [DONE]
+- Use seaborn for plots (KDE, rugs, normal fit are handled)  [POSTPONED]
 - 2D KDE for ALEX and lateral histograms
 
 
@@ -28,6 +28,6 @@ Workflow
 - Quick and dirty example
 - usALEX workflow
 - Multi-spot workflow
-- In-depth workflow description (with hierarchy of called methods 
+- In-depth workflow description (with hierarchy of called methods
   and description of written attributes)
-  
+
