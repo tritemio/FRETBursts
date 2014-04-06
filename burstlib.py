@@ -26,27 +26,17 @@ from utils.misc import pprint, clk_to_s, shorten_fname
 from poisson_threshold import find_optimal_T_bga
 import fret_fit
 
+from burstsearch import burstsearchlib as bslib
 from burstsearch.burstsearchlib import (
         itstart, iwidth, inum_ph, iistart, iiend, itend,
-        ba_pure_o, mch_count_ph_in_bursts,
-        b_start, b_end, b_width,
-        b_istart, b_iend, b_size,
-        b_rate,
-        b_separation)
-
-try:
-    from burstsearch.c_burstsearch import ba_c#, ba_pure_c
-    ba = ba_c
-    print " - Optimized burst search (cython) loaded."
-except:
-    ba = ba_pure_o
-    print " - Fallback to pure python burst search."
-try:
-    from burstsearch.c_burstsearch import c_mch_count_ph_in_bursts
-    #mch_count_ph_in_bursts = c_mch_count_ph_in_bursts
-    print " - Optimized ph_count (cython) loaded."
-except:
-    print " - Fallback to pure python ph_count."
+        # Burst search function
+        bsearch,
+        # Burst data functions
+        b_start, b_end, b_width, b_istart, b_iend, b_size,
+        b_rate, b_separation,
+        # Photon counting function,
+        mch_count_ph_in_bursts
+        )
 
 import background as bg
 import select_bursts
@@ -73,6 +63,22 @@ def deprecate(function, old_name, new_name):
 bg_calc_exp = deprecate(bg.exp_fit, 'bg_calc_exp', 'bg.exp_fit')
 bg_calc_exp_cdf = deprecate(bg.exp_fit, 'bg_calc_exp_cdf', 'bg.exp_cdf_fit')
 
+
+def _get_bsearch_func(pure_python=False):
+    if pure_python:
+        # return the python version
+        return bslib.bsearch_py
+    else:
+        # or what is available
+        return bsearch
+
+def _get_mch_count_ph_in_bursts_func(pure_python=False):
+    if pure_python:
+        # return the python version
+        return bslib.mch_count_ph_in_bursts_py
+    else:
+        # or what is available
+        return mch_count_ph_in_bursts
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##  GLOBAL VARIABLES
 ##
@@ -1127,26 +1133,31 @@ class Data(DataContainer):
                  rate_th=rate_th)
 
     def _burst_search_rate(self, m, L, min_rate_cps, ph_sel='DA',
-                           verbose=True):
+                           verbose=True, pure_python=False):
         """Experimental burst search with one fixed rate.
         May break stuff downstream!!
         """
+        bsearch = _get_bsearch_func(pure_python=pure_python)
+
         Min_rate_cps = self._param_as_mch_array(min_rate_cps)
         mburst = []
         T_clk = (1.*m/Min_rate_cps)/self.clk_p
         for ich, (ph, t_clk) in enumerate(zip(self.iter_ph_times(ph_sel),
                                           T_clk)):
             label = '%s CH%d' % (ph_sel, ich+1) if verbose else None
-            mb = ba(ph, L, m, t_clk, label=label, verbose=verbose)
+            mb = bsearch(ph, L, m, t_clk, label=label, verbose=verbose)
             mburst.append(mb)
         self.add(mburst=mburst, min_rate_cps=Min_rate_cps, T=T_clk*self.clk_p)
 
-    def _burst_search_TT(self, m, L, ph_sel='DA', verbose=True):
+    def _burst_search_TT(self, m, L, ph_sel='DA', verbose=True,
+                         pure_python=False):
         """Compute burst search with params `m`, `L` on ph selection `ph_sel`
 
         Requires a list of arrays `self.TT` with the max time-thresholds in
         the different burst periods for each channel (use `._calc_T()`).
         """
+        bsearch = _get_bsearch_func(pure_python=pure_python)
+
         self.recompute_bg_lim_ph_p(ph_sel=ph_sel)
         MBurst = []
         label = ''
@@ -1157,7 +1168,7 @@ class Data(DataContainer):
             for ip, (l0, l1) in enumerate(self.Lim[ich]):
                 if verbose:
                     label='%s CH%d-%d' % (ph_sel, ich+1, ip)
-                mb = ba(ph[l0:l1+1], L, m, Tck[ip], label=label,
+                mb = bsearch(ph[l0:l1+1], L, m, Tck[ip], label=label,
                         verbose=verbose)
                 if mb.size > 0: # if we found at least one burst
                     mb[:, iistart] += l0
@@ -1199,7 +1210,7 @@ class Data(DataContainer):
 
     def burst_search_t(self, L=10, m=10, P=0.95, F=1., min_rate_cps=None,
             nofret=False, max_rate=False, dither=False, ph_sel='DA',
-            verbose=False, mute=False):
+            verbose=False, mute=False, pure_python=False):
         """Performs a burst search with specified parameters.
 
         This method performs a sliding-window burst search and does not
@@ -1224,6 +1235,8 @@ class Data(DataContainer):
             ph_sel (string): can be 'DA', 'D' or 'A'. Specifies the photon
                 selection on which to perform the burst search: 'DA' for
                 donor+acceptor, 'D' or 'A' for donor or acceptor photons.
+            pure_python (bool): if True, uses the pure python functions even
+                when the optimized Cython functions are available.
 
         Note:
             when using `P` or `F` the background rates are needed, so
@@ -1241,12 +1254,14 @@ class Data(DataContainer):
 
         if min_rate_cps is not None:
             self._burst_search_rate(m=m, L=L, min_rate_cps=min_rate_cps,
-                                    ph_sel=ph_sel, verbose=verbose)
+                                    ph_sel=ph_sel, verbose=verbose,
+                                    pure_python=pure_python)
         else:
             # Compute TT
             self._calc_T(m=m, P=P, F=F, ph_sel=ph_sel)
             # Use TT and compute mburst
-            self._burst_search_TT(L=L, m=m, ph_sel=ph_sel, verbose=verbose)
+            self._burst_search_TT(L=L, m=m, ph_sel=ph_sel, verbose=verbose,
+                                  pure_python=pure_python)
         pprint("[DONE]\n", mute)
 
         pprint(" - Calculating burst periods ...", mute)
@@ -1259,23 +1274,28 @@ class Data(DataContainer):
         if not nofret:
             pprint(" - Counting D and A ph and calculating FRET ... \n", mute)
             self.calc_fret(count_ph=True, corrections=True, dither=dither,
-                           mute=mute)
+                           mute=mute, pure_python=pure_python)
             pprint("   [DONE Counting D/A]\n", mute)
         if max_rate:
             pprint(" - Computing max rates in burst ...", mute)
             self.calc_max_rate(m=3)
             pprint("[DONE]\n", mute)
 
-    def calc_ph_num(self, alex_all=False):
+    def calc_ph_num(self, alex_all=False, pure_python=False):
         """Computes number of D, A (and AA) photons in each burst.
 
         Arguments:
             alex_all (bool): if True and self.ALEX is True, computes also the
                 donor channel photons during acceptor excitation (`nda`)
+            pure_python (bool): if True, uses the pure python functions even
+                when the optimized Cython functions are available.
+
         Returns:
             Saves `nd`, `na`, `nt` (and eventually `naa`, `nda`) in self.
-            Returns nothing.
+            Returns None.
         """
+        mch_count_ph_in_bursts = _get_mch_count_ph_in_bursts_func(pure_python)
+
         if not self.ALEX:
             nt = [b_size(b).astype(float) if b.size > 0 else np.array([])\
                         for b in self.mburst]
@@ -1490,11 +1510,34 @@ class Data(DataContainer):
     # FRET and stochiometry methods
     #
     def calc_fret(self, count_ph=False, corrections=True, dither=False,
-                  mute=False):
-        """Compute FRET (and Stoichiometry if ALEX) for each burst."""
-        if count_ph: self.calc_ph_num()
-        if dither: self.dither(mute=mute)
-        if corrections: self.corrections(mute=mute)
+                  mute=False, pure_python=False):
+        """Compute FRET (and Stoichiometry if ALEX) for each burst.
+
+        This is an high-level functions that can be run after burst search.
+        By default, it will count Donor and Acceptor photons, perfom
+        corrections (background, bleed-through), and compute gamma-corrected
+        FRET efficiencies (and Stoichiometry if ALEX).
+
+        Arguments:
+            count_ph (bool): if True (default), calls :method:`calc_ph_num` to
+                counts Donor and Acceptor photons in each bursts
+            corrections (bool):  if True (default), applies background and
+                bleed-through correction to burst data
+            dither (bool): Default False. Whether to apply dithering to
+                burst size.
+            mute (bool): whether to mute all the printed output. Default False.
+            pure_python (bool): if True, uses the pure python functions even
+                when the optimized Cython functions are available.
+
+        Returns:
+            None, all the results are saved in the object.
+        """
+        if count_ph:
+            self.calc_ph_num(pure_python=pure_python)
+        if dither:
+            self.dither(mute=mute)
+        if corrections:
+            self.corrections(mute=mute)
         self.calculate_fret_eff()
         if self.ALEX:
             self.calculate_stoich()

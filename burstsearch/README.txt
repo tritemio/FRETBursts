@@ -1,6 +1,14 @@
-To compile the code into C run (requires cython):
+Compile optimized functions
+===========================
+
+To compile the optimized function into C with Cython and then to machine code,
+enter in the folder with a terminal and type:
 
     python setup.py build_ext --inplace
+
+Note: the previous command works on Windows 7 from an Anaconda Command Prompt, 
+after the compiler has been installed (see below). For other python ditributions
+you may want to look at the passages described below.
 
 Windows 7 x64 requirements
 ==========================
