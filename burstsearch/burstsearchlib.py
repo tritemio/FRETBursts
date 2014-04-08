@@ -120,6 +120,10 @@ def bsearch_py(t, L, m, T, label='Burst search', verbose=True):
                 i_start = i
                 in_burst = True
         elif in_burst:
+            # Note that i_end is the index of the last ph in the current time
+            # window, while the last ph in a burst is (i_end-1).
+            # Note however that the number of ph in a burst is (i_end-i_start),
+            # not (i_end-1)-i_start as may erroneously appears at first glace.
             in_burst = False
             i_end = i+m-1
             if i_end - i_start >= L:
