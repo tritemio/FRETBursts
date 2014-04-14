@@ -235,17 +235,29 @@ def two_gaussian_fit_KDE_curve(s, p0=[0, 0.1, 0.6, 0.1, 0.5], weights=None,
                                bandwidth=0.05, x_pdf=None, debug=False,
                                method='SLSQP', bounds=None,
                                verbose=False, **kde_kwargs):
-    """
-    Fit sample `s` with two gaussians using a KDE pdf approximation.
+    """Fit sample `s` with two gaussians using a KDE pdf approximation.
+
     The 2-gaussian pdf is then curve-fitted to the KDE pdf.
-    `p0`: initial parameters [mu0, sig0, mu1, sig1, a]
-    `weights`: optional weigths, same size as `s` (for ex. 1/sigma^2 ~ nt).
-    `bandwidth`: bandwidth for the KDE algorithm
-    `x_pdf`: array on which the KDE PDF is evaluated and curve-fitted
-    `method`: fit method, can be 'leastsq' or a method supported by minimize()
-    `bounds`: bounds for the fit parameters (ignored if method='leastsq')
-    `debug`: (bool) if True perfoms more tests and print more info.
+
+    Arguments:
+        s (array): population of samples to be fitted
+        p0 (sequence-like): initial parameters [mu0, sig0, mu1, sig1, a]
+        bandwidth (float): bandwidth for the KDE algorithm
+        method (string): fit method, can be 'leastsq' or one of the methods
+            accepted by scipy `minimize()`
+        bounds (None or 5-element list): if not None, each element is a
+            (min,max) pair of bounds for the corresponding parameter. This
+            argument can be used only with L-BFGS-B, TNC or SLSQP methods.
+            If bounds are used, parameters cannot be fixed
+        x_pdf (array): array on which the KDE PDF is evaluated and curve-fitted
+        weights (array): optional weigths, same size as `s` (for ex.
+            1/sigma^2 ~ nt).
+        debug (bool): if True perfoms more tests and print more info.
+
     Additional kwargs are passed to scipy.stats.gaussian_kde().
+
+    Returns:
+        Array of parameters for the 2-gaussians (5 elements)
     """
     if x_pdf is None: x_pdf = np.linspace(s.min(), s.max(), 1000)
 
@@ -270,13 +282,22 @@ def two_gaussian_fit_EM_b(s, p0=[0, 0.1, 0.6, 0.1, 0.5], weights=None,
                           max_iter=300, ptol=1e-4, debug=False):
     """
     Fit the sample s with two gaussians using Expectation Maximization.
+
     This version allows setting boundaries for each parameter.
-    `p0`: initial parameters [mu0, sig0, mu1, sig1, a]
-    `bounds`: sequence of (min, max) values that limits the parameters. If min
-              or max are None, there is no boundary.
-    `ptol`: convergence condition. Relative max variation of any parameter.
-    `max_iter`: max number of iteration in case of non convergence.
-    `weights`: optional weigths, same size as `s` (for ex. 1/sigma^2 ~ nt).
+
+    Arguments:
+        s (array): population of samples to be fitted
+        p0 (sequence-like): initial parameters [mu0, sig0, mu1, sig1, a]
+        bound (tuple of pairs): sequence of (min, max) values that constrain
+            the parameters. If min or max are None, no boundary is set.
+        ptol (float): convergence condition. Relative max variation of any
+            parameter.
+        max_iter (int): max number of iteration in case of non convergence.
+        weights (array): optional weigths, same size as `s` (for ex.
+            1/sigma^2 ~ nt).
+
+   Returns:
+        Array of parameters for the 2-gaussians (5 elements)
     """
     assert np.size(p0) == 5
     if weights is None: weights = np.ones(s.size)
@@ -338,13 +359,22 @@ def two_gaussian_fit_EM(s, p0=[0, 0.1, 0.6, 0.1, 0.5], max_iter=300, ptol=1e-4,
                         weights=None):
     """
     Fit the sample s with two gaussians using Expectation Maximization.
-    This vesion allows fixing mean or std. dev. of each component.
-    `p0`: initial parameters [mu0, sig0, mu1, sig1, a]
-    `ptol`: convergence condition. Relative max variation of any parameter.
-    `max_iter`: max number of iteration in case of non convergence.
-    `fix_mu`: allow to fix the mean (mu) of a component (1 or True to fix)
-    `fix_sig`: allow to fix the std. dev of a component (1 or True to fix)
-    `weights`: optional weigths, same size as `s` (for ex. 1/sigma^2 ~ nt).
+
+    This vesion allows to optionally fix mean or std. dev. of each component.
+
+    Arguments:
+        s (array): population of samples to be fitted
+        p0 (sequence-like): initial parameters [mu0, sig0, mu1, sig1, a]
+        bound (tuple of pairs): sequence of (min, max) values that constrain
+            the parameters. If min or max are None, no boundary is set.
+        ptol (float): convergence condition. Relative max variation of any
+            parameter.
+        max_iter (int): max number of iteration in case of non convergence.
+        weights (array): optional weigths, same size as `s` (for ex.
+            1/sigma^2 ~ nt).
+
+    Returns:
+        Array of parameters for the 2-gaussians (5 elements)
     """
     assert np.size(p0) == 5
     if weights is None: weights = np.ones(s.size)
@@ -403,14 +433,21 @@ def two_gaussian_fit_EM(s, p0=[0, 0.1, 0.6, 0.1, 0.5], max_iter=300, ptol=1e-4,
 def two_gaussian_fit_hist(s, bins=np.r_[-0.5:1.5:0.001], weights=None,
         p0=[0.2,1,0.8,1,0.3], fix_mu=[0,0], fix_sig=[0,0], fix_a=False):
     """Fit the sample s with 2-gaussian mixture (histogram fit).
+
     Uses scipy.optimize.leastsq function. Parameters can be fixed but
     cannot be constrained in an interval.
-    `p0`: initial guess or parameters
-    `bins`: bins passed to `np.histogram()`
-    `weights` optional weights for `np.histogram()`
-    `fix_a`: if True fixes `a` to p0[4]
-    `fix_mu`: tuple of bools. Whether to fix the means of the gaussians
-    `fix_sig`: tuple of bools. Whether to fix the sigmas of the gaussians
+
+    Arguments:
+        s (array): population of samples to be fitted
+        p0 (5-element list or array): initial guess or parameters
+        bins (int or array): bins passed to `np.histogram()`
+        weights (array): optional weights passed to `np.histogram()`
+        fix_a (tuple of bools): Whether to fix the amplitude of the gaussians
+        fix_mu (tuple of bools): Whether to fix the mean of the gaussians
+        fix_sig (tuple of bools): Whether to fix the sigma of the gaussians
+
+    Returns:
+        Array of parameters for the 2-gaussians (5 elements)
     """
     assert np.size(p0) == 5
     fix = np.array([fix_mu[0], fix_sig[0], fix_mu[1], fix_sig[1], fix_a],
@@ -441,17 +478,26 @@ def two_gaussian_fit_hist_min(s, bounds=None, method='L-BFGS-B',
         bins=np.r_[-0.5:1.5:0.001], weights=None,  p0=[0.2,1,0.8,1,0.3],
         fix_mu=[0,0], fix_sig=[0,0], fix_a=False, verbose=False):
     """Fit the sample `s` with 2-gaussian mixture (histogram fit). [Bounded]
+
     Uses scipy.optimize.minimize allowing constrained minimization.
-    `method`: one of the methods accepted by minimize()
-    `bounds`: 5-element list of (min,max) values to constrain each of the 5
-            parameters (can be used only with L-BFGS-B, TNC or SLSQP methods)
+
+    Arguments:
+        s (array): population of samples to be fitted
+        method (string): one of the methods accepted by scipy `minimize()`
+        bounds (None or 5-element list): if not None, each element is a
+            (min,max) pair of bounds for the corresponding parameter. This
+            argument can be used only with L-BFGS-B, TNC or SLSQP methods.
             If bounds are used, parameters cannot be fixed
-    `p0`: initial guess or parameters
-    `bins`: bins passed to `np.histogram()`
-    `weights` optional weights for `np.histogram()`
-    `fix_a`: if True fixes `a` to p0[4]
-    `fix_mu`: tuple of bools. Whether to fix the means of the gaussians
-    `fix_sig`: tuple of bools. Whether to fix the sigmas of the gaussians
+        p0 (5-element list or array): initial guess or parameters
+        bins (int or array): bins passed to `np.histogram()`
+        weights (array): optional weights passed to `np.histogram()`
+        fix_a (tuple of bools): Whether to fix the amplitude of the gaussians
+        fix_mu (tuple of bools): Whether to fix the mean of the gaussians
+        fix_sig (tuple of bools): Whether to fix the sigma of the gaussians
+        verbose (boolean): allows printing fit information
+
+    Returns:
+        Array of parameters for the 2-gaussians (5 elements)
     """
     assert np.size(p0) == 5
     fix = np.array([fix_mu[0], fix_sig[0], fix_mu[1], fix_sig[1], fix_a],
@@ -490,6 +536,7 @@ def two_gaussian_fit_hist_min_ab(s, bounds=None, method='L-BFGS-B',
     The order of the parameters is: mu1, sigma1, a1, mu2, sigma2, a2.
 
     Arguments:
+        s (array): population of samples to be fitted
         method (string): one of the methods accepted by scipy `minimize()`
         bounds (None or 6-element list): if not None, each element is a
             (min,max) pair of bounds for the corresponding parameter. This
@@ -536,7 +583,21 @@ def two_gaussian_fit_hist_min_ab(s, bounds=None, method='L-BFGS-B',
 
 def two_gaussian_fit_cdf(s, p0=[0., .05, .6, .1, .5],
                          fix_mu=[0, 0], fix_sig=[0, 0]):
-    """Fit the sample s with two gaussians. Parameters can be fixed.
+    """Fit the sample s with two gaussians using a CDF fit.
+
+    Curve fit 2-gauss mixture Cumulative Distribution Function (CDF) to the
+    empirical CDF for sample `s`.
+
+    Note that with a CDF fit no weighting is possible.
+
+    Arguments:
+        s (array): population of samples to be fitted
+        p0 (5-element list or array): initial guess or parameters
+        fix_mu (tuple of bools): Whether to fix the mean of the gaussians
+        fix_sig (tuple of bools): Whether to fix the sigma of the gaussians
+
+    Returns:
+        Array of parameters for the 2-gaussians (5 elements)
     """
     assert np.size(p0) == 5
     fix = np.array([fix_mu[0], fix_sig[0], fix_mu[1], fix_sig[1], 0],
