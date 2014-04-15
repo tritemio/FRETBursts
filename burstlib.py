@@ -1211,7 +1211,7 @@ class Data(DataContainer):
             assert (mb[:, inum_ph] >= old_mb[:, inum_ph]).all()
         pprint('[DONE]\n')
 
-    def burst_search_t(self, L=10, m=10, P=0.95, F=1., min_rate_cps=None,
+    def burst_search_t(self, L=10, m=10, P=None, F=6., min_rate_cps=None,
             nofret=False, max_rate=False, dither=False, ph_sel='DA',
             verbose=False, mute=False, pure_python=False):
         """Performs a burst search with specified parameters.
