@@ -1014,6 +1014,8 @@ class Data(DataContainer):
             for ip in xrange(nperiods):
                 i0 = 0 if ip == 0 else i1           # pylint: disable=E0601
                 i1 = (ph < (ip+1)*time_clk).sum()
+                lim.append((i0, i1-1))
+                ph_p.append((ph[i0], ph[i1-1]))
 
                 ph_i = ph[i0:i1]
                 bg[ip], bg_err[ip] = fun(ph_i, tail_min_us=Th_us['DA'][ich],
@@ -1044,9 +1046,6 @@ class Data(DataContainer):
                     aa_mask_i = aa_mask[i0:i1]
                     bg_aa[ip], bg_aa_err[ip] = fun(ph_i[aa_mask_i],
                                        tail_min_us=Th_us['AA'][ich], **kwargs)
-
-                lim.append((i0, i1-1))
-                ph_p.append((ph[i0], ph[i1-1]))
 
             Lim.append(lim);     Ph_p.append(ph_p)
             BG.append(bg);       BG_err.append(bg_err)
