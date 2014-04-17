@@ -10,9 +10,9 @@ WARNING: Always use trailing slash "/" after a folder name.
 """
 
 # Variable: DATA_DIR
-# Usually prepended to file names when loading data.
+# Path (usually) used as base dir for file names when loading data.
 # You can put this path in an environment variable FRETBURSTS_DATA_DIR
-# that, if defined, has the precedence on the variable set here
+# that, if defined, has the precedence over the variables set here
 _DATA_DIR_WIN = '../../../data/'
 _DATA_DIR_LINUX = '../data/'
 

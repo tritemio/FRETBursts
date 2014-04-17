@@ -377,14 +377,16 @@ def timetrace_fret_scatter(d, i=0, gamma=1., **kwargs):
     plt.scatter(bl.b_start(b)*d.clk_p, d.E[i], **style_kwargs)
     xlabel('Time (s)'); ylabel('E')
 
-def timetrace_bg(d, i=0, nolegend=False):
+def timetrace_bg(d, i=0, nolegend=False, ncol=3):
     """Timetrace of background rates."""
     t = arange(d.bg[i].size)*d.bg_time_s
     plot(t, 1e-3*d.bg[i], 'k', lw=2, label="T: %d cps" % d.rate_m[i])
-    plot(t, 1e-3*d.bg_dd[i], 'g', lw=2, label="D: %d cps" % d.rate_dd[i])
-    plot(t, 1e-3*d.bg_ad[i], 'r', lw=2, label="A: %d cps" % d.rate_ad[i])
+    plot(t, 1e-3*d.bg_dd[i], 'g', lw=2, label="DD: %d cps" % d.rate_dd[i])
+    plot(t, 1e-3*d.bg_ad[i], 'r', lw=2, label="AD: %d cps" % d.rate_ad[i])
+    if d.ALEX:
+        plot(t, 1e-3*d.bg_aa[i], 'm', lw=2, label="AA: %d cps" % d.rate_aa[i])
     if not nolegend:
-        legend(loc='best', fancybox=True, frameon=False, ncol=3)
+        legend(loc='best', frameon=False, ncol=ncol)
     xlabel("Time (s)"); ylabel("BG rate (kcps)"); grid(True)
     plt.ylim(ymin=0)
 
