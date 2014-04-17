@@ -8,14 +8,16 @@ Functions to check the version of the software by quering git.
 """
 
 from subprocess import check_output, call
-import os
 
-from fretbursts_path_def import GIT_PATH
+try:
+    from fretbursts_path_def import GIT_PATH
+except ImportError:
+    GIT_PATH = 'git'
 
 
 def git_path_valid(git_path=None):
     """
-    Check whether git executable is found.
+    Check whether the git executable is found.
     """
     if git_path is None: git_path = GIT_PATH
     try:
@@ -26,7 +28,7 @@ def git_path_valid(git_path=None):
 
 def get_git_version(git_path=None):
     """
-    Get the version string from Git executables.
+    Get the Git version.
     """
     if git_path is None: git_path = GIT_PATH
     git_version = check_output([git_path, "--version"]).split()[2]
@@ -64,3 +66,20 @@ def get_last_commit(git_path=None):
     line = get_last_commit_line(git_path)
     revision_id = line.split()[0]
     return revision_id
+
+def print_summary(string='Repository', git_path=None):
+    """
+    Print the last commit line and eventual uncommitted changes.
+    """
+    if git_path is None: git_path = GIT_PATH
+
+    # If git is available, check fretbursts version
+    if not git_path_valid():
+        print('\n%s revision unknown (git not found).' % string)
+    else:
+        last_commit = get_last_commit_line()
+        print('\n{} revision:\n {}\n'.format(string, last_commit))
+        if not check_clean_status():
+            print('\nWARNING -> Uncommitted changes:')
+            print(get_status())
+
