@@ -1078,10 +1078,11 @@ def plot_mburstm_1ch(d, fun, scroll=False, pgrid=True, ax=None,
     else:
         fig = ax.figure
     try:
-        t = d.status() + ' BG=%d cps, T=%dus, #B=%d' %\
-                    (d.rate_m[0], d.T[0]*1e6, d.mburst[0].shape[0])
-        l = t.split(); l2 = ' '.join(l[1:])
-        if not nosuptitle: ax.set_title(l[0]+'\n'+l2, fontsize=11)
+        s = d.name()
+        if 'rate_m' in d: s += (' BG=%.1fk' % (d.rate_m[0]*1e-3))
+        if 'T' in d: s += (u', T=%dμs' % (d.T[0]*1e6))
+        if 'mburst' in d: s += (', #bu=%d' %  d.mburst[0].shape[0])
+        if not nosuptitle: ax.set_title(s, fontsize=12)
     except:
         print "WARNING: No title in plots."
     ax.grid(pgrid)
