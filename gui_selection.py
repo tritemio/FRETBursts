@@ -29,14 +29,14 @@ class GuiSelection(object):
         self.id_press = fig.canvas.mpl_connect('button_press_event',
                                                 self.on_press)
         if self.debug:
-            print 'Figure:', fig, '\nAxis:', ax
+            pprint('Figure: ' + str(fig) + '\nAxis: ' + str(ax) + '\n')
     def on_press(self, event):
         if event.inaxes != self.ax: return
         self.pressed = True
         self.xs, self.ys = event.xdata, event.ydata
         if self.debug:
-            print 'PRESS button=%d, x=%d, y=%d, xdata=%f, ydata=%f' % (
-                event.button, event.x, event.y, event.xdata, event.ydata)
+            pprint('PRESS button=%d, x=%d, y=%d, xdata=%f, ydata=%f\n' % (
+                event.button, event.x, event.y, event.xdata, event.ydata))
         self.on_press_draw()
         self.fig.canvas.draw()
         self.id_motion = self.fig.canvas.mpl_connect('motion_notify_event',
@@ -47,8 +47,8 @@ class GuiSelection(object):
     def on_motion(self, event):
         if event.inaxes != self.ax: return
         if self.debug:
-            print 'MOTION x=%d, y=%d, xdata=%f, ydata=%f' % (
-                event.x, event.y, event.xdata, event.ydata)
+            pprint('MOTION x=%d, y=%d, xdata=%f, ydata=%f\n' % (
+                event.x, event.y, event.xdata, event.ydata))
         self.xe, self.ye = event.xdata, event.ydata
         self.on_motion_draw()
         self.fig.canvas.draw()
@@ -57,8 +57,8 @@ class GuiSelection(object):
         if not self.pressed: return
         self.pressed = False
         if self.debug:
-            print 'RELEASE button=%d, x=%d, y=%d, xdata=%f, ydata=%f' % (
-                event.button, event.x, event.y, event.xdata, event.ydata)
+            pprint('RELEASE button=%d, x=%d, y=%d, xdata=%f, ydata=%f\n' % (
+                event.button, event.x, event.y, event.xdata, event.ydata))
         self.fig.canvas.mpl_disconnect(self.id_motion)
         self.on_release_print()
 
@@ -131,6 +131,7 @@ class rectSelection(GuiSelection):
         # This is the only custom method for hist2d_alex()
         E1, E2 = min((self.xs, self.xe)), max((self.xs, self.xe))
         S1, S2 = min((self.ys, self.ye)), max((self.ys, self.ye))
+        self.selection = dict(E1=E1, E2=E2, S1=S1, S2=S2)
         pprint("Selection: \nE1=%.2f, E2=%.2f, S1=%.2f, S2=%.2f\n" %\
                 (E1,E2,S1,S2))
 

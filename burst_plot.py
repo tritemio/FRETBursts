@@ -650,6 +650,17 @@ def hist2d_alex(d, i=0, vmin=2, vmax=0, bin_step=None,
         # the selection object must be saved (otherwise will be destroyed)
         hist2d_alex.gui_sel = gs.rectSelection(gcf(), gca())
 
+def get_ES_range():
+    """Get the range of ES histogram selected via GUI.
+
+    Prints E1, E2, S1, S2 and return a dict containig these values.
+    """
+    sel = None
+    if hasattr(hist2d_alex.gui_sel, 'selection'):
+        sel = hist2d_alex.gui_sel.selection
+        print 'E1={E1:.3}, E2={E2:.3}, S1={S1:.3}, S2={S2:.3}'.format(**sel)
+    return sel
+
 def hist_sbr(d, ich=0, **hist_kwargs):
     """Histogram of per-burst Signal-to-Background Ratio (SBR).
     """
