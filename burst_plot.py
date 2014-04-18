@@ -5,10 +5,10 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-This module defines all the plotting functions.
+This module defines all the plotting functions for the `Data` object.
 
 The main plot function is `dplot()` that takes, as parameters, a `Data()`
-object and a 1-ch plot-function and creates a subplot for each channel.
+object and a 1-ch-plot-function and creates a subplot for each channel.
 
 The 1-ch plot functions are usually called through `dplot` but can also be
 called directly to make a single channel plot.
@@ -978,7 +978,7 @@ def scatter_alex(d, i=0, alpha=0.2):
 #  High-level plot wrappers
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def plot_mburstm_48ch(d, fun=scatter_width_size, sharex=True, sharey=True,
+def dplot_48ch(d, fun=scatter_width_size, sharex=True, sharey=True,
         scroll=False, pgrid=True, figsize=(20,16), AX=None, nosuptitle=False,
         scale=True, **kwargs):
     """Plot wrapper for 48-spot measurements. Use `dplot` instead."""
@@ -1022,7 +1022,7 @@ def plot_mburstm_48ch(d, fun=scatter_width_size, sharex=True, sharey=True,
     #s = RangeToolQT(fig)
     return AX, s
 
-def plot_mburstm_8ch(d, fun=scatter_width_size, sharex=True,sharey=True,
+def dplot_8ch(d, fun=scatter_width_size, sharex=True,sharey=True,
         scroll=False,pgrid=True, figsize=(12,9), nosuptitle=False, AX=None,
         scale=True, **kwargs):
     """Plot wrapper for 8-spot measurements. Use `dplot` instead."""
@@ -1067,24 +1067,19 @@ def plot_mburstm_8ch(d, fun=scatter_width_size, sharex=True,sharey=True,
     #s = RangeToolQT(fig)
     return AX, s
 
-def plot_mburstm_1ch(d, fun, scroll=False, pgrid=True, ax=None,
-        #figsize=(7.5625,3.7125),
-        figsize=(9,4.5),
-        fignum=None, nosuptitle=False, **kwargs):
+def dplot_1ch(d, fun, scroll=False, pgrid=True, ax=None,
+              figsize=(9,4.5), fignum=None, nosuptitle=False, **kwargs):
     """Plot wrapper for single-spot measurements. Use `dplot` instead."""
     if ax is None:
         fig = plt.figure(num=fignum, figsize=figsize)
         ax = fig.add_subplot(111)
     else:
         fig = ax.figure
-    try:
-        s = d.name()
-        if 'rate_m' in d: s += (' BG=%.1fk' % (d.rate_m[0]*1e-3))
-        if 'T' in d: s += (u', T=%dμs' % (d.T[0]*1e6))
-        if 'mburst' in d: s += (', #bu=%d' %  d.mburst[0].shape[0])
-        if not nosuptitle: ax.set_title(s, fontsize=12)
-    except:
-        print "WARNING: No title in plots."
+    s = d.name()
+    if 'rate_m' in d: s += (' BG=%.1fk' % (d.rate_m[0]*1e-3))
+    if 'T' in d: s += (u', T=%dμs' % (d.T[0]*1e6))
+    if 'mburst' in d: s += (', #bu=%d' %  d.mburst[0].shape[0])
+    if not nosuptitle: ax.set_title(s, fontsize=12)
     ax.grid(pgrid)
     plt.sca(ax)
     fun(d, **kwargs)
@@ -1095,20 +1090,20 @@ def plot_mburstm_1ch(d, fun, scroll=False, pgrid=True, ax=None,
 def dplot(d, fun, **kwargs):
     """Main plot wrapper for single and multi-spot measurements."""
     if d.nch == 1:
-        return plot_mburstm_1ch(d=d, fun=fun, **kwargs)
+        return dplot_1ch(d=d, fun=fun, **kwargs)
     elif d.nch == 8:
-        return plot_mburstm_8ch(d=d, fun=fun, **kwargs)
+        return dplot_8ch(d=d, fun=fun, **kwargs)
     elif d.nch == 48:
-        return plot_mburstm_48ch(d=d, fun=fun, **kwargs)
+        return dplot_48ch(d=d, fun=fun, **kwargs)
 
 ##
 #  Other plot wrapper functions
 #
 
 def wplot(*args, **kwargs):
-    AX, s = plot_mburstm_8ch(*args, **kwargs)
+    AX, s = dplot_8ch(*args, **kwargs)
     kwargs.update(AX=AX)
-    q = gs.mToolQT(gcf(), plot_mburstm_8ch, *args, **kwargs)
+    q = gs.mToolQT(gcf(), dplot_8ch, *args, **kwargs)
     return AX, q
 
 def splot(d, fun=scatter_width_size,
