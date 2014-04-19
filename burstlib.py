@@ -1590,8 +1590,8 @@ class Data(DataContainer):
                 s += " BS_%s L%d m%d P%s F%.1f" % \
                         (self.ph_sel, self.L, self.m, self.P, np.mean(self.F))
         if 'gamma' in self: s += " G%.3f" % np.mean(self.gamma)
-        if 'bg_fun' in self: s += " BG%s" % self.bg_fun.__name__[8:]
-        if 'bg_time_s' in self: s += "-%d" % self.bg_time_s
+        if 'bg_fun' in self: s += " BG%s" % self.bg_fun.__name__[:-4]
+        if 'bg_time_s' in self: s += "-%ds" % self.bg_time_s
         if 'fuse' in self: s += " Fuse%.1fms" % self.fuse
         if 'bt_corrected' in self and self.bt_corrected:
             s += " BT%.3f" % np.mean(self.BT)
@@ -1610,7 +1610,7 @@ class Data(DataContainer):
 
     def Name(self, add=""):
         """Return short filename + status information."""
-        n = self.status(add=add).replace(os.path.sep, '_').replace('/', '_')
+        n = self.status(add=add)
         return n
 
     def __repr__(self):
