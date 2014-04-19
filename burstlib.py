@@ -22,7 +22,7 @@ import numpy as np
 from numpy import zeros, size, r_
 import scipy.stats as SS
 
-from utils.misc import pprint, clk_to_s, shorten_fname
+from utils.misc import pprint, clk_to_s
 from poisson_threshold import find_optimal_T_bga
 import fret_fit
 
@@ -1600,11 +1600,13 @@ class Data(DataContainer):
         if 'dithering' in self and self.dithering:
             s += " Dith%d" % self.lsb
         if 's' in self: s += ' '.join(self.s)
-        return s +add
+        return s + add
 
     def name(self):
-        """Return short filename"""
-        return shorten_fname(self.fname)[:-len('.dat')].replace("/","_")
+        """Return short filename (last subfolder + fname with no extension)"""
+        basename = os.path.splitext(os.path.basename(self.fname))[0]
+        last_dir = os.path.basename(os.path.dirname(self.fname))
+        return '_'.join([last_dir, basename])
 
     def Name(self, add=""):
         """Return short filename + status information."""
