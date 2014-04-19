@@ -82,10 +82,12 @@ def load_multispot48(fname, BT=0, gamma=1., reprocess=False,
                      i_start=0, i_stop=None, debug=False):
     """Load a 48-ch multispot file and return a Data() object.
     """
-    fname_h5 = fname if fname.endswith('hdf5') else fname[:-3]+'hdf5'
+    basename, ext = os.path.splitext(fname)
+    fname_h5 = basename + '.hdf5'
+    fname_dat = basename + '.dat'
 
-    if not os.path.exists(fname):
-        raise IOError('Data file "%s" not found' % fname)
+    if not (os.path.isfile(fname_dat) or os.path.isfile(fname_h5)):
+        raise IOError('Data file "%s" not found' % basename)
 
     if os.path.exists(fname_h5) and not reprocess:
         ## There is a HDF5 file
@@ -94,10 +96,10 @@ def load_multispot48(fname, BT=0, gamma=1., reprocess=False,
                     load_manta_timestamps_pytables(fname_h5)
         pprint('DONE.\n')
     else:
-        pprint(' - Loading file: %s ... ' % fname)
+        pprint(' - Loading DAT file: %s ... ' % fname_dat)
         ## Load data from raw file and store it in a HDF5 file
-        data = load_xavier_manta_data(fname, i_start=i_start, i_stop=i_stop,
-                                      debug=debug)
+        data = load_xavier_manta_data(fname_dat, i_start=i_start,
+                                      i_stop=i_stop, debug=debug)
         pprint('DONE.\n - Extracting timestamps and detectors ... ')
         timestamps, det = get_timestamps_detectors(data, nbits=24)
         pprint('DONE.\n - Processing and storing ... ')
