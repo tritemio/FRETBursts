@@ -49,3 +49,4 @@ from utils.gui import gui_fname
 from utils import git
 
 git.print_summary('FRETBursts')
+

@@ -4,21 +4,48 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-Functions to check the version of the software by quering git.
+Functions to check the version of a repository by querying git.
 """
 
+import os
+from distutils.spawn import find_executable
 from subprocess import check_output, call
 
-try:
-    from fretbursts_path_def import GIT_PATH
-except ImportError:
-    GIT_PATH = 'git'
+
+# GIT_PATHS is a list of paths for the git executables
+# In the following we iterate through the list until we find a valid executable.
+GIT_PATHS = []
+
+# Set here the git executable path (if it is not the system path)
+#GIT_PATHS.append(r'C:\git.exe')
+
+# Add system path and common locations to the pool of git paths
+system_git = find_executable('git')  # on windows it adds '.exe'
+if system_git is not None:
+    GIT_PATHS.append(system_git)
+GIT_PATHS.append((os.environ.get('homepath', '') + \
+        r'\AppData\Local\Atlassian\SourceTree\git_local\bin\git.exe'))
+
+def find_git():
+    git_path = None
+    for git_path_i in GIT_PATHS:
+        if git_path_i is not None:
+            if os.path.isfile(git_path_i) and os.access(git_path_i, os.X_OK):
+                git_path = git_path_i
+                break
+    return git_path
+
+# GIT_PATH is the default git executable path used by functions in this module
+# unless the `git_path` argument is passed.
+GIT_PATH = find_git()
 
 
 def git_path_valid(git_path=None):
     """
     Check whether the git executable is found.
     """
+    if git_path is None and GIT_PATH is None:
+        return False
     if git_path is None: git_path = GIT_PATH
     try:
         call([git_path, '--version'])

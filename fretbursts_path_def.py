@@ -4,9 +4,7 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-In this module you can define common paths (data folder, git path, etc...).
-
-WARNING: Always use trailing slash "/" after a folder name.
+In this module you can define a common paths for data folder
 """
 
 # Variable: DATA_DIR
@@ -20,34 +18,20 @@ import os
 
 if os.name == 'posix':
     # Linux or Mac
-    _DEFAULT_GIT_PATH_LINUX = 'git'   # On *nix assumes that git is in the PATH
     data_dir = _DATA_DIR_LINUX
-    GIT_PATH = _DEFAULT_GIT_PATH_LINUX
 elif os.name == 'nt':
     # Windows
-    _DEFAULT_GIT_PATH_WIN = (os.environ['homepath'] + \
-                r'\AppData\Local\Atlassian\SourceTree\git_local\bin\git.exe')
     data_dir = _DATA_DIR_WIN
-    GIT_PATH = _DEFAULT_GIT_PATH_WIN
 else:
     raise OSError ("Operating system not recognized (%s)." % os.name)
-
-# Variable: GIT_PATH
-# Git is used to check the software revision during execution
-# Here you can set the full path to a git executable
-#GIT_PATH = r'C:\git.exe'
-
 
 # Overwrites data_dir if FRETBURSTS_DATA_DIR is defined
 if 'FRETBURSTS_DATA_DIR' in os.environ:
     data_dir = os.environ['FRETBURSTS_DATA_DIR']
 
-
-alex_data_dir = data_dir+'/alex/'
-nsalex_data_dir = data_dir+'/nsAlex/'
-
+data_dir = os.path.abspath(data_dir) + '/'
 
 # Check that all the dir names end with '/'
-for dir_name in [data_dir, alex_data_dir, nsalex_data_dir]:
+for dir_name in [data_dir]:
     assert dir_name.endswith('/')
 
