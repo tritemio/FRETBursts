@@ -39,7 +39,8 @@ To obtain the burst size (number of photons) for the 10-th to 20-th burst::
 """
 
 import numpy as np
-from utils.misc import pprint
+from fretbursts.utils.misc import pprint
+
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  GLOBAL VARIABLES

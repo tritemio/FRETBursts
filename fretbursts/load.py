@@ -31,7 +31,7 @@ from burstlib import Data
 ##
 # Multi-spot loader functions
 #
-def load_multispot8(fname, bytes_to_read=-1, swap_D_A=True, BT=0, gamma=1.):
+def multispot8(fname, bytes_to_read=-1, swap_D_A=True, BT=0, gamma=1.):
     """Load a 8-ch multispot file and return a Data() object. Cached version.
     """
     fname_c = fname + '_cache.pickle'
@@ -49,7 +49,7 @@ def load_multispot8(fname, bytes_to_read=-1, swap_D_A=True, BT=0, gamma=1.):
         pprint("DONE\n")
     return dx
 
-def load_multispot8_core(fname, bytes_to_read=-1, swap_D_A=True, BT=0,
+def multispot8_core(fname, bytes_to_read=-1, swap_D_A=True, BT=0,
                          gamma=1.):
     """Load a 8-ch multispot file and return a Data() object.
     """
@@ -59,7 +59,7 @@ def load_multispot8_core(fname, bytes_to_read=-1, swap_D_A=True, BT=0,
     dx.add(ph_times_m=ph_times_m, A_em=A_em, ALEX=False)
     return dx
 
-def load_multispot48_simple(fname, BT=0, gamma=1.,
+def multispot48_simple(fname, BT=0, gamma=1.,
                      i_start=0, i_stop=None, debug=False):
     """Load a 48-ch multispot file and return a Data() object.
     """
@@ -78,7 +78,7 @@ def load_multispot48_simple(fname, BT=0, gamma=1.,
         dx.add(ch_fifo=ch_fifo)
     return dx
 
-def load_multispot48(fname, BT=0, gamma=1., reprocess=False,
+def multispot48(fname, BT=0, gamma=1., reprocess=False,
                      i_start=0, i_stop=None, debug=False):
     """Load a 48-ch multispot file and return a Data() object.
     """
@@ -137,7 +137,7 @@ def _select_range(times, period, edges):
     return _select_inner_range(times, period, edges) if edges[0] < edges[1] \
             else _select_outer_range(times, period, edges)
 
-def load_usalex(fname, BT=0, gamma=1., header=166, bytes_to_read=-1):
+def usalex(fname, BT=0, gamma=1., header=166, bytes_to_read=-1):
     """Load a usALEX file and return a Data() object.
 
     To load usALEX data follow this pattern:

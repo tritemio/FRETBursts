@@ -12,7 +12,7 @@ To run the burst search see burst.py
 import os
 import numpy as np
 
-from utils.misc import pprint
+from fretbursts.utils.misc import pprint
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  DATA LOADING
