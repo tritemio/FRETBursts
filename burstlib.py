@@ -428,6 +428,17 @@ def delta(x):
     """Return x.max() - x.min()"""
     return x.max() - x.min()
 
+def mask_empty(mask):
+    """Returns True if `mask` is empty, otherwise False.
+
+    `mask` can be a boolean array or a slice object.
+    """
+    if type(mask) is slice:
+        is_slice_empty = (mask.stop == 0)
+        return is_slice_empty
+    else:
+        # Bolean array
+        return not mask.any()
 
 class DataContainer(dict):
     """
@@ -643,6 +654,10 @@ class Data(DataContainer):
 
     def get_ph_mask(self, ich, ph_sel='DA'):
         """Returns a mask for `ph_sel` photons in channel `ich`.
+
+        The masks are either boolean arrays or slices (full or empty). In
+        both cases they can be used to index the timestamps of the
+        corresponding channel.
 
         Arguments:
             ph_sel (string): can be 'DA', D', 'A' or 'AA' and indicates the

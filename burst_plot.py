@@ -213,19 +213,19 @@ def _timetrace_bg(d, i, BG, bin_width=None, F=None, Th=True, color='r'):
             plot(ph_p,[F*bg*bin_width]*2, color='m')
 
 def _gui_timetrace_burst_sel(d, i, func, fig, ax):
-    """Add GUI burst selector via mouse click to the curretn plot."""
+    """Add GUI burst selector via mouse click to the current plot."""
     if i == 0:
         func.burst_sel = gs.MultiAxPointSelection(fig, ax, d)
     else:
         func.burst_sel.ax_list.append(ax)
 
-def timetrace_da(d, i=0, bin_width=1e-3, bins=100000, bursts=False):
+def timetrace_da(d, i=0, idx=0, bin_width=1e-3, bins=100000, bursts=False):
     """Timetrace of binned photons (donor-acceptor)."""
     if bursts:
         t_max_clk = int((bins*bin_width)/d.clk_p)
         _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500)
 
-    if (-d.A_em[i]).any():
+    if not bl.mask_empty(d.get_D_em(i)):
         ph_d = d.get_ph_times(i, ph_sel='D')
         tr_d, t_d = binning(ph_d,bin_width_ms=bin_width*1e3, max_num_bins=bins,
                 clk_p=d.clk_p)
@@ -233,7 +233,7 @@ def timetrace_da(d, i=0, bin_width=1e-3, bins=100000, bursts=False):
         plot(t_d, tr_d, 'g', lw=1.5, alpha=0.8)
         _timetrace_bg(d, i, d.bg_dd, bin_width=bin_width, color='k', Th=False)
 
-    if (d.A_em[i]).any():
+    if not bl.mask_empty(d.get_A_em(i)):
         ph_a = d.get_ph_times(i, ph_sel='A')
         tr_a, t_a = binning(ph_a,bin_width_ms=bin_width*1e3, max_num_bins=bins,
                 clk_p=d.clk_p)
@@ -242,9 +242,9 @@ def timetrace_da(d, i=0, bin_width=1e-3, bins=100000, bursts=False):
         _timetrace_bg(d, i, -r_[d.bg_ad], bin_width=bin_width, color='k',
                 Th=False)
     xlabel('Time (s)'); ylabel('# ph')
-    _gui_timetrace_burst_sel(d, i, timetrace_da, gcf(), gca())
+    _gui_timetrace_burst_sel(d, idx, timetrace_da, gcf(), gca())
 
-def timetrace(d, i=0, bin_width=1e-3, bins=100000, bursts=False, F=None):
+def timetrace(d, i=0, idx=0, bin_width=1e-3, bins=100000, bursts=False, F=None):
     """Timetrace of binned photons (total: donor + acceptor)."""
     if bursts:
         t_max_clk = int((bins*bin_width)/d.clk_p)
@@ -257,9 +257,10 @@ def timetrace(d, i=0, bin_width=1e-3, bins=100000, bursts=False, F=None):
     plot(time, trace, 'b', lw=1.5)
     _timetrace_bg(d, i, d.bg, bin_width=bin_width, F=F)
     xlabel('Time (s)'); ylabel('# ph')
-    _gui_timetrace_burst_sel(d, i, timetrace, gcf(), gca())
+    _gui_timetrace_burst_sel(d, idx, timetrace, gcf(), gca())
 
-def ratetrace(d, i=0, m=None, max_ph=1e6, pmax=1e6, bursts=False, F=None):
+def ratetrace(d, i=0, idx=0, m=None, max_ph=1e6, pmax=1e6, bursts=False,
+              F=None):
     """Timetrace of photons rates (total: donor + acceptor)."""
     if m is None: m = d.m
     ph = d.get_ph_times(i)
@@ -272,9 +273,10 @@ def ratetrace(d, i=0, m=None, max_ph=1e6, pmax=1e6, bursts=False, F=None):
     plot(times, rates, lw=1.2)
     _timetrace_bg(d, i, d.bg, F=F)
     xlabel('Time (s)'); ylabel('# ph')
-    _gui_timetrace_burst_sel(d, i, ratetrace, gcf(), gca())
+    _gui_timetrace_burst_sel(d, idx, ratetrace, gcf(), gca())
 
-def ratetrace_da(d, i=0, m=None, max_ph=1e6, pmax=1e6, bursts=False, F=None):
+def ratetrace_da(d, i=0, idx=0, m=None, max_ph=1e6, pmax=1e6, bursts=False,
+                 F=None):
     """Timetrace of photons rates (donor-acceptor)."""
     if m is None: m = d.m
     ph_d = d.get_ph_times(i, ph_sel='D')
@@ -300,16 +302,15 @@ def ratetrace_da(d, i=0, m=None, max_ph=1e6, pmax=1e6, bursts=False, F=None):
     _timetrace_bg(d, i, d.bg_dd, F=F, color='k')
     _timetrace_bg(d, i, -r_[d.bg_ad], F=F, color='k')
     xlabel('Time (s)'); ylabel('# ph')
-    _gui_timetrace_burst_sel(d, i, ratetrace_da, gcf(), gca())
+    _gui_timetrace_burst_sel(d, idx, ratetrace_da, gcf(), gca())
 
 def timetrace_alex(d, i=0, bin_width=1e-3, bins=100000, bursts=False,
                    **plot_kw):
     """Timetrace of binned photons (ALEX version: donor, acceptor, aa)."""
     b = d.mburst[i]
-    ph_dd = d.ph_times_m[i][d.D_em[i]*d.D_ex[i]]
-    ph_ad = d.ph_times_m[i][d.A_em[i]*d.D_ex[i]]
-    ph_aa = d.ph_times_m[i][d.A_em[i]*d.A_ex[i]]
-    #ph_aa = d.ph_times_m[i]
+    ph_dd = d.get_ph_times(i, ph_sel='D')
+    ph_ad = d.get_ph_times(i, ph_sel='A')
+    ph_aa = d.get_ph_times(i, ph_sel='DA')
 
     t0 = d.ph_times_m[i][0]
     bin_width_clk = bin_width/d.clk_p
@@ -990,34 +991,55 @@ def scatter_alex(d, i=0, alpha=0.2):
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def dplot_48ch(d, fun=scatter_width_size, sharex=True, sharey=True,
-        scroll=False, pgrid=True, figsize=(20,16), AX=None, nosuptitle=False,
-        scale=True, **kwargs):
+        scroll=False, pgrid=True, figsize=None, AX=None, nosuptitle=False,
+        scale=True, ich=None, **kwargs):
     """Plot wrapper for 48-spot measurements. Use `dplot` instead."""
-    ax_ny, ax_nx = 6, 8
+    # Some function need an index of the number of calls so they are sure
+    # that when idx == 0 it is thet first call of a series
+    idx_funcs = [timetrace, timetrace_da, ratetrace, ratetrace_da]
+
+    if ich is None:
+        iter_ch = xrange(d.nch)
+        if d.nch == 48:
+            top_adjust = 0.96
+            ax_ny, ax_nx = 6, 8
+            if figsize is None:
+                figsize = (20, 16)
+        elif d.nch == 8:
+            top_adjust = 0.93
+            ax_ny, ax_nx = 4, 2
+            if figsize is None:
+                figsize = (12, 9)
+    else:
+        top_adjust = 0.9
+        iter_ch = [ich]
+        ax_ny, ax_nx = 1, 1
+        if figsize is None:
+            figsize = (8, 5)
+
     if AX is None:
         fig, AX = plt.subplots(ax_ny, ax_nx, figsize=figsize, sharex=sharex,
-                               sharey=sharey)
-        fig.subplots_adjust(left=0.08, right=0.96, top=0.93, bottom=0.07,
-                wspace=0.05)
+                               sharey=sharey, squeeze=False)
+        fig.subplots_adjust(left=0.08, right=0.96, top=top_adjust,
+                            bottom=0.07, wspace=0.05)
         old_ax = False
     else:
         fig = AX[0,0].figure
         old_ax = True
-    for i in xrange(d.nch):
-        b = d.mburst[i] if 'mburst' in d else None
-        if (not fun in [timetrace, ratetrace, hist_bg_fit_single, hist_bg_fit,
-            timetrace_bg]) and b.size is 0:
-            continue
+
+    for i, ich in enumerate(iter_ch):
+        b = d.mburst[ich] if 'mburst' in d else None
         ax = AX.ravel()[i]
         if i == 0 and not nosuptitle:
             fig.suptitle(d.status())
-        s = u'[%d]' % (i+1)
-        if 'rate_m' in d: s += (' BG=%.1fk' % (d.rate_m[i]*1e-3))
+        s = u'[%d]' % (ich+1)
+        if 'rate_m' in d: s += (' BG=%.1fk' % (d.rate_m[ich]*1e-3))
         if b is not None: s += (', #bu=%d' %  b.shape[0])
         ax.set_title(s, fontsize=12)
         ax.grid(pgrid)
         plt.sca(ax)
-        fun(d, i, **kwargs)
+        if fun in idx_funcs: kwargs.update(idx=i)
+        fun(d, ich, **kwargs)
     [a.set_xlabel('') for a in AX[:-1,:].ravel()]
     [a.set_ylabel('') for a in AX[:,1:].ravel()]
     if sharex:
@@ -1025,7 +1047,8 @@ def dplot_48ch(d, fun=scatter_width_size, sharex=True, sharey=True,
         [a.set_xlabel('') for a in AX[:-1,:].ravel()]
         if not old_ax: fig.subplots_adjust(hspace=0.15)
     if sharey:
-        plt.setp([a.get_yticklabels() for a in AX[:,1]], visible=False)
+        if AX.shape[1] > 1:
+             plt.setp([a.get_yticklabels() for a in AX[:, 1]], visible=False)
         fig.subplots_adjust(wspace=0.08)
         if scale: ax.autoscale(enable=True, axis='y')
     s = None
