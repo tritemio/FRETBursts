@@ -39,16 +39,10 @@ if not 'NOTEBOOK_DIR' in globals():
     NOTEBOOK_DIR = ip.magic('%pwd')
 
 ip.magic('%matplotlib inline')
-
 ip.magic('%cd "$FRETBURSTS_DIR"')
 
 from fretbursts import *
-#ip.magic('%run -i fretbursts.py')
-#ip.magic('%run -i burst_plot.py')
-ip.magic('%run -i fretbursts/style')
-
-from utils.gui import gui_fname
-from utils import git
+from fretbursts.utils.gui import gui_fname
+from fretbursts.utils import git
 
 git.print_summary('FRETBursts')
-

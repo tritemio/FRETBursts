@@ -40,6 +40,7 @@ from burstsearch.burstsearchlib import (
 
 import background as bg
 import select_bursts
+import fit
 from fit.gaussian_fitting import (gaussian_fit_hist,
                                   gaussian_fit_cdf,
                                   two_gaussian_fit_hist,
