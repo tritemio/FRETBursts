@@ -407,7 +407,7 @@ def timetrace_b_rate(d, i=0):
 
 def time_ph(d, i=0, num_ph=1e4, ph_istart=0):
     """Plot 'num_ph' ph starting at 'ph_istart' marking burst start/end.
-    TODO: Upadte to used the new matplotlib eventplot.
+    TODO: Update to use the new matplotlib eventplot.
     """
     b = d.mburst[i]
     SLICE = slice(ph_istart, ph_istart+num_ph)
@@ -781,11 +781,11 @@ def hist_ph_delays(d, i=0, time_min_s=0, time_max_s=30, bin_width_us=10,
     rc = bg.exp_cdf_fit(ph, tail_min_us=efit_tail_min_us)
     t = r_[0:1200]*1e-6
     F = 1 if 'normed' in kwargs else H[0].sum()*(bin_width_us)
-    plot(t*1e6,0.65*F*efun(t,rc)*1e-6, lw=3, alpha=0.5, color='m',
+    plot(t*1e6, 0.65*F*efun(t,rc)*1e-6, lw=3, alpha=0.5, color='m',
             label="%d cps - Exp CDF (tail_min_p=%.2f)" % (rc, efit_tail_min_us))
-    plot(t*1e6,0.65*F*efun(t,re)*1e-6, lw=3, alpha=0.5, color='r',
+    plot(t*1e6, 0.65*F*efun(t,re)*1e-6, lw=3, alpha=0.5, color='r',
             label="%d cps - Exp ML (tail_min_p=%.2f)" % (re, efit_tail_min_us))
-    plot(t*1e6,0.68*F*efun(t,rg)*1e-6, lw=3, alpha=0.5, color='g',
+    plot(t*1e6, 0.68*F*efun(t,rg)*1e-6, lw=3, alpha=0.5, color='g',
             label=u"%d cps - Hist (bin_ms=%d) [Δ=%d%%]" % (hfit_bin_ms, rg,
                                                            100*(rg-re)/re))
     plt.legend(loc='best', fancybox=True)
@@ -882,6 +882,7 @@ def hist_mrates(d, i=0, m=10, bins=r_[0:20e3:20], yscale='log', normed=True,
 
 ## Bursts stats
 def hist_rate_in_burst(d, i=0, bins=20):
+    """Histogram of total photon rate in each burst."""
     b = d.mburst[i]
     rate = 1e-3*d.nt[i]/(bl.b_width(b)*d.clk_p)
     hist(rate, bins=bins, color="blue")
@@ -889,6 +890,7 @@ def hist_rate_in_burst(d, i=0, bins=20):
     #xlim(xmin=d.L/2); ylim(ymin=0)
 
 def hist_burst_delays(d, i=0, tmax_seconds=0.5, bins=100, **kwargs):
+    """Histogram of waiting times between bursts."""
     b = d.mburst[i]
     bd = clk_to_s(np.sort(np.diff(b[:,0].astype(float))))[:-20]
     hist(bd[bd<tmax_seconds], bins=bins, **kwargs)
@@ -925,6 +927,7 @@ def hist_asymmetry(d, i=0, bins=None, **kwargs):
 #
 
 def scatter_width_size(i, d):
+    """Scatterplot of burst width versus size."""
     b = d.mburst[i]
     plot(bl.b_width(b)*d.clk_p*1e3, d.nt[i], 'o', mew=0, ms=3, alpha=0.7,
          color='blue')
@@ -947,12 +950,14 @@ def scatter_rate_da(i, d):
     legend(frameon=False)
 
 def scatter_fret_size(i, d):
+    """Scatterplot of FRET efficiency versus burst size (nt)."""
     plot(d.E[i], d.nt[i], 'o', mew=0, ms=3, alpha=0.1, color="blue")
     xlabel("FRET Efficiency (E)")
     ylabel("Burst size (#ph)")
 
 def scatter_fret_nd_na(d, i=0, show_fit=False, no_text=False, gamma=1.,
                        **kwargs):
+    """Scatterplot of FRET versus gamma-corrected burst size."""
     default_kwargs = dict(mew=0, ms=3, alpha=0.3, color="blue")
     default_kwargs.update(**kwargs)
     plot(d.E[i], gamma*d.nd[i]+d.na[i], 'o', **default_kwargs)
@@ -964,23 +969,28 @@ def scatter_fret_nd_na(d, i=0, show_fit=False, no_text=False, gamma=1.,
             plt.figtext(0.4,0.01, _get_fit_E_text(d),fontsize=14)
 
 def scatter_fret_width(i, d):
+    """Scatterplot of FRET versus burst width."""
     b = d.mburst[i]
-    plot(d.E[i],(b[:,1]*d.clk_p)*1e3, 'o', mew=0, ms=3, alpha=0.1, color="blue")
+    plot(d.E[i],(b[:,1]*d.clk_p)*1e3, 'o', mew=0, ms=3, alpha=0.1,
+         color="blue")
     xlabel("FRET Efficiency (E)")
     ylabel("Burst width (ms)")
 
 def scatter_da(d, i=0, alpha=0.3):
+    """Scatterplot of donor vs acceptor photons (nd, vs na) in each burst."""
     plot(d.nd[i], d.na[i],'o', mew=0,ms=3, alpha=alpha, color='blue')
     xlabel('# donor ph.'); ylabel('# acceptor ph.')
     plt.xlim(-5,200); plt.ylim(-5,120)
 
 def scatter_naa_nt(d, i=0, alpha=0.5):
+    """Scatterplot of nt versus naa."""
     plot(d.nt[i], d.naa[i],'o', mew=0,ms=3, alpha=alpha, color='blue')
     plot(arange(200), color='k', lw=2)
     xlabel('Total burst size (nd+na+naa)'); ylabel('Accept em-ex BS (naa)')
     plt.xlim(-5,200); plt.ylim(-5,120)
 
 def scatter_alex(d, i=0, alpha=0.2):
+    """Scatterplot of E vs S."""
     plot(d.E[i], d.S[i], 'o', mew=0, ms=3, alpha=alpha)
     xlabel("E"); ylabel('S')
     plt.xlim(-0.2,1.2); plt.ylim(-0.2,1.2)

@@ -243,7 +243,7 @@ def b_ph_times(bursts, b_index, ph_times, pad=0):
     return ph_times[b_irange(bursts, b_index, pad=pad)]
 
 def b_rates_inside(ph, b, bi, m=3, pad=0):
-    """Returns the all the m-ph-rates of burst #bi."""
+    """Returns all the m-ph-rates of burst #bi."""
     return ph_rate(m, b_ph_times(b, bi, ph, pad=pad))
 
 
