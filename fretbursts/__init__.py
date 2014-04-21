@@ -17,7 +17,7 @@
 
 __all__ = [
         # Modules
-        "load", "select_bursts", "bl", "bg", "bpl", "bext",
+        "loader", "select_bursts", "bl", "bg", "bpl", "bext",
 
         # Class, functions, variables
         "data_dir", "Data", "Sel", "Sel_mask", "Sel_mask_apply",

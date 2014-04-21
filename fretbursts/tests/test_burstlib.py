@@ -12,7 +12,7 @@ Running the tests require `py.test.
 import pytest
 import numpy as np
 
-from fretbursts import load
+from fretbursts import loader
 from fretbursts.path_def import data_dir
 import fretbursts.background as bg
 import fretbursts.burstlib as bl
@@ -25,7 +25,7 @@ DATASETS_DIR = data_dir
 def load_dataset_1ch():
     fn = "0023uLRpitc_NTP_20dT_0.5GndCl.sm"
     fname = DATASETS_DIR + 'alex/131126/' + fn
-    d = load.usalex(fname=fname, BT=0.11, gamma=1.)
+    d = loader.usalex(fname=fname, BT=0.11, gamma=1.)
     d.add(det_donor_accept=(0, 1), alex_period=4000,
           D_ON=(2850, 580), A_ON=(900, 2580))
     load.usalex_apply_period(d)
@@ -39,7 +39,7 @@ def load_dataset_8ch():
     fname = DATASETS_DIR + "2013-05-15/" + fn
     BT = 0.038
     gamma = 0.43
-    d = load.multispot8(fname=fname, BT=BT, gamma=gamma)
+    d = loader.multispot8(fname=fname, BT=BT, gamma=gamma)
     d.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
     d.burst_search_t(L=10, m=10, P=None, F=7, ph_sel='DA')
     return d
@@ -49,8 +49,8 @@ def load_dataset_8ch():
                                     load_dataset_8ch,
                                     ])
 def data(request):
-    loader = request.param
-    d = loader()
+    load_func = request.param
+    d = load_func()
     return d
 
 
