@@ -12,7 +12,7 @@ In this module you can define a common paths for data folder
 # You can put this path in an environment variable FRETBURSTS_DATA_DIR
 # that, if defined, has the precedence over the variables set here
 _DATA_DIR_WIN = '../../../data/'
-_DATA_DIR_LINUX = '../data/'
+_DATA_DIR_LINUX = '../../data/'
 
 import os
 

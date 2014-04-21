@@ -7,7 +7,7 @@ import pytest
 import numpy as np
 import scipy.stats as SS
 
-from fit.exp_fitting import expon_fit, expon_fit_cdf, expon_fit_hist
+from fretbursts.fit.exp_fitting import expon_fit, expon_fit_cdf, expon_fit_hist
 
 
 sample_size = 5000
@@ -60,4 +60,4 @@ def test_expon_fit_histw(sample):
     assert relative_error < max_relative_error
 
 if __name__ == '__main__':
-    pytest.main("-x -v -s fit/test_exp_fitting.py")
+    pytest.main("-x -v -s fretbursts/fit/test_exp_fitting.py")

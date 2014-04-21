@@ -10,12 +10,12 @@ Running the tests require `py.test.
 """
 
 import pytest
-
 import numpy as np
-from loaders import load_multispot8, load_usalex, usalex_apply_period
-from fretbursts_path_def import data_dir
-import background as bg
-import burstlib as bl
+
+from fretbursts import load
+from fretbursts.path_def import data_dir
+import fretbursts.background as bg
+import fretbursts.burstlib as bl
 
 
 #DATASETS_DIR = u'/Users/anto/Dropbox/notebooks/frebursts_notebooks/data/'
@@ -25,10 +25,10 @@ DATASETS_DIR = data_dir
 def load_dataset_1ch():
     fn = "0023uLRpitc_NTP_20dT_0.5GndCl.sm"
     fname = DATASETS_DIR + 'alex/131126/' + fn
-    d = load_usalex(fname=fname, BT=0.11, gamma=1.)
+    d = load.usalex(fname=fname, BT=0.11, gamma=1.)
     d.add(det_donor_accept=(0, 1), alex_period=4000,
           D_ON=(2850, 580), A_ON=(900, 2580))
-    usalex_apply_period(d)
+    load.usalex_apply_period(d)
 
     d.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
     d.burst_search_t(L=10, m=10, P=None, F=7, ph_sel='DA')
@@ -39,7 +39,7 @@ def load_dataset_8ch():
     fname = DATASETS_DIR + "2013-05-15/" + fn
     BT = 0.038
     gamma = 0.43
-    d = load_multispot8(fname=fname, BT=BT, gamma=gamma)
+    d = load.multispot8(fname=fname, BT=BT, gamma=gamma)
     d.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
     d.burst_search_t(L=10, m=10, P=None, F=7, ph_sel='DA')
     return d
@@ -203,4 +203,4 @@ def test_burst_size_da(data):
 
 
 if __name__ == '__main__':
-    pytest.main("-x -v tests/test_burstlib.py")
+    pytest.main("-x -v fretbursts/tests/test_burstlib.py")
