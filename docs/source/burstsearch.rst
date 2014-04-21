@@ -1,5 +1,5 @@
 Low-level burst search functions
 ================================
 
-.. automodule:: burstsearch.burstsearchlib
+.. automodule:: fretbursts.burstsearch.burstsearchlib
     :members:
