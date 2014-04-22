@@ -23,7 +23,7 @@ def pprint(s, mute=False):
 
 def deprecate(function, old_name, new_name):
     def deprecated_function(*args, **kwargs):
-        pprint("Function %s is deprecated, use %s instead.\n" %\
+        pprint("Function name %s is deprecated, use %s instead.\n" %\
                 (old_name, new_name))
         res = function(*args, **kwargs)
         return res

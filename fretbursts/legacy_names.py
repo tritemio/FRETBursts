@@ -18,16 +18,20 @@
 __all__ = [
         # Library modules and functions
         "np", "r_", "zeros", "arange", "size", "SS",
-        "plt", "rcParams", "plot", "hist", "xlabel", "ylabel", "grid",
-        "title", "legend", "gca", "gcf", "xlim", "ylim",
+        "plt", "rcParams", "plot", "subplots", "hist", "xlabel", "ylabel",
+        "grid", "title", "legend", "gca", "gcf", "xlim", "ylim", "rc",
+        "savefig",
 
         # Local modules
         "loader", "select_bursts", "bl", "bg", "bpl", "bext",
 
         # Classes, functions, variables
         "data_dir", "Data", "Sel", "Sel_mask", "Sel_mask_apply",
-        "gamma_correct_E",
-        "load_multispot8", # <- Deprecated function (only for compatibility)
+        "gamma_correct_E", "gamma_uncorrect_E",
+
+        # Deprecated names  (only for compatibility)
+        "load_multispot8", "select_bursts_nda", "select_bursts_time",
+        "bg_calc_exp", "bg_calc_exp_cdf", "b_start",
 
         # Generic fit functions
         "gaussian_fit_hist",
@@ -62,14 +66,22 @@ from numpy import r_, zeros, arange, size
 import scipy.stats as SS
 from matplotlib import rcParams
 import matplotlib.pyplot as plt
-from matplotlib.pyplot import (plot, hist, xlabel, ylabel, grid, title, legend,
-                               gca, gcf)
+from matplotlib.pyplot import (plot, subplots, hist, xlabel, ylabel, grid,
+                               title, legend, xlim, ylim, gca, gcf, rc,
+                               savefig)
+
 from .path_def import data_dir
 import background as bg
 import burstlib as bl
-from .burstlib import Data, Sel, Sel_mask, Sel_mask_apply, gamma_correct_E
+from .burstlib import (Data, Sel, Sel_mask, Sel_mask_apply,
+                       gamma_correct_E, gamma_uncorrect_E,
+                       bg_calc_exp, bg_calc_exp_cdf,
+                       b_start)
 import burstlib_ext as bext
+import loader
 from loader import load_multispot8
+import select_bursts
+from select_bursts import select_bursts_nda, select_bursts_time
 from fit.gaussian_fitting import (gaussian_fit_hist,
                                   gaussian_fit_cdf,
                                   two_gaussian_fit_hist,

@@ -20,7 +20,7 @@ import numpy as np
 import scipy.stats as ss
 
 from burstsearch.burstsearchlib import b_start, b_width, b_end, b_separation
-from utils.misc import clk_to_s
+from utils.misc import clk_to_s, deprecate
 
 
 def get_burst_size(d, ich=0, gamma=1., gamma1=None, add_naa=False):
@@ -95,6 +95,8 @@ def time(d, ich=0, time_s1=0, time_s2=None):
     if time_s2 is None: time_s2 = burst_start.max()
     burst_mask = (burst_start >= time_s1)*(burst_start <= time_s2)
     return burst_mask, ''
+select_bursts_time = deprecate(time, "select_bursts_time", "select_bursts.time")
+
 
 def nd(d, ich=0, th1=20, th2=1000):
     """Select bursts with (nd >= th1) and (nd <= th2)."""
@@ -125,6 +127,8 @@ def nda(d, ich=0, th1=20, th2=1000, gamma=1., gamma1=None,
     s = "nda_th%d" % th1
     if th2 < 1000: s +="_th2_%d" % th2
     return bursts_mask, s+str_G(gamma, gamma1)
+
+select_bursts_nda = deprecate(nda, 'select_bursts_nda', 'select_bursts.nda')
 
 def nda_percentile(d, ich=0, q=50, low=False, gamma=1., gamma1=None,
                    add_naa=False):

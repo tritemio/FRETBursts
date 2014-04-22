@@ -907,29 +907,11 @@ class Data(DataContainer):
     ##
     # Background analysis methods
     #
-    def calc_bg_cache(self, fun, time_s=60, **kwargs):
-        """Same as `calc_bg` but try to load from cache. Caches results.
-        Example:
-            d.calc_bg_cache(bg.exp_fit, time_s=20, tail_min_us=200)
-        """
-        kw_str = ''.join(['_'+k+str(kwargs[k]) for k in kwargs])
-        fname = self.fname+'_'+fun.__name__+str(time_s)+kw_str+'.bg'
-        try:
-            var = pickle.load(open(fname,'rb'))
-            if not 'ph_sel' in var:
-                var.update(ph_sel='DA')
-                pprint(' - Added ph_sel manually (old bg cache file).\n')
-            self.add(**var)
-            pprint(" - BG rates loaded from cache (%s).\n" % fname)
-        except:
-            self.calc_bg(fun, time_s, **kwargs)
-            keys = ['bg', 'bg_dd', 'bg_ad', 'bg_aa', 'rate_m', 'Lim', 'Ph_p',
-                    'nperiods', 'bg_fun', 'bg_time_s', 'ph_sel',
-                    'rate_dd', 'rate_ad', 'rate_aa']
-            D = dict([(k, self[k]) for k in keys])
-            pprint(" - Pickling BG ... ")
-            pickle.dump(D, open(fname,'wb'), -1)
-            pprint("DONE\n")
+    def calc_bg_cache(self, *args, **kwargs):
+        """Deprecated. Use `.calc_bg()` instead()"""
+        pprint("WARNING: the method calc_bg_cache is deprecated.\n")
+        pprint(" - Now calling .calc_bg() instead: \n")
+        self.calc_bg(*args, **kwargs)
 
     def _get_auto_bg_th_arrays(self, F_bg=2, tail_min_us=250):
         """Return a dict of threshold values for background estimation."""
