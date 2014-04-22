@@ -4,23 +4,48 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
- FRETBursts - A single-molecule FRET burst analysis toolkit.
+Load this module as::
 
- Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+    from legacy_names import *
 
- Load this module as
+to load a bunch of names once available when loading FRETBurts. This module
+is provided as a compatibility layer to be used to run old scripts or notebooks.
 
-     from legacy_names import *
+Please don't import this module on new code.
 
- to load all the old names used before the pakage refactoring.
+**Long rationale explanation**
+
+On April 2014 FRETBursts project structure has changed in order to become a
+conventional python package. During this refactoring the default way to load
+FRETBursts changed from::
+
+    run fretbursts.py
+
+to::
+
+    from fretbursts import *
+
+The latter imports the submodules and packages as before, but it only imports
+a restricted number of core object names (i.e. Data(), dplot(), see
+__init__.py for details).
+The old behaviour was loading a big chunk of matplotlib.pyplot and
+a lot of functions from burstlib.
+
+Now the prefered way is to use always `plt.` to access the matplotlib.pyplot
+functions and `bl.` to access any function in `burstlib`. This change makes
+maintenance, unit testing and installation easier.
+
+This module provides "most" of the old object names now removed as a way to run
+old code with minimal effort. Please do not use this in new code.
 """
 
 __all__ = [
         # Library modules and functions
         "np", "r_", "zeros", "arange", "size", "SS",
-        "plt", "rcParams", "plot", "subplots", "hist", "xlabel", "ylabel",
-        "grid", "title", "legend", "gca", "gcf", "xlim", "ylim", "rc",
-        "savefig",
+        "plt", "rcParams", "figure", "subplots", "plot", "hist",
+        "xlabel", "ylabel", "grid", "title", "legend", "xlim", "ylim",
+        "axhline", "axvline",
+        "savefig", "rc", "gca", "gcf", "sca",
 
         # Local modules
         "loader", "select_bursts", "bl", "bg", "bpl", "bext",
@@ -66,9 +91,10 @@ from numpy import r_, zeros, arange, size
 import scipy.stats as SS
 from matplotlib import rcParams
 import matplotlib.pyplot as plt
-from matplotlib.pyplot import (plot, subplots, hist, xlabel, ylabel, grid,
-                               title, legend, xlim, ylim, gca, gcf, rc,
-                               savefig)
+from matplotlib.pyplot import (figure, subplots, plot, hist, xlabel, ylabel,
+                               grid, title, legend, xlim, ylim, axhline,
+                               axvline, savefig, gca, gcf, rc, sca,
+                               )
 
 from .path_def import data_dir
 import background as bg
@@ -111,3 +137,5 @@ from burst_plot import (
         )
 
 import style
+
+print " - Compatibility legacy mode ON."
