@@ -41,13 +41,15 @@ def multispot8(fname, bytes_to_read=-1, swap_D_A=True, BT=0, gamma=1.):
         dx.add(ph_times_m=var['ph_times_m'], A_em=var['A_em'], ALEX=False)
         pprint(" - File loaded from cache: %s\n" % fname)
     except IOError:
-        dx = load_multispot8_core(fname, bytes_to_read=bytes_to_read,
-                                  swap_D_A=swap_D_A, BT=BT, gamma=gamma)
+        dx = multispot8_core(fname, bytes_to_read=bytes_to_read,
+                             swap_D_A=swap_D_A, BT=BT, gamma=gamma)
         D = {'ph_times_m': dx.ph_times_m, 'A_em': dx.A_em}
         pprint(" - Pickling data ... ")
         pickle.dump(D, open(fname_c, 'wb'), -1)
         pprint("DONE\n")
     return dx
+
+load_multispot8 = deprecate(multispot8, "load_multispot8", "loader.multispot8")
 
 def multispot8_core(fname, bytes_to_read=-1, swap_D_A=True, BT=0,
                          gamma=1.):
