@@ -25,12 +25,6 @@ __all__ = [
 
         # Classes, functions, variables
         "data_dir", "Data", "Sel", "Sel_mask", "Sel_mask_apply",
-        "gamma_correct_E",
-        "load_multispot8", # <- Deprecated function (only for comatibility)
-
-        # Generic fit functions
-        "gaussian_fit_hist",
-        "two_gaussian_fit_hist_min", "two_gaussian_fit_hist_min_ab",
 
         # Standalone plots or plots as a function of ch
         "mch_plot_bg", "plot_alternation_hist",
@@ -59,13 +53,9 @@ from matplotlib.pyplot import plot, hist, grid, xlim, ylim, gca, gcf
 from .path_def import data_dir
 import background as bg
 import burstlib as bl
-from .burstlib import Data, Sel, Sel_mask, Sel_mask_apply, gamma_correct_E
+from .burstlib import Data, Sel, Sel_mask, Sel_mask_apply
 import burstlib_ext as bext
-from loader import load_multispot8
-from fit.gaussian_fitting import (gaussian_fit_hist,
-                                  two_gaussian_fit_hist_min,
-                                  two_gaussian_fit_hist_min_ab,
-                                  )
+
 import burst_plot as bpl
 from burst_plot import (
         # Standalone plots as a function of ch
