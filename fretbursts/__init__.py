@@ -32,6 +32,7 @@ __all__ = [
         # Plots types used for 1ch of multi-ch plots through `dplot`
         "timetrace", "timetrace_da", "ratetrace", "ratetrace_da",
         "timetrace_alex", "timetrace_fret",
+        "timetrace_bg",
         "hist_width", "hist_size", "hist_fret", "kde_fret", "hist_fret_kde",
         "hist2d_alex", "hist_S", "hist_sbr",
         "hist_bg_fit_single", "hist_bg_fit", "hist_ph_delays", "hist_mdelays",
@@ -65,6 +66,7 @@ from burst_plot import (
         # Plots types used for 1ch of multi-ch plots through `dplot`
         timetrace, timetrace_da, ratetrace, ratetrace_da,
         timetrace_alex, timetrace_fret,
+        timetrace_bg,
         hist_width, hist_size, hist_fret, kde_fret, hist_fret_kde,
         hist2d_alex, hist_S, hist_sbr,
         hist_bg_fit_single, hist_bg_fit, hist_ph_delays, hist_mdelays,
