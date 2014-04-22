@@ -6,8 +6,8 @@ Background estimation
 background.py
 -------------
 
-.. automodule:: background
-    
+.. automodule:: fretbursts.background
+
 .. autofunction:: exp_fit
 
 .. autofunction:: exp_cdf_fit
@@ -18,5 +18,5 @@ background.py
 Low-level background fit functions
 ----------------------------------
 
-.. automodule:: fit.exp_fitting
-    :members:    
+.. automodule:: fretbursts.fit.exp_fitting
+    :members:

@@ -4,13 +4,13 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-This module contains (at least) one function for each supported data file
-format. The loader functions load data from a specific format and
+This module contains functions to load for each supported data format.
+The loader functions load data from a specific format and
 initialize a new `Data()` object containing the data.
 
 This file contains only the high-level function to load a data-file and
 to return a `Data()` object. The low-level functions that perform the binary
-loading and preprocessing are placed in the `dataload` folder.
+loading and preprocessing can be found in the `dataload` folder.
 """
 
 import os
@@ -24,14 +24,14 @@ from dataload.manta_reader import (load_manta_timestamps,
                                    #process_timestamps,
                                    process_store,
                                    load_manta_timestamps_pytables)
-from utils.misc import pprint
-
+from utils.misc import pprint, deprecate
 from burstlib import Data
+
 
 ##
 # Multi-spot loader functions
 #
-def load_multispot8(fname, bytes_to_read=-1, swap_D_A=True, BT=0, gamma=1.):
+def multispot8(fname, bytes_to_read=-1, swap_D_A=True, BT=0, gamma=1.):
     """Load a 8-ch multispot file and return a Data() object. Cached version.
     """
     fname_c = fname + '_cache.pickle'
@@ -41,15 +41,17 @@ def load_multispot8(fname, bytes_to_read=-1, swap_D_A=True, BT=0, gamma=1.):
         dx.add(ph_times_m=var['ph_times_m'], A_em=var['A_em'], ALEX=False)
         pprint(" - File loaded from cache: %s\n" % fname)
     except IOError:
-        dx = load_multispot8_core(fname, bytes_to_read=bytes_to_read,
-                                  swap_D_A=swap_D_A, BT=BT, gamma=gamma)
+        dx = multispot8_core(fname, bytes_to_read=bytes_to_read,
+                             swap_D_A=swap_D_A, BT=BT, gamma=gamma)
         D = {'ph_times_m': dx.ph_times_m, 'A_em': dx.A_em}
         pprint(" - Pickling data ... ")
         pickle.dump(D, open(fname_c, 'wb'), -1)
         pprint("DONE\n")
     return dx
 
-def load_multispot8_core(fname, bytes_to_read=-1, swap_D_A=True, BT=0,
+load_multispot8 = deprecate(multispot8, "load_multispot8", "loader.multispot8")
+
+def multispot8_core(fname, bytes_to_read=-1, swap_D_A=True, BT=0,
                          gamma=1.):
     """Load a 8-ch multispot file and return a Data() object.
     """
@@ -59,7 +61,7 @@ def load_multispot8_core(fname, bytes_to_read=-1, swap_D_A=True, BT=0,
     dx.add(ph_times_m=ph_times_m, A_em=A_em, ALEX=False)
     return dx
 
-def load_multispot48_simple(fname, BT=0, gamma=1.,
+def multispot48_simple(fname, BT=0, gamma=1.,
                      i_start=0, i_stop=None, debug=False):
     """Load a 48-ch multispot file and return a Data() object.
     """
@@ -78,7 +80,7 @@ def load_multispot48_simple(fname, BT=0, gamma=1.,
         dx.add(ch_fifo=ch_fifo)
     return dx
 
-def load_multispot48(fname, BT=0, gamma=1., reprocess=False,
+def multispot48(fname, BT=0, gamma=1., reprocess=False,
                      i_start=0, i_stop=None, debug=False):
     """Load a 48-ch multispot file and return a Data() object.
     """
@@ -137,7 +139,7 @@ def _select_range(times, period, edges):
     return _select_inner_range(times, period, edges) if edges[0] < edges[1] \
             else _select_outer_range(times, period, edges)
 
-def load_usalex(fname, BT=0, gamma=1., header=166, bytes_to_read=-1):
+def usalex(fname, BT=0, gamma=1., header=166, bytes_to_read=-1):
     """Load a usALEX file and return a Data() object.
 
     To load usALEX data follow this pattern:

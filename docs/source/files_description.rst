@@ -26,62 +26,57 @@ The script performs 3 basic operations:
 To quickly switch between the notebooks dir and the FRETBursts source
 dir, use::
 
-    %cd $NOTEBOOK_DIR 
+    %cd $NOTEBOOK_DIR
 
 or::
 
     %cd $FRETBURSTS_DIR`
 
 
-``fretburst.py``
-----------------
-
-.. automodule:: fretbursts
-
 
 ``burstlib.py``
 ---------------
 
-.. automodule:: burstlib
+.. automodule:: fretbursts.burstlib
 
 
 ``loaders.py``
 --------------
 
-.. automodule:: loaders
+.. automodule:: fretbursts.loader
 
 
 ``burst_plot.py``
 -----------------
 
-.. automodule:: burst_plot
+.. automodule:: fretbursts.burst_plot
 
 
 ``background.py``
 -----------------
 
-.. automodule:: background
+.. automodule:: fretbursts.background
 
 
 ``select_bursts.py``
 --------------------
 
-.. automodule:: select_bursts
+.. automodule:: fretbursts.select_bursts
 
 
 ``burstsearch`` (folder)
 ---------------------------
 
-.. automodule:: burstsearch
+.. automodule:: fretbursts.burstsearch
 
 
 ``dataload`` (folder)
 ---------------------
 
-.. automodule:: dataload
+.. automodule:: fretbursts.dataload
 
 
 ``fit`` (folder)
 ----------------
 
-.. automodule:: fit
+.. automodule:: fretbursts.fit

@@ -10,14 +10,14 @@ The reference documentation of the class follows.
 Description and attributes
 --------------------------
 
-.. module:: burstlib
+.. module:: fretbursts.burstlib
 .. autoclass:: Data
 
 
 Analysis methods
 ----------------
 
-.. currentmodule:: burstlib
+.. currentmodule:: fretbursts.burstlib
 
 .. class:: Data
 
