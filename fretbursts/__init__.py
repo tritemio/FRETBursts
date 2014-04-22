@@ -17,8 +17,8 @@
 
 __all__ = [
         # Library modules and functions
-        "np", "r_", "zeros", "plt", "rcParams", "plot", "hist", "grid",
-        "xlim", "ylim", "gca", "gcf",
+        "np", "r_", "zeros", "plt", "rcParams", "matplotlib", "plot", "hist",
+        "grid", "xlim", "ylim", "gca", "gcf",
 
         # Local modules
         "loader", "select_bursts", "bl", "bg", "bpl", "bext",
@@ -46,6 +46,7 @@ __all__ = [
 
 import numpy as np
 from numpy import r_, zeros
+import matplotlib
 from matplotlib import rcParams
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import plot, hist, grid, xlim, ylim, gca, gcf
