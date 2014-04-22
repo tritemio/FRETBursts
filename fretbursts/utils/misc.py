@@ -21,6 +21,14 @@ def pprint(s, mute=False):
     sys.stdout.write(s)
     sys.stdout.flush()
 
+def deprecate(function, old_name, new_name):
+    def deprecated_function(*args, **kwargs):
+        pprint("Function %s is deprecated, use %s instead.\n" %\
+                (old_name, new_name))
+        res = function(*args, **kwargs)
+        return res
+    return deprecated_function
+
 def shorten_fname(f):
     """Return a path with only the last subfolder (i.e. measurement date)."""
     return '/'.join(f.split('/')[-2:])

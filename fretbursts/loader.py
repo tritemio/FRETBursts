@@ -24,9 +24,9 @@ from dataload.manta_reader import (load_manta_timestamps,
                                    #process_timestamps,
                                    process_store,
                                    load_manta_timestamps_pytables)
-from utils.misc import pprint
-
+from utils.misc import pprint, deprecate
 from burstlib import Data
+
 
 ##
 # Multi-spot loader functions

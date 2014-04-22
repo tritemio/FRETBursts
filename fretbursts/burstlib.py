@@ -22,7 +22,7 @@ import numpy as np
 from numpy import zeros, size, r_
 import scipy.stats as SS
 
-from utils.misc import pprint, clk_to_s
+from utils.misc import pprint, clk_to_s, deprecate
 from poisson_threshold import find_optimal_T_bga
 import fret_fit
 
@@ -50,14 +50,6 @@ from fit.gaussian_fitting import (gaussian_fit_hist,
                                   two_gauss_mix_pdf,
                                   two_gauss_mix_ab,)
 
-
-def deprecate(function, old_name, new_name):
-    def deprecated_function(*args, **kwargs):
-        pprint("Function %s is deprecated, use %s instead.\n" %\
-                (old_name, new_name))
-        res = function(*args, **kwargs)
-        return res
-    return deprecated_function
 
 # Redefine some old functions that have been renamed so old scripts will not
 # break but will print a warning

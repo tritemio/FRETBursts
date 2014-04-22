@@ -26,6 +26,7 @@ __all__ = [
         # Classes, functions, variables
         "data_dir", "Data", "Sel", "Sel_mask", "Sel_mask_apply",
         "gamma_correct_E",
+        "load_multispot8", # <- Deprecated function (only for comatibility)
 
         # Generic fit functions
         "gaussian_fit_hist",
