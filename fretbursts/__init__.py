@@ -24,7 +24,7 @@ __all__ = [
         "loader", "select_bursts", "bl", "bg", "bpl", "bext",
 
         # Classes, functions, variables
-        "data_dir", "Data", "Sel", "Sel_mask", "Sel_mask_apply",
+        "data_dir", "Data", "Sel", "Sel_mask", "Sel_mask_apply", "gui_fname",
 
         # Standalone plots or plots as a function of ch
         "mch_plot_bg", "plot_alternation_hist",
@@ -78,5 +78,5 @@ from burst_plot import (
         # Wrapper functions that create a plot for each channel
         dplot, dplot_48ch, dplot_8ch, dplot_1ch,
         )
-
+from utils.gui import gui_fname
 import style
