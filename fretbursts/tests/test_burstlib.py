@@ -28,7 +28,7 @@ def load_dataset_1ch():
     d = loader.usalex(fname=fname, BT=0.11, gamma=1.)
     d.add(det_donor_accept=(0, 1), alex_period=4000,
           D_ON=(2850, 580), A_ON=(900, 2580))
-    load.usalex_apply_period(d)
+    loader.usalex_apply_period(d)
 
     d.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
     d.burst_search_t(L=10, m=10, P=None, F=7, ph_sel='DA')
