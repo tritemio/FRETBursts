@@ -40,7 +40,7 @@ or::
 .. automodule:: fretbursts.burstlib
 
 
-``loaders.py``
+``loader.py``
 --------------
 
 .. automodule:: fretbursts.loader

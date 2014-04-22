@@ -16,7 +16,7 @@ HOME = os.environ['HOME'] if 'HOME' in os.environ else ''
 
 # Modify these to point to your FRETBursts source folder
 # or set an environment variable FRETBURSTS_DIR containing the path
-# (the enviroment variable, if set, has the precedence).
+# (the environment variable, if set, has the precedence).
 FRETBURSTS_DIR_WIN = r"C:\Data\Antonio\software\src\fretbursts"
 FRETBURSTS_DIR_POSIX = HOME + "/src/fretbursts"
 
