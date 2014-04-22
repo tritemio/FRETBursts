@@ -16,11 +16,20 @@
 """
 
 __all__ = [
-        # Modules
+        # Library modules and functions
+        "np", "r_", "zeros", "plt", "rcParams", "plot", "hist", "grid",
+        "xlim", "ylim", "gca", "gcf",
+
+        # Local modules
         "loader", "select_bursts", "bl", "bg", "bpl", "bext",
 
-        # Class, functions, variables
+        # Classes, functions, variables
         "data_dir", "Data", "Sel", "Sel_mask", "Sel_mask_apply",
+        "gamma_correct_E",
+
+        # Generic fit functions
+        "gaussian_fit_hist",
+        "two_gaussian_fit_hist_min", "two_gaussian_fit_hist_min_ab",
 
         # Standalone plots or plots as a function of ch
         "mch_plot_bg", "plot_alternation_hist",
@@ -40,11 +49,22 @@ __all__ = [
         "dplot", "dplot_48ch", "dplot_8ch", "dplot_1ch",
         ]
 
+import numpy as np
+from numpy import r_, zeros
+from matplotlib import rcParams
+import matplotlib.pyplot as plt
+from matplotlib.pyplot import plot, hist, grid, xlim, ylim, gca, gcf
+
 from .path_def import data_dir
 import background as bg
 import burstlib as bl
-from .burstlib import Data, Sel, Sel_mask, Sel_mask_apply
+from .burstlib import Data, Sel, Sel_mask, Sel_mask_apply, gamma_correct_E
 import burstlib_ext as bext
+from loader import load_multispot8
+from fit.gaussian_fitting import (gaussian_fit_hist,
+                                  two_gaussian_fit_hist_min,
+                                  two_gaussian_fit_hist_min_ab,
+                                  )
 import burst_plot as bpl
 from burst_plot import (
         # Standalone plots as a function of ch

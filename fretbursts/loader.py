@@ -4,13 +4,13 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-This module contains (at least) one function for each supported data file
-format. The loader functions load data from a specific format and
+This module contains functions to load for each supported data format.
+The loader functions load data from a specific format and
 initialize a new `Data()` object containing the data.
 
 This file contains only the high-level function to load a data-file and
 to return a `Data()` object. The low-level functions that perform the binary
-loading and preprocessing are placed in the `dataload` folder.
+loading and preprocessing can be found in the `dataload` folder.
 """
 
 import os
