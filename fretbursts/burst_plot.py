@@ -231,7 +231,9 @@ def timetrace_da(d, i=0, idx=0, bin_width=1e-3, bins=100000, bursts=False):
                 clk_p=d.clk_p)
         t_d = t_d[1:]*d.clk_p-bin_width*0.5
         plot(t_d, tr_d, 'g', lw=1.5, alpha=0.8)
-        _timetrace_bg(d, i, d.bg_dd, bin_width=bin_width, color='k', Th=False)
+        if 'bg' in d:
+            _timetrace_bg(d, i, d.bg_dd, bin_width=bin_width, color='k',
+                          Th=False)
 
     if not bl.mask_empty(d.get_A_em(i)):
         ph_a = d.get_ph_times(i, ph_sel='A')
@@ -239,8 +241,9 @@ def timetrace_da(d, i=0, idx=0, bin_width=1e-3, bins=100000, bursts=False):
                 clk_p=d.clk_p)
         t_a = t_a[1:]*d.clk_p-bin_width*0.5
         plot(t_a, -tr_a, 'r', lw=1.5, alpha=0.8)
-        _timetrace_bg(d, i, -r_[d.bg_ad], bin_width=bin_width, color='k',
-                Th=False)
+        if 'bg' in d:
+            _timetrace_bg(d, i, -r_[d.bg_ad], bin_width=bin_width, color='k',
+                          Th=False)
     xlabel('Time (s)'); ylabel('# ph')
     _gui_timetrace_burst_sel(d, idx, timetrace_da, gcf(), gca())
 
@@ -255,7 +258,8 @@ def timetrace(d, i=0, idx=0, bin_width=1e-3, bins=100000, bursts=False, F=None):
             clk_p=d.clk_p)
     time = time[1:]*d.clk_p-bin_width*0.5
     plot(time, trace, 'b', lw=1.5)
-    _timetrace_bg(d, i, d.bg, bin_width=bin_width, F=F)
+    if 'bg' in d:
+        _timetrace_bg(d, i, d.bg, bin_width=bin_width, F=F)
     xlabel('Time (s)'); ylabel('# ph')
     _gui_timetrace_burst_sel(d, idx, timetrace, gcf(), gca())
 
@@ -271,7 +275,8 @@ def ratetrace(d, i=0, idx=0, m=None, max_ph=1e6, pmax=1e6, bursts=False,
     rates = bl.ph_rate(m, ph[:max_ph])/d.clk_p
     times = bl.ph_rate_t(m, ph[:max_ph])*d.clk_p
     plot(times, rates, lw=1.2)
-    _timetrace_bg(d, i, d.bg, F=F)
+    if 'bg' in d:
+        _timetrace_bg(d, i, d.bg, F=F)
     xlabel('Time (s)'); ylabel('# ph')
     _gui_timetrace_burst_sel(d, idx, ratetrace, gcf(), gca())
 
@@ -299,8 +304,9 @@ def ratetrace_da(d, i=0, idx=0, m=None, max_ph=1e6, pmax=1e6, bursts=False,
         r_aa = bl.ph_rate(m, ph_aa[:max_ph])/d.clk_p
         t_aa = bl.ph_rate_t(m, ph_aa[:max_ph])*d.clk_p
         plot(t_aa, -r_aa, 'm', lw=1.2)
-    _timetrace_bg(d, i, d.bg_dd, F=F, color='k')
-    _timetrace_bg(d, i, -r_[d.bg_ad], F=F, color='k')
+    if 'bg' in d:
+        _timetrace_bg(d, i, d.bg_dd, F=F, color='k')
+        _timetrace_bg(d, i, -r_[d.bg_ad], F=F, color='k')
     xlabel('Time (s)'); ylabel('# ph')
     _gui_timetrace_burst_sel(d, idx, ratetrace_da, gcf(), gca())
 
