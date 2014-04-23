@@ -112,7 +112,8 @@ def multispot48(fname, BT=0, gamma=1., reprocess=False,
     A_em = [True] * len(ph_times_m)
 
     dx = Data(fname=fname, clk_p=10e-9, nch=48, BT=BT, gamma=gamma)
-    dx.add(ph_times_m=ph_times_m, A_em=A_em, ALEX=False)
+    dx.add(ph_times_m=ph_times_m, A_em=A_em, ALEX=False,
+           data_file=ph_times_m.data_file)
     big_fifo_full = np.array([b[:].any() for b in big_fifo]).any()
     ch_fifo_full = np.array([b[:].any() for b in ch_fifo]).any()
     if big_fifo_full:

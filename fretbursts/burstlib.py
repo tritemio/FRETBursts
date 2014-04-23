@@ -913,22 +913,31 @@ class Data(DataContainer):
         pprint(" - Now calling .calc_bg() instead: \n")
         self.calc_bg(*args, **kwargs)
 
-    def _get_auto_bg_th_arrays(self, F_bg=2, tail_min_us=250):
-        """Return a dict of threshold values for background estimation."""
-        selections = ['DA', 'D', 'A']
-        if self.ALEX: selections += ['AA']
+    def _get_auto_bg_th_arrays(self, F_bg=2, tail_min_us0=250):
+        """Return a dict of threshold values for background estimation.
+
+        The keys are the ph streams ('DA', 'D', 'A', 'AA') and the values are
+        1D arrays of size nch.
+        """
+        ph_streams = ['DA', 'D', 'A']
+        if self.ALEX: ph_streams += ['AA']
         Th_us = {}
-        for ph_sel in selections:
+        for ph_sel in ph_streams:
             th_us = np.zeros(self.nch)
             for ich, ph in enumerate(self.iter_ph_times(ph_sel=ph_sel)):
                 if ph.size > 0:
-                    bg_rate, _ = bg.exp_fit(ph, tail_min_us=tail_min_us)
+                    bg_rate, _ = bg.exp_fit(ph, tail_min_us=tail_min_us0)
                     th_us[ich] = 1e6*F_bg/bg_rate
             Th_us[ph_sel] = th_us
+        self.add(bg_auto_th_us0=tail_min_us0, bg_auto_F_bg=F_bg)
         return Th_us
 
     def _get_bg_th_arrays(self, tail_min_us):
-        """Return a dict of threshold values for background estimation."""
+        """Return a dict of threshold values for background estimation.
+
+        The keys are the ph streams ('DA', 'D', 'A', 'AA') and the values are
+        1D arrays of size nch.
+        """
         if np.size(tail_min_us) == 1:
             tail_min_us = np.repeat(tail_min_us, 4)
         elif np.size(tail_min_us) == 3:
@@ -938,7 +947,17 @@ class Data(DataContainer):
         Th_us = {}
         for i, key in enumerate(['DA', 'D', 'A', 'AA']):
             Th_us[key] = np.ones(self.nch)*tail_min_us[i]
+        bg_th = {}
+        for i, key in enumerate(['all', 'DD', 'AD', 'AA']):
+            bg_th['bg_th_us_'+ key] = tail_min_us[i]
+        self.add(**bg_th)
         return Th_us
+
+    def _get_bg_cache_group(self):
+        if 'bg' not in self:
+            print 'You need to compute the background first.'
+            return
+        return '/background/time_%ds' % self.bg_time_s
 
     def calc_bg(self, fun, time_s=60, tail_min_us=500, F_bg=2, **kwargs):
         """Compute time-dependent background rates for all the channels.
@@ -980,8 +999,10 @@ class Data(DataContainer):
         pprint(" - Calculating BG rates ... ")
 
         if tail_min_us == 'auto':
+            bg_auto_th = True
             Th_us = self._get_auto_bg_th_arrays(F_bg=F_bg)
         else:
+            bg_auto_th = False
             Th_us = self._get_bg_th_arrays(tail_min_us)
 
         kwargs.update(clk_p=self.clk_p)
@@ -1048,9 +1069,11 @@ class Data(DataContainer):
             if self.ALEX: rate_aa.append(bg_aa.mean())
         self.add(bg=BG, bg_dd=BG_dd, bg_ad=BG_ad, bg_aa=BG_aa, bg_err=BG_err,
                  bg_dd_err=BG_dd_err, bg_ad_err=BG_ad_err, bg_aa_err=BG_aa_err,
-                 Lim=Lim, Ph_p=Ph_p, nperiods=nperiods, bg_fun=fun,
+                 Lim=Lim, Ph_p=Ph_p, nperiods=nperiods,
+                 bg_fun=fun, bg_fun_name=fun.__name__,
                  bg_time_s=time_s, ph_sel='DA', rate_m=rate_m,
-                 rate_dd=rate_dd, rate_ad=rate_ad, rate_aa=rate_aa)
+                 rate_dd=rate_dd, rate_ad=rate_ad, rate_aa=rate_aa,
+                 bg_th_us=Th_us, bg_auto_th=bg_auto_th)
         pprint("[DONE]\n")
 
     def recompute_bg_lim_ph_p(self, ph_sel='D'):
