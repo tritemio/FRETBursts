@@ -4,30 +4,30 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-This module implements a list of arrays stored to a file with pytables.
+This module implements a list of arrays stored into a file with pytables.
 
 The list is created empty (if the file does not exist) and must be populated
 with the `append()` method.
 
-If the file-name exist the list is populated with arrays stored
+If the file-name exists the list is populated with arrays stored
 in the file.
 
-Each list element is a referent to a pytable array. To read the array in
+Each list element is a reference to a pytable array. To read the array in
 memory use the slicing notation (like pytable_array[:]).
 """
 
 import os
 import tables
-import numpy as np
 
 _default_compression = dict(complevel=6, complib='blosc')
+
 
 class PyTablesList(list):
     def __init__(self, file, overwrite=False, parent_node='/',
                  group_name='array_list', group_descr='List of arrays',
                  prefix='data', compression=_default_compression,
                  load_array=False):
-        """List of arrays stored in pytables file.
+        """List of arrays stored in a pytables file.
 
         The list is inizialized empty and populated with `.append()`.
 
