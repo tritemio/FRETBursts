@@ -220,27 +220,32 @@ def bg_load_hdf5(dx, group_name):
     bg_group = dx.data_file.get_node(group_name)
 
     # Load arrays and scalars
+    pprint('\n - Loading arrays/scalars: ')
     for node in bg_group._f_list_nodes():
         name = node.name
-        print name
+        pprint(name + ', ')
         #title = node.title
         arr = bg_group._f_get_child(name)
         bg_arrays[name] = arr.read()
+    dx.add(**bg_arrays)
 
     # Load the attributes
+    pprint('\n - Loading HDF5 attributes: ')
     for attr in bg_group._v_attrs._f_list():
+        pprint(attr + ', ')
         bg_attrs[attr] = bg_group._v_attrs[attr]
+    dx.add(**bg_attrs)
 
+    pprint('\n - Generating additional fields: ')
     in_map = ['', '_dd', '_ad', '_aa']
     out_map = ['_m', '_dd', '_ad', '_aa']
-
     new_attrs = {}
     for in_s, out_s in zip(in_map, out_map):
+        assert 'bg' + in_s in dx
+        pprint('bg' + in_s + ', ')
         new_attrs['rate' + out_s] = [bg.mean() for bg in dx['bg' + in_s]]
-
-    dx.add(**bg_arrays)
-    dx.add(**bg_attrs)
     dx.add(**new_attrs)
+    pprint('\n')
 
 def _get_bg_groupname(dx, time_s=None):
     if time_s is None and 'bg' not in dx:
@@ -283,7 +288,7 @@ def calc_bg_cache(dx, fun, time_s=60, tail_min_us=500, F_bg=2, recompute=False):
         bg_groupname = _get_bg_groupname(dx, time_s=time_s)
         dx._clean_bg_data()
         bg_load_hdf5(dx, bg_groupname)
-        pprint('[DONE]\n')
+        pprint(' [DONE]\n')
     else:
         # Background not found in cache. Compute it.
         pprint(' * No cached BG rates, recomputing:\n')
@@ -294,7 +299,7 @@ def calc_bg_cache(dx, fun, time_s=60, tail_min_us=500, F_bg=2, recompute=False):
         # And now store it to disk
         bg_save_hdf5(dx)
         _bg_add_signature(dx, curr_call_signature)
-        pprint('[DONE]\n')
+        pprint(' [DONE]\n')
 
 
 def test_calc_bg_cache(dx):
