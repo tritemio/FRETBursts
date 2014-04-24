@@ -953,6 +953,18 @@ class Data(DataContainer):
         self.add(**bg_th)
         return Th_us
 
+    def _clean_bg_data(self):
+        """Remove of the background fields that chages depending of the fit.
+
+        This function is called before a new bg recomputation to ensure to
+        delete the old fileds that may generate confusion.
+        """
+        field_list = ['bg_auto_th_us0', 'bg_auto_F_bg', 'bg_th_us_all',
+                      'bg_th_us_DD', 'bg_th_us_AD', 'bg_th_us_AA']
+        for field in field_list:
+            if field in self:
+                self.delete(field)
+
     def calc_bg(self, fun, time_s=60, tail_min_us=500, F_bg=2):
         """Compute time-dependent background rates for all the channels.
 
@@ -990,6 +1002,7 @@ class Data(DataContainer):
             None, all the results are saved in the object.
         """
         pprint(" - Calculating BG rates ... ")
+        self._clean_bg_data()
 
         if tail_min_us == 'auto':
             bg_auto_th = True
