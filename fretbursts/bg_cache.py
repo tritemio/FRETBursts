@@ -100,7 +100,7 @@ def bg_load_hdf5(dx, group_name):
     """Load background data from a HDF5 file."""
     assert 'data_file' in dx
     if group_name not in dx.data_file:
-        print 'Group not found in the HDF5 file.'
+        print 'Group "%s" not found in the HDF5 file.' % group_name
         return
 
     ## Load the bg data
@@ -134,7 +134,7 @@ def bg_load_hdf5(dx, group_name):
         assert 'bg' + in_s in dx
         pprint('bg' + in_s + ', ')
         new_attrs['rate' + out_s] = [bg.mean() for bg in dx['bg' + in_s]]
-    dx.add(**new_attrs)
+    dx.add(ph_sel='DA', **new_attrs)
     pprint('\n')
 
 def _get_bg_groupname(dx, time_s=None):
