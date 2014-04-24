@@ -21,7 +21,7 @@ __all__ = [
         "grid", "xlim", "ylim", "gca", "gcf",
 
         # Local modules
-        "loader", "select_bursts", "bl", "bg", "bpl", "bext",
+        "loader", "select_bursts", "bl", "bg", "bpl", "bext", "bg_cache",
 
         # Classes, functions, variables
         "data_dir", "Data", "Sel", "Sel_mask", "Sel_mask_apply", "gui_fname",

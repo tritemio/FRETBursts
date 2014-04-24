@@ -25,6 +25,7 @@ import scipy.stats as SS
 from utils.misc import pprint, clk_to_s, deprecate
 from poisson_threshold import find_optimal_T_bga
 import fret_fit
+import bg_cache
 
 from burstsearch import burstsearchlib as bslib
 from burstsearch.burstsearchlib import (
@@ -907,11 +908,24 @@ class Data(DataContainer):
     ##
     # Background analysis methods
     #
-    def calc_bg_cache(self, *args, **kwargs):
-        """Deprecated. Use `.calc_bg()` instead()"""
-        pprint("WARNING: the method calc_bg_cache is deprecated.\n")
-        pprint(" - Now calling .calc_bg() instead: \n")
-        self.calc_bg(*args, **kwargs)
+    def calc_bg_cache(self, fun, time_s=60, tail_min_us=500, F_bg=2,
+                      recompute=False):
+        """Compute time-dependent background rates for all the channels.
+
+        This version is the cached version of :meth:`calc_bg`.
+        This method tries to load the background data from the HDF5 file in
+        self.data_file. If a saved background data is not found, it computes
+        the background and stores the data to the HDF5 file.
+
+        The arguments are the same as :meth:`calc_bg` with the only addition
+        of `recompute` (bool) to force a background recomputation even if
+        a cached version is found.
+
+        Form more details on the other arguments see :meth:`calc_bg`.
+        """
+        bg_cache.calc_bg_cache(self, fun, time_s=time_s,
+                               tail_min_us=tail_min_us, F_bg=F_bg,
+                               recompute=recompute)
 
     def _get_auto_bg_th_arrays(self, F_bg=2, tail_min_us0=250):
         """Return a dict of threshold values for background estimation.
