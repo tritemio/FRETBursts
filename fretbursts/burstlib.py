@@ -954,11 +954,14 @@ class Data(DataContainer):
         return Th_us
 
     def _clean_bg_data(self):
-        """Remove of the background fields that chages depending of the fit.
+        """Remove background fields specific of only one fit type.
 
-        This function is called before a new bg recomputation to ensure to
-        delete the old fileds that may generate confusion.
+        Computing background with manual or 'auto' threshold resut in
+        different sets of attributes being saved. This method removes these
+        attributes and should be called before recomputing the background
+        to avoid having old stale attributes of a previous background fit.
         """
+        # Attributes specific of manual or 'auto' bg fit
         field_list = ['bg_auto_th_us0', 'bg_auto_F_bg', 'bg_th_us_all',
                       'bg_th_us_DD', 'bg_th_us_AD', 'bg_th_us_AA']
         for field in field_list:
@@ -978,28 +981,29 @@ class Data(DataContainer):
             time_s (float, seconds): compute background each time_s seconds
             tail_min_us (float, tuple or string): min threshold in us for
                 photon waiting times to use in background estimation.
-                If float is the same threshold for DA, D, A and AA photons and
-                for all the channels.
-                If a 3 or 4 element tuple each value is used for DA, D, A
-                and (if ALEX) AA photons. Same value for all channels.
-                If 'auto', the threshold is compute for each stream (DA, D, A,
-                AA) and for each channel as `bg_F * rate_ml0`. `rate_ml0` is
-                an initial estimation of the rate perfumed using :func:`bg.exp_fit`
-		and a fixed threshold of 300us.
-	    F_bg (float): when `tail_min_us` is 'auto', is the factor by which the
-		initial background estimation if multiplied to compute the threshold.
+                If float is the same threshold for DA, D, A and AA photons
+                and for all the channels.
+                If a 3 or 4 element tuple, each value is used for DA, D, A
+                and (if ALEX) AA photons, same value for all the channels.
+                If 'auto', the threshold is computed for each stream (DA, D,
+                A, AA) and for each channel as `bg_F * rate_ml0`. `rate_ml0`
+                is an initial estimation of the rate performed using
+                :func:`bg.exp_fit` and a fixed threshold (default 250us).
+            F_bg (float): when `tail_min_us` is 'auto', is the factor by which
+                the initial background estimation if multiplied to compute the
+                threshold.
 
         The background estimation functions are defined in the module
-        `background` (imported as `bg` in burstlib).
+        `background` (convetionally imported as `bg`).
 
         Example:
             Compute background with `bg.exp_fit`, every 20s, with a
-            threshold of 200us for photon waiting time::
+            threshold of 200us for photon waiting times::
 
                d.calc_bg(bg.exp_fit, time_s=20, tail_min_us=200)
 
         Returns:
-            None, all the results are saved in the object.
+            None, all the results are saved in the object itself.
         """
         pprint(" - Calculating BG rates ... ")
         self._clean_bg_data()
