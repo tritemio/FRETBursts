@@ -953,13 +953,7 @@ class Data(DataContainer):
         self.add(**bg_th)
         return Th_us
 
-    def _get_bg_cache_group(self):
-        if 'bg' not in self:
-            print 'You need to compute the background first.'
-            return
-        return '/background/time_%ds' % self.bg_time_s
-
-    def calc_bg(self, fun, time_s=60, tail_min_us=500, F_bg=2, **kwargs):
+    def calc_bg(self, fun, time_s=60, tail_min_us=500, F_bg=2):
         """Compute time-dependent background rates for all the channels.
 
         Compute background rates for donor, acceptor and both detectors.
@@ -982,7 +976,6 @@ class Data(DataContainer):
 		and a fixed threshold of 300us.
 	    F_bg (float): when `tail_min_us` is 'auto', is the factor by which the
 		initial background estimation if multiplied to compute the threshold.
-            kwargs: additional arguments to be passed to `fun`.
 
         The background estimation functions are defined in the module
         `background` (imported as `bg` in burstlib).
@@ -1005,7 +998,7 @@ class Data(DataContainer):
             bg_auto_th = False
             Th_us = self._get_bg_th_arrays(tail_min_us)
 
-        kwargs.update(clk_p=self.clk_p)
+        kwargs = dict(clk_p=self.clk_p)
         time_clk = time_s/self.clk_p
         BG, BG_dd, BG_ad, BG_aa, Lim, Ph_p = [], [], [], [], [], []
         rate_m, rate_dd, rate_ad, rate_aa = [], [], [], []
