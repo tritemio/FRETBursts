@@ -120,7 +120,7 @@ def burst_data_period_mean(dx, burst_data):
 
     Arguments:
         burst_data (list of arrays): one array per channel,
-            each array hase one element per burst.
+            each array has one element per burst.
 
     Returns:
         2D of arrays with shape (nch, nperiods).
