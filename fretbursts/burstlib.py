@@ -799,26 +799,34 @@ class Data(DataContainer):
         d.calc_fret() # recalc fret efficiency
         return d
 
-    def collapse(self):
+    def collapse(self, update_gamma=True):
         """Returns an object with 1-ch data joining the multi-ch data.
+
+        The argument `update_gamma` (bool, default True) allows to avoid
+        recomputing gamma as the average of the original gamma. This flag
+        should be always True. Set False only for testing/debugging.
         """
         dc = Data(**self)
 
         mburst = np.vstack(self.mburst)
         burst_start = b_start(mburst)
         sort_index = burst_start.argsort()
-        dc.add(mburst=[mburst[sort_index]])
 
         ich_burst = [i*np.ones(nb) for i, nb in enumerate(self.num_bu())]
         dc.add(ich_burst=np.hstack(ich_burst)[sort_index])
 
-        for k in ['nd', 'na', 'naa', 'nt', 'bp']:
-            if k in self:
-                dc[k] = [np.hstack(self[k])[sort_index]]
-                setattr(dc, k, dc[k])
+        for name in self.burst_fields:
+            if name in self:
+                # Concatenate arrays along axis = 0
+                value = [ np.concatenate(self[name])[sort_index] ]
+                dc.add(**{name: value})
         dc.add(nch=1)
         dc.add(chi_ch=1.)
-        dc.update_gamma(np.mean(self.get_gamma_array()))
+        # NOTE: Updating gamma has the side effect of recomputing E
+        #       (and S is ALEX). We need to update gamma because, in general,
+        #       gamma can be an array with a value for each ch.
+        if update_gamma:
+            dc.update_gamma(np.mean(self.get_gamma_array()))
         return dc
 
     ##

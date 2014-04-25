@@ -54,6 +54,12 @@ def data(request):
     return d
 
 
+@pytest.fixture(scope="module")
+def data_8ch(request):
+    d = load_dataset_8ch()
+    return d
+
+
 ##
 # Test functions
 #
@@ -201,6 +207,16 @@ def test_burst_size_da(data):
             tot_size = bl.b_size(mb)
             assert (tot_size == nd + na).all()
 
+def test_collapse(data_8ch):
+    """Test the .collapse() method that joins the ch.
+    """
+    d = data_8ch
+    dc1 = d.collapse()
+    dc2 = d.collapse(update_gamma=False)
+
+    for name in d.burst_fields:
+        if name in d:
+            assert np.allclose(dc1[name][0], dc2[name][0])
 
 if __name__ == '__main__':
     pytest.main("-x -v fretbursts/tests/test_burstlib.py")
