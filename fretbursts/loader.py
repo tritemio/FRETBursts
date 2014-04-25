@@ -84,20 +84,12 @@ def multispot48(fname, BT=0, gamma=1., reprocess=False,
                      i_start=0, i_stop=None, debug=False):
     """Load a 48-ch multispot file and return a Data() object.
     """
+    import tables
     basename, ext = os.path.splitext(fname)
     fname_h5 = basename + '.hdf5'
     fname_dat = basename + '.dat'
 
-    if not (os.path.isfile(fname_dat) or os.path.isfile(fname_h5)):
-        raise IOError('Data file "%s" not found' % basename)
-
-    if os.path.exists(fname_h5) and not reprocess:
-        ## There is a HDF5 file
-        pprint(' - Loading HDF5 file: %s ... ' % fname_h5)
-        ph_times_m, big_fifo, ch_fifo = \
-                    load_manta_timestamps_pytables(fname_h5)
-        pprint('DONE.\n')
-    else:
+    def load_dat_file():
         pprint(' - Loading DAT file: %s ... ' % fname_dat)
         ## Load data from raw file and store it in a HDF5 file
         data = load_xavier_manta_data(fname_dat, i_start=i_start,
@@ -108,6 +100,24 @@ def multispot48(fname, BT=0, gamma=1., reprocess=False,
         ph_times_m, big_fifo, ch_fifo = process_store(timestamps, det,
                         out_fname=fname_h5, fifo_flag=True, debug=False)
         pprint('DONE.\n')
+        return ph_times_m, big_fifo, ch_fifo
+
+    if not (os.path.isfile(fname_dat) or os.path.isfile(fname_h5)):
+        raise IOError('Data file "%s" not found' % basename)
+
+    if os.path.exists(fname_h5) and not reprocess:
+        ## There is a HDF5 file
+        try:
+            pprint(' - Loading HDF5 file: %s ... ' % fname_h5)
+            ph_times_m, big_fifo, ch_fifo = \
+                        load_manta_timestamps_pytables(fname_h5)
+            pprint('DONE.\n')
+        except tables.HDF5ExtError:
+            pprint('\n  Ops! File may be truncated.\n')
+            ph_times_m, big_fifo, ch_fifo = load_dat_file()
+    else:
+        ph_times_m, big_fifo, ch_fifo = load_dat_file()
+
     ## Current data has only acceptor ch
     A_em = [True] * len(ph_times_m)
 
