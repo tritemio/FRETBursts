@@ -133,3 +133,64 @@ def burst_data_period_mean(dx, burst_data):
         for iperiod in xrange(dx.nperiods):
             mean_burst_data[ich, iperiod] = b_data_ch[period == iperiod].mean()
     return mean_burst_data
+
+def join_data(d_list, gap=1):
+    """Joins burst data of different measurements in a single Data() object.
+
+    This function requires that all the passed data objects use the
+    same period (bg_time_s). For each measurement, the time of burst start
+    is offset by the duration of the previous measurement + an additional `gap`.
+
+    The index of the first/last photon in the burst (returned by `b_istart()`
+    and `b_iend()`) are keept unmodified and refer to the original timestamp
+    array. The timestamp arrays are not copied: the new Data object will
+    have empty lists instead of timestamp arrays. This may cause error if
+    calling functions that require the timestamps arrays.
+
+    Burst widths and sizes are nchanged as well.
+
+    A new Data bursts attribute `i_origin` is set containing, for each burst,
+    the index of the original data object.
+
+    Returns:
+        A new Data object with bursts obtained joining the input list objects.
+    """
+    from fretbursts.burstlib import Data, itstart
+
+    nch = d_list[0].nch
+    bg_time_s = d_list[0].bg_time_s
+    for d in d_list:
+        assert d.nch == nch
+        assert d.bg_time_s == bg_time_s
+
+    new_d = Data(**d_list[0])
+    new_d.add(ph_times_m = [[]]*nch)
+
+    # Set all the bursts fields by simple concatenation along axis = 0
+    for name in Data.burst_fields:
+        if name in new_d:
+            #print '\n\n' + name,
+            new_d.add(**{name: []})
+            for ich in xrange(nch):
+                new_size = np.sum([d[name][ich].shape[0] for d in d_list])
+                value = np.concatenate([d[name][ich] for d in d_list])
+                new_d[name].append(value)
+                assert new_d[name][ich].shape[0] == new_size
+                #print new_d[name][ich].shape,
+
+    # Set the i_origin attribute
+    new_d.add(i_origin = [])
+    for ich in xrange(nch):
+        i_origin_ch = np.concatenate([i_d*np.ones(d.num_bu()[ich])
+                        for i_d, d in enumerate(d_list)])
+        new_d.i_origin.append(i_origin_ch)
+
+    # Modify the new mburst so the time of burst start is monotonic
+    offset_clk = 0
+    for i_orig, d_orig in enumerate(d_list):
+        for ich in xrange(nch):
+            mask = new_d.i_origin[ich] == i_orig
+            new_d.mburst[ich][mask, itstart] += offset_clk
+        offset_clk += (d_orig.time_max() + gap)/d_orig.clk_p
+
+    return new_d
