@@ -150,20 +150,20 @@ def Sel_mask_apply(d_orig, Masks, nofret=False, str_sel=''):
 
     ## Copy the per-burst fields that must be filtered
     used_fields = [field for field in Data.burst_fields if field in d_orig]
-    for k in used_fields:
-        # Reading hint: think of d[k] as another name for d.nd, etc...
+    for name in used_fields:
+        # Reading hint: think of d[name] as another name for d.nd, etc...
 
         # Make new lists to contain the filtered data
         # (otherwise changing ds.nd[0] changes also d_orig.nd[0])
-        ds[k] = [np.array([])]*d_orig.nch
+        ds[name] = [np.array([])]*d_orig.nch
         # Assign also the attribute to maintain the same object interface
-        setattr(ds,k,ds[k])
+        setattr(ds, name, ds[name])
         # Assign the new data
-        for i, mask in enumerate(Masks):
-            if d_orig[k][i].size == 0: continue # -> no bursts in current ch
+        for ich, mask in enumerate(Masks):
+            if d_orig[name][ich].size == 0: continue # -> no bursts in ch
             # Note that boolean masking implies numpy array copy
             # On the contrary slicing only makes a new view of the array
-            ds[k][i] = d_orig[k][i][mask]
+            ds[name][ich] = d_orig[name][ich][mask]
 
     # Recompute E and S
     if not nofret:
