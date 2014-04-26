@@ -137,23 +137,23 @@ def burst_data_period_mean(dx, burst_data):
 def join_data(d_list, gap=1):
     """Joins burst data of different measurements in a single Data() object.
 
-    This function requires that all the passed data objects use the
-    same period (bg_time_s). For each measurement, the time of burst start
-    is offset by the duration of the previous measurement + an additional `gap`.
+    This function requires that all the passed data objects use the same
+    period (bg_time_s). For each measurement, the time of burst start is
+    offset by the duration of the previous measurement + an additional `gap`.
 
     The index of the first/last photon in the burst (returned by `b_istart()`
     and `b_iend()`) are keept unmodified and refer to the original timestamp
-    array. The timestamp arrays are not copied: the new Data object will
+    array. The timestamp arrays are not copied: the new `Data` object will
     have empty lists instead of timestamp arrays. This may cause error if
     calling functions that require the timestamps arrays.
 
-    Burst widths and sizes are nchanged as well.
+    Burst widths and sizes are kept unchanged.
 
-    A new Data bursts attribute `i_origin` is set containing, for each burst,
-    the index of the original data object.
+    A new attribute (`i_origin`), containing, for each burst, the index of
+    the original data object in the list, is saved in the returned object.
 
     Returns:
-        A new Data object with bursts obtained joining the input list objects.
+        A `Data` object containing bursts from the all the objects in `d_list`.
     """
     from fretbursts.burstlib import Data, itstart
 

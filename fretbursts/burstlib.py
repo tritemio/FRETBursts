@@ -823,7 +823,7 @@ class Data(DataContainer):
         dc.add(nch=1)
         dc.add(chi_ch=1.)
         # NOTE: Updating gamma has the side effect of recomputing E
-        #       (and S is ALEX). We need to update gamma because, in general,
+        #       (and S if ALEX). We need to update gamma because, in general,
         #       gamma can be an array with a value for each ch.
         if update_gamma:
             dc.update_gamma(np.mean(self.get_gamma_array()))
