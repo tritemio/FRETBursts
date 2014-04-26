@@ -517,7 +517,7 @@ class Data(DataContainer):
     a list (one element per channel) of arrays. Each array contains several
     rates computed every `time_s` seconds of measurements. `time_s` is an
     argument passed to `.calc_bg()` method. Each `time_s` measurement slice
-    is here called **`period`**.
+    is here called background **`period`**.
 
     Attributes:
         bg (list of arrays):  total background (donor + acceptor) during donor
@@ -531,10 +531,10 @@ class Data(DataContainer):
         nperiods (int): number of periods in which timestamps are split for
             background calculation
         bg_fun (function): function used to compute the background rates
-        Lim (list): for each ch, is a list of index pairs for `.ph_times_m[i]`
-            for **first** and **last** photon in each period.
-        Ph_p (list): for each ch, is a list of timestamps pairs for
-            **first** and **last** photon of each period.
+        Lim (list): each element of this list is a list of index pairs for
+            `.ph_times_m[i]` for **first** and **last** photon in each period.
+        Ph_p (list): each element in this list is a list of timestamps pairs
+            for **first** and **last** photon of each period.
 
     Other attributes (per-ch mean of `bg`, `bg_dd`, `bg_ad` and `bg_aa`)::
 
@@ -595,15 +595,22 @@ class Data(DataContainer):
                     S = (gamma*nd + na) /(gamma*nd + na + naa)
     """
 
-    # List of attribute names containing per-photon data.
-    # All this attributes are lists (1 element per ch) of arrays (1 element
+    # Attribute names containing per-photon data.
+    # Each attribute is a list (1 element per ch) of arrays (1 element
     # per photon).
     ph_fields = ['ph_times_m', 'A_em', 'D_em', 'A_ex', 'D_ex']
 
-    # List of attribute names containing per-burst data.
-    # All this attributes are lists (1 element per ch) of arrays (1 element
+    # Attribute names background data.
+    # Each attribute is a list (1 element per ch) of sequences (1 element per
+    # background period). For example `.bg` is a list of arrays, while `.Lim`
+    # and `.Ph_p` are lists of lists-of-tuples (one tuple per background
+    # period). These attributes do not exist before computing the background.
+    bg_fields = ['bg', 'bg_dd', 'bg_ad', 'bg_aa', 'Lim', 'Ph_p']
+
+    # Attribute names containing per-burst data.
+    # Each attribute is a list (1 element per ch) of arrays (1 element
     # per burst).
-    # They not necessarly exist. For example 'naa' exist only for ALEX
+    # They do not necessarly exist. For example 'naa' exists only for ALEX
     # data. Also none of them exist before performing a burst search.
     burst_fields = ['E', 'S', 'mburst', 'nd', 'na', 'nt', 'bp', 'naa',
                     'max_rate', 'sbr']

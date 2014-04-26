@@ -135,26 +135,33 @@ def burst_data_period_mean(dx, burst_data):
     return mean_burst_data
 
 def join_data(d_list, gap=1):
-    """Joins burst data of different measurements in a single Data() object.
+    """Joins burst data of different measurements in a single `Data` object.
 
     This function requires that all the passed data objects use the same
     period (bg_time_s). For each measurement, the time of burst start is
     offset by the duration of the previous measurement + an additional `gap`.
 
     The index of the first/last photon in the burst (returned by `b_istart()`
-    and `b_iend()`) are keept unmodified and refer to the original timestamp
+    and `b_iend()`) are kept unmodified and refer to the original timestamp
     array. The timestamp arrays are not copied: the new `Data` object will
     have empty lists instead of timestamp arrays. This may cause error if
     calling functions that require the timestamps arrays.
 
+    The background arrays (bg, bg_dd, etc...) are concatenated. The burst
+    attribute `bp` is updated to refer to these new concatenated arrays.
+    The attributes `Lim` and `Ph_p` are concatenated and left unchanged.
+    Therefore different sections will refer to different original timestamp
+    arrays.
+
     Burst widths and sizes are kept unchanged.
 
-    A new attribute (`i_origin`), containing, for each burst, the index of
-    the original data object in the list, is saved in the returned object.
+    A new attribute (`i_origin`), containing for each burst the index of the
+    original data object in the list, is saved in the returned object.
 
     Returns:
-        A `Data` object containing bursts from the all the objects in `d_list`.
+    A `Data` object containing bursts from the all the objects in `d_list`.
     """
+
     from fretbursts.burstlib import Data, itstart
 
     nch = d_list[0].nch
@@ -166,7 +173,7 @@ def join_data(d_list, gap=1):
     new_d = Data(**d_list[0])
     new_d.add(ph_times_m = [[]]*nch)
 
-    # Set all the bursts fields by simple concatenation along axis = 0
+    # Set the bursts fields by concatenation along axis = 0
     for name in Data.burst_fields:
         if name in new_d:
             new_d.add(**{ name: [np.array([])]*nch })
@@ -178,12 +185,32 @@ def join_data(d_list, gap=1):
                 new_d[name][ich] = value
                 assert new_d[name][ich].shape[0] == new_size
 
-    # Set the i_origin attribute
+    # Set the background fields by concatenation along axis = 0
+    new_nperiods = np.sum([d.nperiods for d in d_list])
+    for name in Data.bg_fields:
+        if name in new_d:
+            new_d.add(**{ name: [] })
+            for ich in xrange(nch):
+                value = np.concatenate([d[name][ich] for d in d_list])
+                new_d[name].append(value)
+                assert new_d[name][ich].shape[0] == new_nperiods
+
+    # Set the i_origin burst attribute
     new_d.add(i_origin = [])
     for ich in xrange(nch):
         i_origin_ch = np.concatenate([i_d*np.ones(d.num_bu()[ich])
                         for i_d, d in enumerate(d_list)])
         new_d.i_origin.append(i_origin_ch)
+
+    # Update the `bp` attribute to refer to the background period in
+    # the new concatenated background arrays.
+    sum_nperiods = np.cumsum([d.nperiods for d in d_list])
+    for i_d, d in zip(xrange(1, len(d_list)), d_list[1:]):
+        for ich in xrange(nch):
+            # Burst "slice" in new_d coming from current d
+            b_mask = new_d.i_origin[ich] == i_d
+            # Add the nperiods of all the previous measurements
+            new_d.bp[ich][b_mask] = new_d.bp[ich][b_mask] + sum_nperiods[i_d-1]
 
     # Modify the new mburst so the time of burst start is monotonic
     offset_clk = 0
