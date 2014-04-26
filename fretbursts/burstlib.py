@@ -151,13 +151,13 @@ def Sel_mask_apply(d_orig, Masks, nofret=False, str_sel=''):
     ## Copy the per-burst fields that must be filtered
     used_fields = [field for field in Data.burst_fields if field in d_orig]
     for name in used_fields:
-        # Reading hint: think of d[name] as another name for d.nd, etc...
 
-        # Make new lists to contain the filtered data
-        # (otherwise changing ds.nd[0] changes also d_orig.nd[0])
-        ds[name] = [np.array([])]*d_orig.nch
-        # Assign also the attribute to maintain the same object interface
-        setattr(ds, name, ds[name])
+        # Recreate the current attribute as a new list to avoid modifying
+        # the old list that is also in the original object.
+        # The list is initialized with empty arrays because this is the valid
+        # value when a ch has no bursts.
+        ds.add(**{ name: [np.array([])]*d_orig.nch })
+
         # Assign the new data
         for ich, mask in enumerate(Masks):
             if d_orig[name][ich].size == 0: continue # -> no bursts in ch

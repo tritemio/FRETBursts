@@ -169,14 +169,14 @@ def join_data(d_list, gap=1):
     # Set all the bursts fields by simple concatenation along axis = 0
     for name in Data.burst_fields:
         if name in new_d:
-            #print '\n\n' + name,
-            new_d.add(**{name: []})
+            new_d.add(**{ name: [np.array([])]*nch })
             for ich in xrange(nch):
                 new_size = np.sum([d[name][ich].shape[0] for d in d_list])
+                if new_size == 0:
+                    continue  # -> No bursts in this ch
                 value = np.concatenate([d[name][ich] for d in d_list])
-                new_d[name].append(value)
+                new_d[name][ich] = value
                 assert new_d[name][ich].shape[0] == new_size
-                #print new_d[name][ich].shape,
 
     # Set the i_origin attribute
     new_d.add(i_origin = [])
