@@ -216,6 +216,7 @@ def join_data(d_list, gap=1):
     offset_clk = 0
     for i_orig, d_orig in enumerate(d_list):
         for ich in xrange(nch):
+            if np.size(new_d.mburst[ich]) == 0: continue
             mask = new_d.i_origin[ich] == i_orig
             new_d.mburst[ich][mask, itstart] += offset_clk
         offset_clk += (d_orig.time_max() + gap)/d_orig.clk_p
