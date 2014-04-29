@@ -171,7 +171,7 @@ def join_data(d_list, gap=1):
         assert d.bg_time_s == bg_time_s
 
     new_d = Data(**d_list[0])
-    new_d.add(ph_times_m = [[]]*nch)
+    new_d.delete('ph_times_m')
 
     # Set the bursts fields by concatenation along axis = 0
     for name in Data.burst_fields:
