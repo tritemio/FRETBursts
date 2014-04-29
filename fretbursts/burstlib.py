@@ -17,7 +17,6 @@ For usage example see the IPython Notebooks in sub-folder "notebooks".
 """
 
 import os
-import cPickle as pickle
 import numpy as np
 from numpy import zeros, size, r_
 import scipy.stats as SS
