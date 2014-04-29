@@ -194,8 +194,13 @@ def top_tail(nx, a=0.1):
     return np.r_[[n[n>n.max()*(1-a)].mean() for n in nx]]
 
 # Quick functions to calculate rate-trace from ph_times
-ph_rate = lambda m, ph: 1.*m/(ph[m-1:] - ph[:ph.size-m+1])   # rate
-ph_rate_t = lambda m, ph: 0.5*(ph[m-1:] + ph[:ph.size-m+1])  # time for rate
+def ph_rate(m, ph):
+    """Return an array of m-photons rates of size ph.size - m + 1."""
+    return 1.*m/(ph[m-1:] - ph[:ph.size-m+1])   # rate
+
+def ph_rate_t(m, ph):
+    """Return the mean time for each rate compute by `ph_rate`."""
+    return 0.5*(ph[m-1:] + ph[:ph.size-m+1])  # time for rate
 
 def ph_select(ph, mburst):
     """Return bool mask to select all ph inside any burst"""
