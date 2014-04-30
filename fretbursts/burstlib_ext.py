@@ -162,7 +162,7 @@ def join_data(d_list, gap=1):
     A `Data` object containing bursts from the all the objects in `d_list`.
     """
 
-    from fretbursts.burstlib import Data, itstart
+    from fretbursts.burstlib import Data, itstart, itend
 
     nch = d_list[0].nch
     bg_time_s = d_list[0].bg_time_s
@@ -212,13 +212,14 @@ def join_data(d_list, gap=1):
             # Add the nperiods of all the previous measurements
             new_d.bp[ich][b_mask] = new_d.bp[ich][b_mask] + sum_nperiods[i_d-1]
 
-    # Modify the new mburst so the time of burst start is monotonic
+    # Modify the new mburst so the time of burst start/end is monotonic
     offset_clk = 0
     for i_orig, d_orig in enumerate(d_list):
         for ich in xrange(nch):
             if np.size(new_d.mburst[ich]) == 0: continue
             mask = new_d.i_origin[ich] == i_orig
             new_d.mburst[ich][mask, itstart] += offset_clk
+            new_d.mburst[ich][mask, itend] += offset_clk
         offset_clk += (d_orig.time_max() + gap)/d_orig.clk_p
 
     return new_d
