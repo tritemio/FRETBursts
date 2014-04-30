@@ -247,7 +247,8 @@ def timetrace_da(d, i=0, idx=0, bin_width=1e-3, bins=100000, bursts=False):
     xlabel('Time (s)'); ylabel('# ph')
     _gui_timetrace_burst_sel(d, idx, timetrace_da, gcf(), gca())
 
-def timetrace(d, i=0, idx=0, bin_width=1e-3, bins=100000, bursts=False, F=None):
+def timetrace(d, i=0, idx=0, bin_width=1e-3, bins=100000, bursts=False, F=None,
+              **kwargs):
     """Timetrace of binned photons (total: donor + acceptor)."""
     if bursts:
         t_max_clk = int((bins*bin_width)/d.clk_p)
@@ -257,7 +258,7 @@ def timetrace(d, i=0, idx=0, bin_width=1e-3, bins=100000, bursts=False, F=None):
     trace, time = binning(ph,bin_width_ms=bin_width*1e3, max_num_bins=bins,
             clk_p=d.clk_p)
     time = time[1:]*d.clk_p-bin_width*0.5
-    plot(time, trace, 'b', lw=1.5)
+    plot(time, trace, **kwargs)
     if 'bg' in d:
         _timetrace_bg(d, i, d.bg, bin_width=bin_width, F=F)
     xlabel('Time (s)'); ylabel('# ph')
@@ -1017,7 +1018,7 @@ def dplot_48ch(d, fun=scatter_width_size, sharex=True, sharey=True,
     if ich is None:
         iter_ch = xrange(d.nch)
         if d.nch == 48:
-            top_adjust = 0.96
+            top_adjust = 0.95
             ax_ny, ax_nx = 6, 8
             if figsize is None:
                 figsize = (20, 16)
