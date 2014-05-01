@@ -996,9 +996,11 @@ def scatter_naa_nt(d, i=0, alpha=0.5):
     xlabel('Total burst size (nd+na+naa)'); ylabel('Accept em-ex BS (naa)')
     plt.xlim(-5,200); plt.ylim(-5,120)
 
-def scatter_alex(d, i=0, alpha=0.2):
-    """Scatterplot of E vs S."""
-    plot(d.E[i], d.S[i], 'o', mew=0, ms=3, alpha=alpha)
+def scatter_alex(d, i=0, **kwargs):
+    """Scatterplot of E vs S. Keyword arguments passed to `plot`."""
+    plot_style = dict(marker='o', mew=0, ms=3, alpha=0.2)
+    plot_style.update(**kwargs)
+    plot(d.E[i], d.S[i], 'd', **plot_style)
     xlabel("E"); ylabel('S')
     plt.xlim(-0.2,1.2); plt.ylim(-0.2,1.2)
 
