@@ -144,8 +144,8 @@ def join_data(d_list, gap=1):
     The index of the first/last photon in the burst (returned by `b_istart()`
     and `b_iend()`) are kept unmodified and refer to the original timestamp
     array. The timestamp arrays are not copied: the new `Data` object will
-    have empty lists instead of timestamp arrays. This may cause error if
-    calling functions that require the timestamps arrays.
+    not contain any timestamp arrays (ph_times_m). This may cause error when
+    calling functions that require the timestamps data.
 
     The background arrays (bg, bg_dd, etc...) are concatenated. The burst
     attribute `bp` is updated to refer to these new concatenated arrays.
