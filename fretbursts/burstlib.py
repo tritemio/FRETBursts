@@ -222,10 +222,20 @@ def b_ph_times_v(bursts, ph_times, pad=0):
     """Returns a list of arrays containing ph_times inside each burst."""
     PH = [ph_times[b[iistart]-pad:b[iiend]+pad+1] for b in bursts]
     return PH
-def b_rate_max(b, ph, m=3):
-    """Returns the max (m-photons) rate reached inside each bursts.
+
+def b_rate_max(ph, m, mburst):
+    """Returns the max m-photons rate reached inside each burst.
+
+    Arguments
+        ph (1D array): array of photons timestamps
+        m (int): number of timestamps to use to compute the rate
+        mburst (2D array): array of burst data as returned by the burst search
+            function
+
+    Return
+        Array of max photon rate reached inside each burst.
     """
-    PHB = [ph[ bu[iistart] : bu[iiend]+1 ] for bu in b]
+    PHB = [ph[ burst[iistart] : burst[iiend] + 1 ] for burst in mburst]
     rates_max = np.array([ph_rate(m=m, ph=phb).max() for phb in PHB])
     return rates_max
 
@@ -915,8 +925,10 @@ class Data(DataContainer):
 
     def calc_max_rate(self, m):
         """Compute the max m-photon rate reached in each burst."""
-        Max_Rate = [b_rate_max(mb, ph, m=m)/self.clk_p
+        Max_Rate = [b_rate_max(ph=ph, m=m, mburst=mb)/self.clk_p
                 for ph, mb in zip(self.iter_ph_times(), self.mburst)]
+        Max_Rate = [mr - bg[bp] for bp, bg, mr in
+                    zip(self.bp, self.bg, Max_Rate)]
         self.add(max_rate=Max_Rate)
 
     def delete_burst_data(self):
@@ -1336,7 +1348,7 @@ class Data(DataContainer):
             pprint("   [DONE Counting D/A]\n", mute)
         if max_rate:
             pprint(" - Computing max rates in burst ...", mute)
-            self.calc_max_rate(m=3)
+            self.calc_max_rate(m=m)
             pprint("[DONE]\n", mute)
 
     def calc_ph_num(self, alex_all=False, pure_python=False):
