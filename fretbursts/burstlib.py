@@ -243,8 +243,13 @@ def b_rate_max(ph, m, mburst, mask=None):
         burst_ph = ph[burst_slice]
         if mask is not None:
             burst_ph = burst_ph[mask[burst_slice]]
+            if burst_ph.size < m:
+                PHB.append(None)
+                continue
         PHB.append(burst_ph)
-    rates_max = np.array([ph_rate(m=m, ph=phb).max() for phb in PHB])
+    rates_max = np.array(
+        [ph_rate(m=m, ph=phb).max() if phb is not None else 0 for phb in PHB]
+        )
     return rates_max
 
 def b_irange(bursts, b_index, pad=0):
