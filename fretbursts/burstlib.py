@@ -223,7 +223,7 @@ def b_ph_times_v(bursts, ph_times, pad=0):
     PH = [ph_times[b[iistart]-pad:b[iiend]+pad+1] for b in bursts]
     return PH
 
-def b_rate_max(ph, m, mburst):
+def b_rate_max(ph, m, mburst, mask=None):
     """Returns the max m-photons rate reached inside each burst.
 
     Arguments
@@ -231,11 +231,19 @@ def b_rate_max(ph, m, mburst):
         m (int): number of timestamps to use to compute the rate
         mburst (2D array): array of burst data as returned by the burst search
             function
+        mask (boolean mask or None): if not None, is a boolean mask
+            to select photons in `ph` (for example Donor-ch photons).
 
     Return
         Array of max photon rate reached inside each burst.
     """
-    PHB = [ph[ burst[iistart] : burst[iiend] + 1 ] for burst in mburst]
+    PHB = []
+    for burst in mburst:
+        burst_slice = slice(burst[iistart], burst[iiend] + 1)
+        burst_ph = ph[burst_slice]
+        if mask is not None:
+            burst_ph = burst_ph[mask[burst_slice]]
+        PHB.append(burst_ph)
     rates_max = np.array([ph_rate(m=m, ph=phb).max() for phb in PHB])
     return rates_max
 
@@ -923,12 +931,25 @@ class Data(DataContainer):
         """Return masks of ph inside bursts."""
         self.ph_in_burst = mch_ph_select(self.ph_times_m, self.mburst)
 
-    def calc_max_rate(self, m):
-        """Compute the max m-photon rate reached in each burst."""
-        Max_Rate = [b_rate_max(ph=ph, m=m, mburst=mb)/self.clk_p
-                for ph, mb in zip(self.iter_ph_times(), self.mburst)]
-        Max_Rate = [mr - bg[bp] for bp, bg, mr in
-                    zip(self.bp, self.bg, Max_Rate)]
+    def calc_max_rate(self, m, ph_sel='DA'):
+        """Compute the max m-photon rate reached in each burst.
+
+        Arguments:
+            m (int): number of timestamps to use to compute the rate
+            ph_sel (string): the photon selection on which to compute the rate
+        """
+        if ph_sel == 'DA':
+            Max_Rate = [b_rate_max(ph=ph, m=m, mburst=mb)
+                    for ph, mb in zip(self.iter_ph_times(), self.mburst)]
+        else:
+            Max_Rate = [b_rate_max(ph=ph, m=m, mburst=mb, mask=mask)
+                    for ph, mask, mb in zip(self.iter_ph_times(),
+                                            self.iter_ph_masks(ph_sel=ph_sel),
+                                            self.mburst)]
+
+        BG = {'DA': self.bg, 'D': self.bg_dd, 'A': self.bg_ad}
+        Max_Rate = [mr/self.clk_p - bg[bp] for bp, bg, mr in
+                    zip(self.bp, BG[ph_sel], Max_Rate)]
         self.add(max_rate=Max_Rate)
 
     def delete_burst_data(self):
