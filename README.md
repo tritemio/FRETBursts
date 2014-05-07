@@ -111,6 +111,17 @@ and illustrate some of the basic features of FRETBursts.
 
 FRETBursts is a standard python packaged and therefore can be also used as a library and integrated in other software.
 
+#Development
+
+The documentation is built using [Sphinx](http://sphinx-doc.org/) (1.2.2 or later) and 
+the [napoleon extension](https://pypi.python.org/pypi/sphinxcontrib-napoleon).
+A notebook that builds the HTML docs can be found in `notebooks/dev/docs/`.
+
+The unit tests are written with [pytest](http://pytest.org/latest/).
+Notebooks that execute the unit tests can be found in `notebooks/dev/test/`.
+In the same folder a notebook for regression testing is provided.
+
+
 #Acknowledgements
 
 This work was supported by NIH grants R01 GM069709 and R01 GM095904.
