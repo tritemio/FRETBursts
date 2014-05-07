@@ -1,11 +1,5 @@
 burstsearch/build/
 burstsearch/c_burstsearch.c
-plots/*
-figure/*
-log/*
-data/
-cache/*
-bak/*
 
 docs/source/_themes/
 
@@ -16,10 +10,6 @@ notebooks/.ipynb_checkpoints/
 *.so
 *.pyd
 
-.bzr*
-*.dat
-*.pickle
-*.spc
 *.pyc
 *.*~
 *.swp
