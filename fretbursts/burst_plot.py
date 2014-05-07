@@ -933,7 +933,7 @@ def hist_asymmetry(d, i=0, bins=None, **kwargs):
 #  Scatter plots
 #
 
-def scatter_width_size(i, d):
+def scatter_width_size(d, i=0):
     """Scatterplot of burst width versus size."""
     b = d.mburst[i]
     plot(bl.b_width(b)*d.clk_p*1e3, d.nt[i], 'o', mew=0, ms=3, alpha=0.7,
@@ -947,16 +947,16 @@ def scatter_width_size(i, d):
     plt.xlim(0,10); plt.ylim(0,300)
     legend(frameon=False)
 
-def scatter_rate_da(i, d):
+def scatter_rate_da(d, i=0):
     """Scatter of nd rate vs na rate (rates for each burst)."""
     b = d.mburst[i]
     Rate = lambda nX: nX[i]/bl.b_width(b)/d.clk_p*1e-3
-    plot(Rate(d.nd), Rate(d.na), 'o', mew=0,ms=3,alpha=0.1,color='blue')
+    plot(Rate(d.nd), Rate(d.na), 'o', mew=0, ms=3, alpha=0.1, color='blue')
     xlabel('D burst rate (kcps)'); ylabel('A burst rate (kcps)')
     plt.xlim(-20,100); plt.ylim(-20,100)
     legend(frameon=False)
 
-def scatter_fret_size(i, d):
+def scatter_fret_size(d, i=0):
     """Scatterplot of FRET efficiency versus burst size (nt)."""
     plot(d.E[i], d.nt[i], 'o', mew=0, ms=3, alpha=0.1, color="blue")
     xlabel("FRET Efficiency (E)")
@@ -975,7 +975,7 @@ def scatter_fret_nd_na(d, i=0, show_fit=False, no_text=False, gamma=1.,
         if i==0 and not no_text:
             plt.figtext(0.4,0.01, _get_fit_E_text(d),fontsize=14)
 
-def scatter_fret_width(i, d):
+def scatter_fret_width(d, i=0):
     """Scatterplot of FRET versus burst width."""
     b = d.mburst[i]
     plot(d.E[i],(b[:,1]*d.clk_p)*1e3, 'o', mew=0, ms=3, alpha=0.1,
