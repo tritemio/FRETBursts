@@ -3,9 +3,13 @@ burstsearch/c_burstsearch.c
 
 docs/source/_themes/
 
-notebooks/.ipynb_checkpoints/
+*ipynb_checkpoints*
 
-*build*
+*build/
+
+notebooks/dev/docs/load_fretbursts.py
+notebooks/dev/dev/load_fretbursts.py
+
 *.c
 *.so
 *.pyd
