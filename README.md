@@ -4,7 +4,7 @@ Overview
 **FRETBursts** is an open-source toolkit for analysis of single-molecule FRET
 data acquired by single and multi-spot confocal systems.
 
-FRETBursts aims to be a reference implementation for all the state-ot-the-art
+FRETBursts aims to be a reference implementation for state-ot-the-art
 algorithms commonly used in smFRET burst analysis.
 
 As input data, both single laser excitation and 2-laser **Al**ternating **Ex**citation 
@@ -12,7 +12,7 @@ As input data, both single laser excitation and 2-laser **Al**ternating **Ex**ci
 
 Several background estimation and FRET efficiency fitting routines are
 implemented. The burst search is an efficient version of the classical
-sliding-window search and can be applied al different selection of timestamps
+sliding-window search and can be applied on different selection of timestamps
 (all, d-only, a-only, etc...). A large number of post-search burst selection 
 criteria are included and ready to use (see `select_bursts.py`). Moreover, 
 defining a new burst selection criterium requires only a couple of lines of code.
@@ -21,9 +21,14 @@ A variety of preset plotting functions are already defined. Just to mention a fe
 time-traces, scatter-plots of any burst data (i.e. E vs S, E vs size, etc...),
 histograms (FRET, stoichiometry, inter-photon waiting times, 2D ALEX histogram, etc..),
 kernel density estimations and much more (see `burst_plot.py`).
+Thanks to the excellent [Matplotlib](http://matplotlib.org/) library, 
+FRETBursts can produce publication-quality plots out of the box.
 
 FRETBursts can load one of the sample datasets (soon to be released) or any arbitrary
-binary timestamps data. To load a new binary file format 
+binary timestamps data, providing a suitable loader function. Writing a  
+loader function is extremely easy thanks to the 
+[binary loading capabilities](http://docs.scipy.org/doc/numpy/reference/routines.io.html) 
+of Numpy.
 
 For bug reports please use the GitHub issue tracker. Also, fixes and/or enhancements 
 are welcome: just send a [pull request (PR)](https://help.github.com/articles/using-pull-requests).
