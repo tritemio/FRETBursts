@@ -42,7 +42,6 @@ ip.magic('%matplotlib inline')
 ip.magic('%cd "$FRETBURSTS_DIR"')
 
 from fretbursts import *
-from fretbursts.utils.gui import gui_fname
 from fretbursts.utils import git
 
 git.print_summary('FRETBursts')

@@ -6,7 +6,7 @@
 """
 Module containing automated unit tests for FRETBursts.
 
-Running the tests require `py.test.
+Running the tests requires `py.test`.
 """
 
 import pytest
