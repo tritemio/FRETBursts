@@ -14,10 +14,10 @@
 
 import sys, os
 
-#if os.environ.get('READTHEDOCS', None) == 'True':
-#    sys.path.insert(0,'.')
-#    from readthedocs import *
-#    sys.path.pop(0)
+if os.environ.get('READTHEDOCS', None) == 'True':
+    sys.path.insert(0,'.')
+    from readthedocs import *
+    sys.path.pop(0)
 
 print "python exec:", sys.executable
 print "sys.path:", sys.path

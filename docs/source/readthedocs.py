@@ -22,7 +22,7 @@ class Mock(object):
         else:
             return Mock()
 
-MOCK_MODULES = [ 'numpy', 'scipy', 'matplotlib', 'matplotlib.pyplot',
+MOCK_MODULES = [ 'scipy', 'matplotlib', 'matplotlib.pyplot',
                  'matplotlib.patches', 'matplotlib.collections',
                  'matplotlib.mlab',
                  'PySide','PySide.QtCore','PySide.QtGui']
