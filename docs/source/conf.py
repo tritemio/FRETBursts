@@ -41,8 +41,12 @@ else:
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.mathjax',
-    'sphinxcontrib.napoleon',
-]
+    ]
+
+if on_rtd:
+    extensions.append('sphinx.ext.napoleon')
+else:
+    extensions.append('sphinxcontrib.napoleon')
 
 ## Napoleon settings
 napoleon_google_docstring = True
