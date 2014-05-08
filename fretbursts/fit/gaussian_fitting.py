@@ -31,7 +31,7 @@ import scipy.optimize as O
 import scipy.stats as S
 from scipy.special import erf
 from scipy.optimize import leastsq, minimize
-from scipy.ndimage.filters import gaussian_filter1d
+import scipy.ndimage as ndi
 
 #from scipy.stats import gaussian_kde
 from weighted_kde import gaussian_kde_w  # this version supports weights
@@ -85,10 +85,10 @@ def get_epdf(s, smooth=0, N=1000, smooth_pdf=False, smooth_cdf=True):
     _x = np.linspace(s.min(), s.max(), N)
     ecdfi = [_x, np.interp(_x, ecdf[0], ecdf[1])]
     if smooth_cdf and smooth > 0:
-        ecdfi[1] = gaussian_filter1d(ecdfi[1], sigma=smooth)
+        ecdfi[1] = ndi.filters.gaussian_filter1d(ecdfi[1], sigma=smooth)
     epdf = [ecdfi[0][:-1], np.diff(ecdfi[1])/np.diff(ecdfi[0])]
     if smooth_pdf and smooth > 0:
-        epdf[1] = gaussian_filter1d(epdf[1], sigma=smooth)
+        epdf[1] = ndi.filters.gaussian_filter1d(epdf[1], sigma=smooth)
     return epdf
 
 def gaussian_fit_pdf(s, mu0=0, sigma0=1, a0=1, return_all=False,

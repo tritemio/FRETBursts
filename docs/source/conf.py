@@ -48,7 +48,6 @@ release = version
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if on_rtd:
     html_theme = 'default'
-    sys.path.append(os.path.abspath('~/anaconda/lib/python2.7/site-packages/'))
 else:
     #import sphinx_rtd_theme
     html_theme = 'sphinx_rtd_theme'

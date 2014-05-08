@@ -1,5 +1,2 @@
 numpy
-scipy
-pyside
-matplotlib
 sphinxcontrib-napoleon

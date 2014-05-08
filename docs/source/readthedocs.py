@@ -22,9 +22,14 @@ class Mock(object):
         else:
             return Mock()
 
-MOCK_MODULES = [ 'scipy', 'matplotlib', 'matplotlib.pyplot',
+MOCK_MODULES = [
+                 #'numpy', 'numpy.random',
+                 'scipy', 'scipy.stats', 'scipy.optimize', 'scipy.special',
+                 'scipy.ndimage', 'scipy.interpolate',
+                 'matplotlib', 'matplotlib.pyplot', 'matplotlib.mlab',
                  'matplotlib.patches', 'matplotlib.collections',
-                 'matplotlib.mlab',
-                 'PySide','PySide.QtCore','PySide.QtGui']
+                 'PySide','PySide.QtCore','PySide.QtGui',
+                 'tables',
+                 ]
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
