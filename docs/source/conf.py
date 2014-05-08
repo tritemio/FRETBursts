@@ -12,8 +12,12 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
-import os
+import sys, os
+
+if os.environ.get('READTHEDOCS', None) == 'True':
+    sys.path.insert(0,'.')
+    from readthedocs import *
+    sys.path.pop(0)
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
