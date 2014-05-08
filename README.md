@@ -4,7 +4,7 @@ Overview
 **FRETBursts** is an open-source toolkit for analysis of single-molecule FRET
 data acquired by single and multi-spot confocal systems.
 
-FRETBursts aims to be a reference implementation for state-ot-the-art
+FRETBursts aims to be a reference implementation for state-of-the-art
 algorithms commonly used in smFRET burst analysis.
 
 As input data, both single laser excitation and 2-laser Alternating Excitation
@@ -89,7 +89,6 @@ The following paragraph shows how to configure it.
 ###Configuring IPython Notebook
 
 When starting the IPython server, it will show a default folder for the notebooks.
-
 You can create a launcher to start the IPython Notebook server on any local folder.
 
 To create the launcher, right click on the
@@ -105,12 +104,11 @@ On Linux or Mac OS X you can also use the [Anaconda](https://store.continuum.io/
 
 Alternatively, these are the software dependencies (hint: on Mac OS X you can use MacPorts):
 
- - python 2.7.x
+ - Python 2.7
+ - Numpy/Scipy (any version from 2013 on)
+ - Matplotlib with qt (pyside) backend (1.3.x or greater)
  - IPython 1.x (2.x suggested)
- - matplotlib 1.3.x or greater
- - numpy/scipy (any version from 2013 on)
- - cython (optional, to speedup burst search)
- - pytables 3.x (optional)
+ - PyTables 3.x (optional)
  - a modern browser (Chrome suggested)
 
 

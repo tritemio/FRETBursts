@@ -15,6 +15,8 @@
  to load the common namespace used in the example notebooks.
 """
 
+__version__ = '0.3.dev1'
+
 __all__ = [
         # Library modules and functions
         "np", "r_", "zeros", "plt", "rcParams", "matplotlib", "plot", "hist",
