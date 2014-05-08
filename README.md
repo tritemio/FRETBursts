@@ -7,30 +7,30 @@ data acquired by single and multi-spot confocal systems.
 FRETBursts aims to be a reference implementation for state-ot-the-art
 algorithms commonly used in smFRET burst analysis.
 
-As input data, both single laser excitation and 2-laser **Al**ternating **Ex**citation 
-(ALEX) are supported. 
+As input data, both single laser excitation and 2-laser **Al**ternating **Ex**citation
+(ALEX) are supported.
 
 Several background estimation and FRET efficiency fitting routines are
 implemented. The burst search is an efficient version of the classical
 sliding-window search and can be applied on different selection of timestamps
-(all, d-only, a-only, etc...). A large number of post-search burst selection 
-criteria are included and ready to use (see `select_bursts.py`). Moreover, 
+(all, d-only, a-only, etc...). A large number of post-search burst selection
+criteria are included and ready to use (see `select_bursts.py`). Moreover,
 defining a new burst selection criterium requires only a couple of lines of code.
 
 A variety of preset plotting functions are already defined. Just to mention a few:
 time-traces, scatter-plots of any burst data (i.e. E vs S, E vs size, etc...),
 histograms (FRET, stoichiometry, inter-photon waiting times, 2D ALEX histogram, etc..),
 kernel density estimations and much more (see `burst_plot.py`).
-Thanks to the excellent [Matplotlib](http://matplotlib.org/) library, 
+Thanks to the excellent [Matplotlib](http://matplotlib.org/) library,
 FRETBursts can produce publication-quality plots out of the box.
 
 FRETBursts can load one of the sample datasets (soon to be released) or any arbitrary
-binary timestamps data, providing a suitable loader function. Writing a  
-loader function is extremely easy thanks to the 
-[binary loading capabilities](http://docs.scipy.org/doc/numpy/reference/routines.io.html) 
+binary timestamps data, providing a suitable loader function. Writing a
+loader function is extremely easy thanks to the
+[binary loading capabilities](http://docs.scipy.org/doc/numpy/reference/routines.io.html)
 of Numpy.
 
-For bug reports please use the GitHub issue tracker. Also, fixes and/or enhancements 
+For bug reports please use the GitHub issue tracker. Also, fixes and/or enhancements
 are welcome: just send a [pull request (PR)](https://help.github.com/articles/using-pull-requests).
 
 For more info contact me at tritemio @ gmail.com.
@@ -38,13 +38,13 @@ For more info contact me at tritemio @ gmail.com.
 Environment
 ===========
 
-FRETBursts is written in the [python programming language](http://www.python.org/) using the standard 
+FRETBursts is written in the [python programming language](http://www.python.org/) using the standard
 scientific stack of libraries (numpy, scipy, matplotlib).
 
-Usage examples are provided as IPython notebooks. 
-[IPython Notebook](http://ipython.org/notebook.html) is an interactive web-based environment that allows 
-mixing rich text, math and graphics with (live) code, similarly to the Mathematica environment. 
-You can find a static HTML version of the notebooks below in section **[Usage examples](#usage-examples)**. 
+Usage examples are provided as IPython notebooks.
+[IPython Notebook](http://ipython.org/notebook.html) is an interactive web-based environment that allows
+mixing rich text, math and graphics with (live) code, similarly to the Mathematica environment.
+You can find a static HTML version of the notebooks below in section **[Usage examples](#usage-examples)**.
 
 For a tutorial on using python for scientific computing:
 
@@ -58,33 +58,45 @@ Another useful resources for the IPython Notebook:
 
 #Installation
 
+Briefly, the installation consist in installing a scientific python distribution,
+downloading FRETBursts sources, and setting a folder for the FRETBursts notebooks.
+
+FRETBursts is loaded running a small script (`load_fretbursts.py`) placed
+in the notebooks folder. The first time you need to edit `load_fretbursts.py`
+to specify where the FRETBursts source directory is on your system.
+
+In the following you can find more detailed installation instructions
+for different platforms.
+
 ##MS Windows
 
 In order to run the code you need to install a scientific python
 distribution like [Anaconda](https://store.continuum.io/cshop/anaconda/).
 The free version of Anaconda includes all the needed dependencies.
-Any other scientific python distribution (for example 
-[Enthought Canopy](https://www.enthought.com/products/canopy/)) 
+Any other scientific python distribution (for example
+[Enthought Canopy](https://www.enthought.com/products/canopy/))
 will work as well.
- 
-Once a python distribution is installed, download the latest version
-of [FRETBursts](https://github.com/tritemio/FRETBursts) from *GitHub*. 
 
-The most user friendly way to use FRETBursts is through an IPython Notebook. 
+Once a python distribution is installed, download the latest version
+of [FRETBursts](https://github.com/tritemio/FRETBursts) from *GitHub*.
+If new to git, we recomend to use the graphical application
+[SourceTree](http://www.sourcetreeapp.com/) (selecting the option of
+using the embedded git).
+
+The most user friendly way to use FRETBursts is through an IPython Notebook.
 The following paragraph shows how to configure it.
 
 ###Configuring IPython Notebook
 
-We can create a launcher to start the IPython Notebook server on any local folder.
+When starting the IPython server, it will show a default folder for the notebooks.
 
-It is suggested to create a folder with all the notebooks and to put there a subfolder
-for the FRETBursts notebooks.
+You can create a launcher to start the IPython Notebook server on any local folder.
 
-You can
-right click on the *IPython Notebook icon* -> *Properties* and paste 
-the notebook folder in *Start in*. Apply and close.
+To create the launcher, right click on the
+*IPython Notebook icon* -> *Properties* and paste
+the notebook folder in the *Start in* field.
 
-Now, double click on the icon and a browser should pop up showing the list
+Now, on double click, a browser should pop up showing the list
 of notebooks. Chrome browser is suggested.
 
 ##Linux and Mac OS X
@@ -101,11 +113,12 @@ Alternatively, these are the software dependencies (hint: on Mac OS X you can us
  - pytables 3.x (optional)
  - a modern browser (Chrome suggested)
 
+
 #Usage examples
 
-The following links will open (a static version of) the notebooks provided
-with FRETBursts. These notebooks shows typical workflows for smFRET analysis
-and illustrate some of the basic features of FRETBursts.
+The following link will open (a static version of) the notebooks provided
+with FRETBursts. This notebook shows a typical workflow for smFRET analysis
+and illustrates some of the basic features of FRETBursts.
 
 * [usALEX - Workflow](http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts/master/notebooks/usALEX%2520-%2520Workflow.ipynb)
 
@@ -113,7 +126,7 @@ FRETBursts is a standard python packaged and therefore can be also used as a lib
 
 #Development
 
-The documentation is built using [Sphinx](http://sphinx-doc.org/) (1.2.2 or later) and 
+The documentation is built using [Sphinx](http://sphinx-doc.org/) (1.2.2 or later) and
 the [napoleon extension](https://pypi.python.org/pypi/sphinxcontrib-napoleon).
 A notebook that builds the HTML docs can be found in `notebooks/dev/docs/`.
 

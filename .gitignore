@@ -7,9 +7,6 @@ docs/source/_themes/
 
 *build/
 
-notebooks/dev/docs/load_fretbursts.py
-notebooks/dev/dev/load_fretbursts.py
-
 *.c
 *.so
 *.pyd
