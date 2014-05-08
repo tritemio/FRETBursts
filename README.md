@@ -7,7 +7,7 @@ data acquired by single and multi-spot confocal systems.
 FRETBursts aims to be a reference implementation for state-ot-the-art
 algorithms commonly used in smFRET burst analysis.
 
-As input data, both single laser excitation and 2-laser **Al**ternating **Ex**citation
+As input data, both single laser excitation and 2-laser Alternating Excitation
 (ALEX) are supported.
 
 Several background estimation and FRET efficiency fitting routines are
