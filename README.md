@@ -1,5 +1,8 @@
+FRETBursts
+==========
+
 Overview
-=======
+--------
 
 **FRETBursts** is an open-source toolkit for analysis of single-molecule FRET
 data acquired by single and multi-spot confocal systems.
@@ -35,8 +38,8 @@ are welcome: just send a [pull request (PR)](https://help.github.com/articles/us
 
 For more info contact me at tritemio @ gmail.com.
 
-Environment
-===========
+Software Environment
+--------------------
 
 FRETBursts is written in the [python programming language](http://www.python.org/) using the standard
 scientific stack of libraries (numpy, scipy, matplotlib).
@@ -56,7 +59,7 @@ Another useful resources for the IPython Notebook:
 * [Notebook examples](http://nbviewer.ipython.org/github/ipython/ipython/blob/master/examples/Notebook/Index.ipynb)
 * [A gallery of interesting IPython Notebooks](https://github.com/ipython/ipython/wiki/A-gallery-of-interesting-IPython-Notebooks)
 
-#Installation
+##Installation
 
 Briefly, the installation consist in installing a scientific python distribution,
 downloading FRETBursts sources, and setting a folder for the FRETBursts notebooks.
@@ -68,7 +71,7 @@ to specify where the FRETBursts source directory is on your system.
 In the following you can find more detailed installation instructions
 for different platforms.
 
-##MS Windows
+###MS Windows
 
 In order to run the code you need to install a scientific python
 distribution like [Anaconda](https://store.continuum.io/cshop/anaconda/).
@@ -86,7 +89,7 @@ using the embedded git).
 The most user friendly way to use FRETBursts is through an IPython Notebook.
 The following paragraph shows how to configure it.
 
-###Configuring IPython Notebook
+####Configuring IPython Notebook
 
 When starting the IPython server, it will show a default folder for the notebooks.
 You can create a launcher to start the IPython Notebook server on any local folder.
@@ -98,7 +101,7 @@ the notebook folder in the *Start in* field.
 Now, on double click, a browser should pop up showing the list
 of notebooks. Chrome browser is suggested.
 
-##Linux and Mac OS X
+###Linux and Mac OS X
 
 On Linux or Mac OS X you can also use the [Anaconda](https://store.continuum.io/cshop/anaconda/) distribution.
 
@@ -112,17 +115,20 @@ Alternatively, these are the software dependencies (hint: on Mac OS X you can us
  - a modern browser (Chrome suggested)
 
 
-#Usage examples
+##Documentation
 
-The following link will open (a static version of) the notebooks provided
-with FRETBursts. This notebook shows a typical workflow for smFRET analysis
-and illustrates some of the basic features of FRETBursts.
+The FRETBursts documentation is hosted on ReadTheDocs:
+
+* [FRETBursts Documentation]()
+
+We also provide a list of IPython notebooks showing typical workflows 
+for smFRET analysis and illustrates the FRETBursts functionality.
 
 * [usALEX - Workflow](http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts/master/notebooks/usALEX%2520-%2520Workflow.ipynb)
 
-FRETBursts is a standard python packaged and therefore can be also used as a library and integrated in other software.
 
-#Development
+
+##Development
 
 The documentation is built using [Sphinx](http://sphinx-doc.org/) (1.2.2 or later) and
 the [napoleon extension](https://pypi.python.org/pypi/sphinxcontrib-napoleon).
@@ -133,15 +139,15 @@ Notebooks that execute the unit tests can be found in `notebooks/dev/test/`.
 In the same folder a notebook for regression testing is provided.
 
 
-#Acknowledgements
+##Acknowledgements
 
 This work was supported by NIH grants R01 GM069709 and R01 GM095904.
 
-#License and Copyrights
+##License and Copyrights
 
 FRETBursts - A bursts analysis toolkit for single and multi-spot smFRET data.
 
-Copyright (C) 2014  Antonino Ingargiola - <tritemio @ gmail.com>
+Copyright (C) 2014  Antonino Ingargiola - *tritemio @ gmail.com*
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
