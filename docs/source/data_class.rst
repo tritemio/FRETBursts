@@ -64,8 +64,8 @@ Burst corrections methods
     .. automethod:: dither
 
 
-Advanced burst info methods
----------------------------
+Other burst methods
+-------------------
 
 .. class:: Data
 

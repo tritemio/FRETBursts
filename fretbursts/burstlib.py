@@ -526,8 +526,6 @@ class Data(DataContainer):
             May be scalar or same size as nch.
         gamma (float or array of floats): gamma factor.
             May be scalar or same size as nch.
-        A_em (list of boolean arrays):
-            boolean mask for `.ph_times_m[i]` for acceptor emission
         D_em (list of boolean arrays):  **[ALEX-only]**
             boolean mask for `.ph_times_m[i]` for donor emission
         D_ex, A_ex (list of boolean arrays):  **[ALEX-only]**
@@ -572,6 +570,9 @@ class Data(DataContainer):
 
     **Burst search parameters (user input)**
 
+    These are the parameters used to perform the burst search
+    (see :meth:`burst_search_t`).
+
     Attributes:
         ph_sel (string): valid values 'DA' (default), 'D' or 'A'
             type of ph selection for burst search (donor, acceptor or both)
@@ -580,15 +581,15 @@ class Data(DataContainer):
         L (int): min. number of photons for a burst to be identified and saved
         P (float, probability): valid values [0..1].
             Probability that a burst-start is due to a Poisson background.
-            The emplyed Poisson rate is the one computed by `.calc_bg()`.
+            The employed Poisson rate is the one computed by `.calc_bg()`.
         F (float): `(F * background_rate)` is the minimum rate for burst-start
 
     **Burst search data (available after burst search)**
 
-    In the following, when not specified, in parameters marked as (list of
-    arrays) each array contains one element per bursts. `mburst` contain one
-    "row" per burst. `TT` arrays contain one element per `period` (see above:
-    background attributes).
+    When not specified, parameters marked as (list of arrays) contains arrays
+    with one element per bursts. `mburst` arrays contain one "row" per burst.
+    `TT` arrays contain one element per `period` (see above: background
+    attributes).
 
     Attributes:
         mburst (list of arrays): list of 2-D arrays containing burst data.
@@ -596,6 +597,7 @@ class Data(DataContainer):
             fields like burst start, end, duration, size and indexes.
             The proper way to access these fields is through the
             function b_* (ex: b_start, b_end, b_width, b_size, etc...).
+            For more details see :mod:`fretbursts.burstsearch.burstsearchlib`.
 
         TT (list of arrays): list of arrays of *T* values (in sec.). A *T*
             value is the maximum delay between `m` photons to have a
