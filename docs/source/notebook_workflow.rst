@@ -6,7 +6,7 @@ IPython Notebook is the recommended environment to perform interactive
 analysis with FRETBursts.
 
 Tutorials for **FRETBursts** are provided as
-<http://ipython.org/notebook.html>`IPython Notebooks`_.
+`IPython Notebooks <http://ipython.org/notebook.html>`__.
 
 Typically, a new analysis is performed making a copy on an existing notebook
 (used as a template) and applying all the needed modifications.

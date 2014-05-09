@@ -27,7 +27,7 @@ kernel density estimations and much more (see `burst_plot.py`).
 Thanks to the excellent [Matplotlib](http://matplotlib.org/) library,
 FRETBursts can produce publication-quality plots out of the box.
 
-FRETBursts can load one of the sample datasets (soon to be released) or any arbitrary
+FRETBursts can load one of the sample datasets [1] or any arbitrary
 binary timestamps data, providing a suitable loader function. Writing a
 loader function is extremely easy thanks to the
 [binary loading capabilities](http://docs.scipy.org/doc/numpy/reference/routines.io.html)
@@ -36,11 +36,13 @@ of Numpy.
 For bug reports please use the GitHub issue tracker. Also, fixes and/or enhancements
 are welcome: just send a [pull request (PR)](https://help.github.com/articles/using-pull-requests).
 
-*Reference documentation (hosted on ReadTheDocs):*
+*Reference documentation (on ReadTheDocs):*
 
 * [FRETBursts Documentation](http://fretbursts.readthedocs.org/)
 
 For more info contact me at *tritemio @ gmail.com*.
+
+[1] A. Ingargiola, S. Chung (2014): smFRET example datasets for the FRETBursts software. [DOI 10.6084/m9.figshare.1019906](http://dx.doi.org/10.6084/m9.figshare.1019906)
 
 Software Environment
 --------------------
@@ -128,8 +130,7 @@ The FRETBursts documentation is hosted on ReadTheDocs:
 We also provide a list of IPython notebooks showing typical workflows
 for smFRET analysis and illustrates the FRETBursts functionality.
 
-* [usALEX - Workflow](http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts/master/notebooks/usALEX%2520-%2520Workflow.ipynb)
-
+* [FRETBursts - usALEX Workflow](http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%2520-%2520usALEX%2520Workflow.ipynb)
 
 
 ##Development

@@ -22,7 +22,8 @@ automatically met.
 
 FRETBursts has been tested on Anaconda 1.9 or newer.
 
-###Dependencies
+Dependencies
+^^^^^^^^^^^^
 
 If you prefer a manual installation, FRETBursts dependencies are:
 
