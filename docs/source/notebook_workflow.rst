@@ -2,35 +2,39 @@
 Notebook-based workflow
 =======================
 
+IPython Notebook is the recommended environment to perform interactive
+analysis with FRETBursts.
 
-The user guide for **FRETBursts** is provided in the form of IPython
-Notebooks. These notebooks are a sort of enhanced scripts that mix
-(live) code, execution results and a rich HTML description in one single
-document. Using an IPython Notebook a single document can contain the
-analysis code, interleaved with descriptive content and analysis
-results.
+Tutorials for **FRETBursts** are provided as
+<http://ipython.org/notebook.html>`IPython Notebooks`_.
 
-The preferred way to use the software is copy one of the provided
-notebooks and execute and modify it to perform the desired analysis.
+Typically, a new analysis is performed making a copy on an existing notebook
+(used as a template) and applying all the needed modifications.
 
-The FRETBursts is "revision-control aware", meaning that the exact
+The FRETBursts notebooks are "revision-control aware", meaning that the exact
 FRETBursts revision used during each execution is stored (and displayed)
 at load time. Saving the software revision together with analysis
 commands and results allows long term reproducibility and provides a
 lightweight approach for regression testing.
 
-Configure the notebook workflow
--------------------------------
+The following sections describe how to configure and use the IPython notebooks
+to perform analysis with FRETBursts.
 
-A typical FRETBursts notebook starts with the line:
+
+Loading FRETBursts from a notebook
+----------------------------------
+
+From inside a notebook, FRETBursts is loaded running a small script
+(`load_fretbursts.py`) placed in the notebooks folder. For this reason,
+a typical FRETBursts notebook always starts with the line:
 
 ::
 
     %run load_fretbursts
 
-This command switches from notebook folder to FRETBursts source folder
+The script switches from notebook folder to FRETBursts source folder
 and loads the software.
 
-We must tell the script where the FRETBursts folder is. You can either
-paste the folder name in ``load_fretbursts.py`` or set an environment
-variable ``FRETBURSTS_DIR`` containing the path.
+Before the first execution, you have to tell the script where the FRETBursts
+source folder is. You can either paste the folder name in ``load_fretbursts.py`` or
+set an environment variable named ``FRETBURSTS_DIR`` containing the path.

@@ -1,45 +1,51 @@
 Installation
 ============
 
-FRETBursts is distributed as source code. To run FRETBursts you need to
-
--  install the dependencies
--  download FRETBursts sources from GitHub
--  execute the notebooks in the notebook dir
+FRETBursts is currently distributed as source code.
+The installation consist in installing a scientific python
+distribution, downloading FRETBursts sources, and setting a folder
+for the FRETBursts notebooks.
 
 These 3 steps are described below.
 
 
-Installing python
------------------
+Installing Python for scientific computing
+------------------------------------------
 
-On all the main platforms, the preferred way to install python and all
+On all the main platforms, the easiest way to install python and all
 the scientific packages is using a python distribution like
-`Anaconda <https://store.continuum.io/cshop/anaconda/>`__ or
-`Canopy <https://www.enthought.com/products/canopy/>`__.
+`Continuum Anaconda <https://store.continuum.io/cshop/anaconda/>`__ or
+`Enthought Canopy <https://www.enthought.com/products/canopy/>`__.
 
 By installing a python distribution all the python dependencies are
-fulfilled.
+automatically met.
 
-FRETBursts is tested on Anaconda 1.9 or newer.
+FRETBursts has been tested on Anaconda 1.9 or newer.
 
-    **List of python dependencies:**
+###Dependencies
 
-    For those interested the list of used python packages is: numpy,
-    scipy, matplotlib, IPython, pytables (optional), cython (optional).
+If you prefer a manual installation, FRETBursts dependencies are:
 
-    Unit tests are run with `py.test <http://pytest.org/latest/>`__.
+ - Python 2.7
+ - Numpy/Scipy (any version from 2013 on)
+ - Matplotlib with qt (pyside) backend (1.3.x or greater)
+ - IPython 1.x (2.x suggested)
+ - PyTables 3.x (optional)
+ - a modern browser (Chrome suggested)
 
-    The documentation is built using
-    `Sphinx <http://sphinx-doc.org/>`__.
+For developing FRETBursts you should also install
+
+ - sphinx 1.2.2 with the napoleon extension (sphinxcontrib-napoleon) to build the docs
+ - pytest to execute the unit tests
+
 
 Installing Git (optional)
 -------------------------
 
 FRETBursts uses `Git <http://git-scm.com/>`__ as revision control
-system. Installing Git is suggested for all users, because FRETBursts
-notebooks can keep track of the software revision. Furthermore, Git will
-make easier to download any future update.
+system. Even if not necessary, we strongly recommend installing it because
+FRETBursts notebooks can keep track of the software revision.
+Furthermore, Git will make easier to download any future update.
 
 Unless you are familiar with Git we suggest to install a graphical
 interface like `SourceTree <http://www.sourcetreeapp.com/>`__.
@@ -72,6 +78,24 @@ current folder):
 ::
 
     git clone clone_URL
+
+
+Configure the IPython Notebook
+------------------------------
+
+To use the ipython notebook you have to launch a local notebook server from the folder
+that contains the notebooks files.
+
+From the terminal:
+
+::
+cd my_folder/FRETBursts_notebooks
+ipython notebook
+
+On windows, you can configure an IPython launcher by copying the IPython Notebook
+icon and modifying the Start in filed. In detail: right click on the
+*IPython Notebook icon* -> *Properties* and paste the notebook folder in the
+*Start in* field.
 
 
 Downloading the data-samples

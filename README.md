@@ -36,7 +36,7 @@ of Numpy.
 For bug reports please use the GitHub issue tracker. Also, fixes and/or enhancements
 are welcome: just send a [pull request (PR)](https://help.github.com/articles/using-pull-requests).
 
-Reference documentation (hosted on ReadTheDocs):
+*Reference documentation (hosted on ReadTheDocs):*
 
 * [FRETBursts Documentation](http://fretbursts.readthedocs.org/)
 
