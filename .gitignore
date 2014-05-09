@@ -18,3 +18,4 @@ dist/
 *.swp
 *.png
 *.pdf
+notebooks/dev/docs/docs_html

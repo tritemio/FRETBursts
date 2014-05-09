@@ -6,7 +6,17 @@
 Welcome to FRETBursts's documentation!
 ======================================
 
-Contents:
+FRETBursts is an open-source toolkit for analysis of single-molecule
+FRET data acquired by single and multi-spot confocal systems.
+
+In the following pages you can find installation instructions and the
+reference and API documentation.
+
+Tutorials can be found in IPython notebooks in the
+`FRETBurts repository <https://github.com/tritemio/FRETBursts/>`_ .
+
+Table of contents
+-----------------
 
 .. toctree::
     :maxdepth: 3
