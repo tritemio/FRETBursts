@@ -36,7 +36,11 @@ of Numpy.
 For bug reports please use the GitHub issue tracker. Also, fixes and/or enhancements
 are welcome: just send a [pull request (PR)](https://help.github.com/articles/using-pull-requests).
 
-For more info contact me at tritemio @ gmail.com.
+Reference documentation (hosted on ReadTheDocs):
+
+* [FRETBursts Documentation](http://fretbursts.readthedocs.org/)
+
+For more info contact me at *tritemio @ gmail.com*.
 
 Software Environment
 --------------------
@@ -47,7 +51,7 @@ scientific stack of libraries (numpy, scipy, matplotlib).
 Usage examples are provided as IPython notebooks.
 [IPython Notebook](http://ipython.org/notebook.html) is an interactive web-based environment that allows
 mixing rich text, math and graphics with (live) code, similarly to the Mathematica environment.
-You can find a static HTML version of the notebooks below in section **[Usage examples](#usage-examples)**.
+You can find a static HTML version of the notebooks [below](#documentation).
 
 For a tutorial on using python for scientific computing:
 
@@ -121,7 +125,7 @@ The FRETBursts documentation is hosted on ReadTheDocs:
 
 * [FRETBursts Documentation](http://fretbursts.readthedocs.org/)
 
-We also provide a list of IPython notebooks showing typical workflows 
+We also provide a list of IPython notebooks showing typical workflows
 for smFRET analysis and illustrates the FRETBursts functionality.
 
 * [usALEX - Workflow](http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts/master/notebooks/usALEX%2520-%2520Workflow.ipynb)

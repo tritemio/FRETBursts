@@ -13,7 +13,7 @@ In the following pages you can find installation instructions and the
 reference and API documentation.
 
 Tutorials can be found in IPython notebooks in the
-`FRETBurts repository <https://github.com/tritemio/FRETBursts/>`_ .
+`FRETBursts repository <https://github.com/tritemio/FRETBursts/>`_ .
 
 Table of contents
 -----------------
