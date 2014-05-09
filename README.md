@@ -5,7 +5,7 @@ Overview
 --------
 
 **FRETBursts** is an open-source toolkit for analysis of single-molecule FRET
-data acquired by single and multi-spot confocal systems.
+data acquired by single or multi-spot confocal systems.
 
 FRETBursts aims to be a reference implementation for state-of-the-art
 algorithms commonly used in smFRET burst analysis.
@@ -119,7 +119,7 @@ Alternatively, these are the software dependencies (hint: on Mac OS X you can us
 
 The FRETBursts documentation is hosted on ReadTheDocs:
 
-* [FRETBursts Documentation]()
+* [FRETBursts Documentation](http://fretbursts.readthedocs.org/)
 
 We also provide a list of IPython notebooks showing typical workflows 
 for smFRET analysis and illustrates the FRETBursts functionality.
