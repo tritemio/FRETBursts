@@ -142,7 +142,7 @@ Alternatively, these are the software dependencies (hint: on Mac OS X you can us
 ##How to use
 
 We provide a list of IPython notebooks showing typical workflows
-for smFRET analysis and illustrates the FRETBursts functionality.
+for smFRET analysis and illustrating FRETBursts functionalities.
 These notebooks can be executed locally using publically available datasets
 (see below).
 
