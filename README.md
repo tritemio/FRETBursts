@@ -147,7 +147,7 @@ These notebooks can be executed locally using publically available datasets
 (see below).
 
 * [FRETBursts - usALEX Workflow](http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%2520-%2520usALEX%2520Workflow.ipynb)
-* [FRETBursts - FRETBursts - 8-spot smFRET analysis](http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%2520-%25208-spot%2520smFRET%2520analysis.ipynb)
+* [FRETBursts - 8-spot smFRET analysis](http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%2520-%25208-spot%2520smFRET%2520analysis.ipynb)
 
 The FRETBursts documentation is hosted on ReadTheDocs:
 
