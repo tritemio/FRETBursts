@@ -16,6 +16,7 @@ from fretbursts import loader
 from fretbursts.path_def import data_dir
 import fretbursts.background as bg
 import fretbursts.burstlib as bl
+from fretbursts.ph_sel import Ph_sel
 
 
 #DATASETS_DIR = u'/Users/anto/Dropbox/notebooks/frebursts_notebooks/data/'
@@ -31,7 +32,7 @@ def load_dataset_1ch():
     loader.usalex_apply_period(d)
 
     d.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
-    d.burst_search_t(L=10, m=10, P=None, F=7, ph_sel='DA')
+    d.burst_search_t(L=10, m=10, F=7)
     return d
 
 def load_dataset_8ch():
@@ -41,7 +42,7 @@ def load_dataset_8ch():
     gamma = 0.43
     d = loader.multispot8(fname=fname, BT=BT, gamma=gamma)
     d.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
-    d.burst_search_t(L=10, m=10, P=None, F=7, ph_sel='DA')
+    d.burst_search_t(L=10, m=10, F=7)
     return d
 
 @pytest.fixture(scope="module", params=[
@@ -64,26 +65,26 @@ def data_8ch(request):
 # Test functions
 #
 def test_ph_selection(data):
-    """Test phpton selection DA, D, A, AA."""
+    """Test photon selection 'all', DD, AD and AA."""
     d = data
 
     for ich, ph in enumerate(d.iter_ph_times()):
         assert (ph == d.ph_times_m[ich]).all()
 
-    for ich, ph in enumerate(d.iter_ph_times('D')):
+    for ich, ph in enumerate(d.iter_ph_times(Ph_sel(Dex='Dem'))):
         if d.ALEX:
             assert (ph == d.ph_times_m[ich][d.D_em[ich]*d.D_ex[ich]]).all()
         else:
             assert (ph == d.ph_times_m[ich][-d.A_em[ich]]).all()
 
-    for ich, ph in enumerate(d.iter_ph_times('A')):
+    for ich, ph in enumerate(d.iter_ph_times(Ph_sel(Dex='Aem'))):
         if d.ALEX:
             assert (ph == d.ph_times_m[ich][d.A_em[ich]*d.D_ex[ich]]).all()
         else:
             assert (ph == d.ph_times_m[ich][d.A_em[ich]]).all()
 
     if d.ALEX:
-        for ich, ph in enumerate(d.iter_ph_times('AA')):
+        for ich, ph in enumerate(d.iter_ph_times(Ph_sel(Aex='Aem'))):
             assert (ph == d.ph_times_m[ich][d.A_em[ich]*d.A_ex[ich]]).all()
 
 def test_b_functions(data):
@@ -148,7 +149,6 @@ def test_get_burst_size(data):
     """Test that get_burst_size() returns nd + na when gamma = 1.
     """
     d = data
-    #d.burst_search_t(L=10, m=10, P=None, F=7, ph_sel='DA')
     for ich, (nd, na) in enumerate(zip(d.nd, d.na)):
         burst_size = bl.select_bursts.get_burst_size(d, ich)
         assert (burst_size == nd + na).all()
@@ -195,7 +195,6 @@ def test_burst_size_da(data):
     """Test that nd + na with no corrections is equal to b_size(mburst).
     """
     d = data
-    #d.burst_search_t(L=10, m=10, P=None, F=7, ph_sel='DA', nofret=True)
     d.calc_ph_num(alex_all=True)
     if d.ALEX:
         for mb, nd, na, naa, nda in zip(d.mburst, d.nd, d.na, d.naa, d.nda):

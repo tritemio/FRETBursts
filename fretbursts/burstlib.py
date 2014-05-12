@@ -25,6 +25,7 @@ from utils.misc import pprint, clk_to_s, deprecate
 from poisson_threshold import find_optimal_T_bga
 import fret_fit
 import bg_cache
+from ph_sel import Ph_sel
 
 from burstsearch import burstsearchlib as bslib
 from burstsearch.burstsearchlib import (
@@ -574,8 +575,8 @@ class Data(DataContainer):
     (see :meth:`burst_search_t`).
 
     Attributes:
-        ph_sel (string): valid values 'DA' (default), 'D' or 'A'
-            type of ph selection for burst search (donor, acceptor or both)
+        ph_sel (Ph_sel object): object defining the photon selection.
+            See :class:`fretbursts.ph_sel.Ph_sel` for details.
         m (int): number of consecutive timestamps used to compute the
             local rate during burst search
         L (int): min. number of photons for a burst to be identified and saved
@@ -644,6 +645,10 @@ class Data(DataContainer):
     burst_fields = ['E', 'S', 'mburst', 'nd', 'na', 'nt', 'bp', 'naa',
                     'max_rate', 'sbr']
 
+    # List of photon selections on which the background is computed
+    ph_streams = [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem'),
+                  Ph_sel(Aex='Aem')]
+
     def __init__(self, **kwargs):
         # Default values
         init_kw = dict(ALEX=False, BT=0., gamma=1, chi_ch=1., s=[])
@@ -670,19 +675,17 @@ class Data(DataContainer):
                 setattr(new_d, k, new_d[k])
         return new_d
 
-    def iter_ph_masks(self, ph_sel='DA'):
+    def iter_ph_masks(self, ph_sel=Ph_sel('all')):
         """Iterator returning masks for `ph_sel` photons.
 
         Arguments:
-            ph_sel (string): can be 'DA', D', 'A' or 'AA' and indicates the
-                photons selection. 'DA' all photons, 'D' donor photons
-                during donor excitation, 'A' acceptor photon during donor
-                excitation, 'AA' acceptor photons during acceptor excitation.
+            ph_sel (Ph_sel object): object defining the photon selection.
+                See :class:`fretbursts.ph_sel.Ph_sel` for details.
         """
         for ich in xrange(self.nch):
             yield self.get_ph_mask(ich, ph_sel=ph_sel)
 
-    def get_ph_mask(self, ich, ph_sel='DA'):
+    def get_ph_mask(self, ich, ph_sel=Ph_sel('all')):
         """Returns a mask for `ph_sel` photons in channel `ich`.
 
         The masks are either boolean arrays or slices (full or empty). In
@@ -690,51 +693,46 @@ class Data(DataContainer):
         corresponding channel.
 
         Arguments:
-            ph_sel (string): can be 'DA', D', 'A' or 'AA' and indicates the
-                photons selection. 'DA' all photons, 'D' donor photons
-                during donor excitation, 'A' acceptor photon during donor
-                excitation, 'AA' acceptor photons during acceptor excitation.
+            ph_sel (Ph_sel object): object defining the photon selection.
+                See :class:`fretbursts.ph_sel.Ph_sel` for details.
         """
-        assert ph_sel in ['DA', 'D', 'A', 'AA']
-        if ph_sel == 'DA':
+        assert type(ph_sel) is Ph_sel
+        if ph_sel == Ph_sel('all'):
             # Note that slice(None) is equivalent to [:].
             # Also, numpy arrays are not copies when sliced.
-            # So getting all photons (DA) with this mask is efficient
+            # So getting all photons with this mask is efficient
+            # Note: the drawback is that the slice cannot be indexed
+            #       (where a normal boolean array would)
             return slice(None)
-        elif ph_sel == 'D':
+        elif ph_sel == Ph_sel(Dex='Dem'):
             return self.get_D_em_D_ex(ich)
-        elif ph_sel == 'A':
+        elif ph_sel == Ph_sel(Dex='Aem'):
             return self.get_A_em_D_ex(ich)
-        elif ph_sel == 'AA':
+        elif ph_sel == Ph_sel(Aex='Aem'):
             if not self.ALEX:
-                raise ValueError('Selection "AA" is valid only for ALEX data')
+                raise ValueError('Aex selection is valid only for ALEX data.')
             return self.get_A_em_A_ex(ich)
 
-    def iter_ph_times(self, ph_sel='DA'):
+    def iter_ph_times(self, ph_sel=Ph_sel('all')):
         """Iterator that returns the arrays of timestamps in `.ph_times_m`.
 
         Arguments:
-            ph_sel (string): can be 'DA', D', 'A' or 'AA' and indicates the
-                photons selection. 'DA' all photons, 'D' donor photons
-                during donor excitation, 'A' acceptor photon during donor
-                excitation, 'AA' acceptor photons during acceptor excitation.
+            ph_sel (Ph_sel object): object defining the photon selection.
+                See :class:`fretbursts.ph_sel.Ph_sel` for details.
         """
         for ich in xrange(self.nch):
             yield self.get_ph_times(ich, ph_sel=ph_sel)
 
-    def get_ph_times(self, ich, ph_sel='DA'):
+    def get_ph_times(self, ich, ph_sel=Ph_sel('all')):
         """Returns the timestamps array for channel `ich`.
 
         This method always returns in-memory arrays, even when ph_times_m
         is a disk-baked list of arrays.
 
         Arguments:
-            ph_sel (string): can be 'DA', D', 'A' or 'AA' and indicates the
-                photons selection. 'DA' all photons, 'D' donor photons
-                during donor excitation, 'A' acceptor photon during donor
-                excitation, 'AA' acceptor photons during acceptor excitation.
+            ph_sel (Ph_sel object): object defining the photon selection.
+                See :class:`fretbursts.ph_sel.Ph_sel` for details.
         """
-        assert ph_sel in ['DA', 'D', 'A', 'AA']
         ph = self.ph_times_m[ich]
 
         # If not a list is an on-disk array, and needs to be loaded (with [:])
@@ -938,14 +936,15 @@ class Data(DataContainer):
         """Return masks of ph inside bursts."""
         self.ph_in_burst = mch_ph_select(self.ph_times_m, self.mburst)
 
-    def calc_max_rate(self, m, ph_sel='DA'):
+    def calc_max_rate(self, m, ph_sel=Ph_sel('all')):
         """Compute the max m-photon rate reached in each burst.
 
         Arguments:
             m (int): number of timestamps to use to compute the rate
-            ph_sel (string): the photon selection on which to compute the rate
+            ph_sel (Ph_sel object): object defining the photon selection.
+                See :class:`fretbursts.ph_sel.Ph_sel` for details.
         """
-        if ph_sel == 'DA':
+        if ph_sel == Ph_sel('all'):
             Max_Rate = [b_rate_max(ph=ph, m=m, mburst=mb)
                     for ph, mb in zip(self.iter_ph_times(), self.mburst)]
         else:
@@ -954,7 +953,8 @@ class Data(DataContainer):
                                             self.iter_ph_masks(ph_sel=ph_sel),
                                             self.mburst)]
 
-        BG = {'DA': self.bg, 'D': self.bg_dd, 'A': self.bg_ad}
+        BG = {Ph_sel('all'): self.bg, Ph_sel(Dex='Dem'): self.bg_dd,
+              Ph_sel(Dex='Aem'): self.bg_ad}
         Max_Rate = [mr/self.clk_p - bg[bp] for bp, bg, mr in
                     zip(self.bp, BG[ph_sel], Max_Rate)]
         self.add(max_rate=Max_Rate)
@@ -989,13 +989,13 @@ class Data(DataContainer):
     def _get_auto_bg_th_arrays(self, F_bg=2, tail_min_us0=250):
         """Return a dict of threshold values for background estimation.
 
-        The keys are the ph streams ('DA', 'D', 'A', 'AA') and the values are
-        1D arrays of size nch.
+        The keys are the ph selections in self.ph_streams and the values
+        are 1-D arrays of size nch.
         """
-        ph_streams = ['DA', 'D', 'A']
-        if self.ALEX: ph_streams += ['AA']
         Th_us = {}
-        for ph_sel in ph_streams:
+        for ph_sel in self.ph_streams:
+            if not self.ALEX and ph_sel == Ph_sel(Aex='Aem'):
+                continue
             th_us = np.zeros(self.nch)
             for ich, ph in enumerate(self.iter_ph_times(ph_sel=ph_sel)):
                 if ph.size > 0:
@@ -1008,8 +1008,8 @@ class Data(DataContainer):
     def _get_bg_th_arrays(self, tail_min_us):
         """Return a dict of threshold values for background estimation.
 
-        The keys are the ph streams ('DA', 'D', 'A', 'AA') and the values are
-        1D arrays of size nch.
+        The keys are the ph selections in self.ph_streams and the values
+        are 1-D arrays of size nch.
         """
         if np.size(tail_min_us) == 1:
             tail_min_us = np.repeat(tail_min_us, 4)
@@ -1018,11 +1018,13 @@ class Data(DataContainer):
         elif np.size(tail_min_us) == 4:
             tail_min_us = np.asarray(tail_min_us)
         Th_us = {}
-        for i, key in enumerate(['DA', 'D', 'A', 'AA']):
+        for i, key in enumerate(self.ph_streams):
             Th_us[key] = np.ones(self.nch)*tail_min_us[i]
         bg_th = {}
-        for i, key in enumerate(['all', 'DD', 'AD', 'AA']):
-            bg_th['bg_th_us_'+ key] = tail_min_us[i]
+        label = {Ph_sel('all'): 'all', Ph_sel(Dex='Dem'): 'D',
+                 Ph_sel(Dex='Aem'): 'A', Ph_sel(Aex='Aem'): 'AA'}
+        for i, ph_sel in enumerate(self.ph_streams):
+            bg_th['bg_th_us_'+ label[ph_sel]] = tail_min_us[i]
         self.add(**bg_th)
         return Th_us
 
@@ -1096,10 +1098,15 @@ class Data(DataContainer):
         for ich, ph_ch in enumerate(self.iter_ph_times()):
             nperiods = int(np.ceil(ph_ch[-1]/bg_time_clk))
 
-            dd_mask = self.get_ph_mask(ich, ph_sel='D')
-            ad_mask = self.get_ph_mask(ich, ph_sel='A')
+            th_us_ch_all = Th_us[Ph_sel('all')][ich]
+            th_us_ch_dd = Th_us[Ph_sel(Dex='Dem')][ich]
+            th_us_ch_ad = Th_us[Ph_sel(Dex='Aem')][ich]
+            th_us_ch_aa = Th_us[Ph_sel(Aex='Aem')][ich]
+
+            dd_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Dex='Dem'))
+            ad_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Dex='Aem'))
             if self.ALEX:
-                aa_mask = self.get_ph_mask(ich, ph_sel='AA')
+                aa_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Aex='Aem'))
 
             lim, ph_p = [], []
             bg, bg_dd, bg_ad, bg_aa = [zeros(nperiods) for _ in xrange(4)]
@@ -1112,7 +1119,7 @@ class Data(DataContainer):
                 ph_p.append((ph_ch[i0], ph_ch[i1-1]))
 
                 ph_i = ph_ch[i0:i1]
-                bg[ip], bg_err[ip] = fun(ph_i, tail_min_us=Th_us['DA'][ich],
+                bg[ip], bg_err[ip] = fun(ph_i, tail_min_us=th_us_ch_all,
                                          **kwargs)
 
                 # This supports cases of D-only or A-only timestamps
@@ -1129,17 +1136,17 @@ class Data(DataContainer):
                 dd_mask_i = dd_mask[i0:i1]
                 if dd_mask_i.any():
                     bg_dd[ip], bg_dd_err[ip] = fun(ph_i[dd_mask_i],
-                                       tail_min_us=Th_us['D'][ich], **kwargs)
+                                       tail_min_us=th_us_ch_dd, **kwargs)
 
                 ad_mask_i = ad_mask[i0:i1]
                 if ad_mask_i.any():
                     bg_ad[ip], bg_ad_err[ip] = fun(ph_i[ad_mask_i],
-                                       tail_min_us=Th_us['A'][ich], **kwargs)
+                                       tail_min_us=th_us_ch_ad, **kwargs)
 
                 if self.ALEX and aa_mask.any():
                     aa_mask_i = aa_mask[i0:i1]
                     bg_aa[ip], bg_aa_err[ip] = fun(ph_i[aa_mask_i],
-                                       tail_min_us=Th_us['AA'][ich], **kwargs)
+                                       tail_min_us=th_us_ch_aa, **kwargs)
 
             Lim.append(lim);     Ph_p.append(ph_p)
             BG.append(bg);       BG_err.append(bg_err)
@@ -1154,20 +1161,20 @@ class Data(DataContainer):
                  bg_dd_err=BG_dd_err, bg_ad_err=BG_ad_err, bg_aa_err=BG_aa_err,
                  Lim=Lim, Ph_p=Ph_p, nperiods=nperiods,
                  bg_fun=fun, bg_fun_name=fun.__name__,
-                 bg_time_s=time_s, ph_sel='DA', rate_m=rate_m,
+                 bg_time_s=time_s, ph_sel=Ph_sel('all'), rate_m=rate_m,
                  rate_dd=rate_dd, rate_ad=rate_ad, rate_aa=rate_aa,
                  bg_th_us=Th_us, bg_auto_th=bg_auto_th)
         pprint("[DONE]\n")
 
-    def recompute_bg_lim_ph_p(self, ph_sel='D'):
+    def recompute_bg_lim_ph_p(self, ph_sel=Ph_sel(Dex='Dem')):
         """Recompute self.Lim and selp.Ph_p relative to ph selection `ph_sel`
-        `ph_sel` (can be 'D','A', or 'DA') selects the timestamps (donor,
-        acceptor or both) on which self.Lim and selp.Ph_p are computed.
+        `ph_sel` is a Ph_sel object selecting the timestamps in which self.Lim
+        and selp.Ph_p are being computed.
         """
         if 'ph_sel' in self and self.ph_sel == ph_sel: return
 
         pprint(" - Recomputing limits for current ph selection (%s) ... " % \
-                ph_sel)
+                str(ph_sel))
         bg_time_clk = self.bg_time_s/self.clk_p
         Lim, Ph_p = [], []
         for ph_ch, lim in zip(self.iter_ph_times(ph_sel), self.Lim):
@@ -1207,7 +1214,7 @@ class Data(DataContainer):
         assert size(par) == 1 or size(par) == self.nch
         return np.repeat(par, self.nch) if size(par) == 1 else np.asarray(par)
 
-    def _calc_T(self, m, P, F=1., ph_sel='DA'):
+    def _calc_T(self, m, P, F=1., ph_sel=Ph_sel('all')):
         """If P is None use F, otherwise uses both P *and* F (F defaults to 1).
         """
         # Regardless of F and P sizes, FF and PP are arrays with size == nch
@@ -1220,7 +1227,8 @@ class Data(DataContainer):
                 print "WARNING: BS prob. th. with modified BG rate (F=%.1f)"%F
             find_T = lambda m, Fi, Pi, bg: find_optimal_T_bga(bg*Fi, m, 1-Pi)
         TT, T, rate_th = [], [], []
-        BG = {'DA': self.bg, 'D': self.bg_dd, 'A': self.bg_ad}
+        BG = {Ph_sel('all'): self.bg, Ph_sel(Dex='Dem'): self.bg_dd,
+              Ph_sel(Dex='Aem'): self.bg_ad}
         for bg_ch, F_ch, P_ch in zip(BG[ph_sel], FF, PP):
             # All "T" are in seconds
             Tch = find_T(m, F_ch, P_ch, bg_ch)
@@ -1230,7 +1238,7 @@ class Data(DataContainer):
         self.add(TT=TT, T=T, bg_bs=BG[ph_sel], FF=FF, PP=PP, F=F, P=P,
                  rate_th=rate_th)
 
-    def _burst_search_rate(self, m, L, min_rate_cps, ph_sel='DA',
+    def _burst_search_rate(self, m, L, min_rate_cps, ph_sel=Ph_sel('all'),
                            verbose=True, pure_python=False):
         """Compute burst search using a fixed minimum photon rate.
 
@@ -1250,7 +1258,7 @@ class Data(DataContainer):
             mburst.append(mb)
         self.add(mburst=mburst, min_rate_cps=Min_rate_cps, T=T_clk*self.clk_p)
 
-    def _burst_search_TT(self, m, L, ph_sel='DA', verbose=True,
+    def _burst_search_TT(self, m, L, ph_sel=Ph_sel('all'), verbose=True,
                          pure_python=False):
         """Compute burst search with params `m`, `L` on ph selection `ph_sel`
 
@@ -1280,17 +1288,17 @@ class Data(DataContainer):
             else:
                 MBurst.append(np.array([]))
         self.add(mburst=MBurst)
-        if ph_sel != 'DA':
+        if ph_sel != Ph_sel('all'):
             # Convert the burst data to be relative to ph_times_m.
             # Convert both Lim/Ph_p and mburst, as they are both needed
             # to compute `.bp`.
-            self.recompute_bg_lim_ph_p(ph_sel='DA')
+            self.recompute_bg_lim_ph_p(ph_sel=Ph_sel('all'))
             self._fix_mburst_from(ph_sel=ph_sel)
 
     def _fix_mburst_from(self, ph_sel):
-        """Convert burst data from 'D' or 'A' timestamps to 'DA' timestamps
+        """Convert burst data from any ph_sel to 'all' timestamps selection.
         """
-        assert ph_sel in ['A', 'D']
+        assert type(ph_sel) is Ph_sel and ph_sel != Ph_sel('all')
         pprint(' - Fixing  burst data to refer to ph_times_m ... ')
         old_MBurst = [mb.copy() for mb in self.mburst]
 
@@ -1310,7 +1318,7 @@ class Data(DataContainer):
         pprint('[DONE]\n')
 
     def burst_search_t(self, L=10, m=10, P=None, F=6., min_rate_cps=None,
-            nofret=False, max_rate=False, dither=False, ph_sel='DA',
+            nofret=False, max_rate=False, dither=False, ph_sel=Ph_sel('all'),
             verbose=False, mute=False, pure_python=False):
         """Performs a burst search with specified parameters.
 
@@ -1333,9 +1341,9 @@ class Data(DataContainer):
             min_rate (float or list/array): min. rate in cps for burst start.
                 If not None has the precedence over `P` and `F`.
                 If non-scalar, contains one rate per each channel.
-            ph_sel (string): can be 'DA', 'D' or 'A'. Specifies the photon
-                selection on which to perform the burst search: 'DA' for
-                donor+acceptor, 'D' or 'A' for donor or acceptor photons.
+            ph_sel (Ph_sel object): object defining the photon selection
+                used for burst search. Default: all photons.
+                See :class:`fretbursts.ph_sel.Ph_sel` for details.
             pure_python (bool): if True, uses the pure python functions even
                 when the optimized Cython functions are available.
 
@@ -1344,7 +1352,7 @@ class Data(DataContainer):
             `.calc_bg()` must be called before the burst search.
 
         Example:
-            d.burst_search_t(L=10, m=10, F=6, P=None, ph_sel='DA')
+            d.burst_search_t(L=10, m=10, F=6)
 
         Returns:
             None, all the results are saved in the object.
@@ -1585,14 +1593,17 @@ class Data(DataContainer):
         BT *= self.chi_ch
         return BT
 
-    def calc_sbr(self, ph_sel='DA', gamma=1.):
+    def calc_sbr(self, ph_sel=Ph_sel('all'), gamma=1.):
         """Return Signal-to-Background Ratio (SBR) for each burst.
 
         Arguments:
-            ph_sel (string): Valid values 'DA', 'D', 'A'. Which photons
-                selection use for SBR.
+            ph_sel (Ph_sel object): object defining the photon selection
+                for which to compute the sbr. Changes the photons used for
+                burst size and the corresponding background rate. Valid values
+                here are Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem').
+                See :class:`fretbursts.ph_sel.Ph_sel` for details.
             gamma (float): gamma value used to compute corrected burst size
-                in the case `ph_sel` is 'DA'. Ignored otherwise.
+                in the case `ph_sel` is Ph_sel('all'). Ignored otherwise.
         Returns:
             A list of arrays (one per channel) with one value per burst.
             The list is also saved in `sbr` attribute.
@@ -1603,12 +1614,13 @@ class Data(DataContainer):
                 sbr.append([])
                 continue  # if no bursts skip this ch
             nd, na, bg_d, bg_a = self.expand(ich)
+            nt = select_bursts.get_burst_size(self, ich, gamma=gamma)
 
-            signal = dict(
-                DA = select_bursts.get_burst_size(self, ich, gamma=gamma),
-                D = nd, A = na)
+            signal = {Ph_sel('all'): nt,
+                      Ph_sel(Dex='Dem'): nd, Ph_sel(Dex='Aem'): na}
 
-            background = dict(DA = bg_d + bg_a, D = bg_d, A = bg_a)
+            background = {Ph_sel('all'): bg_d + bg_a,
+                          Ph_sel(Dex='Dem'): bg_d, Ph_sel(Dex='Aem'): bg_a}
 
             sbr.append(1.*signal[ph_sel]/background[ph_sel])
         self.add(sbr=sbr)
