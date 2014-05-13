@@ -1232,8 +1232,11 @@ class Data(DataContainer):
 
     def _burst_search_rate(self, m, L, min_rate_cps, ph_sel='DA',
                            verbose=True, pure_python=False):
-        """Experimental burst search with one fixed rate.
-        May break stuff downstream!!
+        """Compute burst search using a fixed minimum photon rate.
+
+        Arguments:
+            min_rate_cps (float or array): minimum photon rate for burst start
+                if array if one value per channel.
         """
         bsearch = _get_bsearch_func(pure_python=pure_python)
 
@@ -1251,7 +1254,7 @@ class Data(DataContainer):
                          pure_python=False):
         """Compute burst search with params `m`, `L` on ph selection `ph_sel`
 
-        Requires a list of arrays `self.TT` with the max time-thresholds in
+        Requires the list of arrays `self.TT` with the max time-thresholds in
         the different burst periods for each channel (use `._calc_T()`).
         """
         bsearch = _get_bsearch_func(pure_python=pure_python)
