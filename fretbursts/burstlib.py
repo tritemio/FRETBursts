@@ -1089,12 +1089,12 @@ class Data(DataContainer):
             Th_us = self._get_bg_th_arrays(tail_min_us)
 
         kwargs = dict(clk_p=self.clk_p)
-        time_clk = time_s/self.clk_p
+        bg_time_clk = time_s/self.clk_p
         BG, BG_dd, BG_ad, BG_aa, Lim, Ph_p = [], [], [], [], [], []
         rate_m, rate_dd, rate_ad, rate_aa = [], [], [], []
         BG_err, BG_dd_err, BG_ad_err, BG_aa_err = [], [], [], []
-        for ich, ph in enumerate(self.iter_ph_times()):
-            nperiods = int(np.ceil(ph[-1]/time_clk))
+        for ich, ph_ch in enumerate(self.iter_ph_times()):
+            nperiods = int(np.ceil(ph_ch[-1]/bg_time_clk))
 
             dd_mask = self.get_ph_mask(ich, ph_sel='D')
             ad_mask = self.get_ph_mask(ich, ph_sel='A')
@@ -1107,11 +1107,11 @@ class Data(DataContainer):
             bg_err, bg_dd_err, bg_ad_err, bg_aa_err = zeros_list
             for ip in xrange(nperiods):
                 i0 = 0 if ip == 0 else i1           # pylint: disable=E0601
-                i1 = (ph < (ip+1)*time_clk).sum()
+                i1 = (ph_ch < (ip+1)*bg_time_clk).sum()
                 lim.append((i0, i1-1))
-                ph_p.append((ph[i0], ph[i1-1]))
+                ph_p.append((ph_ch[i0], ph_ch[i1-1]))
 
-                ph_i = ph[i0:i1]
+                ph_i = ph_ch[i0:i1]
                 bg[ip], bg_err[ip] = fun(ph_i, tail_min_us=Th_us['DA'][ich],
                                          **kwargs)
 
@@ -1170,13 +1170,13 @@ class Data(DataContainer):
                 ph_sel)
         bg_time_clk = self.bg_time_s/self.clk_p
         Lim, Ph_p = [], []
-        for ph_x, lim in zip(self.iter_ph_times(ph_sel), self.Lim):
+        for ph_ch, lim in zip(self.iter_ph_times(ph_sel), self.Lim):
             lim, ph_p = [], []
             for ip in xrange(self.nperiods):
                 i0 = 0 if ip == 0 else i1  # pylint: disable=E0601
-                i1 = (ph_x < (ip+1)*bg_time_clk).sum()
+                i1 = (ph_ch < (ip+1)*bg_time_clk).sum()
                 lim.append((i0, i1-1))
-                ph_p.append((ph_x[i0], ph_x[i1-1]))
+                ph_p.append((ph_ch[i0], ph_ch[i1-1]))
             Lim.append(lim)
             Ph_p.append(ph_p)
         self.add(Lim=Lim, Ph_p=Ph_p, ph_sel=ph_sel)
