@@ -528,7 +528,7 @@ def hist_fret(d, i=0, bins=None, binw=0.02, show_fit=False, show_model=True,
         no_text=False, normed=False, weights=None, gamma=1., verbose=False,
         fit_color='k', fit_alpha=0.5, fit_lw=2.5, fit_fillcolor=None,
         two_gauss_model=False, **kwargs):
-    """Plot the FRET histogram and optionally the fitted peak
+    """Plot the FRET histogram and optionally the fitted model
     """
     if bins is None: bins = r_[-0.2:1.2:binw]
     #plot_style = dict(color='#4f8ae3', alpha=1, histtype='bar',
@@ -552,6 +552,7 @@ def hist_fret(d, i=0, bins=None, binw=0.02, show_fit=False, show_model=True,
                   fillcolor=fit_fillcolor)
         _fitted_E_plot(d, i, F=F, no_E=no_text, show_model=show_model,
                  verbose=verbose, two_gauss_model=two_gauss_model, **kw)
+        # Shows E_fit mean and std only if nch > 1
         if i == 1 and not no_text:
             plt.figtext(0.4, 0.01, _get_fit_E_text(d), fontsize=14)
 hist_E = hist_fret
@@ -560,7 +561,7 @@ def kde_fret(d, i=0, bandwidth=0.04, show_fit=False, show_model=False,
              weights=None, gamma=1., no_text=False, verbose=False,
              fit_color='k', fit_alpha=0.5, fit_lw=2.5, fit_fillcolor=None,
              **kwargs):
-    """Plot the KDE for FRET distribution and optionally the fitted peak
+    """Plot the KDE for FRET distribution and optionally the fitted model
     """
     E_ax = np.arange(-0.19, 1.19, 0.001)
     w = bl.fret_fit.get_weights(d.nd[i], d.na[i], weights=weights, gamma=gamma)
@@ -586,7 +587,7 @@ def kde_fret(d, i=0, bandwidth=0.04, show_fit=False, show_model=False,
                   fillcolor=fit_fillcolor)
         _fitted_E_plot(d, i, F=1, no_E=no_text, show_model=show_model,
                  verbose=verbose, **kw)
-        if i==0 and not no_text:
+        if i == 0 and not no_text:
             plt.figtext(0.4, 0.01, _get_fit_E_text(d), fontsize=14)
 
 def hist_fret_kde(d, i=0, bins=None, binw=0.02, bandwidth=0.04, show_fit=False,
@@ -600,34 +601,24 @@ def hist_fret_kde(d, i=0, bins=None, binw=0.02, bandwidth=0.04, show_fit=False,
              weights=weights, gamma=gamma,
              facecolor='#8c8c8c', edgecolor='k', lw=2, alpha=0.5, zorder=2)
 
-def hist_S(d, i=0, fit=None, bins=None, **kwargs):
-    if bins is None: bins = arange(-0.2,1.21,0.02)
-    Q = d.S[i]
-    H = hist(Q, bins=bins, color='#4f8ae3', alpha=0.5, **kwargs)
-    xlabel('S'); ylabel('# Bursts')
+def hist_S(d, i=0, bins=None, binw=0.02, weights=None, gamma=1., normed=False,
+           **kwargs):
+    """Plot the Shoichiometry histogram and optionally the fitted model
+    """
+    if bins is None: bins = r_[-0.2:1.2:binw]
+    style_kwargs = dict(bins=bins, normed=normed, histtype='stepfilled',
+                        facecolor='#80b3ff', edgecolor='#5f8dd3',
+                        linewidth=1.5, alpha=1)
+    # kwargs overwrite style_kwargs
+    style_kwargs.update(**_normalize_kwargs(kwargs))
+    if weights is not None:
+        w = bl.fret_fit.get_weights(d.nd[i], d.na[i], weights, gamma=gamma)
+        w *= w.size/w.sum()
+        style_kwargs.update(weights=w)
+    hist(1.*d.S[i], **style_kwargs)
+    xlabel('Stoichiometry'); ylabel('# Bursts')
+    if normed: ylabel('PDF')
     plt.ylim(ymin=0); plt.xlim(-0.2,1.2)
-    sn = np.sqrt(Q.size)
-    if fit == 'two_gauss':
-        mu1,sig1,mu2, sig2, a = gaussian_fitting.two_gaussian_fit_hist(Q)
-        x = r_[-0.2:1.2:0.01]
-        y = a*normpdf(x,mu1,sig1) + (1-a)*normpdf(x,mu2,sig2)
-        print "D-only peak: %5.2f  - " % max([mu1,mu2]),
-        mu = min([mu1,mu2])
-        mu_sig = sig2/((1-a)*sn) if mu == mu2 else sig1/(a*sn)
-    elif fit == 'gauss':
-        mu,sig = gaussian_fitting.gaussian_fit_hist(Q)
-        x = r_[-0.2:1.2:0.01]
-        y = normpdf(x,mu,sig)
-        mu_sig = sig/sn # std dev. of the mu estimator
-
-    if fit == 'gauss' or fit == 'two_gauss':
-        F = Q.size*(H[1][1]-H[1][0]) # Normalization factor
-        plot(x,F*y, lw=2, alpha=0.5, color='k')
-        plt.axvline(mu, lw=2, color='r', ls='--', alpha=0.5)
-        plt.axvspan(mu-2*mu_sig,mu+2*mu_sig, color='r', alpha=0.1)
-        print "Fitted S peak [CH%d]: %.2f " % (i+1,mu)
-    elif fit is not None:
-        print "Unrecognized fit name."
 
 def hist2d_alex(d, i=0, vmin=2, vmax=0, bin_step=None,
                 interp='bicubic', cmap='hot', under_color='white',
