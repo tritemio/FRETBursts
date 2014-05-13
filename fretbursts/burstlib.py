@@ -1041,6 +1041,21 @@ class Data(DataContainer):
             if field in self:
                 self.delete(field)
 
+    def _get_num_periods(self, time_s):
+        """Return the number of periods using `time_s` as period duration.
+        """
+        t_max_mch = np.array([ph[-1] for ph in self.iter_ph_times()])
+        # Take the ceil to have at least 1 periods
+        # Take the min to avoid having ch with 0 photons in the last period
+        nperiods = np.ceil(t_max_mch*self.clk_p/time_s).min().astype('int32')
+        # Discard last period if shorter than 0.1s
+        if nperiods > 1:
+            t_last_period = [t_max_i*self.clk_p - (nperiods - 1)*time_s
+                                for t_max_i in t_max_mch]
+            if np.min(t_last_period) < 0.1:
+                nperiods -= 1
+        return int(nperiods)
+
     def calc_bg(self, fun, time_s=60, tail_min_us=500, F_bg=2):
         """Compute time-dependent background rates for all the channels.
 
@@ -1089,13 +1104,13 @@ class Data(DataContainer):
             Th_us = self._get_bg_th_arrays(tail_min_us)
 
         kwargs = dict(clk_p=self.clk_p)
+        nperiods = self._get_num_periods(time_s)
         bg_time_clk = time_s/self.clk_p
+
         BG, BG_dd, BG_ad, BG_aa, Lim, Ph_p = [], [], [], [], [], []
         rate_m, rate_dd, rate_ad, rate_aa = [], [], [], []
         BG_err, BG_dd_err, BG_ad_err, BG_aa_err = [], [], [], []
         for ich, ph_ch in enumerate(self.iter_ph_times()):
-            nperiods = int(np.ceil(ph_ch[-1]/bg_time_clk))
-
             dd_mask = self.get_ph_mask(ich, ph_sel='D')
             ad_mask = self.get_ph_mask(ich, ph_sel='A')
             if self.ALEX:
