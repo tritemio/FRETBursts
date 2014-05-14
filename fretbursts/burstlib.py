@@ -561,6 +561,8 @@ class Data(DataContainer):
             `.ph_times_m[i]` for **first** and **last** photon in each period.
         Ph_p (list): each element in this list is a list of timestamps pairs
             for **first** and **last** photon of each period.
+        bg_ph_sel (Ph_sel object): photon selection used by Lim and Ph_p.
+            See :class:`fretbursts.ph_sel.Ph_sel` for details.
 
     Other attributes (per-ch mean of `bg`, `bg_dd`, `bg_ad` and `bg_aa`)::
 
@@ -575,7 +577,7 @@ class Data(DataContainer):
     (see :meth:`burst_search_t`).
 
     Attributes:
-        ph_sel (Ph_sel object): object defining the photon selection.
+        ph_sel (Ph_sel object): photon selection used for burst search.
             See :class:`fretbursts.ph_sel.Ph_sel` for details.
         m (int): number of consecutive timestamps used to compute the
             local rate during burst search
@@ -1161,7 +1163,7 @@ class Data(DataContainer):
                  bg_dd_err=BG_dd_err, bg_ad_err=BG_ad_err, bg_aa_err=BG_aa_err,
                  Lim=Lim, Ph_p=Ph_p, nperiods=nperiods,
                  bg_fun=fun, bg_fun_name=fun.__name__,
-                 bg_time_s=time_s, ph_sel=Ph_sel('all'), rate_m=rate_m,
+                 bg_time_s=time_s, bg_ph_sel=Ph_sel('all'), rate_m=rate_m,
                  rate_dd=rate_dd, rate_ad=rate_ad, rate_aa=rate_aa,
                  bg_th_us=Th_us, bg_auto_th=bg_auto_th)
         pprint("[DONE]\n")
@@ -1186,7 +1188,7 @@ class Data(DataContainer):
                 ph_p.append((ph_ch[i0], ph_ch[i1-1]))
             Lim.append(lim)
             Ph_p.append(ph_p)
-        self.add(Lim=Lim, Ph_p=Ph_p, ph_sel=ph_sel)
+        self.add(Lim=Lim, Ph_p=Ph_p, bg_ph_sel=ph_sel)
         pprint("[DONE]\n")
 
     ##
@@ -1377,7 +1379,7 @@ class Data(DataContainer):
         self._calc_burst_period()                       # writes bp
         pprint("[DONE]\n", mute)
 
-        self.add(m=m, L=L)  # P and F are saved in _calc_T()
+        self.add(m=m, L=L, ph_sel=ph_sel)  # P and F are saved in _calc_T()
         self.add(bg_corrected=False, bt_corrected=False, dithering=False)
 
         if not nofret:
