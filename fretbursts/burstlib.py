@@ -1023,8 +1023,8 @@ class Data(DataContainer):
         for i, key in enumerate(self.ph_streams):
             Th_us[key] = np.ones(self.nch)*tail_min_us[i]
         bg_th = {}
-        label = {Ph_sel('all'): 'all', Ph_sel(Dex='Dem'): 'D',
-                 Ph_sel(Dex='Aem'): 'A', Ph_sel(Aex='Aem'): 'AA'}
+        label = {Ph_sel('all'): 'all', Ph_sel(Dex='Dem'): 'DD',
+                 Ph_sel(Dex='Aem'): 'AD', Ph_sel(Aex='Aem'): 'AA'}
         for i, ph_sel in enumerate(self.ph_streams):
             bg_th['bg_th_us_'+ label[ph_sel]] = tail_min_us[i]
         self.add(**bg_th)
