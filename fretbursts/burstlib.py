@@ -1058,13 +1058,13 @@ class Data(DataContainer):
             time_s (float, seconds): compute background each time_s seconds
             tail_min_us (float, tuple or string): min threshold in us for
                 photon waiting times to use in background estimation.
-                If float is the same threshold for DA, D, A and AA photons
+                If float is the same threshold for 'all', DD, AD and AA photons
                 and for all the channels.
-                If a 3 or 4 element tuple, each value is used for DA, D, A
-                and (if ALEX) AA photons, same value for all the channels.
-                If 'auto', the threshold is computed for each stream (DA, D,
-                A, AA) and for each channel as `bg_F * rate_ml0`. `rate_ml0`
-                is an initial estimation of the rate performed using
+                If a 3 or 4 element tuple, each value is used for 'all', DD, AD
+                or AA photons, same value for all the channels.
+                If 'auto', the threshold is computed for each stream ('all',
+                DD, DA, AA) and for each channel as `bg_F * rate_ml0`.
+                `rate_ml0` is an initial estimation of the rate performed using
                 :func:`bg.exp_fit` and a fixed threshold (default 250us).
             F_bg (float): when `tail_min_us` is 'auto', is the factor by which
                 the initial background estimation if multiplied to compute the
