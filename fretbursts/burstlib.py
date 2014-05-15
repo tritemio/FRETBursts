@@ -1172,9 +1172,9 @@ class Data(DataContainer):
     def recompute_bg_lim_ph_p(self, ph_sel=Ph_sel(Dex='Dem')):
         """Recompute self.Lim and selp.Ph_p relative to ph selection `ph_sel`
         `ph_sel` is a Ph_sel object selecting the timestamps in which self.Lim
-        and selp.Ph_p are being computed.
+        and self.Ph_p are being computed.
         """
-        if 'ph_sel' in self and self.ph_sel == ph_sel: return
+        if self.bg_ph_sel == ph_sel: return
 
         pprint(" - Recomputing limits for current ph selection (%s) ... " % \
                 str(ph_sel))
