@@ -15,7 +15,7 @@ it allows to gain significant execution speed in core functions that are
 potentially executed many times.
 
 To compile the cython functions into machine code, enter the folder
-`burstsearch` as type::
+`burstsearch` and type::
 
     python setup.py build_ext --inplace
 

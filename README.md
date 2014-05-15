@@ -110,10 +110,12 @@ will work as well.
 Once a python distribution is installed, download the latest version
 of [FRETBursts](https://github.com/tritemio/FRETBursts) from *GitHub*.
 If new to git, we recommend to use the graphical application
-[SourceTree](http://www.sourcetreeapp.com/) (selecting the option of
-using the embedded git).
+[SourceTree](http://www.sourcetreeapp.com/), selecting the option of
+using the embedded git. FRETBursts will look for git in the system path
+or in the SourceTree embedded path and will use it to display the
+current revision ID in the notebook.
 
-The most user friendly way to use FRETBursts is through an IPython Notebook.
+The most convenient way to use FRETBursts is through an IPython Notebook.
 The following paragraph shows how to configure it.
 
 ####Configuring IPython Notebook
@@ -121,12 +123,13 @@ The following paragraph shows how to configure it.
 When starting the IPython server, it will show a default folder for the notebooks.
 You can create a launcher to start the IPython Notebook server on any local folder.
 
-To create the launcher, right click on the
-*IPython Notebook icon* -> *Properties* and paste
+To create a new launcher, copy the IPython Notebook icon from the windows
+menu to some convenient location (i.e. the Desktop or your notebook folder).
+Then, right click on the *IPython Notebook icon* -> *Properties* and paste
 the notebook folder in the *Start in* field.
 
-Now, on double click, a browser should pop up showing the list
-of notebooks. Chrome browser is suggested.
+Now, on double click, a browser showing the list of notebooks should open.
+Chrome browser is suggested.
 
 ###Linux and Mac OS X
 
