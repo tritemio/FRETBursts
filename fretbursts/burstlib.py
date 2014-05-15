@@ -1173,7 +1173,7 @@ class Data(DataContainer):
         """
         if self.bg_ph_sel == ph_sel: return
 
-        pprint(" - Recomputing limits for current ph selection (%s) ... " % \
+        pprint(" - Recomputing background limits for %s ... " % \
                 str(ph_sel))
         bg_time_clk = self.bg_time_s/self.clk_p
         Lim, Ph_p = [], []
