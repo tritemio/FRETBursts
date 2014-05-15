@@ -27,6 +27,7 @@ __all__ = [
 
         # Classes, functions, variables
         "data_dir", "Data", "Sel", "Sel_mask", "Sel_mask_apply", "gui_fname",
+        "Ph_sel",
 
         # Standalone plots or plots as a function of ch
         "mch_plot_bg", "plot_alternation_hist",
@@ -59,6 +60,7 @@ import background as bg
 import burstlib as bl
 from .burstlib import Data, Sel, Sel_mask, Sel_mask_apply
 import burstlib_ext as bext
+from .ph_sel import Ph_sel
 
 import burst_plot as bpl
 from burst_plot import (

@@ -16,6 +16,7 @@ See also :func:`exp_hist_fit` for background estimation using an histogram fit.
 """
 
 import numpy as np
+from ph_sel import Ph_sel
 from utils.misc import pprint
 from fit import exp_fitting
 from fit.gaussian_fitting import gaussian_fit_hist
@@ -142,13 +143,13 @@ def exp_hist_fit(ph, tail_min_us, binw=50e-6, clk_p=12.5e-9,
 # Fit background as function of th
 #
 def fit_var_tail_us(d, Tail_min_us_list, t_max_s,
-                       bg_fit_fun=exp_fit, ph_sel='DA', **kwargs):
+                       bg_fit_fun=exp_fit, ph_sel=Ph_sel('all'), **kwargs):
     """
-    Fit 'DA', 'D' or 'A' BG on all CH for all the values in `Tail_min_us_list`.
+    Fit 'all', DD or AD bg on all CH for all the values in `Tail_min_us_list`.
 
     The BG is fitted from the first `t_max_s` seconds of the measurement.
     """
-    assert ph_sel in ['DA', 'D', 'A']
+    assert ph_sel in [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
     BG = np.zeros((d.nch, np.size(Tail_min_us_list)))
     BG_err = np.zeros((d.nch, np.size(Tail_min_us_list)))
     t_max_clk = t_max_s/d.clk_p
@@ -160,9 +161,9 @@ def fit_var_tail_us(d, Tail_min_us_list, t_max_s,
 
     Ph_times = []
     for ph, a_em in zip(ph_times_m_slice, A_em_slice):
-        if ph_sel == 'D':
+        if ph_sel == Ph_sel(Dex='Dem'):
             Ph_times.append(ph[-a_em])
-        elif ph_sel == 'A':
+        elif ph_sel == Ph_sel(Dex='Aem'):
             Ph_times.append(ph[a_em])
         else:
             Ph_times.append(ph)

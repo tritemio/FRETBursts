@@ -103,3 +103,10 @@ Utility methods
 
     .. automethod:: slice_ph
 
+
+Photon selection
+----------------
+
+.. module:: fretbursts.ph_sel
+.. autoclass:: Ph_sel
+
