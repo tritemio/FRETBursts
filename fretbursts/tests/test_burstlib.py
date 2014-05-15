@@ -64,6 +64,16 @@ def data_8ch(request):
 ##
 # Test functions
 #
+
+def test_bg_calc(data):
+    data.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
+    data.calc_bg(bg.exp_fit, time_s=30, tail_min_us='auto', F_bg=1.7)
+
+def test_burst_search(data):
+    data.burst_search_t(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Dem'))
+    data.burst_search_t(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Aem'))
+    data.burst_search_t(L=10, m=10, F=7)
+
 def test_ph_selection(data):
     """Test photon selection 'all', DD, AD and AA."""
     d = data
