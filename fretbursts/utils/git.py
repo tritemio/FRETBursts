@@ -84,7 +84,7 @@ def get_last_commit_line(git_path=None):
     if git_path is None: git_path = GIT_PATH
     output = check_output([git_path, "log", "--pretty=format:'%ad %h %s'",
                            "--date=short", "-n1"])
-    return output.strip()
+    return output.strip()[1:-1]
 
 def get_last_commit(git_path=None):
     """
