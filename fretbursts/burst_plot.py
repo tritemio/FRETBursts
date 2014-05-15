@@ -45,6 +45,7 @@ from matplotlib.collections import PatchCollection
 #from matplotlib.lines import Line2D
 
 # Local imports
+from ph_sel import Ph_sel
 import burstlib as bl
 import burstlib_ext as bext
 import background as bg
@@ -226,7 +227,7 @@ def timetrace_da(d, i=0, idx=0, bin_width=1e-3, bins=100000, bursts=False):
         _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500)
 
     if not bl.mask_empty(d.get_D_em(i)):
-        ph_d = d.get_ph_times(i, ph_sel='D')
+        ph_d = d.get_ph_times(i, ph_sel=Ph_sel(Dex='Dem'))
         tr_d, t_d = binning(ph_d,bin_width_ms=bin_width*1e3, max_num_bins=bins,
                 clk_p=d.clk_p)
         t_d = t_d[1:]*d.clk_p-bin_width*0.5
@@ -236,7 +237,7 @@ def timetrace_da(d, i=0, idx=0, bin_width=1e-3, bins=100000, bursts=False):
                           Th=False)
 
     if not bl.mask_empty(d.get_A_em(i)):
-        ph_a = d.get_ph_times(i, ph_sel='A')
+        ph_a = d.get_ph_times(i, ph_sel=Ph_sel(Dex='Aem'))
         tr_a, t_a = binning(ph_a,bin_width_ms=bin_width*1e3, max_num_bins=bins,
                 clk_p=d.clk_p)
         t_a = t_a[1:]*d.clk_p-bin_width*0.5
@@ -285,12 +286,12 @@ def ratetrace_da(d, i=0, idx=0, m=None, max_ph=1e6, pmax=1e6, bursts=False,
                  F=None):
     """Timetrace of photons rates (donor-acceptor)."""
     if m is None: m = d.m
-    ph_d = d.get_ph_times(i, ph_sel='D')
-    ph_a = d.get_ph_times(i, ph_sel='A')
+    ph_d = d.get_ph_times(i, ph_sel=Ph_sel(Dex='Dem'))
+    ph_a = d.get_ph_times(i, ph_sel=Ph_sel(Dex='Aem'))
     if not d.ALEX:
         max_ph = min(max_ph, ph_d.size, ph_a.size)
     else:
-        ph_aa = d.get_ph_times(i, ph_sel='AA')
+        ph_aa = d.get_ph_times(i, ph_sel=Ph_sel(Aex='Aem'))
         max_ph = min(max_ph, ph_d.size, ph_a.size, ph_aa.size)
     if bursts:
         t_max_clk = ph_d[max_ph-1]
@@ -315,9 +316,9 @@ def timetrace_alex(d, i=0, bin_width=1e-3, bins=100000, bursts=False,
                    **plot_kw):
     """Timetrace of binned photons (ALEX version: donor, acceptor, aa)."""
     b = d.mburst[i]
-    ph_dd = d.get_ph_times(i, ph_sel='D')
-    ph_ad = d.get_ph_times(i, ph_sel='A')
-    ph_aa = d.get_ph_times(i, ph_sel='DA')
+    ph_dd = d.get_ph_times(i, ph_sel=Ph_sel(Dex='Dem'))
+    ph_ad = d.get_ph_times(i, ph_sel=Ph_sel(Dex='Aem'))
+    ph_aa = d.get_ph_times(i, ph_sel=Ph_sel(Aex='Aem'))
 
     t0 = d.ph_times_m[i][0]
     bin_width_clk = bin_width/d.clk_p
@@ -797,9 +798,9 @@ def hist_ph_delays(d, i=0, time_min_s=0, time_max_s=30, bin_width_us=10,
                                                            100*(rg-re)/re))
     plt.legend(loc='best', fancybox=True)
 
-def hist_mdelays(d, i=0, m=10, bins_s=(0, 10, 0.02), bp=0,
-                  no_bg_fit=True, hold=False, bg_ppf=0.01, ph_sel='DA',
-                  spline=True, s=1., bg_fit=True, bg_F=0.8):
+def hist_mdelays(d, i=0, m=10, bins_s=(0, 10, 0.02), bp=0, no_bg_fit=True,
+                 hold=False, bg_ppf=0.01, ph_sel=Ph_sel('all'), spline=True,
+                 s=1., bg_fit=True, bg_F=0.8):
     """Histogram of m-ph delays (all ph vs in-burst ph)."""
     ax = gca()
     if not hold:

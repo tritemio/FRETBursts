@@ -17,19 +17,21 @@ import numpy as np
 from scipy.stats import erlang
 from scipy.optimize import leastsq
 
+from ph_sel import Ph_sel
 
-def get_bg_distrib_erlang(d, ich=0, m=10, ph_sel='DA', bp=(0, -1)):
+
+def get_bg_distrib_erlang(d, ich=0, m=10, ph_sel=Ph_sel('all'), bp=(0, -1)):
     """Return a frozen erlang distrib. with rate equal to the bg rate.
     """
-    assert ph_sel in ['DA', 'D', 'A']
+    assert ph_sel in [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
     if np.size(bp) == 1: bp = (bp, bp)
     periods = slice(d.Lim[ich][bp[0]][0], d.Lim[ich][bp[1]][1] + 1)
     # Compute the BG distribution
-    if ph_sel == 'DA':
+    if ph_sel == Ph_sel('all'):
         bg_ph = d.bg_dd[ich] + d.bg_ad[ich]
-    elif ph_sel == 'D':
+    elif ph_sel == Ph_sel(Dex='Dem'):
         bg_ph = d.bg_dd[ich]
-    elif ph_sel == 'A':
+    elif ph_sel == Ph_sel(Dex='Aem'):
         bg_ph = d.bg_ad[ich]
 
     rate_ch_kcps = bg_ph[periods].mean()/1e3   # bg rate in kcps
@@ -57,21 +59,21 @@ def calc_mdelays_hist(d, ich=0, m=10, bp=(0, -1), bins_s=(0, 10, 0.02),
             distribution fitted to the histogram for bin_x > bg_mean*bg_F.
             Returned only if `bg_fit` is True.
     """
-    assert ph_sel in ['DA', 'D', 'A']
+    assert ph_sel in [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
     if np.size(bp) == 1: bp = (bp, bp)
     periods = slice(d.Lim[ich][bp[0]][0], d.Lim[ich][bp[1]][1] + 1)
     bins = np.arange(*bins_s)
 
-    if ph_sel == 'DA':
+    if ph_sel == Ph_sel('all'):
         ph = d.ph_times_m[ich][periods]
         if bursts:
             phb = ph[d.ph_in_burst[ich][periods]]
-    elif ph_sel == 'D':
+    elif ph_sel == Ph_sel(Dex='Dem'):
         donor_ph_period = -d.A_em[ich][periods]
         ph = d.ph_times_m[ich][periods][donor_ph_period]
         if bursts:
             phb = ph[d.ph_in_burst[ich][periods][donor_ph_period]]
-    elif ph_sel == 'A':
+    elif ph_sel == Ph_sel(Dex='Aem'):
         accept_ph_period = d.A_em[ich][periods]
         ph = d.ph_times_m[ich][periods][accept_ph_period]
         if bursts:
