@@ -1004,6 +1004,7 @@ class Data(DataContainer):
                     bg_rate, _ = bg.exp_fit(ph, tail_min_us=tail_min_us0)
                     th_us[ich] = 1e6*F_bg/bg_rate
             Th_us[ph_sel] = th_us
+        # Save the input used to generate Th_us
         self.add(bg_auto_th_us0=tail_min_us0, bg_auto_F_bg=F_bg)
         return Th_us
 
@@ -1022,12 +1023,8 @@ class Data(DataContainer):
         Th_us = {}
         for i, key in enumerate(self.ph_streams):
             Th_us[key] = np.ones(self.nch)*tail_min_us[i]
-        bg_th = {}
-        label = {Ph_sel('all'): 'all', Ph_sel(Dex='Dem'): 'DD',
-                 Ph_sel(Dex='Aem'): 'AD', Ph_sel(Aex='Aem'): 'AA'}
-        for i, ph_sel in enumerate(self.ph_streams):
-            bg_th['bg_th_us_'+ label[ph_sel]] = tail_min_us[i]
-        self.add(**bg_th)
+        # Save the input used to generate Th_us
+        self.add(bg_th_us_user=tail_min_us)
         return Th_us
 
     def _clean_bg_data(self):
