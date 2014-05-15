@@ -1103,7 +1103,8 @@ class Data(DataContainer):
             th_us_ch_all = Th_us[Ph_sel('all')][ich]
             th_us_ch_dd = Th_us[Ph_sel(Dex='Dem')][ich]
             th_us_ch_ad = Th_us[Ph_sel(Dex='Aem')][ich]
-            th_us_ch_aa = Th_us[Ph_sel(Aex='Aem')][ich]
+            if self.ALEX:
+                th_us_ch_aa = Th_us[Ph_sel(Aex='Aem')][ich]
 
             dd_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Dex='Dem'))
             ad_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Dex='Aem'))
