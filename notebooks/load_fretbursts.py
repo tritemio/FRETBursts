@@ -34,11 +34,15 @@ else:
 
 ip = get_ipython()
 
+# Workaround for open-file dialog in IPython Notebook
+# see https://github.com/ipython/ipython/issues/5798
+ip.enable_matplotlib("inline")
+ip.enable_gui("qt")
+
 # Save current dir as NOTEBOOK_DIR
 if not 'NOTEBOOK_DIR' in globals():
     NOTEBOOK_DIR = ip.magic('%pwd')
 
-ip.magic('%matplotlib inline')
 ip.magic('%cd "$FRETBURSTS_DIR"')
 
 from fretbursts import *
