@@ -1,6 +1,8 @@
 FRETBursts
 ==========
 
+> *Quick links: [Reference documentation](http://fretbursts.readthedocs.org/index.html),  [FRETBursts tutorials](https://github.com/tritemio/FRETBursts_notebooks)*
+
 Project description
 -------------------
 
