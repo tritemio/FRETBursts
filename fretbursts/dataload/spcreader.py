@@ -13,12 +13,12 @@ Drawing (note: each char represents 2 bits)::
 
     bit: 64        48                          0
          0000 0000 XXXX XXXX XXXX XXXX XXXX XXXX
-                   '-------' '-------' '-------'
-    uint16:         data[2]   data[1]   data[0]
+                   '-------' '--' '--'   '-----'
+    field names:       a      c    b        d
 
          0000 0000 XXXX XXXX XXXX XXXX XXXX XXXX
-                   '-------' '--' '--'   '-----'
-                       a      c    b        d
+                   '-------' '--' '--' '-------'
+    numpy dtype:       a      c    b    field0
 
     macrotime = [ b  ] [     a     ]  (24 bit)
     detector  = [ c  ]                (8 bit)
@@ -30,38 +30,29 @@ Drawing (note: each char represents 2 bits)::
 import numpy as np
 
 
-def load_spc(fname, return_extra_data=False):
-    f = open(fname, 'rb')
-    raw_data = f.read()
+def load_spc(fname):
+    """Load data from Becker&Hickl SPC files.
 
-    ## Each element is 48bit, which will be imported as 3 uint16
-    bytes_per_element = 6
-    N_elements = len(raw_data)/bytes_per_element
-    data = np.ndarray(shape=(3*N_elements,), buffer=raw_data,dtype='<u2')
-    data = data.reshape(data.size/3,3) # every row is a 48bit element
+    Returns:
+        3 numpy arrays: timestamps, detector, nanotime
+    """
+    spc_dtype = np.dtype([('field0', '<u2'), ('b', '<u1'), ('c', '<u1'),
+                          ('a', '<u2')])
+    data = np.fromfile(fname, dtype=spc_dtype)
 
-    b = np.bitwise_and(data[:,1], int('0xFF', 16))
-    ph_times = np.left_shift(b.astype('uint64'),16) + data[:,2] # [ b ][   a   ]
+    nanotime =  4095 - np.bitwise_and(data['field0'], 0x0FFF)
+    detector = data['c']
 
-    det = np.right_shift(data[:,1],8)
-    nanotime = 4095 - np.bitwise_and(data[:,0], int('0xFFF',16))
-    extra_data = np.right_shift(data[:,0],12).astype('uint8')
+    # Build the macrotime (timestamps) using in-place operation for efficiency
+    timestamps = data['b'].astype('int64')
+    np.left_shift(timestamps, 16, out=timestamps)
+    timestamps += data['a']
 
-    # extract the 13-th bit of every elemente in data[:,0]
-    overflow = np.bitwise_and(np.right_shift(data[:,0],13), 1)
-    overflow = np.cumsum(overflow, dtype='uint64')
+    # extract the 13-th bit from data['field0']
+    overflow = np.bitwise_and(np.right_shift(data['field0'], 13), 1)
+    overflow = np.cumsum(overflow, dtype='int64')
 
-    # concatenate of the MSB given by the overflow integration
-    ph_times += np.left_shift(overflow,24)
+    # Add the overflow bits
+    timestamps += np.left_shift(overflow, 24)
 
-    # sanity checks
-    assert ph_times.shape == det.shape
-    assert ph_times.shape == nanotime.shape
-
-    # The first ph has always detector==1, seems odd so I exclude it
-    if return_extra_data:
-        return ph_times[1:], det[1:], nanotime[1:], extra_data[1:]
-    else:
-        return ph_times[1:], det[1:], nanotime[1:]
-
-
+    return timestamps, detector, nanotime
