@@ -153,15 +153,22 @@ def _select_range(times, period, edges):
 def usalex(fname, BT=0, gamma=1., header=166, bytes_to_read=-1):
     """Load a usALEX file and return a Data() object.
 
-    To load usALEX data follow this pattern:
+    This function returns a Data() object to which you need to apply the
+    an alternation selection before performing further analysis (background
+    estimation, burst search, etc.).
 
-        d = load_usalex(fname=fname, BT=0, gamma=1.)
+    The pattern to load usALEX data is the following:
+
+        d = loader.usalex(fname=fname)
         d.add(D_ON=(2850, 580), A_ON=(900, 2580), alex_period=4000)
         plot_alternation_hist(d)
 
     If the plot looks good apply the alternation with:
 
-        usalex_apply_period(d)
+        loader.usalex_apply_period(d)
+
+    Now `d` is ready for futher processing like background estimation and
+    burst search.
     """
     print " - Loading '%s' ... " % fname
     ph_times_t, det_t = load_sm(fname, header=header)
@@ -179,17 +186,23 @@ def usalex(fname, BT=0, gamma=1., header=166, bytes_to_read=-1):
     return dx
 
 def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
-    """Applies the alternation period previously set.
+    """Applies to the Data object `d` the alternation period previously set.
 
-    To load usALEX data follow this pattern:
+    Note that you need first to load the data with :func:`usalex` and second
+    to set the alternation parameters using `d.add()`.
 
-        d = load_usalex(fname=fname, BT=0, gamma=1.)
+    The pattern to load usALEX data is the following:
+
+        d = loader.usalex(fname=fname)
         d.add(D_ON=(2850, 580), A_ON=(900, 2580), alex_period=4000)
         plot_alternation_hist(d)
 
     If the plot looks good apply the alternation with:
 
-        usalex_apply_period(d)
+        loader.usalex_apply_period(d)
+
+    Now `d` is ready for futher processing like background estimation and
+    burst search.
     """
     donor_ch, accept_ch  = d.det_donor_accept
     # Remove eventual ch different from donor or acceptor
