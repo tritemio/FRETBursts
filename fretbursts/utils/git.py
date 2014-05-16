@@ -92,7 +92,7 @@ def get_last_commit(git_path=None):
     """
     if git_path is None: git_path = GIT_PATH
     line = get_last_commit_line(git_path)
-    revision_id = line.split()[0]
+    revision_id = line.split()[1]
     return revision_id
 
 def print_summary(string='Repository', git_path=None):
