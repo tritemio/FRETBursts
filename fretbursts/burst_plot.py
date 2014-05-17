@@ -147,19 +147,6 @@ def plot_alternation_hist(d, bins=100, **kwargs):
 
     legend(loc='best')
 
-def plot_alternation_hist_sel(d, **kwargs):
-    plt.figure()
-    ph_times, d_ex, period = d.get_ph_times(0), d.D_ex[0], d.alex_period
-    bins = arange(0, period+1, period/100.)
-    kwargs.update(bins=bins, alpha=0.2)
-    hist(ph_times[d_ex] % period, color='g', label='D', **kwargs)
-    hist(ph_times[-d_ex] % period, color='r', label='A', **kwargs)
-    plt.axvline(d.D_ON[0], color='g', lw=2);
-    plt.axvline(d.D_ON[1], color='g', lw=2)
-    plt.axvline(d.A_ON[0], color='r', lw=2);
-    plt.axvline(d.A_ON[1], color='r', lw=2)
-    legend(loc='best')
-
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##  Multi-channel plots
