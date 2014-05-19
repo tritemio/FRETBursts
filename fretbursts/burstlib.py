@@ -699,6 +699,9 @@ class Data(DataContainer):
                 See :class:`fretbursts.ph_sel.Ph_sel` for details.
         """
         assert type(ph_sel) is Ph_sel
+        if not self.ALEX and ph_sel.Aex is not None:
+            raise ValueError('Used acceptor excitation with non-ALEX data.')
+
         if ph_sel == Ph_sel('all'):
             # Note that slice(None) is equivalent to [:].
             # Also, numpy arrays are not copies when sliced.
@@ -706,14 +709,29 @@ class Data(DataContainer):
             # Note: the drawback is that the slice cannot be indexed
             #       (where a normal boolean array would)
             return slice(None)
+
+        # Base selections
         elif ph_sel == Ph_sel(Dex='Dem'):
             return self.get_D_em_D_ex(ich)
         elif ph_sel == Ph_sel(Dex='Aem'):
             return self.get_A_em_D_ex(ich)
         elif ph_sel == Ph_sel(Aex='Aem'):
-            if not self.ALEX:
-                raise ValueError('Aex selection is valid only for ALEX data.')
             return self.get_A_em_A_ex(ich)
+
+        # Select all photon in one emission ch
+        elif ph_sel == Ph_sel(Dex='Dem', Aex='Dem'):
+            return self.get_D_em(ich)
+        elif ph_sel == Ph_sel(Dex='Aem', Aex='Aem'):
+            return self.get_A_em(ich)
+
+        # Select all photon in one excitation period
+        elif ph_sel == Ph_sel(Dex='DAem'):
+            return self.get_D_ex(ich)
+        elif ph_sel == Ph_sel(Aex='DAem'):
+            return self.get_A_ex(ich)
+
+        else:
+            raise ValueError('Selection not implemented.')
 
     def iter_ph_times(self, ph_sel=Ph_sel('all')):
         """Iterator that returns the arrays of timestamps in `.ph_times_m`.
@@ -729,7 +747,7 @@ class Data(DataContainer):
         """Returns the timestamps array for channel `ich`.
 
         This method always returns in-memory arrays, even when ph_times_m
-        is a disk-baked list of arrays.
+        is a disk-backed list of arrays.
 
         Arguments:
             ph_sel (Ph_sel object): object defining the photon selection.
@@ -769,7 +787,10 @@ class Data(DataContainer):
 
     def get_D_ex(self, ich):
         """Returns a mask to select photons in donor-excitation periods."""
-        return self._get_ph_mask_single(ich, 'D_ex')
+        if self.ALEX:
+            return self._get_ph_mask_single(ich, 'D_ex')
+        else:
+            return slice(None)
 
     def get_D_em_D_ex(self, ich):
         """Returns a mask of donor photons during donor-excitation."""
