@@ -687,7 +687,7 @@ class Data(DataContainer):
         for ich in xrange(self.nch):
             yield self.get_ph_mask(ich, ph_sel=ph_sel)
 
-    def get_ph_mask(self, ich, ph_sel=Ph_sel('all')):
+    def get_ph_mask(self, ich=0, ph_sel=Ph_sel('all')):
         """Returns a mask for `ph_sel` photons in channel `ich`.
 
         The masks are either boolean arrays or slices (full or empty). In
@@ -725,7 +725,7 @@ class Data(DataContainer):
         for ich in xrange(self.nch):
             yield self.get_ph_times(ich, ph_sel=ph_sel)
 
-    def get_ph_times(self, ich, ph_sel=Ph_sel('all')):
+    def get_ph_times(self, ich=0, ph_sel=Ph_sel('all')):
         """Returns the timestamps array for channel `ich`.
 
         This method always returns in-memory arrays, even when ph_times_m
