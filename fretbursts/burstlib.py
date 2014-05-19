@@ -945,7 +945,7 @@ class Data(DataContainer):
         if 'ph_times_m' in self:
             return max([t[-1]*self.clk_p for t in self.ph_times_m])
         elif 'ph_times_t' in self:
-            return self.ph_times_t.max()
+            return self.ph_times_t.max()*self.clk_p
         elif 'mburst' in self:
             return max([b_end(mb)[-1]*self.clk_p for mb in self.mburst])
         else:
