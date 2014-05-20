@@ -7,12 +7,18 @@ Project description
 -------------------
 
 **[FRETBursts](https://github.com/tritemio/FRETBursts)** is an opensource
-toolkit for analysis of timestamps series from confocal single-molecule FRET
-(smFRET) experiments. In the spirit of
-reproducible research, this software allows the authors and others to
-reproduce previous research and to perform new one. FRETBursts is open to
-public scrutiny and the authors are committed to promptly fix bugs
+software toolkit for analysis of timestamps series from confocal
+[single-molecule FRET](http://en.wikipedia.org/wiki/Single-molecule_FRET)
+(smFRET) experiments on freely diffusing molecules.
+
+In the spirit of reproducible research, this software allows the authors and
+others to reproduce previous research and to perform new one. FRETBursts
+is open to public scrutiny and the authors are committed to promptly fix bugs
 whenever they are discovered.
+
+Issues can be discussed on the issue tracker, fixes or enhacements can be
+sent through github pull request. Text files (like this README) can be
+directly edited online.
 
 FRETBursts allows to analyze both [single-spot](http://dx.doi.org/10.1126/science.283.5408.1676)
 and [multi-spot smFRET](http://dx.doi.org/10.1117/12.2003704) data.
@@ -21,11 +27,11 @@ scheme is supported as well.
 
 Main analysis features includes:
 
-- time-dependent background estimation (for example in 30s windows)
-- sliding-window burst search with background-dependent threshold
+- background estimation as a function of time (for example in 30s windows)
+- sliding-window burst search with adaptive (background-dependent) threshold
 - burst corrections: background, leakage (bleed-through), direct excitation,
 gamma-factor
-- per-bursts E and S calculation
+- per-burst quatities (# photons, burst duration, E, S, etc...)
 - post-burst-search selection based on multiple criteria (for ex.:
 burst size, burst width, E, S, ...). Defining a new burst selection
 criterium requires only a couple of lines of code.
@@ -90,8 +96,9 @@ rich text, math and graphics with (live) code. For more info please visit:
 
 ##Installation
 
-Briefly, the installation consist in installing a scientific python distribution,
-downloading FRETBursts sources, and setting a folder for the FRETBursts notebooks.
+Briefly, the installation consist in installing a scientific python
+distribution, downloading FRETBursts sources, and setting a folder for the
+FRETBursts notebooks.
 
 FRETBursts is loaded running a small script (`load_fretbursts.py`) placed
 in the notebooks folder. The first time, you need to edit `load_fretbursts.py`
@@ -122,8 +129,9 @@ The following paragraph shows how to configure it.
 
 ####Configuring IPython Notebook
 
-When starting the IPython server, it will show a default folder for the notebooks.
-You can create a launcher to start the IPython Notebook server on any local folder.
+When starting the IPython server, it will show a default folder for the
+notebooks. You can create a launcher to start the IPython Notebook server
+on any local folder.
 
 To create a new launcher, copy the IPython Notebook icon from the windows
 menu to some convenient location (i.e. the Desktop or your notebook folder).
@@ -137,7 +145,8 @@ Chrome browser is suggested.
 
 On Linux or Mac OS X you can also use the [Anaconda](https://store.continuum.io/cshop/anaconda/) distribution.
 
-Alternatively, these are the software dependencies (hint: on Mac OS X you can use MacPorts):
+Alternatively, these are the software dependencies (hint: on Mac OS X you can
+use MacPorts):
 
 - Python 2.7
 - Numpy/Scipy (any version from 2013 on)
@@ -156,21 +165,22 @@ These notebooks can be executed locally using publically available datasets
 
 * [FRETBursts - usALEX Workflow](http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%2520-%2520usALEX%2520Workflow.ipynb)
 * [FRETBursts - 8-spot smFRET analysis](http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%2520-%25208-spot%2520smFRET%2520analysis.ipynb)
+* [FRETBursts - nsALEX example](http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%20-%20nsALEX%20example.ipynb)
 
 The FRETBursts documentation is hosted on ReadTheDocs:
 
 * [FRETBursts Documentation](http://fretbursts.readthedocs.org/)
 
-We provide a public dataset [1] to testing and demonstration of the FRETBursts
-functionalities. These data files are needed to run the tutorials.
+We provide a public dataset [1] to test and demonstrate FRETBursts
+functionalities. These data files are needed to re-run the tutorials.
 
 [1] A. Ingargiola, S. Chung (2014): smFRET example datasets for the FRETBursts
 software. [DOI 10.6084/m9.figshare.1019906](http://dx.doi.org/10.6084/m9.figshare.1019906)
 
 ##Development
 
-The documentation is built using [Sphinx](http://sphinx-doc.org/) (1.2.2 or later) and
-the [napoleon extension](https://pypi.python.org/pypi/sphinxcontrib-napoleon).
+The documentation is built using [Sphinx](http://sphinx-doc.org/) (1.2.2 or
+later) and the [napoleon extension](https://pypi.python.org/pypi/sphinxcontrib-napoleon).
 A notebook that builds the HTML docs can be found in `notebooks/dev/docs/`.
 
 The unit tests are written with [pytest](http://pytest.org/latest/).
