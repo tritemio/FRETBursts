@@ -16,9 +16,10 @@ others to reproduce previous research and to perform new one. FRETBursts
 is open to public scrutiny and the authors are committed to promptly fix bugs
 whenever they are discovered.
 
-Issues can be discussed on the issue tracker, fixes or enhacements can be
-sent through github pull request. Text files (like this README) can be
-directly edited online.
+Issues can be reported or discussed on the [issue tracker](https://github.com/tritemio/FRETBursts/issues?state=open). 
+Fixes or enhacements can be sent with a [github pull request](https://help.github.com/articles/creating-a-pull-request). 
+Typo fixes or small corrections can be made directly online 
+by clicking on the GiHub edit button for a specific file.
 
 FRETBursts allows to analyze both [single-spot](http://dx.doi.org/10.1126/science.283.5408.1676)
 and [multi-spot smFRET](http://dx.doi.org/10.1117/12.2003704) data.
