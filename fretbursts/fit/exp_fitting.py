@@ -5,6 +5,13 @@
 #
 """
 Generic functions to fit exponential populations.
+
+These functions can be used directly, or, in a typical FRETBursts workflow
+they are passed to higher level methods.
+
+*See also:*
+
+* :doc:`background`
 """
 
 import numpy as np

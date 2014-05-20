@@ -5,7 +5,9 @@
 #
 """
 This module provides functions to fit gaussian distributions and gaussian
-distribution mixtures (2 components). Several fittings methods are provided.
+distribution mixtures (2 components). These functions can be used directly,
+or more often, in a typical FRETBursts workflow they are passed to higher
+level methods like :meth:`fretbursts.burstlib.Data.fit_E_generic`.
 
 Single Gaussian distribution fit:
 

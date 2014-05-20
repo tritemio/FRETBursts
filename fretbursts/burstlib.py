@@ -1870,7 +1870,8 @@ class Data(DataContainer):
     def fit_E_generic(self, E1=-1, E2=2, fit_fun=two_gaussian_fit_hist,
             weights=None, gamma=1., **fit_kwargs):
         """Fit E in each channel with `fit_fun` using burst in [E1,E2] range.
-        All the fitting functions are defined in `fit.gaussian_fitting`.
+        All the fitting functions are defined in
+        :mod:`fretbursts.fit.gaussian_fitting`.
 
         Parameters:
             weights (string or None): specifies the type of weights
@@ -1886,7 +1887,7 @@ class Data(DataContainer):
 
         Note:
             Use this method for CDF/PDF or hist fitting.
-            For EM fitting use `fit_E_two_gauss_EM()`.
+            For EM fitting use :meth:`fit_E_two_gauss_EM()`.
         """
         if fit_fun.__name__.startswith("gaussian_fit"):
             fit_model = lambda x, p: SS.norm.pdf(x, p[0], p[1])
