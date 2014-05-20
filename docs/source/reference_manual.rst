@@ -6,6 +6,7 @@ Contents:
 .. toctree::
     :maxdepth: 3
 
+    loader
     data_class
     burst_selection
     background

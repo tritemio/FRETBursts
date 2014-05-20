@@ -6,7 +6,7 @@
 """
 This module contains functions to load each supported data format.
 The loader functions load data from a specific format and
-return a new `Data()` object containing the data.
+return a new :class:`fretbursts.burstlib.Data()` object containing the data.
 
 This file contains the high-level function to load a data-file and
 to return a `Data()` object. The low-level functions that perform the binary
