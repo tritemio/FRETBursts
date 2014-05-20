@@ -687,7 +687,7 @@ class Data(DataContainer):
         for ich in xrange(self.nch):
             yield self.get_ph_mask(ich, ph_sel=ph_sel)
 
-    def get_ph_mask(self, ich, ph_sel=Ph_sel('all')):
+    def get_ph_mask(self, ich=0, ph_sel=Ph_sel('all')):
         """Returns a mask for `ph_sel` photons in channel `ich`.
 
         The masks are either boolean arrays or slices (full or empty). In
@@ -699,6 +699,9 @@ class Data(DataContainer):
                 See :class:`fretbursts.ph_sel.Ph_sel` for details.
         """
         assert type(ph_sel) is Ph_sel
+        if not self.ALEX and ph_sel.Aex is not None:
+            raise ValueError('Used acceptor excitation with non-ALEX data.')
+
         if ph_sel == Ph_sel('all'):
             # Note that slice(None) is equivalent to [:].
             # Also, numpy arrays are not copies when sliced.
@@ -706,14 +709,29 @@ class Data(DataContainer):
             # Note: the drawback is that the slice cannot be indexed
             #       (where a normal boolean array would)
             return slice(None)
+
+        # Base selections
         elif ph_sel == Ph_sel(Dex='Dem'):
             return self.get_D_em_D_ex(ich)
         elif ph_sel == Ph_sel(Dex='Aem'):
             return self.get_A_em_D_ex(ich)
         elif ph_sel == Ph_sel(Aex='Aem'):
-            if not self.ALEX:
-                raise ValueError('Aex selection is valid only for ALEX data.')
             return self.get_A_em_A_ex(ich)
+
+        # Select all photon in one emission ch
+        elif ph_sel == Ph_sel(Dex='Dem', Aex='Dem'):
+            return self.get_D_em(ich)
+        elif ph_sel == Ph_sel(Dex='Aem', Aex='Aem'):
+            return self.get_A_em(ich)
+
+        # Select all photon in one excitation period
+        elif ph_sel == Ph_sel(Dex='DAem'):
+            return self.get_D_ex(ich)
+        elif ph_sel == Ph_sel(Aex='DAem'):
+            return self.get_A_ex(ich)
+
+        else:
+            raise ValueError('Selection not implemented.')
 
     def iter_ph_times(self, ph_sel=Ph_sel('all')):
         """Iterator that returns the arrays of timestamps in `.ph_times_m`.
@@ -725,11 +743,11 @@ class Data(DataContainer):
         for ich in xrange(self.nch):
             yield self.get_ph_times(ich, ph_sel=ph_sel)
 
-    def get_ph_times(self, ich, ph_sel=Ph_sel('all')):
+    def get_ph_times(self, ich=0, ph_sel=Ph_sel('all')):
         """Returns the timestamps array for channel `ich`.
 
         This method always returns in-memory arrays, even when ph_times_m
-        is a disk-baked list of arrays.
+        is a disk-backed list of arrays.
 
         Arguments:
             ph_sel (Ph_sel object): object defining the photon selection.
@@ -755,37 +773,40 @@ class Data(DataContainer):
             mask = slice(None) if mask else slice(0)
         return mask
 
-    def get_A_em(self, ich):
+    def get_A_em(self, ich=0):
         """Returns a mask to select photons detected in the acceptor ch."""
         return self._get_ph_mask_single(ich, 'A_em')
 
-    def get_D_em(self, ich):
+    def get_D_em(self, ich=0):
         """Returns a mask to select photons detected in the donor ch."""
         return self._get_ph_mask_single(ich, 'A_em', negate=True)
 
-    def get_A_ex(self, ich):
+    def get_A_ex(self, ich=0):
         """Returns a mask to select photons in acceptor-excitation periods."""
         return self._get_ph_mask_single(ich, 'A_ex')
 
-    def get_D_ex(self, ich):
+    def get_D_ex(self, ich=0):
         """Returns a mask to select photons in donor-excitation periods."""
-        return self._get_ph_mask_single(ich, 'D_ex')
+        if self.ALEX:
+            return self._get_ph_mask_single(ich, 'D_ex')
+        else:
+            return slice(None)
 
-    def get_D_em_D_ex(self, ich):
+    def get_D_em_D_ex(self, ich=0):
         """Returns a mask of donor photons during donor-excitation."""
         if self.ALEX:
             return self.get_D_em(ich)*self.get_D_ex(ich)
         else:
             return self.get_D_em(ich)
 
-    def get_A_em_D_ex(self, ich):
+    def get_A_em_D_ex(self, ich=0):
         """Returns a mask of acceptor photons during donor-excitation."""
         if self.ALEX:
             return self.get_A_em(ich)*self.get_D_ex(ich)
         else:
             return self.get_A_em(ich)
 
-    def get_A_em_A_ex(self, ich):
+    def get_A_em_A_ex(self, ich=0):
         """Returns a mask of acceptor photons during acceptor-excitation."""
         return self.get_A_em(ich)*self.get_A_ex(ich)
 
@@ -924,7 +945,7 @@ class Data(DataContainer):
         if 'ph_times_m' in self:
             return max([t[-1]*self.clk_p for t in self.ph_times_m])
         elif 'ph_times_t' in self:
-            return self.ph_times_t.max()
+            return self.ph_times_t.max()*self.clk_p
         elif 'mburst' in self:
             return max([b_end(mb)[-1]*self.clk_p for mb in self.mburst])
         else:

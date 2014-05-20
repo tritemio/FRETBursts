@@ -18,6 +18,7 @@ import numpy as np
 import cPickle as pickle
 from dataload.multi_ch_reader import load_data_ordered16
 from dataload.smreader import load_sm
+from dataload.spcreader import load_spc
 from dataload.manta_reader import (load_manta_timestamps,
                                    load_xavier_manta_data,
                                    get_timestamps_detectors,
@@ -257,4 +258,102 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
     return d
 
 
+##
+# nsALEX loader functions
+#
+
+def nsalex(fname, BT=0, gamma=1.):
+    """Load a nsALEX file and return a Data() object.
+
+    This function returns a Data() object to which you need to apply the
+    an alternation selection before performing further analysis (background
+    estimation, burst search, etc.).
+
+    The pattern to load nsALEX data is the following:
+
+        d = loader.nsalex(fname=fname)
+        d.add(D_ON=(2850, 580), A_ON=(900, 2580))
+        nsalex_plot_alternation(d)
+
+    If the plot looks good apply the alternation with:
+
+        loader.nsalex_apply_period(d)
+
+    Now `d` is ready for futher processing like background estimation and
+    burst search.
+    """
+    ph_times_t, det_t, nanotime = load_spc(fname)
+
+    DONOR_ON = (10, 1500)
+    ACCEPT_ON = (2000, 3500)
+    nanotime_fsr = 4095
+
+    dx = Data(fname=fname, clk_p=50e-9, nch=1, ALEX=True, nsALEX=True,
+              D_ON=DONOR_ON, A_ON=ACCEPT_ON,
+              nanotime_fsr=nanotime_fsr,
+              ph_times_t=ph_times_t, det_t=det_t, nanotime_t=nanotime,
+              det_donor_accept=(4, 6),
+              )
+    return dx
+
+def nsalex_apply_period(d, delete_ph_t=True):
+    """Applies to the Data object `d` the alternation period previously set.
+
+    Note that you need first to load the data with :func:`nsalex` and second
+    to set the alternation parameters using `d.add()`.
+
+    The pattern to load nsALEX data is the following:
+
+        d = loader.nsalex(fname=fname)
+        d.add(D_ON=(2850, 580), A_ON=(900, 2580))
+        nsalex_plot_alternation(d)
+
+    If the plot looks good apply the alternation with:
+
+        loader.nsalex_apply_period(d)
+
+    Now `d` is ready for futher processing like background estimation and
+    burst search.
+    """
+    # Note: between boolean arrays * is equavilent to logical AND,
+    #       and + is equivalent to logical OR.
+
+    donor_ch, accept_ch  = d.det_donor_accept
+
+    # Mask for donor + acceptor detectors (discard other detectors)
+    d_ch_mask_t = (d.det_t == donor_ch)
+    a_ch_mask_t = (d.det_t == accept_ch)
+    da_ch_mask_t = d_ch_mask_t + a_ch_mask_t
+
+    # Masks for excitation periods
+    d_ex_mask_t = (d.nanotime_t > d.D_ON[0]) * (d.nanotime_t < d.D_ON[1])
+    a_ex_mask_t = (d.nanotime_t > d.A_ON[0]) * (d.nanotime_t < d.A_ON[1])
+    ex_mask_t = d_ex_mask_t + a_ex_mask_t  # Select only ph during Dex or Aex
+
+    # Total mask: D+A photons, and only during the excitation periods
+    mask = da_ch_mask_t * ex_mask_t  # logical AND
+
+    # Apply selection to timestamps and nanotime
+    ph_times = d.ph_times_t[mask]
+    nanotime = d.nanotime_t[mask]
+
+    # Apply selection to the emission masks
+    d_em = d_ch_mask_t[mask]
+    a_em = a_ch_mask_t[mask]
+    assert (d_em + a_em).all()
+    assert not (d_em * a_em).any()
+
+    # Apply selection to the excitation masks
+    d_ex = d_ex_mask_t[mask]
+    a_ex = a_ex_mask_t[mask]
+    assert (d_ex + a_ex).all()
+    assert not (d_ex * a_ex).any()
+
+    d.add(ph_times_m=[ph_times], nanotime=nanotime,
+          D_em=[d_em], A_em=[a_em], D_ex=[d_ex], A_ex=[a_ex],)
+
+    if delete_ph_t:
+        d.delete('ph_times_t')
+        d.delete('det_t')
+        d.delete('nanotime_t')
 
