@@ -7,21 +7,30 @@
 This module provides functions to fit gaussian distributions and gaussian
 distribution mixtures (2 components). Several fittings methods are provided.
 
-Single Gaussian distribution fit::
+Single Gaussian distribution fit:
 
-    gaussian_fit_hist()
-    gaussian_fit_cdf()
-    gaussian_fit_pdf()
+    * :func:`gaussian_fit_hist`
+    * :func:`gaussian_fit_cdf`
+    * :func:`gaussian_fit_pdf`
 
-Mixture of 2 Gaussian distribution fit::
+For 2-Gaussians fit we have the following models:
 
-    two_gaussian_fit_hist()
-    two_gaussian_fit_hist_min()
-    two_gaussian_fit_cdf()
-    two_gaussian_fit_EM()
+    * :func:`two_gauss_mix_pdf`: *PDF of 2-components Gaussians mixture*
+    * :func:`two_gauss_mix_ab`: *linear combination of 2 Gaussians*
+
+Main functions for mixture of 2 Gaussian distribution fit:
+
+    * :func:`two_gaussian_fit_hist` *histogram fit using `leastsq`*
+    * :func:`two_gaussian_fit_hist_min` *histogram fit using `minimize`*
+    * :func:`two_gaussian_fit_hist_min_ab` *the same but using _ab model*
+    * :func:`two_gaussian_fit_cdf` *curve fit of the CDF*
+    * :func:`two_gaussian_fit_EM` *Expectation-Maximization fit*
+    * :func:`two_gaussian_fit_EM_b` *the same with boundaries*
 
 Also, some functions to fit 2-D gaussian distributions and mixtures are
-implemented (needs more testing).
+implemented but not thoroughly tested.
+
+The reference documentation for **all** the functions follows.
 """
 from __future__ import division
 
@@ -296,7 +305,7 @@ def two_gaussian_fit_EM_b(s, p0=[0, 0.1, 0.6, 0.1, 0.5], weights=None,
         weights (array): optional weigths, same size as `s` (for ex.
             1/sigma^2 ~ nt).
 
-   Returns:
+    Returns:
         Array of parameters for the 2-gaussians (5 elements)
     """
     assert np.size(p0) == 5

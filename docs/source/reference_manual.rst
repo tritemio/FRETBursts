@@ -10,4 +10,5 @@ Contents:
     burst_selection
     background
     burstsearch
+    fit
     files_description

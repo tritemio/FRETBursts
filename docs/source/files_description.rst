@@ -80,3 +80,6 @@ or::
 ----------------
 
 .. automodule:: fretbursts.fit
+
+See :ref:`fit-section`.
+
