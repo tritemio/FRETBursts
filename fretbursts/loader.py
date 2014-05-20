@@ -158,13 +158,13 @@ def usalex(fname, BT=0, gamma=1., header=166, bytes_to_read=-1):
     an alternation selection before performing further analysis (background
     estimation, burst search, etc.).
 
-    The pattern to load usALEX data is the following:
+    The pattern to load usALEX data is the following::
 
         d = loader.usalex(fname=fname)
         d.add(D_ON=(2850, 580), A_ON=(900, 2580), alex_period=4000)
         plot_alternation_hist(d)
 
-    If the plot looks good apply the alternation with:
+    If the plot looks good apply the alternation with::
 
         loader.usalex_apply_period(d)
 
@@ -192,13 +192,13 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
     Note that you need first to load the data with :func:`usalex` and second
     to set the alternation parameters using `d.add()`.
 
-    The pattern to load usALEX data is the following:
+    The pattern to load usALEX data is the following::
 
         d = loader.usalex(fname=fname)
         d.add(D_ON=(2850, 580), A_ON=(900, 2580), alex_period=4000)
         plot_alternation_hist(d)
 
-    If the plot looks good apply the alternation with:
+    If the plot looks good apply the alternation with::
 
         loader.usalex_apply_period(d)
 
@@ -269,13 +269,13 @@ def nsalex(fname, BT=0, gamma=1.):
     an alternation selection before performing further analysis (background
     estimation, burst search, etc.).
 
-    The pattern to load nsALEX data is the following:
+    The pattern to load nsALEX data is the following::
 
         d = loader.nsalex(fname=fname)
         d.add(D_ON=(2850, 580), A_ON=(900, 2580))
         nsalex_plot_alternation(d)
 
-    If the plot looks good apply the alternation with:
+    If the plot looks good apply the alternation with::
 
         loader.nsalex_apply_period(d)
 
@@ -302,13 +302,13 @@ def nsalex_apply_period(d, delete_ph_t=True):
     Note that you need first to load the data with :func:`nsalex` and second
     to set the alternation parameters using `d.add()`.
 
-    The pattern to load nsALEX data is the following:
+    The pattern to load nsALEX data is the following::
 
         d = loader.nsalex(fname=fname)
         d.add(D_ON=(2850, 580), A_ON=(900, 2580))
         nsalex_plot_alternation(d)
 
-    If the plot looks good apply the alternation with:
+    If the plot looks good apply the alternation with::
 
         loader.nsalex_apply_period(d)
 
