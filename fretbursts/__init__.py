@@ -15,7 +15,7 @@
  to load the common namespace used in the example notebooks.
 """
 
-__version__ = '0.3.dev1'
+__version__ = '0.3.dev2'
 
 __all__ = [
         # Library modules and functions
