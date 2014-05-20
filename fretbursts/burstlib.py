@@ -773,40 +773,40 @@ class Data(DataContainer):
             mask = slice(None) if mask else slice(0)
         return mask
 
-    def get_A_em(self, ich):
+    def get_A_em(self, ich=0):
         """Returns a mask to select photons detected in the acceptor ch."""
         return self._get_ph_mask_single(ich, 'A_em')
 
-    def get_D_em(self, ich):
+    def get_D_em(self, ich=0):
         """Returns a mask to select photons detected in the donor ch."""
         return self._get_ph_mask_single(ich, 'A_em', negate=True)
 
-    def get_A_ex(self, ich):
+    def get_A_ex(self, ich=0):
         """Returns a mask to select photons in acceptor-excitation periods."""
         return self._get_ph_mask_single(ich, 'A_ex')
 
-    def get_D_ex(self, ich):
+    def get_D_ex(self, ich=0):
         """Returns a mask to select photons in donor-excitation periods."""
         if self.ALEX:
             return self._get_ph_mask_single(ich, 'D_ex')
         else:
             return slice(None)
 
-    def get_D_em_D_ex(self, ich):
+    def get_D_em_D_ex(self, ich=0):
         """Returns a mask of donor photons during donor-excitation."""
         if self.ALEX:
             return self.get_D_em(ich)*self.get_D_ex(ich)
         else:
             return self.get_D_em(ich)
 
-    def get_A_em_D_ex(self, ich):
+    def get_A_em_D_ex(self, ich=0):
         """Returns a mask of acceptor photons during donor-excitation."""
         if self.ALEX:
             return self.get_A_em(ich)*self.get_D_ex(ich)
         else:
             return self.get_A_em(ich)
 
-    def get_A_em_A_ex(self, ich):
+    def get_A_em_A_ex(self, ich=0):
         """Returns a mask of acceptor photons during acceptor-excitation."""
         return self.get_A_em(ich)*self.get_A_ex(ich)
 
