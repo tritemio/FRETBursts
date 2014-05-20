@@ -34,16 +34,27 @@
         <h1>
 <a name="fretbursts" class="anchor" href="#fretbursts"><span class="octicon octicon-link"></span></a>FRETBursts</h1>
 
+<blockquote>
+<p><em>Quick links: <a href="http://fretbursts.readthedocs.org/index.html">Reference documentation</a>,  <a href="https://github.com/tritemio/FRETBursts_notebooks">FRETBursts tutorials</a></em></p>
+</blockquote>
+
 <h2>
 <a name="project-description" class="anchor" href="#project-description"><span class="octicon octicon-link"></span></a>Project description</h2>
 
 <p><strong><a href="https://github.com/tritemio/FRETBursts">FRETBursts</a></strong> is an opensource
-toolkit for analysis of timestamps series from confocal single-molecule FRET
-(smFRET) experiments. In the spirit of
-reproducible research, this software allows the authors and others to
-reproduce previous research and to perform new one. FRETBursts is open to
-public scrutiny and the authors are committed to promptly fix bugs
+software toolkit for analysis of timestamps series from confocal
+<a href="http://en.wikipedia.org/wiki/Single-molecule_FRET">single-molecule FRET</a>
+(smFRET) experiments on freely diffusing molecules.</p>
+
+<p>In the spirit of reproducible research, this software allows the authors and
+others to reproduce previous research and to perform new one. FRETBursts
+is open to public scrutiny and the authors are committed to promptly fix bugs
 whenever they are discovered.</p>
+
+<p>Issues can be reported or discussed on the <a href="https://github.com/tritemio/FRETBursts/issues?state=open">issue tracker</a>. 
+Fixes or enhacements can be sent with a <a href="https://help.github.com/articles/creating-a-pull-request">github pull request</a>. 
+Typo fixes or small corrections can be made directly online 
+by clicking on the GiHub edit button for a specific file.</p>
 
 <p>FRETBursts allows to analyze both <a href="http://dx.doi.org/10.1126/science.283.5408.1676">single-spot</a>
 and <a href="http://dx.doi.org/10.1117/12.2003704">multi-spot smFRET</a> data.
@@ -53,11 +64,11 @@ scheme is supported as well.</p>
 <p>Main analysis features includes:</p>
 
 <ul>
-<li>time-dependent background estimation (for example in 30s windows)</li>
-<li>sliding-window burst search with background-dependent threshold</li>
+<li>background estimation as a function of time (for example in 30s windows)</li>
+<li>sliding-window burst search with adaptive (background-dependent) threshold</li>
 <li>burst corrections: background, leakage (bleed-through), direct excitation,
 gamma-factor</li>
-<li>per-bursts E and S calculation</li>
+<li>per-burst quatities (# photons, burst duration, E, S, etc...)</li>
 <li>post-burst-search selection based on multiple criteria (for ex.:
 burst size, burst width, E, S, ...). Defining a new burst selection
 criterium requires only a couple of lines of code.</li>
@@ -124,8 +135,9 @@ rich text, math and graphics with (live) code. For more info please visit:</p>
 </ul><h2>
 <a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
 
-<p>Briefly, the installation consist in installing a scientific python distribution,
-downloading FRETBursts sources, and setting a folder for the FRETBursts notebooks.</p>
+<p>Briefly, the installation consist in installing a scientific python
+distribution, downloading FRETBursts sources, and setting a folder for the
+FRETBursts notebooks.</p>
 
 <p>FRETBursts is loaded running a small script (<code>load_fretbursts.py</code>) placed
 in the notebooks folder. The first time, you need to edit <code>load_fretbursts.py</code>
@@ -147,31 +159,36 @@ will work as well.</p>
 <p>Once a python distribution is installed, download the latest version
 of <a href="https://github.com/tritemio/FRETBursts">FRETBursts</a> from <em>GitHub</em>.
 If new to git, we recommend to use the graphical application
-<a href="http://www.sourcetreeapp.com/">SourceTree</a> (selecting the option of
-using the embedded git).</p>
+<a href="http://www.sourcetreeapp.com/">SourceTree</a>, selecting the option of
+using the embedded git. FRETBursts will look for git in the system path
+or in the SourceTree embedded path and will use it to display the
+current revision ID in the notebook.</p>
 
-<p>The most user friendly way to use FRETBursts is through an IPython Notebook.
+<p>The most convenient way to use FRETBursts is through an IPython Notebook.
 The following paragraph shows how to configure it.</p>
 
 <h4>
 <a name="configuring-ipython-notebook" class="anchor" href="#configuring-ipython-notebook"><span class="octicon octicon-link"></span></a>Configuring IPython Notebook</h4>
 
-<p>When starting the IPython server, it will show a default folder for the notebooks.
-You can create a launcher to start the IPython Notebook server on any local folder.</p>
+<p>When starting the IPython server, it will show a default folder for the
+notebooks. You can create a launcher to start the IPython Notebook server
+on any local folder.</p>
 
-<p>To create the launcher, right click on the
-<em>IPython Notebook icon</em> -&gt; <em>Properties</em> and paste
+<p>To create a new launcher, copy the IPython Notebook icon from the windows
+menu to some convenient location (i.e. the Desktop or your notebook folder).
+Then, right click on the <em>IPython Notebook icon</em> -&gt; <em>Properties</em> and paste
 the notebook folder in the <em>Start in</em> field.</p>
 
-<p>Now, on double click, a browser should pop up showing the list
-of notebooks. Chrome browser is suggested.</p>
+<p>Now, on double click, a browser showing the list of notebooks should open.
+Chrome browser is suggested.</p>
 
 <h3>
 <a name="linux-and-mac-os-x" class="anchor" href="#linux-and-mac-os-x"><span class="octicon octicon-link"></span></a>Linux and Mac OS X</h3>
 
 <p>On Linux or Mac OS X you can also use the <a href="https://store.continuum.io/cshop/anaconda/">Anaconda</a> distribution.</p>
 
-<p>Alternatively, these are the software dependencies (hint: on Mac OS X you can use MacPorts):</p>
+<p>Alternatively, these are the software dependencies (hint: on Mac OS X you can
+use MacPorts):</p>
 
 <ul>
 <li>Python 2.7</li>
@@ -191,12 +208,13 @@ These notebooks can be executed locally using publically available datasets
 <ul>
 <li><a href="http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%2520-%2520usALEX%2520Workflow.ipynb">FRETBursts - usALEX Workflow</a></li>
 <li><a href="http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%2520-%25208-spot%2520smFRET%2520analysis.ipynb">FRETBursts - 8-spot smFRET analysis</a></li>
+<li><a href="http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%20-%20nsALEX%20example.ipynb">FRETBursts - nsALEX example</a></li>
 </ul><p>The FRETBursts documentation is hosted on ReadTheDocs:</p>
 
 <ul>
 <li><a href="http://fretbursts.readthedocs.org/">FRETBursts Documentation</a></li>
-</ul><p>We provide a public dataset [1] to testing and demonstration of the FRETBursts
-functionalities. These data files are needed to run the tutorials.</p>
+</ul><p>We provide a public dataset [1] to test and demonstrate FRETBursts
+functionalities. These data files are needed to re-run the tutorials.</p>
 
 <p>[1] A. Ingargiola, S. Chung (2014): smFRET example datasets for the FRETBursts
 software. <a href="http://dx.doi.org/10.6084/m9.figshare.1019906">DOI 10.6084/m9.figshare.1019906</a></p>
@@ -204,8 +222,8 @@ software. <a href="http://dx.doi.org/10.6084/m9.figshare.1019906">DOI 10.6084/m9
 <h2>
 <a name="development" class="anchor" href="#development"><span class="octicon octicon-link"></span></a>Development</h2>
 
-<p>The documentation is built using <a href="http://sphinx-doc.org/">Sphinx</a> (1.2.2 or later) and
-the <a href="https://pypi.python.org/pypi/sphinxcontrib-napoleon">napoleon extension</a>.
+<p>The documentation is built using <a href="http://sphinx-doc.org/">Sphinx</a> (1.2.2 or
+later) and the <a href="https://pypi.python.org/pypi/sphinxcontrib-napoleon">napoleon extension</a>.
 A notebook that builds the HTML docs can be found in <code>notebooks/dev/docs/</code>.</p>
 
 <p>The unit tests are written with <a href="http://pytest.org/latest/">pytest</a>.
