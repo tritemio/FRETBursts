@@ -8,7 +8,7 @@ Load this module as::
 
     from legacy_names import *
 
-to load a bunch of names once available when loading FRETBurts. This module
+to load a bunch of names once available when loading FRETBursts. This module
 is provided as a compatibility layer to be used to run old scripts or notebooks.
 
 Please don't import this module on new code.
