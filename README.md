@@ -1,7 +1,7 @@
 FRETBursts
 ==========
 
-> *Quick links: [Reference documentation](http://fretbursts.readthedocs.org/index.html),  [FRETBursts tutorials](https://github.com/tritemio/FRETBursts_notebooks)*
+> *Quick links: [Reference documentation](http://fretbursts.readthedocs.org/index.html), [FRETBursts tutorials](https://github.com/tritemio/FRETBursts_notebooks)*
 
 Project description
 -------------------
@@ -17,7 +17,7 @@ is open to public scrutiny and the authors are committed to promptly fix bugs
 whenever they are discovered.
 
 Issues can be reported or discussed on the [issue tracker](https://github.com/tritemio/FRETBursts/issues?state=open).
-Fixes or enhacements can be sent with a [github pull request](https://help.github.com/articles/creating-a-pull-request).
+Fixes or enhancements can be sent with a [github pull request](https://help.github.com/articles/creating-a-pull-request).
 Typo fixes or small corrections can be made directly online
 by clicking on the GiHub edit button for a specific file.
 
@@ -32,7 +32,7 @@ Main analysis features includes:
 - sliding-window burst search with adaptive (background-dependent) threshold
 - burst corrections: background, leakage (bleed-through), direct excitation,
 gamma-factor
-- per-burst quatities (# photons, burst duration, E, S, etc...)
+- per-burst quantities (# photons, burst duration, E, S, etc...)
 - post-burst-search selection based on multiple criteria (for ex.:
 burst size, burst width, E, S, ...). Defining a new burst selection
 criterium requires only a couple of lines of code.
@@ -106,35 +106,35 @@ in the notebooks folder. The first time you execute FRETBursts, you need to
 edit `load_fretbursts.py` to specify where the FRETBursts source directory is
 on your system.
 
-You can find a detailed description of the installation process in the
-[FRETBursts documentation](http://fretbursts.readthedocs.org/).
+A detailed description of the installation can be found in:
+
+* [FRETBursts documentation: Getting started](http://fretbursts.readthedocs.org/getting_started.html)
 
 
 ##How to use
+The official FRETBursts documentation is built and hosted by ReadTheDocs:
+
+* [FRETBursts Documentation](http://fretbursts.readthedocs.org/)
 
 We provide a list of IPython notebooks showing typical workflows
 for smFRET analysis and illustrating FRETBursts functionalities.
-These notebooks can be viewed online or downloaded and executed locally using
-publically available datasets (see below). You can read the tutorials online
-at the following locations:
+These notebooks can be either viewed online or downloaded and executed locally
+using publically available datasets (see below). You can read the tutorials
+online at the following locations:
 
 * [FRETBursts - usALEX Workflow](http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%2520-%2520usALEX%2520Workflow.ipynb)
 * [FRETBursts - 8-spot smFRET analysis](http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%2520-%25208-spot%2520smFRET%2520analysis.ipynb)
 * [FRETBursts - nsALEX example](http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%20-%20nsALEX%20example.ipynb)
 
-To downloaded the tutorials go to the [FRETBursts_notebooks](https://github.com/tritemio/FRETBursts_notebooks)
+You can download the tutorials from the [FRETBursts_notebooks](https://github.com/tritemio/FRETBursts_notebooks)
 repository.
 
 > *NOTE:* We include an unevaluated copy of the tutorials in the FRETBursts
 > sources in the
 > [notebooks folder](https://github.com/tritemio/FRETBursts/tree/master/notebooks).
 
-The FRETBursts documentation is hosted on ReadTheDocs:
-
-* [FRETBursts Documentation](http://fretbursts.readthedocs.org/)
-
 We provide a public dataset [1] to test and demonstrate FRETBursts
-functionalities. These data files are needed to re-run the tutorials.
+functionalities. These dataset files are needed to re-run the tutorials.
 
 [1] A. Ingargiola, S. Chung (2014): smFRET example datasets for the FRETBursts
 software. [DOI 10.6084/m9.figshare.1019906](http://dx.doi.org/10.6084/m9.figshare.1019906)
@@ -172,4 +172,3 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You can find a full copy of the license in the file LICENSE.txt
-
