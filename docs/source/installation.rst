@@ -15,10 +15,9 @@ Installing Python for scientific computing
 On all the main platforms, the easiest way to install python and all
 the scientific packages is using a python distribution like
 `Continuum Anaconda <https://store.continuum.io/cshop/anaconda/>`__ or
-`Enthought Canopy <https://www.enthought.com/products/canopy/>`__.
-
-By installing a python distribution all the python dependencies are
-automatically met.
+`Enthought Canopy <https://www.enthought.com/products/canopy/>`__. Both
+distribution include, in the free version, all the needed software (and much
+more).
 
 FRETBursts has been tested on Anaconda 1.9 or newer.
 
@@ -30,7 +29,7 @@ If you prefer a manual installation, FRETBursts dependencies are:
  - Python 2.7
  - Numpy/Scipy (any version from 2013 on)
  - Matplotlib with qt (pyside) backend (1.3.x or greater)
- - IPython 1.x (2.x suggested)
+ - IPython 1.x (2.x recommended)
  - PyTables 3.x (optional)
  - a modern browser (Chrome suggested)
 
@@ -52,7 +51,7 @@ Unless you are familiar with Git we suggest to install a graphical
 interface like `SourceTree <http://www.sourcetreeapp.com/>`__.
 
 On **Windows**, install SourceTree and, when asked, select the
-single-user installation and to download the embedded Git.
+single-user installation and choose to download the embedded Git.
 
 On **Mac OSX**, install SourceTree and configure it to use a system-wide
 Git installation. Git can be installed system-wide using the
@@ -78,32 +77,44 @@ current folder):
 
 ::
 
-    git clone clone_URL
+    git clone https://github.com/tritemio/FRETBursts.git
 
 
 Configure the IPython Notebook
 ------------------------------
 
-To use the ipython notebook you have to launch a local notebook server from the folder
-that contains the notebooks files.
+To use the IPython Notebook you have to launch a local notebook server from
+the folder containing the notebooks files.
 
-From the terminal:
+On windows, you can create a new IPython launcher by copying the IPython
+Notebook icon from the windows menu to some convenient location (i.e. the
+Desktop or your notebook folder). Then you need to modify the *Start in* field
+as foloows: right click on the *IPython Notebook icon* -> *Properties*, paste
+your desired notebook folder in the *Start in* field.
+
+On other platforms, you can start IPython Notebook from the terminal with:
 
 ::
-cd my_folder/FRETBursts_notebooks
-ipython notebook
 
-On windows, you can configure an IPython launcher by copying the IPython Notebook
-icon and modifying the Start in filed. In detail: right click on the
-*IPython Notebook icon* -> *Properties* and paste the notebook folder in the
-*Start in* field.
+    cd my_notebook_folder
+    ipython notebook
+
+
+.. Note ::
+
+    The preferred browser is Chrome or Firefox. The use of MS Explorer is
+    discouraged as its implementation of web standards is incomplete and not
+    compliant.
 
 
 Downloading the data-samples
 ----------------------------
 
-Data samples to run FRETBursts are provided separately from the source.
-You can download the datasets **here (TODO)**.
+We provide public datasets that are used for the FRETBursts tutorials
+and for testing. These datasets are free to used for any purposes
+(CC0 licence). If you use these datasets please cite as:
+
+* Ingargiola, Antonino; Chung, Sangyoon (2014): smFRET example datasets for the FRETBursts software. figshare. `DOI 10.6084/m9.figshare.1019906 <http://dx.doi.org/10.6084/m9.figshare.1019906>`_
 
 
 Installing a compiler (optional)
@@ -120,5 +131,8 @@ On **Windows**, the MS Visual Studio compiler is preferred. To install
 it search on internet for the files VS2008ExpressWithSP1ENUX1504728.iso
 and GRMSDKX\_EN\_DVD.iso.
 
-On **Mac OSX** you should install the LLVM compiler included in Xcode
-(untested).
+On **Mac OSX** you should install the LLVM compiler included in Xcode.
+
+*See also:*
+
+* :doc:`cython`

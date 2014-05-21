@@ -16,9 +16,9 @@ others to reproduce previous research and to perform new one. FRETBursts
 is open to public scrutiny and the authors are committed to promptly fix bugs
 whenever they are discovered.
 
-Issues can be reported or discussed on the [issue tracker](https://github.com/tritemio/FRETBursts/issues?state=open). 
-Fixes or enhacements can be sent with a [github pull request](https://help.github.com/articles/creating-a-pull-request). 
-Typo fixes or small corrections can be made directly online 
+Issues can be reported or discussed on the [issue tracker](https://github.com/tritemio/FRETBursts/issues?state=open).
+Fixes or enhacements can be sent with a [github pull request](https://help.github.com/articles/creating-a-pull-request).
+Typo fixes or small corrections can be made directly online
 by clicking on the GiHub edit button for a specific file.
 
 FRETBursts allows to analyze both [single-spot](http://dx.doi.org/10.1126/science.283.5408.1676)
@@ -98,75 +98,36 @@ rich text, math and graphics with (live) code. For more info please visit:
 ##Installation
 
 Briefly, the installation consist in installing a scientific python
-distribution, downloading FRETBursts sources, and setting a folder for the
+distribution, downloading FRETBursts sources, and setting up a folder for the
 FRETBursts notebooks.
 
 FRETBursts is loaded running a small script (`load_fretbursts.py`) placed
-in the notebooks folder. The first time, you need to edit `load_fretbursts.py`
-to specify where the FRETBursts source directory is on your system.
+in the notebooks folder. The first time you execute FRETBursts, you need to
+edit `load_fretbursts.py` to specify where the FRETBursts source directory is
+on your system.
 
-In the following sections you can find more detailed installation instructions
-for the different platforms.
-
-###Windows
-
-In order to run the code you need to install a scientific python
-distribution like [Anaconda](https://store.continuum.io/cshop/anaconda/).
-The free version of Anaconda includes all the needed dependencies.
-Any other scientific python distribution (for example
-[Enthought Canopy](https://www.enthought.com/products/canopy/))
-will work as well.
-
-Once a python distribution is installed, download the latest version
-of [FRETBursts](https://github.com/tritemio/FRETBursts) from *GitHub*.
-If new to git, we recommend to use the graphical application
-[SourceTree](http://www.sourcetreeapp.com/), selecting the option of
-using the embedded git. FRETBursts will look for git in the system path
-or in the SourceTree embedded path and will use it to display the
-current revision ID in the notebook.
-
-The most convenient way to use FRETBursts is through an IPython Notebook.
-The following paragraph shows how to configure it.
-
-####Configuring IPython Notebook
-
-When starting the IPython server, it will show a default folder for the
-notebooks. You can create a launcher to start the IPython Notebook server
-on any local folder.
-
-To create a new launcher, copy the IPython Notebook icon from the windows
-menu to some convenient location (i.e. the Desktop or your notebook folder).
-Then, right click on the *IPython Notebook icon* -> *Properties* and paste
-the notebook folder in the *Start in* field.
-
-Now, on double click, a browser showing the list of notebooks should open.
-Chrome browser is suggested.
-
-###Linux and Mac OS X
-
-On Linux or Mac OS X you can also use the [Anaconda](https://store.continuum.io/cshop/anaconda/) distribution.
-
-Alternatively, these are the software dependencies (hint: on Mac OS X you can
-use MacPorts):
-
-- Python 2.7
-- Numpy/Scipy (any version from 2013 on)
-- Matplotlib with qt (pyside) backend (1.3.x or greater)
-- IPython 1.x (2.x suggested)
-- PyTables 3.x (optional)
-- a modern browser (Chrome suggested)
+You can find a detailed description of the installation process in the
+[FRETBursts documentation](http://fretbursts.readthedocs.org/).
 
 
 ##How to use
 
 We provide a list of IPython notebooks showing typical workflows
 for smFRET analysis and illustrating FRETBursts functionalities.
-These notebooks can be executed locally using publically available datasets
-(see below).
+These notebooks can be viewed online or downloaded and executed locally using
+publically available datasets (see below). You can read the tutorials online
+at the following locations:
 
 * [FRETBursts - usALEX Workflow](http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%2520-%2520usALEX%2520Workflow.ipynb)
 * [FRETBursts - 8-spot smFRET analysis](http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%2520-%25208-spot%2520smFRET%2520analysis.ipynb)
 * [FRETBursts - nsALEX example](http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%20-%20nsALEX%20example.ipynb)
+
+To downloaded the tutorials go to the [FRETBursts_notebooks](https://github.com/tritemio/FRETBursts_notebooks)
+repository.
+
+> *NOTE:* We include an unevaluated copy of the tutorials in the FRETBursts
+> sources in the
+> [notebooks folder](https://github.com/tritemio/FRETBursts/tree/master/notebooks).
 
 The FRETBursts documentation is hosted on ReadTheDocs:
 
@@ -182,10 +143,12 @@ software. [DOI 10.6084/m9.figshare.1019906](http://dx.doi.org/10.6084/m9.figshar
 
 The documentation is built using [Sphinx](http://sphinx-doc.org/) (1.2.2 or
 later) and the [napoleon extension](https://pypi.python.org/pypi/sphinxcontrib-napoleon).
-A notebook that builds the HTML docs can be found in `notebooks/dev/docs/`.
+A notebook that builds the HTML docs can be found in
+[`notebooks/dev/docs/`](https://github.com/tritemio/FRETBursts/tree/master/notebooks/dev/docs).
 
 The unit tests are written with [pytest](http://pytest.org/latest/).
-Notebooks that execute the unit tests can be found in `notebooks/dev/test/`.
+Notebooks that execute the unit tests can be found in
+[`notebooks/dev/test/`](https://github.com/tritemio/FRETBursts/tree/master/notebooks/dev/tests).
 In the same folder a notebook for regression testing is provided.
 
 
