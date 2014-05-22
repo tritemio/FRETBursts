@@ -699,9 +699,8 @@ class Data(DataContainer):
                 See :class:`fretbursts.ph_sel.Ph_sel` for details.
         """
         assert type(ph_sel) is Ph_sel
-        if not self.ALEX and ph_sel.Aex is not None:
-            raise ValueError('Used acceptor excitation with non-ALEX data.')
 
+        # This is the only case in which Aex='DAem' for non-ALEX data is OK
         if ph_sel == Ph_sel('all'):
             # Note that slice(None) is equivalent to [:].
             # Also, numpy arrays are not copies when sliced.
@@ -709,6 +708,10 @@ class Data(DataContainer):
             # Note: the drawback is that the slice cannot be indexed
             #       (where a normal boolean array would)
             return slice(None)
+
+        # Any other selection with Aex != None requires ALEX
+        if not self.ALEX and ph_sel.Aex is not None:
+            raise ValueError('Used acceptor excitation with non-ALEX data.')
 
         # Base selections
         elif ph_sel == Ph_sel(Dex='Dem'):
