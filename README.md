@@ -53,7 +53,7 @@ This software aims to be a reference implementation for both established
 and novel algorithms related to bursts analysis of smFRET data.
 
 Despite the broad diffusion of smFRET experiments on freely diffusing
-molecules, before FRETBursts, no complete smFRET burst analysis software is
+molecules, before FRETBursts, no complete smFRET burst analysis software was
 freely available on internet. Each group have re-implemented the analysis
 in-house with little or no code sharing. This situation is clearly sub-optimal
 either because all the advances in the burst analysis are not readily
