@@ -69,6 +69,8 @@ Software Environment
 --------------------
 FRETBursts is written in the [python programming language](http://www.python.org/)
 using the standard scientific-python stack of libraries (Numpy, Scipy, Matplotlib, IPython).
+Not only FRETBursts but also the entire software stack on which it is built upon
+is open-source and freely available to any scientist.
 
 FRETBursts uses consolidated software engineering techniques (version control,
 unit testing, regression testing) and a workflow based on
