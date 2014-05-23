@@ -2,7 +2,7 @@ Installation
 ============
 
 FRETBursts is currently distributed as source code.
-The installation consist in installing a scientific python
+The installation consists in installing a scientific python
 distribution, downloading FRETBursts sources, and setting a folder
 for the FRETBursts notebooks.
 
@@ -16,7 +16,7 @@ On all the main platforms, the easiest way to install python and all
 the scientific packages is using a python distribution like
 `Continuum Anaconda <https://store.continuum.io/cshop/anaconda/>`__ or
 `Enthought Canopy <https://www.enthought.com/products/canopy/>`__. Both
-distribution include, in the free version, all the needed software (and much
+distributions include, in the free version, all the needed software (and much
 more).
 
 FRETBursts has been tested on Anaconda 1.9 or newer.
@@ -70,7 +70,7 @@ line.
 
 From SourceTree, click on *Clone/New* -> *Clone Repository* and paste
 the **clone URL** in *Source Path/URL*. You can choose where to put the
-sources
+sources.
 
 From the command line, type (FRETBursts will be downloaded in the
 current folder):
@@ -89,7 +89,7 @@ the folder containing the notebooks files.
 On windows, you can create a new IPython launcher by copying the IPython
 Notebook icon from the windows menu to some convenient location (i.e. the
 Desktop or your notebook folder). Then you need to modify the *Start in* field
-as foloows: right click on the *IPython Notebook icon* -> *Properties*, paste
+as follows: right click on the *IPython Notebook icon* -> *Properties*, paste
 your desired notebook folder in the *Start in* field.
 
 On other platforms, you can start IPython Notebook from the terminal with:

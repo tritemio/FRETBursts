@@ -505,7 +505,7 @@ class Data(DataContainer):
     "burst selection" with `Sel()` function.
 
     To add or delete data-attributes use `.add()` or `.delete()` methods.
-    In the follow all the standard data-attributes are listed.
+    All the standard data-attributes are listed below.
 
     Note:
         Attributes of type "*list*" contain one element per channel.

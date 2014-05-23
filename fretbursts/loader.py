@@ -154,7 +154,7 @@ def _select_range(times, period, edges):
 def usalex(fname, BT=0, gamma=1., header=166, bytes_to_read=-1):
     """Load a usALEX file and return a Data() object.
 
-    This function returns a Data() object to which you need to apply the
+    This function returns a Data() object to which you need to apply
     an alternation selection before performing further analysis (background
     estimation, burst search, etc.).
 
@@ -168,8 +168,8 @@ def usalex(fname, BT=0, gamma=1., header=166, bytes_to_read=-1):
 
         loader.usalex_apply_period(d)
 
-    Now `d` is ready for futher processing like background estimation and
-    burst search.
+    Now `d` is ready for futher processing such as background estimation,
+    burst search, etc...
     """
     print " - Loading '%s' ... " % fname
     ph_times_t, det_t = load_sm(fname, header=header)
@@ -189,7 +189,7 @@ def usalex(fname, BT=0, gamma=1., header=166, bytes_to_read=-1):
 def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
     """Applies to the Data object `d` the alternation period previously set.
 
-    Note that you need first to load the data with :func:`usalex` and second
+    Note that you first need to load the data with :func:`usalex` and then
     to set the alternation parameters using `d.add()`.
 
     The pattern to load usALEX data is the following::
@@ -202,8 +202,8 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
 
         loader.usalex_apply_period(d)
 
-    Now `d` is ready for futher processing like background estimation and
-    burst search.
+    Now `d` is ready for futher processing such as background estimation,
+    burst search, etc...
     """
     donor_ch, accept_ch  = d.det_donor_accept
     # Remove eventual ch different from donor or acceptor
@@ -265,7 +265,7 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
 def nsalex(fname, BT=0, gamma=1.):
     """Load a nsALEX file and return a Data() object.
 
-    This function returns a Data() object to which you need to apply the
+    This function returns a Data() object to which you need to apply
     an alternation selection before performing further analysis (background
     estimation, burst search, etc.).
 
@@ -279,8 +279,8 @@ def nsalex(fname, BT=0, gamma=1.):
 
         loader.nsalex_apply_period(d)
 
-    Now `d` is ready for futher processing like background estimation and
-    burst search.
+    Now `d` is ready for futher processing such as background estimation,
+    burst search, etc...
     """
     ph_times_t, det_t, nanotime = load_spc(fname)
 
@@ -299,7 +299,7 @@ def nsalex(fname, BT=0, gamma=1.):
 def nsalex_apply_period(d, delete_ph_t=True):
     """Applies to the Data object `d` the alternation period previously set.
 
-    Note that you need first to load the data with :func:`nsalex` and second
+    Note that you first need to load the data with :func:`usalex` and then
     to set the alternation parameters using `d.add()`.
 
     The pattern to load nsALEX data is the following::
@@ -312,8 +312,8 @@ def nsalex_apply_period(d, delete_ph_t=True):
 
         loader.nsalex_apply_period(d)
 
-    Now `d` is ready for futher processing like background estimation and
-    burst search.
+    Now `d` is ready for futher processing such as background estimation,
+    burst search, etc...
     """
     # Note: between boolean arrays * is equavilent to logical AND,
     #       and + is equivalent to logical OR.
