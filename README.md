@@ -19,7 +19,7 @@ whenever they are discovered.
 Issues can be reported or discussed on the [issue tracker](https://github.com/tritemio/FRETBursts/issues?state=open).
 Fixes or enhancements can be sent with a [github pull request](https://help.github.com/articles/creating-a-pull-request).
 Typo fixes or small corrections can be made directly online
-by clicking on the GiHub edit button for a specific file.
+by clicking on the GitHub edit button for a specific file.
 
 FRETBursts allows to analyze both [single-spot](http://dx.doi.org/10.1126/science.283.5408.1676)
 and [multi-spot smFRET](http://dx.doi.org/10.1117/12.2003704) data.
@@ -55,8 +55,8 @@ and novel algorithms related to bursts analysis of smFRET data.
 Despite the broad diffusion of smFRET experiments on freely diffusing
 molecules, before FRETBursts, no complete smFRET burst analysis software was
 freely available on internet. Each group have re-implemented the analysis
-in-house with little or no code sharing. This situation is clearly sub-optimal
-either because all the advances in the burst analysis are not readily
+in-house with little or no code sharing. This is clearly sub-optimal
+either because specific advances in the burst analysis are not readily
 available to a wide public of smFRET users and because subtle differences in
 implementation make the comparison of experiments performed by different
 groups problematic.
@@ -70,7 +70,7 @@ Software Environment
 FRETBursts is written in the [python programming language](http://www.python.org/)
 using the standard scientific-python stack of libraries (Numpy, Scipy, Matplotlib, IPython).
 Not only FRETBursts but also the entire software stack on which it is built upon
-is open-source and freely available to any scientist.
+are open-source and freely available to any scientist.
 
 FRETBursts uses consolidated software engineering techniques (version control,
 unit testing, regression testing) and a workflow based on
