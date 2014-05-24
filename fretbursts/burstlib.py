@@ -1365,8 +1365,8 @@ class Data(DataContainer):
             verbose=False, mute=False, pure_python=False):
         """Performs a burst search with specified parameters.
 
-        This method performs a sliding-window burst search and does not
-        require binning the timestamps. The burst starts when the rate of `m`
+        This method performs a sliding-window burst search without
+        binning the timestamps. The burst starts when the rate of `m`
         photons is above a minimum rate, and stops when the rate falls below
         the threshold.
 
@@ -1377,8 +1377,11 @@ class Data(DataContainer):
             m (int): number of consecutive photons used to compute the
                 photon rate.
             L (int): minimum number of photons in burst
-            P (float): Probability to detect non-Poisson bursts. If not None
-                this overrides `F`.
+            P (float): threshold for burst detection expressed as a
+                probability that a detected bursts is not due to a Poisson
+                background. If not None, `P` overrides `F`. Note that the
+                background process is experimentally super-Poisson so this
+                probability is not physically meaningful.
             F (float): if `P` is None: min.rate/bg.rate ratio for burst search
                 else: `P` refers to a Poisson rate = bg_rate*F
             min_rate (float or list/array): min. rate in cps for burst start.

@@ -21,7 +21,7 @@ class Ph_sel(namedtuple('Ph_sel', ['Dex', 'Aex'])):
     The class must be called with at least one keyword argument or using
     the string 'all' as the only argument. Calling `Ph_sel('all')` is
     equivalent to `Ph_sel(Dex='DAem', Aex='DAem')`.
-    Not specifying a keyword argument is equivalet to setting it to None.
+    Not specifying a keyword argument is equivalent to setting it to None.
 
     Example:
         `Ph_sel(Dex='DAem', Aex='DAem')` or `Ph_sel('all')` select all photons.
