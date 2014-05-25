@@ -1266,8 +1266,12 @@ class Data(DataContainer):
                 print "WARNING: BS prob. th. with modified BG rate (F=%.1f)"%F
             find_T = lambda m, Fi, Pi, bg: find_optimal_T_bga(bg*Fi, m, 1-Pi)
         TT, T, rate_th = [], [], []
+        bg_Dex = [bg_dd + bg_ad for bg_dd, bg_ad in
+                        zip(self.bg_dd, self.bg_ad)]
         BG = {Ph_sel('all'): self.bg, Ph_sel(Dex='Dem'): self.bg_dd,
-              Ph_sel(Dex='Aem'): self.bg_ad}
+              Ph_sel(Dex='Aem'): self.bg_ad, Ph_sel(Dex='DAem'): bg_Dex}
+        if self.ALEX:
+            BG.update(**{Ph_sel(Aex='Aem'): self.bg_aa})
         for bg_ch, F_ch, P_ch in zip(BG[ph_sel], FF, PP):
             # All "T" are in seconds
             Tch = find_T(m, F_ch, P_ch, bg_ch)
