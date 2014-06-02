@@ -28,6 +28,24 @@ from dataload.manta_reader import (load_manta_timestamps,
 from utils.misc import pprint, deprecate
 from burstlib import Data
 
+import tables
+from dataload.pytables_array_list import PyTablesList
+
+
+def hdf5(fname):
+    data_file = tables.open_file(fname, mode = "r")
+
+    params = dict()
+    for field in ['clk_p', 'nch', 'BT', 'gamma', 'ALEX']:
+        params[field] = data_file.get_node('/', name=field).read()
+
+    ph_times_m = PyTablesList(data_file, group_name='timestamps',
+                              load_array=True)
+    A_em = PyTablesList(data_file, group_name='acceptor_emission',
+                        load_array=True)
+    d = Data(fname=fname, ph_times_m=ph_times_m, A_em=A_em,
+             **params)
+    return d
 
 ##
 # Multi-spot loader functions

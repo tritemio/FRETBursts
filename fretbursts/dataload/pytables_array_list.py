@@ -31,6 +31,10 @@ class PyTablesList(list):
 
         The list is inizialized empty and populated with `.append()`.
 
+        Arguments:
+            load_array (bool): if True, read the data and put numpy arrays
+                in the list. If False, put only pytable arrays.
+
         `group_descr`, `prefix`, `compression` are only used if a new group is
         created (for example for a new file).
         """

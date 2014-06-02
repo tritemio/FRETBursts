@@ -19,3 +19,4 @@ dist/
 *.png
 *.pdf
 notebooks/dev/docs/docs_html
+*.hdf5
