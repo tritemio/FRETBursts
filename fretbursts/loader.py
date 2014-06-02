@@ -43,8 +43,16 @@ def hdf5(fname):
                               load_array=True)
     A_em = PyTablesList(data_file, group_name='acceptor_emission',
                         load_array=True)
+
     d = Data(fname=fname, ph_times_m=ph_times_m, A_em=A_em,
              **params)
+
+    if '/particles' in data_file:
+        par = PyTablesList(data_file, group_name='particles',
+                           load_array=True)
+        d.add(par=par)
+
+    d.add(data_file=data_file)
     return d
 
 ##

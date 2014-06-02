@@ -64,6 +64,13 @@ def store(d):
     for aem in d.A_em:
         d.a_em_list.append(aem)
 
+    if 'par' in d:
+        d.par_list = PyTablesList(data_file, group_name='particles',
+                    group_descr='Particle No for each emitted timestamp',
+                    prefix='par_')
+        for par in d.par:
+            d.par_list.append(par)
+
     #TODO: save also fname
     data_file.flush()
 
