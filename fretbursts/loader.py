@@ -325,7 +325,7 @@ def nsalex(fname, BT=0, gamma=1.):
 def nsalex_apply_period(d, delete_ph_t=True):
     """Applies to the Data object `d` the alternation period previously set.
 
-    Note that you first need to load the data with :func:`usalex` and then
+    Note that you first need to load the data with :func:`nsalex` and then
     to set the alternation parameters using `d.add()`.
 
     The pattern to load nsALEX data is the following::
