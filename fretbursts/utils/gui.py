@@ -16,5 +16,6 @@ def gui_fname(dir=None):
     if dir is None: dir ='./'
     fname = QtGui.QFileDialog.getOpenFileName(None, "Select data file...",
             dir, filter="All files (*);; SM Files (*.sm)")
+    print fname[0]
     return fname[0]
 
