@@ -33,11 +33,18 @@ from dataload.pytables_array_list import PyTablesList
 
 
 def hdf5(fname):
+    """Load HDF5 smFRET data file saved by :func:`fretbursts.data_store.store`.
+    """
     data_file = tables.open_file(fname, mode = "r")
 
     params = dict()
     for field in ['clk_p', 'nch', 'BT', 'gamma', 'ALEX']:
-        params[field] = data_file.get_node('/', name=field).read()
+        if field in data_file:
+            params[field] = data_file.get_node('/', name=field).read()
+        elif field == 'BT':
+            params[field] = 0.
+        elif field == 'gamma':
+            params[field] = 1.
 
     ph_times_m = PyTablesList(data_file, group_name='timestamps',
                               load_array=True)
@@ -51,6 +58,10 @@ def hdf5(fname):
         par = PyTablesList(data_file, group_name='particles',
                            load_array=True)
         d.add(par=par)
+
+    if '/nanotime' in data_file:
+        nanotime = data_file.get_node('/nanotime').read()
+        d.add(nanotime=nanotime)
 
     d.add(data_file=data_file)
     return d

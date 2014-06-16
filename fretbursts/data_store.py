@@ -14,22 +14,21 @@ from dataload.pytables_array_list import PyTablesList
 
 def store(d):
     """
-    /orig_data_file (1024 bytes string)
+    Compulsory parameters:
     /nch
     /clk_p
-    /spectral_leakage
-    /gamma
     /ALEX
 
+    Optional parameters:
+    /BT
+    /gamma
+
+    Timestamps and detectors:
     ph_times_m -> '/timestamps/ts_0' , ...
-    A_em       -> '/timestamps/a_em_0', ...
+    A_em       -> '/acceptor_emssion/a_em_0', ...
 
-    both ts_0 and timestamps attribute clk_p
-
-    In '/params':
-        - clk_p
-        - ALEX
-        - nsALEX
+    Additional paramenters (TODO):
+    /orig_data_file (1024 bytes string)
 
     """
     basename, extension = os.path.splitext(d.fname)
@@ -42,13 +41,6 @@ def store(d):
 
     data_file.create_array('/', 'nch', obj=d.nch,
                            title='Number of smFRET excitation spots')
-
-    data_file.create_array('/', 'BT', obj=d.BT,
-                           title=('Fraction of donor emission detected by '
-                                  'the acceptor channel'))
-
-    data_file.create_array('/', 'gamma', obj=d.gamma,
-                           title='smFRET Gamma-factor')
 
     data_file.create_array('/', 'ALEX', obj=d.ALEX,
                            title='True if ALternated EXcitation was used.')
@@ -63,6 +55,19 @@ def store(d):
                     prefix='a_em_')
     for aem in d.A_em:
         d.a_em_list.append(aem)
+
+    if 'nanotime' in d:
+        data_file.create_array('/', 'nanotime', obj=d.nanotime,
+                               title=('Photon arrival time (with sub-ns '
+                                      'resolution) respect to a laser sync.'))
+
+    if 'BT' in d:
+        data_file.create_array('/', 'BT', obj=d.BT,
+                               title=('Fraction of donor emission detected by '
+                                      'the acceptor channel'))
+    if 'gamma' in d:
+        data_file.create_array('/', 'gamma', obj=d.gamma,
+                               title='smFRET Gamma-factor')
 
     if 'par' in d:
         d.par_list = PyTablesList(data_file, group_name='particles',
