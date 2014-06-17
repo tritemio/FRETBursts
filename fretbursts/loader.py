@@ -38,8 +38,8 @@ def hdf5(fname):
     data_file = tables.open_file(fname, mode = "r")
 
     params = dict()
-    for field in ['clk_p', 'nch', 'BT', 'gamma', 'ALEX']:
-        if field in data_file:
+    for field in ('clk_p', 'nch', 'BT', 'gamma', 'ALEX'):
+        if '/' + field in data_file:
             params[field] = data_file.get_node('/', name=field).read()
         elif field == 'BT':
             params[field] = 0.
