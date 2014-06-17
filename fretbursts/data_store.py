@@ -22,6 +22,8 @@ def store(d):
     Optional parameters:
     /BT
     /gamma
+    /nanotime
+    /nanotime_params (group)
 
     Timestamps and detectors:
     ph_times_m -> '/timestamps/ts_0' , ...
@@ -75,6 +77,18 @@ def store(d):
                     prefix='par_')
         for par in d.par:
             d.par_list.append(par)
+
+    if 'nanotime_params' in d:
+        data_file.create_group('/', 'nanotime_params',
+                               title='Parameters of TCSPC and lifetime data')
+
+        for key, val in d.nanotime_params.iteritems():
+            if type(val) is tuple:
+                obj, title = val
+            else:
+                obj, title = val, ''
+            data_file.create_array('/nanotime_params', key, obj=obj,
+                                   title=title)
 
     #TODO: save also fname
     data_file.flush()

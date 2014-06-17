@@ -63,6 +63,13 @@ def hdf5(fname):
         nanotime = data_file.get_node('/nanotime').read()
         d.add(nanotime=nanotime)
 
+    if '/nanotime_params' in data_file:
+        nanotime_params = dict()
+        nanot_group = data_file.get_node('/nanotime_params')
+        for node in nanot_group._f_list_nodes():
+            nanotime_params[node.name] = node.read()
+        d.add(nanotime_params=nanotime_params)
+
     d.add(data_file=data_file)
     return d
 
