@@ -16,6 +16,8 @@ loading and preprocessing can be found in the `dataload` folder.
 import os
 import numpy as np
 import cPickle as pickle
+import tables
+
 from dataload.multi_ch_reader import load_data_ordered16
 from dataload.smreader import load_sm
 from dataload.spcreader import load_spc
@@ -27,8 +29,6 @@ from dataload.manta_reader import (load_manta_timestamps,
                                    load_manta_timestamps_pytables)
 from utils.misc import pprint, deprecate
 from burstlib import Data
-
-import tables
 from dataload.pytables_array_list import PyTablesList
 
 
@@ -36,23 +36,44 @@ def hdf5(fname):
     """Load HDF5 smFRET data file saved by :func:`fretbursts.data_store.store`.
     """
     data_file = tables.open_file(fname, mode = "r")
+    file_format = ('smFRET_format_version', '0.1')
+    if file_format[0] not in data_file.root._v_attrs:
+        print "WARNING: Attribute '%s' not found." % file_format[0]
+    else:
+        assert file_format[1] == data_file.root._v_attrs[file_format[0]]
 
-    params = dict()
-    for field in ('clk_p', 'nch', 'BT', 'gamma', 'ALEX'):
+    # Default values for optional parameters
+    params = dict(BT=0., gamma=1.)
+
+    # Load mandatory parameters
+    for field in ('clk_p', 'nch', 'ALEX'):
+        if not '/' + field in data_file:
+            raise(ValueError, "Filed '%s' not found" % field)
+        params[field] = data_file.get_node('/', name=field).read()
+
+    # Load optional parameter (overwriting defaults)
+    for field in ('BT', 'gamma'):
         if '/' + field in data_file:
             params[field] = data_file.get_node('/', name=field).read()
-        elif field == 'BT':
-            params[field] = 0.
-        elif field == 'gamma':
-            params[field] = 1.
 
-    ph_times_m = PyTablesList(data_file, group_name='timestamps',
-                              load_array=True)
-    A_em = PyTablesList(data_file, group_name='acceptor_emission',
-                        load_array=True)
+    if not params['ALEX']:
+        # NOT ALEX single and multi-spot
+        params['ph_times_m'] = PyTablesList(data_file,
+                                            group_name='timestamps',
+                                            load_array=True)
+        params['A_em'] = PyTablesList(data_file,
+                                      group_name='acceptor_emission',
+                                      load_array=True)
+    elif params['nch'] == 1:
+        # Single-spot ALEX
+        ph_times_t = data_file.root.timestamps_t.read()
+        det_t = data_file.root.detectors_t.read()
+        params.update(ph_times_t=ph_times_t, det_t=det_t)
+    else:
+        # Multi-spot ALEX
+        raise NotImplemented
 
-    d = Data(fname=fname, ph_times_m=ph_times_m, A_em=A_em,
-             **params)
+    d = Data(fname=fname, **params)
 
     if '/particles' in data_file:
         par = PyTablesList(data_file, group_name='particles',

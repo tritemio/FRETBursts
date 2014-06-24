@@ -14,30 +14,52 @@ from dataload.pytables_array_list import PyTablesList
 
 def store(d):
     """
+    Saves the `Data` object `d` in an HDF5 file using pytable.
+
+    The file name is d.fname, replacing the extension with '.hdf5'.
+
+    HDF5 file structure
+    -------------------
+
+    Attributes on the root node:
+        smFRET_format_title: a string description for the file format
+        smFRET_format_version: file-format version string ('0.1')
+
     Compulsory parameters:
-    /nch
-    /clk_p
-    /ALEX
+        /nch
+        /clk_p
+        /ALEX
 
     Optional parameters:
-    /BT
-    /gamma
-    /nanotime
-    /nanotime_params (group)
+        /BT
+        /gamma
+        /nanotime
+        /nanotime_params (group)
 
-    Timestamps and detectors:
-    ph_times_m -> '/timestamps/ts_0' , ...
-    A_em       -> '/acceptor_emssion/a_em_0', ...
+    Saved timestamps if ALEX:
+        ph_times_t -> '/timestamps_t
+        det_t      -> '/detectors_t
 
-    Additional paramenters (TODO):
-    /orig_data_file (1024 bytes string)
+    Saved timestamps if NOT ALEX:
+        ph_times_m -> '/timestamps/ts_0' , ...
+        A_em       -> '/acceptor_emssion/a_em_0', ...
+
+    Additional parameters (TODO):
+        /orig_data_file (1024 bytes string)
 
     """
     basename, extension = os.path.splitext(d.fname)
     h5_fname = basename + '.hdf5'
     data_file = tables.open_file(h5_fname, mode = "w",
                                  title = "Confocal smFRET data")
+    # Save the metadata
+    smFRET_format_title = ('HDF5-based file format for confocal single-'
+                           'molecule FRET data')
+    smFRET_format_version = '0.1'
+    data_file.root._v_attrs.smFRET_format_title = smFRET_format_title
+    data_file.root._v_attrs.smFRET_format_version = smFRET_format_version
 
+    # Save the compulsory parameters
     data_file.create_array('/', 'clk_p', obj=d.clk_p,
                            title='Clock period for the timestamps')
 
@@ -47,22 +69,34 @@ def store(d):
     data_file.create_array('/', 'ALEX', obj=d.ALEX,
                            title='True if ALternated EXcitation was used.')
 
-    d.ts_list = PyTablesList(data_file, group_name='timestamps',
-                    group_descr='Photon timestamp arrays', prefix='ts_')
-    for ph in d.ph_times_m:
-        d.ts_list.append(ph)
+    # Save the timestamps
+    if d.ALEX:
+        assert 'ph_times_t' in d
+        assert 'det_t' in d
+        # ALEX case: save all the timestamps before alternation selection
+        data_file.create_array('/', 'timestamps_t', obj=d.ph_times_t,
+                               title='Array of all the timestamps')
+        data_file.create_array('/', 'detectors_t', obj=d.det_t,
+                               title=('Array of detector number foe each '
+                                      'timestamps'))
+    else:
+        # Non-ALEX case: save directly the list of timestamps per-ch
+        d.ts_list = PyTablesList(data_file, group_name='timestamps',
+                        group_descr='Photon timestamp arrays', prefix='ts_')
+        for ph in d.ph_times_m:
+            d.ts_list.append(ph)
 
-    d.a_em_list = PyTablesList(data_file, group_name='acceptor_emission',
-                    group_descr='Boolean masks for acceptor emission',
-                    prefix='a_em_')
-    for aem in d.A_em:
-        d.a_em_list.append(aem)
+        d.a_em_list = PyTablesList(data_file, group_name='acceptor_emission',
+                        group_descr='Boolean masks for acceptor emission',
+                        prefix='a_em_')
+        for aem in d.A_em:
+            d.a_em_list.append(aem)
 
+    # Optional parameters
     if 'nanotime' in d:
         data_file.create_array('/', 'nanotime', obj=d.nanotime,
                                title=('Photon arrival time (with sub-ns '
                                       'resolution) respect to a laser sync.'))
-
     if 'BT' in d:
         data_file.create_array('/', 'BT', obj=d.BT,
                                title=('Fraction of donor emission detected by '
@@ -72,6 +106,7 @@ def store(d):
                                title='smFRET Gamma-factor')
 
     if 'par' in d:
+        # Array of particles, used for simulated data
         d.par_list = PyTablesList(data_file, group_name='particles',
                     group_descr='Particle No for each emitted timestamp',
                     prefix='par_')
@@ -79,6 +114,7 @@ def store(d):
             d.par_list.append(par)
 
     if 'nanotime_params' in d:
+        # Parameters for the TCSPC configuration
         data_file.create_group('/', 'nanotime_params',
                                title='Parameters of TCSPC and lifetime data')
 
@@ -92,6 +128,5 @@ def store(d):
 
     #TODO: save also fname
     data_file.flush()
-
-    d.data_file = data_file
+    d.add(data_file=data_file)
 
