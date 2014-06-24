@@ -999,7 +999,7 @@ class Data(DataContainer):
 
         This version is the cached version of :meth:`calc_bg`.
         This method tries to load the background data from the HDF5 file in
-        self.data_file. If a saved background data is not found, it computes
+        self.bg_data_file. If a saved background data is not found, it computes
         the background and stores the data to the HDF5 file.
 
         The arguments are the same as :meth:`calc_bg` with the only addition

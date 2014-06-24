@@ -8,7 +8,7 @@ This module provides functions to store and load background fit data
 to and from an HDF5 file.
 
 The functions here assume to find an open pyTables file reference in
-the :class:`Data` attribute `.data_file`.
+the :class:`Data` attribute `.bg_data_file`.
 """
 
 import os
@@ -18,11 +18,11 @@ from fretbursts.utils.misc import pprint
 
 def remove_cache(dx):
     """Remove all the saved background data."""
-    assert 'data_file' in dx
+    assert 'bg_data_file' in dx
     pprint(' * Removing all the cached background data ... ')
-    if '/background' in dx.data_file:
-        dx.data_file.remove_node('/background', recursive=True)
-        dx.data_file.flush()
+    if '/background' in dx.bg_data_file:
+        dx.bg_data_file.remove_node('/background', recursive=True)
+        dx.bg_data_file.flush()
     pprint('[DONE]\n')
 
 def _get_bg_arrays_info(dx):
@@ -62,23 +62,22 @@ def _get_bg_arrays_info(dx):
         bg_arrays_info.update(**bg_arrays_info_noauto)
     return bg_arrays_info
 
-
 def bg_save_hdf5(dx):
     """Save background data to HDF5 file."""
-    assert 'data_file' in dx
+    assert 'bg_data_file' in dx
     assert 'bg' in dx
 
     bg_arrays_info = _get_bg_arrays_info(dx)
     bg_attr_names = ['bg_fun', 'bg_fun_name']
-    if '/background' not in dx.data_file:
-        dx.data_file.create_group('/', 'background',
+    if '/background' not in dx.bg_data_file:
+        dx.bg_data_file.create_group('/', 'background',
                                   title='Background estimation data')
     ## Save the bg data
     group_name = _get_bg_groupname(dx)
-    if group_name in dx.data_file:
-        dx.data_file.remove_node(group_name, recursive=True)
+    if group_name in dx.bg_data_file:
+        dx.bg_data_file.remove_node(group_name, recursive=True)
 
-    bg_group = dx.data_file.create_group(os.path.dirname(group_name),
+    bg_group = dx.bg_data_file.create_group(os.path.dirname(group_name),
                                          os.path.basename(group_name),
                                          createparents=True)
     # Save arrays and scalars
@@ -86,7 +85,7 @@ def bg_save_hdf5(dx):
     for name, info in bg_arrays_info.items():
         pprint(name + ', ')
         arr = np.array(dx[name])
-        dx.data_file.create_array(bg_group, name, obj=arr, title=info)
+        dx.bg_data_file.create_array(bg_group, name, obj=arr, title=info)
 
     # Save the attributes
     pprint('\n - Saving HDF5 attributes: ')
@@ -94,12 +93,12 @@ def bg_save_hdf5(dx):
         pprint(attr + ', ')
         bg_group._v_attrs[attr] = dx[attr]
     pprint('\n')
-    dx.data_file.flush()
+    dx.bg_data_file.flush()
 
 def bg_load_hdf5(dx, group_name):
     """Load background data from a HDF5 file."""
-    assert 'data_file' in dx
-    if group_name not in dx.data_file:
+    assert 'bg_data_file' in dx
+    if group_name not in dx.bg_data_file:
         print 'Group "%s" not found in the HDF5 file.' % group_name
         return
 
@@ -107,7 +106,7 @@ def bg_load_hdf5(dx, group_name):
     bg_arrays = dict()
     bg_attrs = dict()
 
-    bg_group = dx.data_file.get_node(group_name)
+    bg_group = dx.bg_data_file.get_node(group_name)
 
     # Load arrays and scalars
     pprint('\n - Loading arrays/scalars: ')
@@ -155,12 +154,12 @@ def _get_bg_groupname(dx, time_s=None):
 def _bg_is_cached(dx, signature):
     """Returns wheter background with given `signature` is in disk the cache.
     """
-    if 'data_file' in dx:
+    if 'bg_data_file' in dx:
         bg_groupname = _get_bg_groupname(dx, time_s=signature['time_s'])
-        if bg_groupname in dx.data_file:
+        if bg_groupname in dx.bg_data_file:
             # At least we have a group with the right time_s
             # Check whether its signature matches the current one
-            group = dx.data_file.get_node(bg_groupname)
+            group = dx.bg_data_file.get_node(bg_groupname)
             if signature == group._v_attrs.signature:
                 return True
     return False
@@ -168,19 +167,19 @@ def _bg_is_cached(dx, signature):
 def _bg_add_signature(dx, signature):
     """Add the signature attr to current background group.
     """
-    assert 'data_file' in dx
+    assert 'bg_data_file' in dx
     bg_groupname = _get_bg_groupname(dx, time_s=signature['time_s'])
-    assert bg_groupname in dx.data_file
+    assert bg_groupname in dx.bg_data_file
 
-    group = dx.data_file.get_node(bg_groupname)
+    group = dx.bg_data_file.get_node(bg_groupname)
     group._v_attrs.signature = signature
-    dx.data_file.flush()
+    dx.bg_data_file.flush()
 
 def calc_bg_cache(dx, fun, time_s=60, tail_min_us=500, F_bg=2, recompute=False):
     """Cached version of `.calc_bg()` method."""
 
-    curr_call_signature = dict(fun_name=fun.__name__,
-                             time_s=time_s, tail_min_us=tail_min_us, F_bg=F_bg)
+    curr_call_signature = dict(fun_name=fun.__name__, time_s=time_s,
+                               tail_min_us=tail_min_us, F_bg=F_bg)
     if _bg_is_cached(dx, curr_call_signature) and not recompute:
         # Background found in cache. Load it.
         pprint(' * Loading BG rates from cache ... ')
@@ -192,7 +191,7 @@ def calc_bg_cache(dx, fun, time_s=60, tail_min_us=500, F_bg=2, recompute=False):
         # Background not found in cache. Compute it.
         pprint(' * No cached BG rates, recomputing:\n')
         dx.calc_bg(fun=fun, time_s=time_s, tail_min_us=tail_min_us, F_bg=F_bg)
-        if 'data_file' in dx:
+        if 'bg_data_file' in dx:
             pprint(' * Storing BG  to disk ... ')
             # And now store it to disk
             bg_save_hdf5(dx)
