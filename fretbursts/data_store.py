@@ -12,7 +12,7 @@ import tables
 from dataload.pytables_array_list import PyTablesList
 
 
-def store(d):
+def store(d, compression=dict(complevel=6, complib='blosc')):
     """
     Saves the `Data` object `d` in an HDF5 file using pytable.
 
@@ -48,6 +48,8 @@ def store(d):
         /orig_data_file (1024 bytes string)
 
     """
+    comp_filter = tables.Filters(**compression)
+
     basename, extension = os.path.splitext(d.fname)
     h5_fname = basename + '.hdf5'
     data_file = tables.open_file(h5_fname, mode = "w",
@@ -74,21 +76,26 @@ def store(d):
         assert 'ph_times_t' in d
         assert 'det_t' in d
         # ALEX case: save all the timestamps before alternation selection
-        data_file.create_array('/', 'timestamps_t', obj=d.ph_times_t,
-                               title='Array of all the timestamps')
-        data_file.create_array('/', 'detectors_t', obj=d.det_t,
+        data_file.create_carray('/', 'timestamps_t', obj=d.ph_times_t,
+                               title='Array of all the timestamps',
+                               filters=comp_filter,
+                               )
+        data_file.create_carray('/', 'detectors_t', obj=d.det_t,
                                title=('Array of detector number foe each '
-                                      'timestamps'))
+                                      'timestamps'),
+                               filters=comp_filter,
+                               )
     else:
         # Non-ALEX case: save directly the list of timestamps per-ch
         d.ts_list = PyTablesList(data_file, group_name='timestamps',
-                        group_descr='Photon timestamp arrays', prefix='ts_')
+                        group_descr='Photon timestamp arrays', prefix='ts_',
+                        compression=compression)
         for ph in d.ph_times_m:
             d.ts_list.append(ph)
 
         d.a_em_list = PyTablesList(data_file, group_name='acceptor_emission',
                         group_descr='Boolean masks for acceptor emission',
-                        prefix='a_em_')
+                        prefix='a_em_', compression=compression)
         for aem in d.A_em:
             d.a_em_list.append(aem)
 
