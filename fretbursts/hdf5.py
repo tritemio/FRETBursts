@@ -12,7 +12,7 @@ import tables
 from dataload.pytables_array_list import PyTablesList
 
 
-def store(d, compression=dict(complevel=6, complib='blosc')):
+def store(d, compression=dict(complevel=6, complib='zlib')):
     """
     Saves the `Data` object `d` in an HDF5 file using pytables.
 
