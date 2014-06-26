@@ -69,7 +69,7 @@ def load_sm_new(fname, header=166):
     end_field2 = 12
     valid_size = len(byte_string) - end_field1 - len(end_str) - end_field2
 
-    # View of the binary dtaa as an array (no copy performed)
+    # View of the binary data as an array (no copy performed)
     data = np.frombuffer(byte_string[:valid_size], dtype=sm_dtype)
     return data['timestamp'], data['detector']
 

@@ -15,7 +15,7 @@
  to load the common namespace used in the example notebooks.
 """
 
-__version__ = '0.3.dev2'
+__version__ = '0.4.dev'
 
 __all__ = [
         # Library modules and functions
@@ -24,6 +24,7 @@ __all__ = [
 
         # Local modules
         "loader", "select_bursts", "bl", "bg", "bpl", "bext", "bg_cache",
+        "hdf5",
 
         # Classes, functions, variables
         "data_dir", "Data", "Sel", "Sel_mask", "Sel_mask_apply", "gui_fname",

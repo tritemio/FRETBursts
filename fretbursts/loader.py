@@ -33,7 +33,10 @@ from dataload.pytables_array_list import PyTablesList
 
 
 def hdf5(fname):
-    """Load HDF5 smFRET data file saved by :func:`fretbursts.data_store.store`.
+    """Load a data file saved in HDF5 smFRET format.
+    
+    Any :class:`fretbursts.burstlib.Data` object can be saved in HDF5 format 
+    using :func:`fretbursts.hdf5.store` .
     """
     data_file = tables.open_file(fname, mode = "r")
     file_format = ('smFRET_format_version', '0.1')

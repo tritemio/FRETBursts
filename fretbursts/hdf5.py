@@ -14,38 +14,37 @@ from dataload.pytables_array_list import PyTablesList
 
 def store(d, compression=dict(complevel=6, complib='blosc')):
     """
-    Saves the `Data` object `d` in an HDF5 file using pytable.
+    Saves the `Data` object `d` in an HDF5 file using pytables.
 
     The file name is d.fname, replacing the extension with '.hdf5'.
 
-    HDF5 file structure
-    -------------------
+    **HDF5 file structure**
 
     Attributes on the root node:
-        smFRET_format_title: a string description for the file format
-        smFRET_format_version: file-format version string ('0.1')
+        - smFRET_format_title: a string description for the file format
+        - smFRET_format_version: file-format version string ('0.1')
 
     Compulsory parameters:
-        /nch
-        /clk_p
-        /ALEX
+        - /nch: number of excitation spots
+        - /clk_p: clock period for the timestamps
+        - /ALEX: (bool) 1 or True if ALEX, else 0 or False
 
     Optional parameters:
-        /BT
-        /gamma
-        /nanotime
-        /nanotime_params (group)
+        - /BT
+        - /gamma
+        - /nanotime
+        - /nanotime_params (group)
 
     Saved timestamps if ALEX:
-        ph_times_t -> '/timestamps_t
-        det_t      -> '/detectors_t
+        - ph_times_t -> /timestamps_t
+        - det_t      -> /detectors_t
 
     Saved timestamps if NOT ALEX:
-        ph_times_m -> '/timestamps/ts_0' , ...
-        A_em       -> '/acceptor_emssion/a_em_0', ...
+        - ph_times_m -> /timestamps/ts_0 , ts_1, ...
+        - A_em       -> /acceptor_emssion/a_em_0, a_em1, ...
 
-    Additional parameters (TODO):
-        /orig_data_file (1024 bytes string)
+    Additional optional parameters (TODO):
+        - /orig_data_file (string)
 
     """
     comp_filter = tables.Filters(**compression)
@@ -133,7 +132,6 @@ def store(d, compression=dict(complevel=6, complib='blosc')):
             data_file.create_array('/nanotime_params', key, obj=obj,
                                    title=title)
 
-    #TODO: save also fname
     data_file.flush()
     d.add(data_file=data_file)
 

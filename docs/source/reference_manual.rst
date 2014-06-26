@@ -12,4 +12,5 @@ Contents:
     background
     burstsearch
     fit
+    HDF5_format
     files_description
