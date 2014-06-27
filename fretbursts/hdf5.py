@@ -135,3 +135,28 @@ def store(d, compression=dict(complevel=6, complib='zlib')):
     data_file.flush()
     d.add(data_file=data_file)
 
+
+def print_attrs(data_file, node_name='/', which='user'):
+    """Print the HDF5 attributes for `node_name`.
+    """
+    node = data_file.get_node(node_name)
+    print 'List of attributes for:\n  %s\n' % node
+    for attr in node._v_attrs._f_list():
+        print '\t%s' % attr
+        print "\t    %s" % repr(node._v_attrs[attr])
+
+def print_children(data_file, group='/'):
+    """Print all the sub-groups in `group` and leaf-nodes children of `group`.
+    """    
+    base = data_file.get_node(group)
+    print 'Groups in:\n  %s\n' % base
+
+    for node in base._f_walk_groups():
+        if node is not base:
+            print '    %s' % node
+
+    print '\nLeaf-nodes in %s:' % group
+    for node in base._v_leaves.itervalues():
+        print '\t%s %s' % (node.name, node.shape)
+        if len(node.title) > 0:
+            print '\t    %s' % node.title
