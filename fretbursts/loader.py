@@ -150,7 +150,7 @@ def multispot48_simple(fname, BT=0, gamma=1.,
     return dx
 
 def multispot48(fname, BT=0, gamma=1., reprocess=False,
-                     i_start=0, i_stop=None, debug=False):
+                i_start=0, i_stop=None, debug=False):
     """Load a 48-ch multispot file and return a Data() object.
     """
     import tables

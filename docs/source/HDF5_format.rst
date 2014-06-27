@@ -5,10 +5,10 @@ FRETBursts allows to save and load confocal smFRET data from and to
 an `HDF5 file format <http://www.hdfgroup.org/HDF5/>`_ (see also
 `HDF on Wikipedia <http://en.wikipedia.org/wiki/Hierarchical_Data_Format>`_).
 
-For documentation on HDF5 smFRET file-format in FRETBursts see:
+For documentation on HDF5-smFRET file format in *FRETBursts* see:
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 1
 
     HDF5_smFRET
 
@@ -23,7 +23,7 @@ The format can store any number of
 multi-dimensional arrays with no size limit in a hierarchical fashion
 (i.e. arrays can be put in folders and subfolders called groups).
 Any dataset or folder can have metadata attached to it (for example a 
-description, a date, or an ancillary array or parameters, etc...).
+description, a date, or an ancillary array of parameters, etc...).
 
 The format is self-describing, so any HDF5 compatible application can read
 any array without needing to know the type (i.e. int32 or float) or the
@@ -65,14 +65,14 @@ FRETBursts uses **pyTables**.
 Why HDF5 and smFRET?
 --------------------
 
-Most of smFRET data aroubnd the world is acquired through a custom setup and 
+Most of smFRET data around the world is acquired through a custom setup and 
 custom software. As a result the number of file formats is almost as large 
 as the number of existing setups.
 
-A single, fast, space-efficient and self-documenting file format like HDF5 is 
+A single, space-efficient and self-documenting file format like HDF5 is 
 highly preferable to the Babel of formats used today. 
 
-Numerous advantages can be easily seen:
+Numerous advantages can be easily evisioned:
 
 * **Efficiency**: HDF5 is highly efficient both for space and speed. Libraries
   to interoperate the format are broadly used and heavily tested. We scientist
