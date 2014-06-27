@@ -18,6 +18,8 @@ from scipy.stats import erlang
 from scipy.optimize import leastsq
 
 from ph_sel import Ph_sel
+import burstsearch.burstsearchlib as bslib
+from utils.misc import pprint
 
 
 def get_bg_distrib_erlang(d, ich=0, m=10, ph_sel=Ph_sel('all'), bp=(0, -1)):
@@ -225,3 +227,32 @@ def join_data(d_list, gap=1):
         offset_clk += (d_orig.time_max() + gap)/d_orig.clk_p
 
     return new_d
+
+def burst_search_da_and(dx, F=6, m=10, mute=False):
+    dx_d = dx
+    dx_a = dx.copy()
+    dx_and = dx.copy()
+    
+    dx_d.burst_search_t(L=m, m=m, F=F, ph_sel=Ph_sel(Dex='DAem'))
+    dx_a.burst_search_t(L=m, m=m, F=F, ph_sel=Ph_sel(Aex='Aem'))
+    
+    mburst_and = []
+    for mburst_d, mburst_a in zip(dx_d.mburst, dx_a.mburst):
+        mburst_and.append(bslib.burst_and(mburst_d, mburst_a))
+
+    dx_and.add(mburst=mburst_and)
+        
+    pprint(" - Calculating burst periods ...", mute)
+    dx_and._calc_burst_period()                       # writes bp
+    pprint("[DONE]\n", mute)
+
+    # Note: dx_and.bg_bs will be not meaningfull
+    dx_and.add(m=m, L=m, F=F, P=None, ph_sel=Ph_sel(Dex='DAem'))
+    dx_and.add(bg_corrected=False, bt_corrected=False, dithering=False)
+
+    pprint(" - Counting D and A ph and calculating FRET ... \n", mute)
+    dx_and.calc_fret(count_ph=True, corrections=True, mute=mute)
+    pprint("   [DONE Counting D/A]\n", mute)
+ 
+    return dx_and
+        

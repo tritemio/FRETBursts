@@ -135,7 +135,7 @@ def bsearch_py(t, L, m, T, label='Burst search', verbose=True):
 
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#  Functions to count D and A ph in bursts
+#  Functions to count D and A photons in bursts
 #
 
 def count_ph_in_bursts_py(bursts, mask):
@@ -214,3 +214,67 @@ except ImportError:
     mch_count_ph_in_bursts = mch_count_ph_in_bursts_py
     print " - Fallback to pure python photon counting."
 
+##
+#  Additional functions processing burst data
+
+def burst_and(mburst_d, mburst_a):
+    """From 2 burst arrays return bursts defined as intersection (AND rule).
+
+    The two input burst-arrays come from 2 different burst searches.
+    Returns new bursts representing the overlapping bursts in the 2 inputs
+    with start and stop defined as intersection (or AND) operator.
+    
+    The format of both input and output arrays is "burst-array" as returned 
+    by :func:`bsearch_py`.
+    
+    Arguments:
+        mburst_d, mburst_a (array): input burst arrays. The number of burst
+            in each array can be different.
+    
+    Returns:
+        Burst-array representing the intersection (AND) of overlapping bursts. 
+    """
+    bstart_d, bend_d = b_start(mburst_d), b_end(mburst_d)
+    bstart_a, bend_a = b_start(mburst_a), b_end(mburst_a)
+
+    bursts = []
+    burst0 = np.zeros(6, dtype=np.int64)
+    i_d, i_a = 0, 0
+    while i_d < mburst_d.shape[0] and i_a < mburst_a.shape[0]:
+        # Skip any disjoint burst
+        if bend_a[i_a] < bstart_d[i_d]:
+            i_a += 1
+            continue
+        if bend_d[i_d] < bstart_a[i_a]:
+            i_d += 1
+            continue
+        
+        # Assign start and stop according the AND rule
+        if bstart_a[i_a] < bstart_d[i_d] < bend_a[i_a]:
+            start_mb = mburst_d[i_d]
+        elif bstart_d[i_d] < bstart_a[i_a] < bend_d[i_d]:
+            start_mb = mburst_a[i_a]
+            
+        if bend_d[i_d] < bend_a[i_a]:
+            end_mb = mburst_d[i_d]
+            i_d += 1
+        else:
+            end_mb = mburst_a[i_a]
+            i_a += 1
+            
+        burst = burst0.copy()
+        burst[itstart] = start_mb[itstart]
+        burst[iistart] = start_mb[iistart]
+        burst[itend] = end_mb[itend]
+        burst[iiend] = end_mb[iiend]
+        
+        # Compute new width and size
+        burst[iwidth] = burst[itend] - burst[itstart]
+        burst[inum_ph] = burst[iiend] - burst[iistart] + 1
+        
+        bursts.append(burst)
+    
+    return np.vstack(bursts)
+        
+        
+#

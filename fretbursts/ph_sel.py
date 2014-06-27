@@ -10,6 +10,14 @@ A class to describe the photon selection.
 from collections import namedtuple
 
 
+# Implementation Rationale:
+#
+#   This class is implemented as a named tuple that is an immutable object.
+#   This means the Ph_sel objects can be used as dictionary keys. This would
+#   not be possible if Ph_sel were a dict. The __new__ method is just a nicety
+#   to allow only valid arguments values and to throw meaningful exceptions
+#   otherwise.
+#
 class Ph_sel(namedtuple('Ph_sel', ['Dex', 'Aex'])):
     """Class that describes a selection of photons.
 
