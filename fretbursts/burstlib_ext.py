@@ -228,13 +228,35 @@ def join_data(d_list, gap=1):
 
     return new_d
 
-def burst_search_da_and(dx, F=6, m=10, mute=False):
+def burst_search_and_gate(dx, F=6, m=10, ph_sel1=Ph_sel(Dex='DAem'),
+                          ph_sel2=Ph_sel(Aex='Aem'), mute=False):
+    """Return a new object Data object with and-gate burst-search results.
+    
+    The and-gate burst search is a composition of 2 burst searches performed
+    on different photon selections. The burst in the and-gate burst search
+    are the overlapping bursts and their duration is the intersection
+    of the two overlapping bursts.
+    
+    Arguments:
+        dx (Data object): contains the data on which to perform the burst 
+            search. Background estimation must be performed before the search.
+        F (float): Burst search parameter F.
+        m (int): Burst search parameter m.
+        ph_sel1 (Ph_sel object): photon selections used for bursts search 1.
+        ph_sel2 (Ph_sel object): photon selections used for bursts search 2.
+        mute (bool): if True nothing is printed. Default: False.
+    
+    Return:
+        A new `Data` object containing bursts from the and-gate search.
+        
+    See also :meth:`fretbursts.burstlib.Data.burst_search_t`.
+    """
     dx_d = dx
     dx_a = dx.copy()
     dx_and = dx.copy()
     
-    dx_d.burst_search_t(L=m, m=m, F=F, ph_sel=Ph_sel(Dex='DAem'))
-    dx_a.burst_search_t(L=m, m=m, F=F, ph_sel=Ph_sel(Aex='Aem'))
+    dx_d.burst_search_t(L=m, m=m, F=F, ph_sel=ph_sel1)
+    dx_a.burst_search_t(L=m, m=m, F=F, ph_sel=ph_sel2)
     
     mburst_and = []
     for mburst_d, mburst_a in zip(dx_d.mburst, dx_a.mburst):
@@ -246,7 +268,7 @@ def burst_search_da_and(dx, F=6, m=10, mute=False):
     dx_and._calc_burst_period()                       # writes bp
     pprint("[DONE]\n", mute)
 
-    # Note: dx_and.bg_bs will be not meaningfull
+    # Note: dx_and.bg_bs will not be meaningful
     dx_and.add(m=m, L=m, F=F, P=None, ph_sel=Ph_sel(Dex='DAem'))
     dx_and.add(bg_corrected=False, bt_corrected=False, dithering=False)
 
