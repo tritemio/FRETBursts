@@ -12,5 +12,6 @@ Contents:
     background
     burstsearch
     fit
+    plugins
     HDF5_format
     files_description

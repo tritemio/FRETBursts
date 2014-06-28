@@ -5,11 +5,12 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-This module contains extensions to `burstslib.py`.
+The module `burtlib_ext.py` contains extensions to `burstslib.py`. It can be 
+though as a simple plugin system for FRETBursts.
 
-Functions here defined operate on :class:`Data()` objects extending the
-functionality beyond the core functions and methods defined in
-:module:`burstlib`.
+Functions here defined operate on :class:`fretbursts.burstlib.Data()` objects 
+extending the functionality beyond the core functions and methods defined in
+`burstlib`.
 """
 from __future__ import division
 
@@ -22,8 +23,8 @@ import burstsearch.burstsearchlib as bslib
 from utils.misc import pprint
 
 
-def get_bg_distrib_erlang(d, ich=0, m=10, ph_sel=Ph_sel('all'), bp=(0, -1)):
-    """Return a frozen erlang distrib. with rate equal to the bg rate.
+def _get_bg_distrib_erlang(d, ich=0, m=10, ph_sel=Ph_sel('all'), bp=(0, -1)):
+    """Return a frozen (scipy) erlang distrib. with rate equal to the bg rate.
     """
     assert ph_sel in [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
     if np.size(bp) == 1: bp = (bp, bp)
@@ -45,21 +46,24 @@ def calc_mdelays_hist(d, ich=0, m=10, bp=(0, -1), bins_s=(0, 10, 0.02),
     """Compute histogram of m-photons delays (or waiting times).
 
     Arguments:
+        dx (Data object): contains the burst data to process.
+        ich (int): the channel number. Default 0.
         m (int): number of photons used to compute each delay.
-
         bp (int or 2-element tuple): index of the period to use. If tuple,
             the period range between bp[0] and bp[1] (included) is used.
         bins_s (3-element tuple): start, stop and step for the bins
-        ph_sel (string): Photons to use. 'DA' donor + acceptor, 'D' donor,
-            'A' acceptor.
+        ph_sel (Ph_sel object): photon selection to use.
     Returns:
-        bin_x: array of bins centers
-        histograms_y: arrays of histograms, contains 1 or 2 histograms
-            (when `bursts` is False or True)
-        bg_dist: erlang distribution with same rate as background (kcps)
-        a, rate_kcps (floats, optional): amplitude and rate for an Erlang
-            distribution fitted to the histogram for bin_x > bg_mean*bg_F.
-            Returned only if `bg_fit` is True.
+        Tuple of values:
+        
+            * bin_x (array): array of bins centers
+            * histograms_y (array): arrays of histograms, contains 1 or 2 
+              histograms (when `bursts` is False or True)
+            * bg_dist (random distribution): erlang distribution with same 
+              rate as background (kcps)
+            * a, rate_kcps (floats, optional): amplitude and rate for an 
+              Erlang distribution fitted to the histogram for 
+              bin_x > bg_mean*bg_F. Returned only if `bg_fit` is True.
     """
     assert ph_sel in [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
     if np.size(bp) == 1: bp = (bp, bp)
@@ -101,7 +105,7 @@ def calc_mdelays_hist(d, ich=0, m=10, bp=(0, -1), bins_s=(0, 10, 0.02),
     results = [bin_x, histograms_y]
 
     # Compute the BG distribution
-    bg_dist = get_bg_distrib_erlang(d, ich=ich, m=m, bp=bp, ph_sel=ph_sel)
+    bg_dist = _get_bg_distrib_erlang(d, ich=ich, m=m, bp=bp, ph_sel=ph_sel)
     bg_mean = bg_dist.mean()
     results.append(bg_dist)
 
@@ -123,8 +127,9 @@ def burst_data_period_mean(dx, burst_data):
     """Compute mean `bursts_data` in each period.
 
     Arguments:
-        burst_data (list of arrays): one array per channel,
-            each array has one element per burst.
+        dx (Data object): contains the burst data to process
+        burst_data (list of arrays): one array per channel, each array 
+            has one element of "burst data" per burst.
 
     Returns:
         2D of arrays with shape (nch, nperiods).
@@ -163,7 +168,7 @@ def join_data(d_list, gap=1):
     original data object in the list, is saved in the returned object.
 
     Returns:
-    A `Data` object containing bursts from the all the objects in `d_list`.
+        A `Data` object containing bursts from the all the objects in `d_list`.
     """
 
     from fretbursts.burstlib import Data, itstart, itend
