@@ -239,9 +239,13 @@ def burst_search_and_gate(dx, F=6, m=10, ph_sel1=Ph_sel(Dex='DAem'),
     """Return a new object Data object with and-gate burst-search results.
     
     The and-gate burst search is a composition of 2 burst searches performed
-    on different photon selections. The burst in the and-gate burst search
-    are the overlapping bursts and their duration is the intersection
-    of the two overlapping bursts.
+    on different photon selections. The bursts in the and-gate burst search
+    are the overlapping bursts in the 2 initial burst searches, and their 
+    duration is the intersection of the two overlapping bursts.
+    
+    By default the 2 photon selections are D+A photons during D excitation
+    (`Ph_sel(Dex='DAem')`) and A photons during A excitation 
+    (`Ph_sel(Aex='Aex')`).
     
     Arguments:
         dx (Data object): contains the data on which to perform the burst 
