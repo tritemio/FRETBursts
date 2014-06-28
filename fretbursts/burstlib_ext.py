@@ -5,10 +5,10 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-The module `burtlib_ext.py` contains extensions to `burstslib.py`. It can be 
+The module `burtlib_ext.py` contains extensions to `burstslib.py`. It can be
 though as a simple plugin system for FRETBursts.
 
-Functions here defined operate on :class:`fretbursts.burstlib.Data()` objects 
+Functions here defined operate on :class:`fretbursts.burstlib.Data()` objects
 extending the functionality beyond the core functions and methods defined in
 `burstlib`.
 """
@@ -42,7 +42,7 @@ def _get_bg_distrib_erlang(d, ich=0, m=10, ph_sel=Ph_sel('all'), bp=(0, -1)):
     return bg_dist
 
 def calc_mdelays_hist(d, ich=0, m=10, bp=(0, -1), bins_s=(0, 10, 0.02),
-                      ph_sel=Ph_sel('all'), bursts=False, bg_fit=True, 
+                      ph_sel=Ph_sel('all'), bursts=False, bg_fit=True,
                       bg_F=0.8):
     """Compute histogram of m-photons delays (or waiting times).
 
@@ -56,14 +56,14 @@ def calc_mdelays_hist(d, ich=0, m=10, bp=(0, -1), bins_s=(0, 10, 0.02),
         ph_sel (Ph_sel object): photon selection to use.
     Returns:
         Tuple of values:
-        
+
             * bin_x (array): array of bins centers
-            * histograms_y (array): arrays of histograms, contains 1 or 2 
+            * histograms_y (array): arrays of histograms, contains 1 or 2
               histograms (when `bursts` is False or True)
-            * bg_dist (random distribution): erlang distribution with same 
+            * bg_dist (random distribution): erlang distribution with same
               rate as background (kcps)
-            * a, rate_kcps (floats, optional): amplitude and rate for an 
-              Erlang distribution fitted to the histogram for 
+            * a, rate_kcps (floats, optional): amplitude and rate for an
+              Erlang distribution fitted to the histogram for
               bin_x > bg_mean*bg_F. Returned only if `bg_fit` is True.
     """
     assert ph_sel in [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
@@ -129,7 +129,7 @@ def burst_data_period_mean(dx, burst_data):
 
     Arguments:
         dx (Data object): contains the burst data to process
-        burst_data (list of arrays): one array per channel, each array 
+        burst_data (list of arrays): one array per channel, each array
             has one element of "burst data" per burst.
 
     Returns:
@@ -236,44 +236,44 @@ def join_data(d_list, gap=1):
 
 def burst_search_and_gate(dx, F=6, m=10, ph_sel1=Ph_sel(Dex='DAem'),
                           ph_sel2=Ph_sel(Aex='Aem'), mute=False):
-    """Return a new object Data object with and-gate burst-search results.
-    
+    """Return a Data object containing bursts obtained by and-gate burst-search.
+
     The and-gate burst search is a composition of 2 burst searches performed
     on different photon selections. The bursts in the and-gate burst search
-    are the overlapping bursts in the 2 initial burst searches, and their 
+    are the overlapping bursts in the 2 initial burst searches, and their
     duration is the intersection of the two overlapping bursts.
-    
+
     By default the 2 photon selections are D+A photons during D excitation
-    (`Ph_sel(Dex='DAem')`) and A photons during A excitation 
+    (`Ph_sel(Dex='DAem')`) and A photons during A excitation
     (`Ph_sel(Aex='Aex')`).
-    
+
     Arguments:
-        dx (Data object): contains the data on which to perform the burst 
+        dx (Data object): contains the data on which to perform the burst
             search. Background estimation must be performed before the search.
         F (float): Burst search parameter F.
         m (int): Burst search parameter m.
         ph_sel1 (Ph_sel object): photon selections used for bursts search 1.
         ph_sel2 (Ph_sel object): photon selections used for bursts search 2.
         mute (bool): if True nothing is printed. Default: False.
-    
+
     Return:
         A new `Data` object containing bursts from the and-gate search.
-        
+
     See also :meth:`fretbursts.burstlib.Data.burst_search_t`.
     """
     dx_d = dx
     dx_a = dx.copy()
     dx_and = dx.copy()
-    
+
     dx_d.burst_search_t(L=m, m=m, F=F, ph_sel=ph_sel1)
     dx_a.burst_search_t(L=m, m=m, F=F, ph_sel=ph_sel2)
-    
+
     mburst_and = []
     for mburst_d, mburst_a in zip(dx_d.mburst, dx_a.mburst):
         mburst_and.append(bslib.burst_and(mburst_d, mburst_a))
 
     dx_and.add(mburst=mburst_and)
-        
+
     pprint(" - Calculating burst periods ...", mute)
     dx_and._calc_burst_period()                       # writes bp
     pprint("[DONE]\n", mute)
@@ -285,6 +285,6 @@ def burst_search_and_gate(dx, F=6, m=10, ph_sel1=Ph_sel(Dex='DAem'),
     pprint(" - Counting D and A ph and calculating FRET ... \n", mute)
     dx_and.calc_fret(count_ph=True, corrections=True, mute=mute)
     pprint("   [DONE Counting D/A]\n", mute)
- 
+
     return dx_and
-        
+
