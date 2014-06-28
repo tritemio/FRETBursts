@@ -42,7 +42,8 @@ def _get_bg_distrib_erlang(d, ich=0, m=10, ph_sel=Ph_sel('all'), bp=(0, -1)):
     return bg_dist
 
 def calc_mdelays_hist(d, ich=0, m=10, bp=(0, -1), bins_s=(0, 10, 0.02),
-                      ph_sel='DA', bursts=False, bg_fit=True, bg_F=0.8):
+                      ph_sel=Ph_sel('all'), bursts=False, bg_fit=True, 
+                      bg_F=0.8):
     """Compute histogram of m-photons delays (or waiting times).
 
     Arguments:
