@@ -223,16 +223,17 @@ def burst_and(mburst_d, mburst_a):
     The two input burst-arrays come from 2 different burst searches.
     Returns new bursts representing the overlapping bursts in the 2 inputs
     with start and stop defined as intersection (or AND) operator.
-    
-    The format of both input and output arrays is "burst-array" as returned 
+
+    The format of both input and output arrays is "burst-array" as returned
     by :func:`bsearch_py`.
-    
+
     Arguments:
-        mburst_d, mburst_a (array): input burst arrays. The number of burst
-            in each array can be different.
-    
+        mburst_d (array): burst-array 1
+        mburst_a (array): burst array 2. The number of burst in each of the
+            input array can be different.
+
     Returns:
-        Burst-array representing the intersection (AND) of overlapping bursts. 
+        Burst-array representing the intersection (AND) of overlapping bursts.
     """
     bstart_d, bend_d = b_start(mburst_d), b_end(mburst_d)
     bstart_a, bend_a = b_start(mburst_a), b_end(mburst_a)
@@ -248,33 +249,33 @@ def burst_and(mburst_d, mburst_a):
         if bend_d[i_d] < bstart_a[i_a]:
             i_d += 1
             continue
-        
+
         # Assign start and stop according the AND rule
         if bstart_a[i_a] < bstart_d[i_d] < bend_a[i_a]:
             start_mb = mburst_d[i_d]
         elif bstart_d[i_d] < bstart_a[i_a] < bend_d[i_d]:
             start_mb = mburst_a[i_a]
-            
+
         if bend_d[i_d] < bend_a[i_a]:
             end_mb = mburst_d[i_d]
             i_d += 1
         else:
             end_mb = mburst_a[i_a]
             i_a += 1
-            
+
         burst = burst0.copy()
         burst[itstart] = start_mb[itstart]
         burst[iistart] = start_mb[iistart]
         burst[itend] = end_mb[itend]
         burst[iiend] = end_mb[iiend]
-        
+
         # Compute new width and size
         burst[iwidth] = burst[itend] - burst[itstart]
         burst[inum_ph] = burst[iiend] - burst[iistart] + 1
-        
+
         bursts.append(burst)
-    
+
     return np.vstack(bursts)
-        
-        
+
+
 #
