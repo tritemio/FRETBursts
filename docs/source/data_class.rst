@@ -1,3 +1,5 @@
+.. currentmodule:: fretbursts.burstlib
+
 The "Data()" class
 ==================
 
@@ -7,8 +9,13 @@ such as background estimation, burst data, fitted FRET and so on.
 
 The reference documentation of the class follows.
 
-Description and attributes
---------------------------
+.. contents::
+
+
+"Data()" class: description and attributes
+------------------------------------------
+
+A description of the :class:`Data` class and its main attributes.
 
 .. module:: fretbursts.burstlib
 .. autoclass:: Data
@@ -17,7 +24,7 @@ Description and attributes
 Analysis methods
 ----------------
 
-.. currentmodule:: fretbursts.burstlib
+List of :class:`Data` methods used to perform different analysis.
 
 .. class:: Data
 
@@ -34,6 +41,8 @@ Analysis methods
 
 Basic info methods
 ------------------
+
+List of :class:`Data` methods that output basic information.
 
 .. class:: Data
 
@@ -53,6 +62,8 @@ Basic info methods
 Burst corrections methods
 -------------------------
 
+List of :class:`Data` methods used to apply burst corrections.
+
 .. class:: Data
 
     .. automethod:: update_bt
@@ -68,6 +79,8 @@ Burst corrections methods
 
 Other burst methods
 -------------------
+
+List of :class:`Data` methods not falling in previous categories.
 
 .. class:: Data
 
@@ -88,6 +101,9 @@ Other burst methods
 
 Utility methods
 ---------------
+
+List of :class:`Data` methods used to get (or iterate over) the different
+arrays of timestamps or burst data.
 
 .. class:: Data
 
@@ -110,5 +126,10 @@ Photon selection
 ----------------
 
 .. module:: fretbursts.ph_sel
+
+The class :class:`Ph_sel` is used to specify which sub-set of
+photons/timestamps are "selected" (i.e. all-photons, Donor-excitation-period
+photons, etc...).
+
 .. autoclass:: Ph_sel
 
