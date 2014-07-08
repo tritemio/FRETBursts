@@ -39,6 +39,8 @@ Basic info methods
 
     .. automethod:: time_max
 
+    .. automethod:: num_bursts
+
     .. automethod:: num_bu
 
     .. automethod:: status

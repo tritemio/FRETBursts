@@ -955,7 +955,11 @@ class Data(DataContainer):
             raise ValueError("No timestamps or bursts found.")
 
     def num_bu(self):
-        """Return an array with number of bursts for each channel."""
+        """Shortcut for :meth:`num_bursts`."""
+        return self.num_bursts()
+
+    def num_bursts(self):
+        """Return an array with the number of bursts in each channel."""
         return np.r_[[mb.shape[0] for mb in self.mburst]]
 
     def ph_select(self):
