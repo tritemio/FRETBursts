@@ -27,8 +27,7 @@ __all__ = [
         "hdf5",
 
         # Classes, functions, variables
-        "data_dir", "Data", "Sel", "Sel_mask", "Sel_mask_apply", "gui_fname",
-        "Ph_sel",
+        "Data", "Sel", "Sel_mask", "Sel_mask_apply", "gui_fname", "Ph_sel",
 
         # Standalone plots or plots as a function of ch
         "mch_plot_bg", "plot_alternation_hist",
@@ -56,7 +55,6 @@ from matplotlib import rcParams
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import plot, hist, grid, xlim, ylim, gca, gcf
 
-from .path_def import data_dir
 import background as bg
 import burstlib as bl
 from .burstlib import Data, Sel, Sel_mask, Sel_mask_apply
