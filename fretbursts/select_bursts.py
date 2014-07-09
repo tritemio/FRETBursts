@@ -57,23 +57,23 @@ def str_G(gamma, gamma1):
     return s
 
 ## Selection on E or S values
-def E(d, ich=0, E1=-0.2, E2=1.2):
+def E(d, ich=0, E1=-np.inf, E2=np.inf):
     """Select the burst with E between E1 and E2."""
     burst_mask = (d.E[ich] >= E1)*(d.E[ich] <= E2)
     return burst_mask, ''
 
-def S(d, ich=0, S1=-0.2, S2=1.2):
+def S(d, ich=0, S1=-np.inf, S2=np.inf):
     """Select the burst with S between S1 and S2."""
     burst_mask = (d.S[ich] >= S1)*(d.S[ich] <= S2)
     return burst_mask, ''
 
-def ES(d, ich=0, E1=-0.2, E2=1.2, S1=-0.2, S2=1.2):
+def ES(d, ich=0, E1=-np.inf, E2=np.inf, S1=-np.inf, S2=np.inf):
     """Select the burst with E between E1 and E2 and S between S1 and S2."""
     burst_mask = (d.S[ich] >= S1)*(d.S[ich] <= S2) * \
             (d.E[ich] >= E1)*(d.E[ich] <= E2)
     return burst_mask, ''
 
-def ESe(d, ich=0, E1=-0.2, E2=1.2, S1=-0.2, S2=1.2):
+def ESe(d, ich=0, E1=-np.inf, E2=np.inf, S1=-np.inf, S2=np.inf):
     """Select the burst with E-S inside an ellipsis inscribed in E1,E2,S1,S2"""
     def ellips(x,y,x1,x2,y1,y2):
         rx, ry = 0.5*abs(x2-x1), 0.5*abs(y2-y1)
@@ -98,22 +98,22 @@ def time(d, ich=0, time_s1=0, time_s2=None):
 select_bursts_time = deprecate(time, "select_bursts_time", "select_bursts.time")
 
 
-def nd(d, ich=0, th1=20, th2=1000):
+def nd(d, ich=0, th1=20, th2=np.inf):
     """Select bursts with (nd >= th1) and (nd <= th2)."""
     bursts_mask = (d.nd[ich] >= th1)*(d.nd[ich] <= th2)
     return bursts_mask, ''
 
-def na(d, ich=0, th1=20, th2=1000):
+def na(d, ich=0, th1=20, th2=np.inf):
     """Select bursts with (na >= th1) and (na <= th2)."""
     bursts_mask = (d.na[ich] >= th1)*(d.na[ich] <= th2)
     return bursts_mask, ''
 
-def naa(d, ich=0, th1=20, th2=1000):
+def naa(d, ich=0, th1=20, th2=np.inf):
     """Select bursts with (naa >= th1) and (naa <= th2)."""
     bursts_mask = (d.naa[ich] >= th1)*(d.naa[ich] <= th2)
     return bursts_mask, ''
 
-def size(d, ich=0, th1=20, th2=1000, gamma=1., gamma1=None,
+def size(d, ich=0, th1=20, th2=np.inf, gamma=1., gamma1=None,
                       add_naa=False):
     """Select bursts with burst sizes between th1 and th2.
 
@@ -175,7 +175,7 @@ def width(d, ich=0, th1=0.5, th2=1):
     bursts_mask = (burst_width >= th1)*(burst_width <= th2)
     return bursts_mask, ''
 
-def sbr(d, ich=0, th1=0, th2=1e4):
+def sbr(d, ich=0, th1=0, th2=np.inf):
     """Select bursts with SBR between `th1` and `th2`."""
     if 'sbr' not in d:
         d.calc_sbr()
