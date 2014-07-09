@@ -113,22 +113,26 @@ def naa(d, ich=0, th1=20, th2=1000):
     bursts_mask = (d.naa[ich] >= th1)*(d.naa[ich] <= th2)
     return bursts_mask, ''
 
-def nda(d, ich=0, th1=20, th2=1000, gamma=1., gamma1=None,
+def size(d, ich=0, th1=20, th2=1000, gamma=1., gamma1=None,
                       add_naa=False):
-    """Select bursts with (nd+na >= th1) and (nd+na <= th2).
+    """Select bursts with burst sizes between th1 and th2.
 
-    `gamma`, `gamma1` and `add_naa` are passed to :func:`get_burst_size`
-    to compute the burst size.
+    The parameters `gamma`, `gamma1` and `add_naa` are passed to
+    :func:`get_burst_size` to compute the burst size.
     """
     burst_size = get_burst_size(d, ich, gamma, gamma1, add_naa)
     if d.nch > 1 and (np.size(th1) == d.nch): th1 = th1[ich]
     if d.nch > 1 and (np.size(th2) == d.nch): th2 = th2[ich]
     bursts_mask = (burst_size >= th1)*(burst_size <= th2)
-    s = "nda_th%d" % th1
+    s = "size_th%d" % th1
     if th2 < 1000: s +="_th2_%d" % th2
     return bursts_mask, s+str_G(gamma, gamma1)
 
-select_bursts_nda = deprecate(nda, 'select_bursts_nda', 'select_bursts.nda')
+# Name used before 2014-07
+nda = deprecate(size, 'select_bursts.nda', 'select_bursts.size')
+
+# Name used before the 2014-04 refactoring
+select_bursts_nda = deprecate(size, 'select_bursts_nda', 'select_bursts.size')
 
 def nda_percentile(d, ich=0, q=50, low=False, gamma=1., gamma1=None,
                    add_naa=False):
