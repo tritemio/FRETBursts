@@ -20,3 +20,4 @@ dist/
 *.pdf
 notebooks/dev/docs/docs_html
 *.hdf5
+notebooks/data
