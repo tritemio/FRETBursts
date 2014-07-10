@@ -44,7 +44,7 @@ def binning(times, bin_width_ms=1, max_num_bins=1e5, clk_p=12.5e-9):
 
 def mkdir_p(path):
     """Create the path if not existent, otherwise do nothing.
-    If path exists and is not a dir raise an exception.
+    If `path` exists, and is not a dir, raise an exception.
     """
     import errno
     try:
@@ -67,6 +67,9 @@ def download(url, save_dir='./'):
 
     fname = url.split('/')[-1]
     path = '/'.join([os.path.abspath(save_dir), fname])
+    if os.path.exists(path):
+        print 'File exists already (%s). \nDelete it to re-download.' % path
+        return
     mkdir_p(save_dir)
 
     r = requests.get(url, stream=True)
@@ -78,8 +81,9 @@ def download(url, save_dir='./'):
                 f.write(chunk)
                 downloaded_size += chunk_size/(2.**20)
                 clear_output()
-                print 'Saving %s ...' % path
-                print 'Downloaded %5.1f MB' % downloaded_size
+                print "Saving: '%s'" % path
+                print "Downloaded %5.1f MB" % downloaded_size
                 sys.stdout.flush()
+        print "Download completed."
     else:
         print 'URL not found.'
