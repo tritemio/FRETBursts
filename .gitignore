@@ -21,3 +21,4 @@ dist/
 notebooks/dev/docs/docs_html
 *.hdf5
 notebooks/data
+*.lnk

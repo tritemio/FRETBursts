@@ -7,6 +7,7 @@
 Misc utility functions
 """
 
+from __future__ import division
 import os
 import sys
 import numpy as np
@@ -55,35 +56,37 @@ def mkdir_p(path):
         else:
             raise
 
-def download(url, save_dir='./'):
-    """Download a file from `url` streaming it to disk.
+def download_file(url, save_dir='./'):
+    """Download a file from `url` saving it to disk.
 
     The file name is taken from `url` and left unchanged.
     The destination dir can be set using `save_dir`
-    (Default: current dir).
+    (Default: the current dir).
     """
-    from IPython.display import clear_output
-    import requests
+    import urllib, urllib2
 
+    ## Check if the URL is valid
+    try:
+        urllib2.urlopen(url)
+    except urllib2.HTTPError:
+        print 'URL not found:', url
+        return
+
+    ## Check if local path already exist
     fname = url.split('/')[-1]
+    print "URL:  %s" % url
+    print "File: %s\n " % fname
+
     path = '/'.join([os.path.abspath(save_dir), fname])
     if os.path.exists(path):
-        print 'File exists already (%s). \nDelete it to re-download.' % path
+        print 'File already on disk: %s \nDelete it to re-download.' % path
         return
-    mkdir_p(save_dir)
 
-    r = requests.get(url, stream=True)
-    chunk_size = 2**16
-    downloaded_size = 0
-    if r.status_code == 200:
-        with open(path, 'wb') as f:
-            for chunk in r.iter_content(chunk_size):
-                f.write(chunk)
-                downloaded_size += chunk_size/(2.**20)
-                clear_output()
-                print "Saving: '%s'" % path
-                print "Downloaded %5.1f MB" % downloaded_size
-                sys.stdout.flush()
-        print "Download completed."
-    else:
-        print 'URL not found.'
+    ## Donwload the file
+    def _report(blocknr, blocksize, size):
+        current = blocknr*blocksize/2**20
+        sys.stdout.write(
+            "\rDownloaded {0:4.1f} / {1:4.1f} MB".format(current, size/2**20))
+    mkdir_p(save_dir)
+    urllib.urlretrieve(url, path, _report)
+
