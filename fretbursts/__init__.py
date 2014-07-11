@@ -24,7 +24,7 @@ __all__ = [
 
         # Local modules
         "loader", "select_bursts", "bl", "bg", "bpl", "bext", "bg_cache",
-        "hdf5",
+        "hdf5", "download_file",
 
         # Classes, functions, variables
         "Data", "Sel", "Sel_mask", "Sel_mask_apply", "gui_fname", "Ph_sel",
@@ -82,4 +82,5 @@ from burst_plot import (
         dplot, dplot_48ch, dplot_8ch, dplot_1ch,
         )
 from utils.gui import gui_fname
+from utils.misc import download_file
 import style
