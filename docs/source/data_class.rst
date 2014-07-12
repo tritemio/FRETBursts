@@ -50,8 +50,6 @@ List of :class:`Data` methods that output basic information.
 
     .. automethod:: num_bursts
 
-    .. automethod:: num_bu
-
     .. automethod:: status
 
     .. automethod:: name

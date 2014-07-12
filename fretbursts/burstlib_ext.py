@@ -208,7 +208,7 @@ def join_data(d_list, gap=1):
     # Set the i_origin burst attribute
     new_d.add(i_origin = [])
     for ich in xrange(nch):
-        i_origin_ch = np.concatenate([i_d*np.ones(d.num_bu()[ich])
+        i_origin_ch = np.concatenate([i_d*np.ones(d.num_bursts()[ich])
                         for i_d, d in enumerate(d_list)])
         new_d.i_origin.append(i_origin_ch)
 

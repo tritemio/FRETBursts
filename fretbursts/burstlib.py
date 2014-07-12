@@ -872,7 +872,7 @@ class Data(DataContainer):
         burst_start = b_start(mburst)
         sort_index = burst_start.argsort()
 
-        ich_burst = [i*np.ones(nb) for i, nb in enumerate(self.num_bu())]
+        ich_burst = [i*np.ones(nb) for i, nb in enumerate(self.num_bursts())]
         dc.add(ich_burst=np.hstack(ich_burst)[sort_index])
 
         for name in self.burst_fields:
