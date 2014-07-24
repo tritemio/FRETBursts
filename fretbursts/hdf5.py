@@ -4,10 +4,10 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-This module contains a function to store :class:`fretbursts.burstlib.Data` 
+This module contains a function to store :class:`fretbursts.burstlib.Data`
 objects to disk in **HDF5-smFRET** format.
 
-Utility functions to print the HDF5 file structure and data-attributes are 
+Utility functions to print the HDF5 file structure and data-attributes are
 also provided.
 """
 
@@ -20,7 +20,7 @@ def store(d, compression=dict(complevel=6, complib='zlib')):
     """
     Saves the `Data` object `d` in an HDF5 file using pytables.
 
-    The file name is obtained from d.fname, by replacing the extension 
+    The file name is obtained from d.fname, by replacing the extension
     with '.hdf5'.
 
     **HDF5-smFRET file structure**
@@ -143,7 +143,7 @@ def store(d, compression=dict(complevel=6, complib='zlib')):
 
 def print_attrs(data_file, node_name='/', which='user'):
     """Print the HDF5 attributes for `node_name`.
-    
+
     Parameters:
         data_file (pytables HDF5 file object): the data file to print
         node_name (string): name of the path inside the file to be printed.
@@ -160,12 +160,12 @@ def print_attrs(data_file, node_name='/', which='user'):
 
 def print_children(data_file, group='/'):
     """Print all the sub-groups in `group` and leaf-nodes children of `group`.
-    
+
     Parameters:
         data_file (pytables HDF5 file object): the data file to print
         group (string): path name of the group to be printed.
             Default: '/', the root node.
-    """    
+    """
     base = data_file.get_node(group)
     print 'Groups in:\n  %s\n' % base
 
