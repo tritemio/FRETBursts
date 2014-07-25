@@ -120,7 +120,7 @@ def store(d, compression=dict(complevel=6, complib='zlib')):
         # Array of particles, used for simulated data
         d.par_list = PyTablesList(data_file, group_name='particles',
                     group_descr='Particle No for each emitted timestamp',
-                    prefix='par_')
+                    prefix='par_', compression=compression)
         for par in d.par:
             d.par_list.append(par)
 
