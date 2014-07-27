@@ -632,7 +632,7 @@ class Data(DataContainer):
     # per photon).
     ph_fields = ['ph_times_m', 'A_em', 'D_em', 'A_ex', 'D_ex']
 
-    # Attribute names background data.
+    # Attribute names containing background data.
     # Each attribute is a list (1 element per ch) of sequences (1 element per
     # background period). For example `.bg` is a list of arrays, while `.Lim`
     # and `.Ph_p` are lists of lists-of-tuples (one tuple per background
@@ -895,7 +895,7 @@ class Data(DataContainer):
     def get_params(self):
         """Returns a plain dict containing only parameters and no arrays.
         This can be used as a summary of data analysis parameters.
-        An additional keys `name' and `Names` are added with values
+        Additional keys `name' and `Names` are added with values
         from `.name()` and `.Name()`.
         """
         p_names = ['fname', 'clk_p', 'nch', 'ph_sel', 'L', 'm', 'F', 'P',
@@ -990,7 +990,7 @@ class Data(DataContainer):
         self.add(max_rate=Max_Rate)
 
     def delete_burst_data(self):
-        """Erase any possible burst data"""
+        """Erase all the burst data"""
         for k in self.burst_fields + ['fuse', 'lsb']:
             if k in self:
                 self.delete(k)
@@ -1111,7 +1111,7 @@ class Data(DataContainer):
                 threshold.
 
         The background estimation functions are defined in the module
-        `background` (convetionally imported as `bg`).
+        `background` (conventionally imported as `bg`).
 
         Example:
             Compute background with `bg.exp_fit`, every 20s, with a
