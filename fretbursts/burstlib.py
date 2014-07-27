@@ -637,7 +637,7 @@ class Data(DataContainer):
     # background period). For example `.bg` is a list of arrays, while `.Lim`
     # and `.Ph_p` are lists of lists-of-tuples (one tuple per background
     # period). These attributes do not exist before computing the background.
-    bg_fields = ['bg', 'bg_dd', 'bg_ad', 'bg_aa', 'Lim', 'Ph_p']
+    bg_fields = ['bg', 'bg_dd', 'bg_ad', 'bg_da', 'bg_aa', 'Lim', 'Ph_p']
 
     # Attribute names containing per-burst data.
     # Each attribute is a list (1 element per ch) of arrays (1 element
@@ -649,7 +649,7 @@ class Data(DataContainer):
 
     # List of photon selections on which the background is computed
     ph_streams = [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem'),
-                  Ph_sel(Aex='Aem')]
+                  Ph_sel(Aex='Dem'), Ph_sel(Aex='Aem')]
 
     def __init__(self, **kwargs):
         # Default values
@@ -1021,7 +1021,8 @@ class Data(DataContainer):
         """
         Th_us = {}
         for ph_sel in self.ph_streams:
-            if not self.ALEX and ph_sel == Ph_sel(Aex='Aem'):
+            if not self.ALEX and (ph_sel== Ph_sel(Aex='Dem') or
+                                  ph_sel== Ph_sel(Aex='Aem')):
                 continue
             th_us = np.zeros(self.nch)
             for ich, ph in enumerate(self.iter_ph_times(ph_sel=ph_sel)):
@@ -1039,12 +1040,18 @@ class Data(DataContainer):
         The keys are the ph selections in self.ph_streams and the values
         are 1-D arrays of size nch.
         """
+        n_streams = len(self.ph_streams)
+        assert n_streams == 5
+
         if np.size(tail_min_us) == 1:
-            tail_min_us = np.repeat(tail_min_us, 4)
+            tail_min_us = np.repeat(tail_min_us, n_streams)
         elif np.size(tail_min_us) == 3:
-            tail_min_us = np.hstack((tail_min_us, 1))
-        elif np.size(tail_min_us) == 4:
+            tail_min_us = np.hstack((tail_min_us, 1, 1))
+        elif np.size(tail_min_us) == n_streams:
             tail_min_us = np.asarray(tail_min_us)
+        elif np.size(tail_min_us) != n_streams:
+            raise ValueError, 'Wrong tail_min_us length (%d).' %\
+                    len(tail_min_us)
         Th_us = {}
         for i, key in enumerate(self.ph_streams):
             Th_us[key] = np.ones(self.nch)*tail_min_us[i]
@@ -1133,25 +1140,27 @@ class Data(DataContainer):
         nperiods = self._get_num_periods(time_s)
         bg_time_clk = time_s/self.clk_p
 
-        BG, BG_dd, BG_ad, BG_aa, Lim, Ph_p = [], [], [], [], [], []
-        rate_m, rate_dd, rate_ad, rate_aa = [], [], [], []
-        BG_err, BG_dd_err, BG_ad_err, BG_aa_err = [], [], [], []
+        BG, BG_dd, BG_ad, BG_da, BG_aa, Lim, Ph_p = [], [], [], [], [], [], []
+        rate_m, rate_dd, rate_ad, rate_da, rate_aa = [], [], [], [], []
+        BG_err, BG_dd_err, BG_ad_err, BG_da_err, BG_aa_err = [], [], [], [], []
         for ich, ph_ch in enumerate(self.iter_ph_times()):
             th_us_ch_all = Th_us[Ph_sel('all')][ich]
             th_us_ch_dd = Th_us[Ph_sel(Dex='Dem')][ich]
             th_us_ch_ad = Th_us[Ph_sel(Dex='Aem')][ich]
             if self.ALEX:
+                th_us_ch_da = Th_us[Ph_sel(Aex='Dem')][ich]
                 th_us_ch_aa = Th_us[Ph_sel(Aex='Aem')][ich]
 
             dd_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Dex='Dem'))
             ad_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Dex='Aem'))
             if self.ALEX:
+                da_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Aex='Dem'))
                 aa_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Aex='Aem'))
 
             lim, ph_p = [], []
-            bg, bg_dd, bg_ad, bg_aa = [zeros(nperiods) for _ in xrange(4)]
-            zeros_list = [zeros(nperiods) for _ in xrange(4)]
-            bg_err, bg_dd_err, bg_ad_err, bg_aa_err = zeros_list
+            bg, bg_dd, bg_ad, bg_da, bg_aa = [zeros(nperiods) for _ in range(5)]
+            zeros_list = [zeros(nperiods) for _ in range(5)]
+            bg_err, bg_dd_err, bg_ad_err, bg_da_err, bg_aa_err = zeros_list
             for ip in xrange(nperiods):
                 i0 = 0 if ip == 0 else i1           # pylint: disable=E0601
                 i1 = (ph_ch < (ip+1)*bg_time_clk).sum()
@@ -1184,6 +1193,9 @@ class Data(DataContainer):
                                        tail_min_us=th_us_ch_ad, **kwargs)
 
                 if self.ALEX and aa_mask.any():
+                    da_mask_i = da_mask[i0:i1]
+                    bg_da[ip], bg_da_err[ip] = fun(ph_i[da_mask_i],
+                                       tail_min_us=th_us_ch_da, **kwargs)
                     aa_mask_i = aa_mask[i0:i1]
                     bg_aa[ip], bg_aa_err[ip] = fun(ph_i[aa_mask_i],
                                        tail_min_us=th_us_ch_aa, **kwargs)
@@ -1192,17 +1204,22 @@ class Data(DataContainer):
             BG.append(bg);       BG_err.append(bg_err)
             BG_dd.append(bg_dd); BG_dd_err.append(bg_dd_err)
             BG_ad.append(bg_ad); BG_ad_err.append(bg_ad_err)
+            BG_da.append(bg_da); BG_da_err.append(bg_da_err)
             BG_aa.append(bg_aa); BG_aa_err.append(bg_aa_err)
             rate_m.append(bg.mean())
             rate_dd.append(bg_dd.mean())
             rate_ad.append(bg_ad.mean())
-            if self.ALEX: rate_aa.append(bg_aa.mean())
-        self.add(bg=BG, bg_dd=BG_dd, bg_ad=BG_ad, bg_aa=BG_aa, bg_err=BG_err,
-                 bg_dd_err=BG_dd_err, bg_ad_err=BG_ad_err, bg_aa_err=BG_aa_err,
+            if self.ALEX:
+                rate_da.append(bg_da.mean())
+                rate_aa.append(bg_aa.mean())
+        self.add(bg=BG, bg_dd=BG_dd, bg_ad=BG_ad, bg_da=BG_da, bg_aa=BG_aa,
+                 bg_err=BG_err, bg_dd_err=BG_dd_err, bg_ad_err=BG_ad_err,
+                 bg_da_err=BG_da_err, bg_aa_err=BG_aa_err,
                  Lim=Lim, Ph_p=Ph_p, nperiods=nperiods,
                  bg_fun=fun, bg_fun_name=fun.__name__,
                  bg_time_s=time_s, bg_ph_sel=Ph_sel('all'), rate_m=rate_m,
-                 rate_dd=rate_dd, rate_ad=rate_ad, rate_aa=rate_aa,
+                 rate_dd=rate_dd, rate_ad=rate_ad,
+                 rate_da=rate_da, rate_aa=rate_aa,
                  bg_th_us=Th_us, bg_auto_th=bg_auto_th)
         pprint("[DONE]\n")
 
