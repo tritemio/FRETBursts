@@ -659,7 +659,7 @@ class Data(DataContainer):
         DataContainer.__init__(self, **init_kw)
 
     ##
-    # Infrastructure methods: they return a new Data object
+    # Infrastructure methods
     #
     def copy(self):
         """Copy data in a new object. All arrays copied except for ph_times_m
@@ -711,23 +711,25 @@ class Data(DataContainer):
 
         # Any other selection with Aex != None requires ALEX
         if not self.ALEX and ph_sel.Aex is not None:
-            raise ValueError('Used acceptor excitation with non-ALEX data.')
+            raise ValueError('Use of acceptor excitation with non-ALEX data.')
 
         # Base selections
         elif ph_sel == Ph_sel(Dex='Dem'):
             return self.get_D_em_D_ex(ich)
         elif ph_sel == Ph_sel(Dex='Aem'):
             return self.get_A_em_D_ex(ich)
+        elif ph_sel == Ph_sel(Aex='Dem'):
+            return self.get_D_em(ich)*self.get_A_ex(ich)
         elif ph_sel == Ph_sel(Aex='Aem'):
-            return self.get_A_em_A_ex(ich)
+            return self.get_A_em(ich)*self.get_A_ex(ich)
 
-        # Select all photon in one emission ch
+        # Selection of all photon in one emission ch
         elif ph_sel == Ph_sel(Dex='Dem', Aex='Dem'):
             return self.get_D_em(ich)
         elif ph_sel == Ph_sel(Dex='Aem', Aex='Aem'):
             return self.get_A_em(ich)
 
-        # Select all photon in one excitation period
+        # Selection of all photon in one excitation period
         elif ph_sel == Ph_sel(Dex='DAem'):
             return self.get_D_ex(ich)
         elif ph_sel == Ph_sel(Aex='DAem'):
@@ -766,7 +768,7 @@ class Data(DataContainer):
 
     def _get_ph_mask_single(self, ich, mask_name, negate=False):
         """Get the bool array `mask_name` for channel `ich`.
-        If the bool array is a scalar return a slice (full or empty)
+        If the internal "bool array" is a scalar return a slice (full or empty)
         """
         mask = np.asarray(getattr(self, mask_name)[ich])
         if negate:
@@ -808,11 +810,6 @@ class Data(DataContainer):
             return self.get_A_em(ich)*self.get_D_ex(ich)
         else:
             return self.get_A_em(ich)
-
-    def get_A_em_A_ex(self, ich=0):
-        """Returns a mask of acceptor photons during acceptor-excitation."""
-        return self.get_A_em(ich)*self.get_A_ex(ich)
-
 
     def slice_ph(self, time_s1=0, time_s2=None, s='slice'):
         """Return a new Data object with ph in [`time_s1`,`time_s2`] (seconds)
