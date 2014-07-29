@@ -1554,6 +1554,8 @@ class Data(DataContainer):
                 self.nt[ich] = nd + na
             if self.ALEX:
                 self.naa[ich] -= self.bg_aa[ich][period] * width
+                if 'nda' in self:
+                    self.nda[ich] -= self.bg_da[ich][period] * width
                 self.nt[ich] += self.naa[ich]
 
     def bleed_through_correction(self, mute=False):
@@ -1582,7 +1584,10 @@ class Data(DataContainer):
             na += lsb*(np.random.rand(na.size)-0.5)
         if self.ALEX:
             for naa in self.naa:
-                naa += lsb*(np.random.rand(na.size)-0.5)
+                naa += lsb*(np.random.rand(naa.size)-0.5)
+            if 'nda' in self:
+                for nda in self.nda:
+                    nda += lsb*(np.random.rand(nda.size)-0.5)
         self.add(lsb=lsb)
 
     def calc_chi_ch(self):
@@ -1717,7 +1722,7 @@ class Data(DataContainer):
             None, all the results are saved in the object.
         """
         if count_ph:
-            self.calc_ph_num(pure_python=pure_python)
+            self.calc_ph_num(pure_python=pure_python, alex_all=True)
         if dither:
             self.dither(mute=mute)
         if corrections:
