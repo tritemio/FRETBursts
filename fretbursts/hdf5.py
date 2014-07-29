@@ -85,8 +85,8 @@ def store(d, compression=dict(complevel=6, complib='zlib')):
                                filters=comp_filter,
                                )
         data_file.create_carray('/', 'detectors_t', obj=d.det_t,
-                               title=('Array of detector number foe each '
-                                      'timestamps'),
+                               title=('Array of detector number for each '
+                                      'timestamp'),
                                filters=comp_filter,
                                )
     else:
