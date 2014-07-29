@@ -16,6 +16,43 @@ import tables
 from dataload.pytables_array_list import PyTablesList
 
 
+_hdf5_smfret_meta = dict(
+    clk_p = 'Clock period for the timestamps',
+    nch = 'Number of smFRET excitation spots',
+    ALEX = 'If True the file contains ALternated EXcitation data.',
+
+    # ALEX
+    timestamps_t = 'Array of all the timestamps (before alternation selection)',
+    detectors_t = 'Array of detector numbers for each timestamp',
+
+    # Non-ALEX
+    timestamps = ('Donor + Acceptor timestamp arrays. Contains a series of '
+                  'timestamp arrays, one for each spot.'),
+    acceptor_emission = ('Contains a list of bool arrays, one for each spot. '
+                         'Each bool element indicates whether the '
+                         'corresponding timstamp has been detected in the '
+                         'acceptor channel (True) or in the donor channel '
+                         '(False).'),
+
+    # Lifetime
+    nanotime = 'TCSPC Photon arrival time (nanotime)',
+    nanotime_params = 'TCSPC hardware and lifetime data parameters',
+
+    # Simulation
+    particles = ('Particle label (number) for each timestamp.'),
+
+    # Optional parameters
+    BT = ('Bleed-through or leakage coefficient (donor emission in the '
+          'acceptor ch)'),
+    gamma = 'Gamma factor',
+)
+
+_hdf5_map = {key: key for key in _hdf5_smfret_meta.keys()}
+_hdf5_map['timestamps_t'] = 'ph_times_t'
+_hdf5_map['detectors_t'] = 'det_t'
+_hdf5_map['particles'] = 'par'
+
+
 def store(d, compression=dict(complevel=6, complib='zlib')):
     """
     Saves the `Data` object `d` in an HDF5 file using pytables.
@@ -58,7 +95,8 @@ def store(d, compression=dict(complevel=6, complib='zlib')):
     h5_fname = basename + '.hdf5'
     data_file = tables.open_file(h5_fname, mode = "w",
                                  title = "Confocal smFRET data")
-    # Save the metadata
+
+    # Save the metadata for the file and the root node
     smFRET_format_title = ('HDF5-based file format for confocal single-'
                            'molecule FRET data')
     smFRET_format_version = '0.1'
@@ -66,68 +104,53 @@ def store(d, compression=dict(complevel=6, complib='zlib')):
     data_file.root._v_attrs.smFRET_format_version = smFRET_format_version
 
     # Save the compulsory parameters
-    data_file.create_array('/', 'clk_p', obj=d.clk_p,
-                           title='Clock period for the timestamps')
-
-    data_file.create_array('/', 'nch', obj=d.nch,
-                           title='Number of smFRET excitation spots')
-
-    data_file.create_array('/', 'ALEX', obj=d.ALEX,
-                           title='True if ALternated EXcitation was used.')
+    mandatory_fields = ['clk_p', 'nch', 'ALEX']
+    for field in mandatory_fields:
+        data_file.create_array('/', field, obj=d[field],
+                               title=_hdf5_smfret_meta[field])
 
     # Save the timestamps
     if d.ALEX:
-        assert 'ph_times_t' in d
-        assert 'det_t' in d
-        # ALEX case: save all the timestamps before alternation selection
-        data_file.create_carray('/', 'timestamps_t', obj=d.ph_times_t,
-                               title='Array of all the timestamps',
-                               filters=comp_filter,
-                               )
-        data_file.create_carray('/', 'detectors_t', obj=d.det_t,
-                               title=('Array of detector number for each '
-                                      'timestamp'),
-                               filters=comp_filter,
-                               )
+        alex_fields = ['timestamps_t', 'detectors_t']
+
+        for field in alex_fields:
+            assert _hdf5_map[field] in d
+            data_file.create_carray('/', field, obj=d[_hdf5_map[field]],
+                                    title=_hdf5_smfret_meta[field],
+                                    filters=comp_filter)
     else:
         # Non-ALEX case: save directly the list of timestamps per-ch
         d.ts_list = PyTablesList(data_file, group_name='timestamps',
-                        group_descr='Photon timestamp arrays', prefix='ts_',
-                        compression=compression)
+                        group_descr=_hdf5_smfret_meta['timestamps'],
+                        prefix='ts_', compression=compression)
         for ph in d.ph_times_m:
             d.ts_list.append(ph)
 
         d.a_em_list = PyTablesList(data_file, group_name='acceptor_emission',
-                        group_descr='Boolean masks for acceptor emission',
+                        group_descr=_hdf5_smfret_meta['acceptor_emission'],
                         prefix='a_em_', compression=compression)
         for aem in d.A_em:
             d.a_em_list.append(aem)
 
     # Optional parameters
-    if 'nanotime' in d:
-        data_file.create_array('/', 'nanotime', obj=d.nanotime,
-                               title=('Photon arrival time (with sub-ns '
-                                      'resolution) respect to a laser sync.'))
-    if 'BT' in d:
-        data_file.create_array('/', 'BT', obj=d.BT,
-                               title=('Fraction of donor emission detected by '
-                                      'the acceptor channel'))
-    if 'gamma' in d:
-        data_file.create_array('/', 'gamma', obj=d.gamma,
-                               title='smFRET Gamma-factor')
+    optional_fields = ['nanotime', 'BT', 'gamma']
+    for field in optional_fields:
+        if _hdf5_map[field] in d:
+            data_file.create_array('/', field, obj=d[_hdf5_map[field]],
+                                   title=_hdf5_smfret_meta[field])
 
     if 'par' in d:
         # Array of particles, used for simulated data
         d.par_list = PyTablesList(data_file, group_name='particles',
-                    group_descr='Particle No for each emitted timestamp',
-                    prefix='par_', compression=compression)
+                                  group_descr=_hdf5_smfret_meta['particles'],
+                                  prefix='par_', compression=compression)
         for par in d.par:
             d.par_list.append(par)
 
     if 'nanotime_params' in d:
         # Parameters for the TCSPC configuration
         data_file.create_group('/', 'nanotime_params',
-                               title='Parameters of TCSPC and lifetime data')
+                               title=_hdf5_smfret_meta['nanotime_params'])
 
         for key, val in d.nanotime_params.iteritems():
             if type(val) is tuple:
