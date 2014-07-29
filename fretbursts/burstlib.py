@@ -644,7 +644,7 @@ class Data(DataContainer):
     # per burst).
     # They do not necessarly exist. For example 'naa' exists only for ALEX
     # data. Also none of them exist before performing a burst search.
-    burst_fields = ['E', 'S', 'mburst', 'nd', 'na', 'nt', 'bp', 'naa',
+    burst_fields = ['E', 'S', 'mburst', 'nd', 'na', 'nt', 'bp', 'nda', 'naa',
                     'max_rate', 'sbr']
 
     # List of photon selections on which the background is computed
