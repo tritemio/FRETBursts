@@ -17,10 +17,10 @@ Read and write HDF5 smFRET files
 
 See also :ref:`hdf5-advantages`.
 
-In FRETBursts we support reading/writing from/to HDF5-smFRET format.
+FRETBursts can read and save the HDF5-smFRET format.
 
-To load a smFRET dataset store in HDF5 format use the loader function
-:func:`loader.hdf5`.
+To load a smFRET data-file from the HDF5-smFRET format use the loader
+function :func:`loader.hdf5`.
 
 A dataset loaded in a :class:`burstlib.Data` object can be saved in HDF5
 with :func:`hdf5.store`. The function :func:`hdf5.store` also contains
