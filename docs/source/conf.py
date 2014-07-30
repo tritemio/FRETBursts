@@ -16,7 +16,7 @@ import sys, os
 
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if on_rtd:
-    # Mocking of the dependecies
+    # Mocking of the dependencies
     sys.path.insert(0,'.')
     from readthedocs import *
     sys.path.pop(0)

@@ -1,5 +1,7 @@
-HDF5-based smFRET file format
-=============================
+.. _hdf5-advantages:
+
+Why an HDF5-based smFRET file format
+====================================
 
 FRETBursts allows saving and loading confocal smFRET data from and to
 the `HDF5 file format <http://www.hdfgroup.org/HDF5/>`_ (see also

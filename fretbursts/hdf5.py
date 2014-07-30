@@ -18,7 +18,7 @@ from dataload.pytables_array_list import PyTablesList
 
 _hdf5_smfret_meta = dict(
     clk_p = 'Duration in seconds of 1 timestamp unit (clock period).',
-    nch = 'Number of smFRET excitation spots',
+    nch = 'Number of confocal excitation spots',
     ALEX = 'If True the file contains ALternated EXcitation data.',
 
     # ALEX
@@ -30,12 +30,12 @@ _hdf5_smfret_meta = dict(
                   'timestamp arrays, one for each spot.'),
     acceptor_emission = ('Contains a list of bool arrays, one for each spot. '
                          'Each bool element indicates whether the '
-                         'corresponding timstamp has been detected in the '
+                         'corresponding timestamp has been detected in the '
                          'acceptor channel (True) or in the donor channel '
                          '(False).'),
 
     # Lifetime
-    nanotime = 'TCSPC Photon arrival time (nanotime)',
+    nanotime = 'TCSPC photon arrival time (nanotime)',
     nanotime_params = 'TCSPC hardware and lifetime data parameters',
 
     # Simulation
@@ -66,24 +66,35 @@ def store(d, compression=dict(complevel=6, complib='zlib')):
         - smFRET_format_title: a string description for the file format
         - smFRET_format_version: file-format version string ('0.1')
 
-    Compulsory parameters:
-        - /nch: number of excitation spots
-        - /clk_p: clock period for the timestamps
-        - /ALEX: (bool) 1 or True if ALEX, else 0 or False
+    Mandatory parameters:
+        - /nch: number of confocal excitation spots
+        - /clk_p: (float) duration in seconds of 1 timestamp unit (clock period)
+        - /ALEX: (bool) If True the file contains ALternated EXcitation data
 
     Optional parameters:
-        - /BT
-        - /gamma
-        - /nanotime
-        - /nanotime_params (group)
+        - /BT: Bleed-through (or leakage) coefficient
+        - /gamma: gamma factor
+        - /nanotime: TCSPC photon arrival time (nanotime)
+        - /nanotime_params (group): TCSPC hardware and lifetime data parameters
+        - /particles: particle label (number) for each timestamp.
 
     Saved timestamps if ALEX:
-        - ph_times_t -> /timestamps_t
-        - det_t      -> /detectors_t
+        - /timestamps_t: Array of all the timestamps (before alternation
+          selection. Maps to `Data` attribute `ph_times_t`.
+        - /detectors_t: Array of detector numbers for each timestamp.
+          Maps to `Data` attribute `det_t`.
 
     Saved timestamps if NOT ALEX:
-        - ph_times_m -> /timestamps/ts_0 , ts_1, ...
-        - A_em       -> /acceptor_emssion/a_em_0, a_em1, ...
+        - /timestamps: (group) Donor + Acceptor timestamp arrays. Contains a
+          series of timestamp arrays, one for each spot.
+          Arrays names: /timestamps/ts_0 , ts_1, etc. Maps to `Data` attribute
+          `ph_times_m`.
+        - /acceptor_emission: (group): Contains a list of bool arrays, one for
+          each spot. Each bool element indicates whether the corresponding
+          timestamp has been detected in the acceptor channel (True) or in
+          the donor channel (False).
+          Arrays names /acceptor_emssion/a_em_0, a_em1, etc. Maps to `Data`
+          attribute `A_em`.
 
     Additional optional parameters (TODO):
         - /orig_data_file (string)
@@ -103,7 +114,7 @@ def store(d, compression=dict(complevel=6, complib='zlib')):
     data_file.root._v_attrs.smFRET_format_title = smFRET_format_title
     data_file.root._v_attrs.smFRET_format_version = smFRET_format_version
 
-    # Save the compulsory parameters
+    # Save the mandatory parameters
     mandatory_fields = ['clk_p', 'nch', 'ALEX']
     for field in mandatory_fields:
         data_file.create_array('/', field, obj=d[field],
