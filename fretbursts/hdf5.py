@@ -17,7 +17,7 @@ from dataload.pytables_array_list import PyTablesList
 
 
 _hdf5_smfret_meta = dict(
-    clk_p = 'Clock period for the timestamps',
+    clk_p = 'Duration in seconds of 1 timestamp unit (clock period).',
     nch = 'Number of smFRET excitation spots',
     ALEX = 'If True the file contains ALternated EXcitation data.',
 
