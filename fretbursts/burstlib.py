@@ -610,7 +610,7 @@ class Data(DataContainer):
 
         nd, na (list of arrays): number of donor or acceptor photons during
             donor excitation in each burst
-        nt (list of arrays): total number photons (nd+na)
+        nt (list of arrays): total number photons (nd+na+naa)
         naa (list of arrays): number of acceptor photons in each bursts
             during acceptor excitation **[ALEX only]**
         bp (list of arrays): time period for each burst. Same shape as `nd`.
@@ -896,9 +896,10 @@ class Data(DataContainer):
         from `.name()` and `.Name()`.
         """
         p_names = ['fname', 'clk_p', 'nch', 'ph_sel', 'L', 'm', 'F', 'P',
-                'BT', 'gamma', 'bg_time_s', 'nperiods',
+                'BT', 'dir', 'gamma', 'bg_time_s', 'nperiods',
                 'rate_dd', 'rate_ad', 'rate_aa', 'rate_m', 'T', 'rate_th',
-                'bg_corrected', 'bt_corrected', 'dithering', #'PP', 'TT',
+                'bg_corrected', 'bt_corrected', 'dir_corrected', 'dithering',
+                #'PP', 'TT',
                 'chi_ch', 's', 'ALEX']
         p_dict = dict(self)
         for name in p_dict.keys():
@@ -1442,7 +1443,13 @@ class Data(DataContainer):
         pprint("[DONE]\n", mute)
 
         self.add(m=m, L=L, ph_sel=ph_sel)  # P and F are saved in _calc_T()
-        self.add(bg_corrected=False, bt_corrected=False, dithering=False)
+
+        # The correction flags are both set here and in calc_ph_num() so that
+        # they are always consistent. Case 1: we perform only burst search
+        # (with no call to calc_ph_num). Case 2: we re-call calc_ph_num()
+        # without doing a new burst search
+        self.add(bg_corrected=False, bt_corrected=False, dir_corrected=False,
+                 dithering=False)
 
         if not nofret:
             pprint(" - Counting D and A ph and calculating FRET ... \n", mute)
@@ -1504,7 +1511,8 @@ class Data(DataContainer):
             nt = [d+a+aa for d, a, aa in zip(nd, na, naa)]
             assert (nt[0] == na[0] + nd[0] + naa[0]).all()
         self.add(nd=nd, na=na, nt=nt,
-                bt_corrected=False, bg_corrected=False, dithering=False)
+                 bt_corrected=False, bg_corrected=False, dir_corrected=False,
+                 dithering=False)
 
     def fuse_bursts(self, ms=0, process=True):
         """Return a new :class:`Data` object with nearby bursts fused together.
@@ -1522,7 +1530,8 @@ class Data(DataContainer):
         new_d = Data(**self)
         for k in ['E', 'S', 'nd', 'na', 'naa', 'nt', 'lsb', 'bp']:
             if k in new_d: new_d.delete(k)
-        new_d.add(bt_corrected=False, bg_corrected=False, dithering=False)
+        new_d.add(bt_corrected=False, bg_corrected=False, dir_corrected=False,
+                  dithering=False)
         new_d.add(mburst=mburst, fuse=ms)
         if 'bg' in new_d: new_d._calc_burst_period()
         if process:
@@ -1572,6 +1581,20 @@ class Data(DataContainer):
             if self.ALEX: self.nt[i] += self.naa[i]
         self.add(bt_corrected=True)
 
+    def direct_excitation_correction(self, mute=False):
+        """Apply direct excitation correction to bursts (ALEX-only).
+
+        If performs: na -= naa*dir
+        """
+        if self.dir_corrected: return -1
+        pprint("   - Applying direct excitation correction.\n", mute)
+        for i in range(self.nch):
+            if self.na[i].size == 0: continue  # if no bursts skip this ch
+            self.na[i] -= self.naa[i]*self.dir
+            self.nt[i] = self.nd[i] + self.na[i]
+            if self.ALEX: self.nt[i] += self.naa[i]
+        self.add(dir_corrected=True)
+
     def dither(self, lsb=2, mute=False):
         """Add dithering (uniform random noise) to burst sizes (nd, na,...).
         `lsb` is the amplitude of dithering (if lsb=2 then noise is in -1..1).
@@ -1608,6 +1631,8 @@ class Data(DataContainer):
         """Apply both background (BG) and bleed-through (BT) corrections."""
         self.background_correction_t(mute=mute)
         self.bleed_through_correction(mute=mute)
+        if 'dir' in self:
+            self.direct_excitation_correction(mute=mute)
 
     def update_bt(self, BT):
         """Change the bleed-through value `BT` and recompute FRET."""
@@ -1637,6 +1662,11 @@ class Data(DataContainer):
     def update_gamma(self, gamma):
         """Change the `gamma` value and recompute FRET."""
         self.add(gamma=gamma)
+        self.calc_fret(corrections=False)
+
+    def update_dir(self, dir):
+        """Change the `gamma` value and recompute FRET."""
+        self.add(dir=dir)
         self.calc_fret(corrections=False)
 
     def get_gamma_array(self):
@@ -1773,10 +1803,12 @@ class Data(DataContainer):
         if 'bg_fun' in self: s += " BG%s" % self.bg_fun.__name__[:-4]
         if 'bg_time_s' in self: s += "-%ds" % self.bg_time_s
         if 'fuse' in self: s += " Fuse%.1fms" % self.fuse
-        if 'bt_corrected' in self and self.bt_corrected:
-            s += " BT%.3f" % np.mean(self.BT)
         if 'bg_corrected' in self and self.bg_corrected:
             s += " bg"
+        if 'bt_corrected' in self and self.bt_corrected:
+            s += " BT%.3f" % np.mean(self.BT)
+        if 'dir_corrected' in self and self.dir_corrected:
+            s += " dir%.1f" % (self.dir*100)
         if 'dithering' in self and self.dithering:
             s += " Dith%d" % self.lsb
         if 's' in self: s += ' '.join(self.s)
