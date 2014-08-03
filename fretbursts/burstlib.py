@@ -1638,25 +1638,42 @@ class Data(DataContainer):
         if 'dir' in self:
             self.direct_excitation_correction(mute=mute)
 
-    def update_bt(self, BT):
-        """Change the bleed-through value `BT` and recompute FRET."""
-        if not self.bt_corrected:
-            # if not previously BT-corrected just apply BT correction
-            # NOTE: previous BG correction or dithering is maintained
-            self.add(BT=BT)
+    def _update_corrections(self):
+        """Recompute corrections whose flag is True.
+
+        Check the flags .bg_corrected, .bt_corrected, .dir_corrected,
+        dithering and recompute the corrensponding correction if the flag
+        is True (i.e. if the correction was already applied).
+
+        Allows to recompute only the corrections the are already applied.
+        """
+        old_bg_corrected = self.bg_corrected
+        old_bt_corrected = self.bt_corrected
+        old_dir_corrected = self.dir_corrected
+        old_dithering = self.dithering
+        self.calc_ph_num()       # recompute uncorrected na, nd, nda, naa
+        if old_bg_corrected:
+            self.background_correction_t()
+        if old_bt_corrected:
             self.bleed_through_correction()
-        else:
-            # if already BT-corrected need to recompute na,nd,nt to avoid
-            # overcorrection
-            self.add(BT=BT, bt_corrected=False)
-            old_bg_corrected = self.bg_corrected
-            old_dithering = self.dithering
-            self.calc_ph_num()       # recomupte uncorrected na,nd...
-            if old_bg_corrected: self.background_correction_t()
-            self.bleed_through_correction()
-            if old_dithering: self.dither(self.lsb)
-        # Recompute FRET with no corrections (because already applied)
+        if old_dir_corrected:
+            self.direct_excitation_correction()
+        if old_dithering:
+            self.dither(self.lsb)
+        # Recompute E and S with no corrections (because already applied)
         self.calc_fret(count_ph=False, corrections=False)
+
+    def update_bt(self, BT):
+        """Apply/update bleed-through (leakage) correction with value `BT`.
+        """
+        self.add(BT=BT, bt_corrected=True)
+        self._update_corrections()
+
+    def update_dir(self, dir):
+        """Apply/update direct excitation correction with value `dir`.
+        """
+        self.add(dir=dir, dir_corrected=True)
+        self._update_corrections()
 
     def update_chi_ch(self, chi_ch):
         """Change the `chi_ch` value and recompute FRET."""
@@ -1666,11 +1683,6 @@ class Data(DataContainer):
     def update_gamma(self, gamma):
         """Change the `gamma` value and recompute FRET."""
         self.add(gamma=gamma)
-        self.calc_fret(corrections=False)
-
-    def update_dir(self, dir):
-        """Change the `gamma` value and recompute FRET."""
-        self.add(dir=dir)
         self.calc_fret(corrections=False)
 
     def get_gamma_array(self):
