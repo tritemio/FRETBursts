@@ -1628,7 +1628,11 @@ class Data(DataContainer):
         return chi_ch
 
     def corrections(self, mute=False):
-        """Apply both background (BG) and bleed-through (BT) corrections."""
+        """Apply corrections on burst-counts: nd, na, nda, naa.
+
+        The corrections are: background, bleed-through or leakage (BT) and
+        direct excitation (dir).
+        """
         self.background_correction_t(mute=mute)
         self.bleed_through_correction(mute=mute)
         if 'dir' in self:
