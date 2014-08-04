@@ -64,7 +64,7 @@ List of :class:`Data` methods used to apply burst corrections.
 
 .. class:: Data
 
-    .. automethod:: update_bt
+    .. automethod:: update_leakage
 
     .. automethod:: update_dir_ex
 

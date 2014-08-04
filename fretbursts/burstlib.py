@@ -514,7 +514,7 @@ class Data(DataContainer):
             contains all the timestamps (donor+acceptor) in one channel.
         A_em (list): list of boolean arrays marking acceptor timestamps. Each
             array is a boolean mask for the corresponding ph_times_m array.
-        BT (float or array of floats): bleed-through or leakage fraction.
+        leakage (float or array of floats): leakage (or bleed-through) fraction.
             May be scalar or same size as nch.
         gamma (float or array of floats): gamma factor.
             May be scalar or same size as nch.
@@ -888,11 +888,10 @@ class Data(DataContainer):
         from `.name()` and `.Name()`.
         """
         p_names = ['fname', 'clk_p', 'nch', 'ph_sel', 'L', 'm', 'F', 'P',
-                'BT', 'dir', 'gamma', 'bg_time_s', 'nperiods',
-                'rate_dd', 'rate_ad', 'rate_aa', 'rate_m', 'T', 'rate_th',
-                'bg_corrected', 'bt_corrected', 'dir_ex_corrected', 'dithering',
-                #'PP', 'TT',
-                'chi_ch', 's', 'ALEX']
+                   'leakage', 'dir_ex', 'gamma', 'bg_time_s', 'nperiods',
+                   'rate_dd', 'rate_ad', 'rate_aa', 'rate_m', 'T', 'rate_th',
+                   'bg_corrected', 'leakage_corrected', 'dir_ex_corrected',
+                   'dithering', 'chi_ch', 's', 'ALEX']
         p_dict = dict(self)
         for name in p_dict.keys():
             if name not in p_names:
@@ -1444,7 +1443,7 @@ class Data(DataContainer):
         # they are always consistent. Case 1: we perform only burst search
         # (with no call to calc_ph_num). Case 2: we re-call calc_ph_num()
         # without doing a new burst search
-        self.add(bg_corrected=False, bt_corrected=False,
+        self.add(bg_corrected=False, leakage_corrected=False,
                  dir_ex_corrected=False, dithering=False)
 
         if not nofret:
@@ -1507,7 +1506,7 @@ class Data(DataContainer):
             nt = [d+a+aa for d, a, aa in zip(nd, na, naa)]
             assert (nt[0] == na[0] + nd[0] + naa[0]).all()
         self.add(nd=nd, na=na, nt=nt,
-                 bt_corrected=False, bg_corrected=False,
+                 bg_corrected=False, leakage_corrected=False,
                  dir_ex_corrected=False, dithering=False)
 
     def fuse_bursts(self, ms=0, process=True):
@@ -1526,7 +1525,7 @@ class Data(DataContainer):
         new_d = Data(**self)
         for k in ['E', 'S', 'nd', 'na', 'naa', 'nt', 'lsb', 'bp']:
             if k in new_d: new_d.delete(k)
-        new_d.add(bt_corrected=False, bg_corrected=False,
+        new_d.add(bg_corrected=False, leakage_corrected=False,
                   dir_ex_corrected=False, dithering=False)
         new_d.add(mburst=mburst, fuse=ms)
         if 'bg' in new_d: new_d._calc_burst_period()
@@ -1563,19 +1562,19 @@ class Data(DataContainer):
                     self.nda[ich] -= self.bg_da[ich][period] * width
                 self.nt[ich] += self.naa[ich]
 
-    def bleed_through_correction(self, mute=False):
-        """Apply bleed-through correction to burst sizes (nd, na,...)
+    def leakage_correction(self, mute=False):
+        """Apply leakage correction to burst sizes (nd, na,...)
         """
-        if self.bt_corrected: return -1
+        if self.leakage_corrected: return -1
         pprint("   - Applying leakage correction.\n", mute)
-        assert (size(self.BT) == 1) or (size(self.BT) == self.nch)
-        BT = self.get_BT_array()
+        assert (size(self.leakage) == 1) or (size(self.leakage) == self.nch)
+        Lk = self.get_leakage_array()
         for i in range(self.nch):
             if self.na[i].size == 0: continue  # if no bursts skip this ch
-            self.na[i] -= self.nd[i]*BT[i]
+            self.na[i] -= self.nd[i]*Lk[i]
             self.nt[i] = self.nd[i] + self.na[i]
             if self.ALEX: self.nt[i] += self.naa[i]
-        self.add(bt_corrected=True)
+        self.add(leakage_corrected=True)
 
     def direct_excitation_correction(self, mute=False):
         """Apply direct excitation correction to bursts (ALEX-only).
@@ -1626,32 +1625,32 @@ class Data(DataContainer):
     def corrections(self, mute=False):
         """Apply corrections on burst-counts: nd, na, nda, naa.
 
-        The corrections are: background, bleed-through or leakage (BT) and
+        The corrections are: background, leakage (or bleed-through) and
         direct excitation (dir_ex).
         """
         self.background_correction_t(mute=mute)
-        self.bleed_through_correction(mute=mute)
+        self.leakage_correction(mute=mute)
         if 'dir_ex' in self and self.ALEX:
             self.direct_excitation_correction(mute=mute)
 
     def _update_corrections(self):
         """Recompute corrections whose flag is True.
 
-        Check the flags .bg_corrected, .bt_corrected, .dir_ex_corrected,
+        Check the flags .bg_corrected, .leakage_corrected, .dir_ex_corrected,
         dithering and recompute the corresponding correction if the flag
         is True (i.e. if the correction was already applied).
 
         Allows to recompute only the corrections the are already applied.
         """
         old_bg_corrected = self.bg_corrected
-        old_bt_corrected = self.bt_corrected
+        old_leakage_corrected = self.leakage_corrected
         old_dir_ex_corrected = self.dir_ex_corrected
         old_dithering = self.dithering
         self.calc_ph_num()       # recompute uncorrected na, nd, nda, naa
         if old_bg_corrected:
             self.background_correction_t()
-        if old_bt_corrected:
-            self.bleed_through_correction()
+        if old_leakage_corrected:
+            self.leakage_correction()
         if old_dir_ex_corrected:
             self.direct_excitation_correction()
         if old_dithering:
@@ -1660,9 +1659,16 @@ class Data(DataContainer):
         self.calc_fret(count_ph=False, corrections=False)
 
     def update_bt(self, BT):
-        """Apply/update bleed-through (leakage) correction with value `BT`.
+        """Deprecated. Use .update_leakage() instead.
         """
-        self.add(BT=BT, bt_corrected=True)
+        print 'WARNING: The method .update_bt() is deprecated. '
+        print 'Use .update_leakage() instead.'
+        self.update_leakage(BT)
+
+    def update_leakage(self, leakage):
+        """Apply/update leakage (or bleed-through) correction.
+        """
+        self.add(leakage=leakage, leakage_corrected=True)
         self._update_corrections()
 
     def update_dir_ex(self, dir_ex):
@@ -1693,16 +1699,19 @@ class Data(DataContainer):
         G *= self.chi_ch
         return G
 
-    def get_BT_array(self):
-        """Get the array of bleed-through coefficients (one per ch).
-        Use this function to obtain an array of BT values
-        regardless of the actual `BT` (that can be scalar).
-        BT values are multiplied by `chi_ch`.
+    def get_leakage_array(self):
+        """Get the array of leakage coefficients, one per ch.
+
+        This function always returns an array of leakage values regardless
+        whether `leakage` is scalar or array.
+
+        Each element of the returned array is multiplied by `chi_ch`.
         """
-        assert (size(self.BT) == 1) or (size(self.BT) == self.nch)
-        BT = np.r_[[self.BT]*self.nch] if size(self.BT) == 1 else self.BT
-        BT *= self.chi_ch
-        return BT
+        lk_size = size(self.leakage)
+        assert (lk_size == 1) or (lk_size == self.nch)
+        Lk = np.r_[[self.leakage]*self.nch] if lk_size == 1 else self.leakage
+        Lk *= self.chi_ch
+        return Lk
 
     def calc_sbr(self, ph_sel=Ph_sel('all'), gamma=1.):
         """Return Signal-to-Background Ratio (SBR) for each burst.
@@ -1817,8 +1826,8 @@ class Data(DataContainer):
         if 'fuse' in self: s += " Fuse%.1fms" % self.fuse
         if 'bg_corrected' in self and self.bg_corrected:
             s += " bg"
-        if 'bt_corrected' in self and self.bt_corrected:
-            s += " BT%.3f" % np.mean(self.BT)
+        if 'leakage_corrected' in self and self.leakage_corrected:
+            s += " Lk%.3f" % np.mean(self.leakage)
         if 'dir_ex_corrected' in self and self.dir_ex_corrected:
             s += " dir%.1f" % (self.dir_ex*100)
         if 'dithering' in self and self.dithering:
