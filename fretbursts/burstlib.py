@@ -653,7 +653,8 @@ class Data(DataContainer):
 
     def __init__(self, **kwargs):
         # Default values
-        init_kw = dict(ALEX=False, BT=0., gamma=1, chi_ch=1., s=[])
+        init_kw = dict(ALEX=False, leakage=0., gamma=1., chi_ch=1., dir_ex=0.,
+                       s=[])
         # Override with user data
         init_kw.update(**kwargs)
         DataContainer.__init__(self, **init_kw)
@@ -898,7 +899,7 @@ class Data(DataContainer):
         p_names = ['fname', 'clk_p', 'nch', 'ph_sel', 'L', 'm', 'F', 'P',
                 'BT', 'dir', 'gamma', 'bg_time_s', 'nperiods',
                 'rate_dd', 'rate_ad', 'rate_aa', 'rate_m', 'T', 'rate_th',
-                'bg_corrected', 'bt_corrected', 'dir_corrected', 'dithering',
+                'bg_corrected', 'bt_corrected', 'dir_ex_corrected', 'dithering',
                 #'PP', 'TT',
                 'chi_ch', 's', 'ALEX']
         p_dict = dict(self)
@@ -1448,8 +1449,8 @@ class Data(DataContainer):
         # they are always consistent. Case 1: we perform only burst search
         # (with no call to calc_ph_num). Case 2: we re-call calc_ph_num()
         # without doing a new burst search
-        self.add(bg_corrected=False, bt_corrected=False, dir_corrected=False,
-                 dithering=False)
+        self.add(bg_corrected=False, bt_corrected=False,
+                 dir_ex_corrected=False, dithering=False)
 
         if not nofret:
             pprint(" - Counting D and A ph and calculating FRET ... \n", mute)
@@ -1511,8 +1512,8 @@ class Data(DataContainer):
             nt = [d+a+aa for d, a, aa in zip(nd, na, naa)]
             assert (nt[0] == na[0] + nd[0] + naa[0]).all()
         self.add(nd=nd, na=na, nt=nt,
-                 bt_corrected=False, bg_corrected=False, dir_corrected=False,
-                 dithering=False)
+                 bt_corrected=False, bg_corrected=False,
+                 dir_ex_corrected=False, dithering=False)
 
     def fuse_bursts(self, ms=0, process=True):
         """Return a new :class:`Data` object with nearby bursts fused together.
@@ -1530,8 +1531,8 @@ class Data(DataContainer):
         new_d = Data(**self)
         for k in ['E', 'S', 'nd', 'na', 'naa', 'nt', 'lsb', 'bp']:
             if k in new_d: new_d.delete(k)
-        new_d.add(bt_corrected=False, bg_corrected=False, dir_corrected=False,
-                  dithering=False)
+        new_d.add(bt_corrected=False, bg_corrected=False,
+                  dir_ex_corrected=False, dithering=False)
         new_d.add(mburst=mburst, fuse=ms)
         if 'bg' in new_d: new_d._calc_burst_period()
         if process:
@@ -1584,16 +1585,16 @@ class Data(DataContainer):
     def direct_excitation_correction(self, mute=False):
         """Apply direct excitation correction to bursts (ALEX-only).
 
-        If performs: na -= naa*dir
+        The applied correction is: na -= naa*dir_ex
         """
-        if self.dir_corrected: return -1
+        if self.dir_ex_corrected: return -1
         pprint("   - Applying direct excitation correction.\n", mute)
         for i in range(self.nch):
             if self.na[i].size == 0: continue  # if no bursts skip this ch
-            self.na[i] -= self.naa[i]*self.dir
+            self.na[i] -= self.naa[i]*self.dir_ex
             self.nt[i] = self.nd[i] + self.na[i]
             if self.ALEX: self.nt[i] += self.naa[i]
-        self.add(dir_corrected=True)
+        self.add(dir_ex_corrected=True)
 
     def dither(self, lsb=2, mute=False):
         """Add dithering (uniform random noise) to burst sizes (nd, na,...).
@@ -1631,32 +1632,32 @@ class Data(DataContainer):
         """Apply corrections on burst-counts: nd, na, nda, naa.
 
         The corrections are: background, bleed-through or leakage (BT) and
-        direct excitation (dir).
+        direct excitation (dir_ex).
         """
         self.background_correction_t(mute=mute)
         self.bleed_through_correction(mute=mute)
-        if 'dir' in self:
+        if 'dir_ex' in self:
             self.direct_excitation_correction(mute=mute)
 
     def _update_corrections(self):
         """Recompute corrections whose flag is True.
 
-        Check the flags .bg_corrected, .bt_corrected, .dir_corrected,
-        dithering and recompute the corrensponding correction if the flag
+        Check the flags .bg_corrected, .bt_corrected, .dir_ex_corrected,
+        dithering and recompute the corresponding correction if the flag
         is True (i.e. if the correction was already applied).
 
         Allows to recompute only the corrections the are already applied.
         """
         old_bg_corrected = self.bg_corrected
         old_bt_corrected = self.bt_corrected
-        old_dir_corrected = self.dir_corrected
+        old_dir_ex_corrected = self.dir_ex_corrected
         old_dithering = self.dithering
         self.calc_ph_num()       # recompute uncorrected na, nd, nda, naa
         if old_bg_corrected:
             self.background_correction_t()
         if old_bt_corrected:
             self.bleed_through_correction()
-        if old_dir_corrected:
+        if old_dir_ex_corrected:
             self.direct_excitation_correction()
         if old_dithering:
             self.dither(self.lsb)
@@ -1669,10 +1670,10 @@ class Data(DataContainer):
         self.add(BT=BT, bt_corrected=True)
         self._update_corrections()
 
-    def update_dir(self, dir):
-        """Apply/update direct excitation correction with value `dir`.
+    def update_dir_ex(self, dir_ex):
+        """Apply/update direct excitation correction with value `dir_ex`.
         """
-        self.add(dir=dir, dir_corrected=True)
+        self.add(dir_ex=dir_ex, dir_ex_corrected=True)
         self._update_corrections()
 
     def update_chi_ch(self, chi_ch):
@@ -1823,8 +1824,8 @@ class Data(DataContainer):
             s += " bg"
         if 'bt_corrected' in self and self.bt_corrected:
             s += " BT%.3f" % np.mean(self.BT)
-        if 'dir_corrected' in self and self.dir_corrected:
-            s += " dir%.1f" % (self.dir*100)
+        if 'dir_ex_corrected' in self and self.dir_ex_corrected:
+            s += " dir%.1f" % (self.dir_ex*100)
         if 'dithering' in self and self.dithering:
             s += " Dith%d" % self.lsb
         if 's' in self: s += ' '.join(self.s)

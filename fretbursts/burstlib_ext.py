@@ -280,7 +280,8 @@ def burst_search_and_gate(dx, F=6, m=10, ph_sel1=Ph_sel(Dex='DAem'),
 
     # Note: dx_and.bg_bs will not be meaningful
     dx_and.add(m=m, L=m, F=F, P=None, ph_sel=Ph_sel(Dex='DAem'))
-    dx_and.add(bg_corrected=False, bt_corrected=False, dithering=False)
+    dx_and.add(bg_corrected=False, bt_corrected=False,
+               dir_ex_corrected=False, dithering=False)
 
     pprint(" - Counting D and A ph and calculating FRET ... \n", mute)
     dx_and.calc_fret(count_ph=True, corrections=True, mute=mute)
