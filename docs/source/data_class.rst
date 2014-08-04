@@ -66,6 +66,8 @@ List of :class:`Data` methods used to apply burst corrections.
 
     .. automethod:: update_bt
 
+    .. automethod:: update_dir_ex
+
     .. automethod:: update_gamma
 
     .. automethod:: background_correction_t
