@@ -36,6 +36,7 @@ def _get_bg_arrays_info(dx):
         bg = 'BG rate in each CH vs time (Total)',
         bg_dd = 'BG rate in each CH vs time (D_em during D_ex)',
         bg_ad = 'BG rate in each CH vs time (A_em during D_ex)',
+        bg_da = 'BG rate in each CH vs time (D_em during A_ex)',
         bg_aa = 'BG rate in each CH vs time (A_em during A_ex)',
         Lim = 'Index of first and last timestamp in each period',
         Ph_p = 'First and last timestamp in each period',
@@ -53,6 +54,7 @@ def _get_bg_arrays_info(dx):
         bg_th_us_all = 'Waiting time threshold for BG fit of all timestamps',
         bg_th_us_DD = 'Waiting time threshold for BG fit of D_em D_ex timestamps',
         bg_th_us_AD = 'Waiting time threshold for BG fit of A_em D_ex timestamps',
+        bg_th_us_DA = 'Waiting time threshold for BG fit of D_em A_ex timestamps',
         bg_th_us_AA = 'Waiting time threshold for BG fit of A_em A_ex timestamps',
     )
 
@@ -126,14 +128,14 @@ def bg_load_hdf5(dx, group_name):
     dx.add(**bg_attrs)
 
     pprint('\n - Generating additional fields: ')
-    in_map = ['', '_dd', '_ad', '_aa']
-    out_map = ['_m', '_dd', '_ad', '_aa']
+    in_map = ['', '_dd', '_ad', '_da', '_aa']
+    out_map = ['_m', '_dd', '_ad', '_da', '_aa']
     new_attrs = {}
     for in_s, out_s in zip(in_map, out_map):
         assert 'bg' + in_s in dx
         pprint('bg' + in_s + ', ')
         new_attrs['rate' + out_s] = [bg.mean() for bg in dx['bg' + in_s]]
-    dx.add(ph_sel='DA', **new_attrs)
+    dx.add(**new_attrs)
     pprint('\n')
 
 def _get_bg_groupname(dx, time_s=None):

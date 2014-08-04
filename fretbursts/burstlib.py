@@ -610,7 +610,7 @@ class Data(DataContainer):
 
         nd, na (list of arrays): number of donor or acceptor photons during
             donor excitation in each burst
-        nt (list of arrays): total number photons (nd+na)
+        nt (list of arrays): total number photons (nd+na+naa)
         naa (list of arrays): number of acceptor photons in each bursts
             during acceptor excitation **[ALEX only]**
         bp (list of arrays): time period for each burst. Same shape as `nd`.
@@ -637,7 +637,7 @@ class Data(DataContainer):
     # background period). For example `.bg` is a list of arrays, while `.Lim`
     # and `.Ph_p` are lists of lists-of-tuples (one tuple per background
     # period). These attributes do not exist before computing the background.
-    bg_fields = ['bg', 'bg_dd', 'bg_ad', 'bg_aa', 'Lim', 'Ph_p']
+    bg_fields = ['bg', 'bg_dd', 'bg_ad', 'bg_da', 'bg_aa', 'Lim', 'Ph_p']
 
     # Attribute names containing per-burst data.
     # Each attribute is a list (1 element per ch) of arrays (1 element
@@ -649,7 +649,7 @@ class Data(DataContainer):
 
     # List of photon selections on which the background is computed
     ph_streams = [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem'),
-                  Ph_sel(Aex='Aem')]
+                  Ph_sel(Aex='Dem'), Ph_sel(Aex='Aem')]
 
     def __init__(self, **kwargs):
         # Default values
@@ -659,7 +659,7 @@ class Data(DataContainer):
         DataContainer.__init__(self, **init_kw)
 
     ##
-    # Infrastructure methods: they return a new Data object
+    # Infrastructure methods
     #
     def copy(self):
         """Copy data in a new object. All arrays copied except for ph_times_m
@@ -711,23 +711,25 @@ class Data(DataContainer):
 
         # Any other selection with Aex != None requires ALEX
         if not self.ALEX and ph_sel.Aex is not None:
-            raise ValueError('Used acceptor excitation with non-ALEX data.')
+            raise ValueError('Use of acceptor excitation with non-ALEX data.')
 
         # Base selections
         elif ph_sel == Ph_sel(Dex='Dem'):
             return self.get_D_em_D_ex(ich)
         elif ph_sel == Ph_sel(Dex='Aem'):
             return self.get_A_em_D_ex(ich)
+        elif ph_sel == Ph_sel(Aex='Dem'):
+            return self.get_D_em(ich)*self.get_A_ex(ich)
         elif ph_sel == Ph_sel(Aex='Aem'):
-            return self.get_A_em_A_ex(ich)
+            return self.get_A_em(ich)*self.get_A_ex(ich)
 
-        # Select all photon in one emission ch
+        # Selection of all photon in one emission ch
         elif ph_sel == Ph_sel(Dex='Dem', Aex='Dem'):
             return self.get_D_em(ich)
         elif ph_sel == Ph_sel(Dex='Aem', Aex='Aem'):
             return self.get_A_em(ich)
 
-        # Select all photon in one excitation period
+        # Selection of all photon in one excitation period
         elif ph_sel == Ph_sel(Dex='DAem'):
             return self.get_D_ex(ich)
         elif ph_sel == Ph_sel(Aex='DAem'):
@@ -766,7 +768,7 @@ class Data(DataContainer):
 
     def _get_ph_mask_single(self, ich, mask_name, negate=False):
         """Get the bool array `mask_name` for channel `ich`.
-        If the bool array is a scalar return a slice (full or empty)
+        If the internal "bool array" is a scalar return a slice (full or empty)
         """
         mask = np.asarray(getattr(self, mask_name)[ich])
         if negate:
@@ -808,11 +810,6 @@ class Data(DataContainer):
             return self.get_A_em(ich)*self.get_D_ex(ich)
         else:
             return self.get_A_em(ich)
-
-    def get_A_em_A_ex(self, ich=0):
-        """Returns a mask of acceptor photons during acceptor-excitation."""
-        return self.get_A_em(ich)*self.get_A_ex(ich)
-
 
     def slice_ph(self, time_s1=0, time_s2=None, s='slice'):
         """Return a new Data object with ph in [`time_s1`,`time_s2`] (seconds)
@@ -899,9 +896,10 @@ class Data(DataContainer):
         from `.name()` and `.Name()`.
         """
         p_names = ['fname', 'clk_p', 'nch', 'ph_sel', 'L', 'm', 'F', 'P',
-                'BT', 'gamma', 'bg_time_s', 'nperiods',
+                'BT', 'dir', 'gamma', 'bg_time_s', 'nperiods',
                 'rate_dd', 'rate_ad', 'rate_aa', 'rate_m', 'T', 'rate_th',
-                'bg_corrected', 'bt_corrected', 'dithering', #'PP', 'TT',
+                'bg_corrected', 'bt_corrected', 'dir_corrected', 'dithering',
+                #'PP', 'TT',
                 'chi_ch', 's', 'ALEX']
         p_dict = dict(self)
         for name in p_dict.keys():
@@ -1024,7 +1022,8 @@ class Data(DataContainer):
         """
         Th_us = {}
         for ph_sel in self.ph_streams:
-            if not self.ALEX and ph_sel == Ph_sel(Aex='Aem'):
+            if not self.ALEX and (ph_sel== Ph_sel(Aex='Dem') or
+                                  ph_sel== Ph_sel(Aex='Aem')):
                 continue
             th_us = np.zeros(self.nch)
             for ich, ph in enumerate(self.iter_ph_times(ph_sel=ph_sel)):
@@ -1042,12 +1041,18 @@ class Data(DataContainer):
         The keys are the ph selections in self.ph_streams and the values
         are 1-D arrays of size nch.
         """
+        n_streams = len(self.ph_streams)
+        assert n_streams == 5
+
         if np.size(tail_min_us) == 1:
-            tail_min_us = np.repeat(tail_min_us, 4)
+            tail_min_us = np.repeat(tail_min_us, n_streams)
         elif np.size(tail_min_us) == 3:
-            tail_min_us = np.hstack((tail_min_us, 1))
-        elif np.size(tail_min_us) == 4:
+            tail_min_us = np.hstack((tail_min_us, 1, 1))
+        elif np.size(tail_min_us) == n_streams:
             tail_min_us = np.asarray(tail_min_us)
+        elif np.size(tail_min_us) != n_streams:
+            raise ValueError, 'Wrong tail_min_us length (%d).' %\
+                    len(tail_min_us)
         Th_us = {}
         for i, key in enumerate(self.ph_streams):
             Th_us[key] = np.ones(self.nch)*tail_min_us[i]
@@ -1136,25 +1141,27 @@ class Data(DataContainer):
         nperiods = self._get_num_periods(time_s)
         bg_time_clk = time_s/self.clk_p
 
-        BG, BG_dd, BG_ad, BG_aa, Lim, Ph_p = [], [], [], [], [], []
-        rate_m, rate_dd, rate_ad, rate_aa = [], [], [], []
-        BG_err, BG_dd_err, BG_ad_err, BG_aa_err = [], [], [], []
+        BG, BG_dd, BG_ad, BG_da, BG_aa, Lim, Ph_p = [], [], [], [], [], [], []
+        rate_m, rate_dd, rate_ad, rate_da, rate_aa = [], [], [], [], []
+        BG_err, BG_dd_err, BG_ad_err, BG_da_err, BG_aa_err = [], [], [], [], []
         for ich, ph_ch in enumerate(self.iter_ph_times()):
             th_us_ch_all = Th_us[Ph_sel('all')][ich]
             th_us_ch_dd = Th_us[Ph_sel(Dex='Dem')][ich]
             th_us_ch_ad = Th_us[Ph_sel(Dex='Aem')][ich]
             if self.ALEX:
+                th_us_ch_da = Th_us[Ph_sel(Aex='Dem')][ich]
                 th_us_ch_aa = Th_us[Ph_sel(Aex='Aem')][ich]
 
             dd_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Dex='Dem'))
             ad_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Dex='Aem'))
             if self.ALEX:
+                da_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Aex='Dem'))
                 aa_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Aex='Aem'))
 
             lim, ph_p = [], []
-            bg, bg_dd, bg_ad, bg_aa = [zeros(nperiods) for _ in xrange(4)]
-            zeros_list = [zeros(nperiods) for _ in xrange(4)]
-            bg_err, bg_dd_err, bg_ad_err, bg_aa_err = zeros_list
+            bg, bg_dd, bg_ad, bg_da, bg_aa = [zeros(nperiods) for _ in range(5)]
+            zeros_list = [zeros(nperiods) for _ in range(5)]
+            bg_err, bg_dd_err, bg_ad_err, bg_da_err, bg_aa_err = zeros_list
             for ip in xrange(nperiods):
                 i0 = 0 if ip == 0 else i1           # pylint: disable=E0601
                 i1 = (ph_ch < (ip+1)*bg_time_clk).sum()
@@ -1187,6 +1194,9 @@ class Data(DataContainer):
                                        tail_min_us=th_us_ch_ad, **kwargs)
 
                 if self.ALEX and aa_mask.any():
+                    da_mask_i = da_mask[i0:i1]
+                    bg_da[ip], bg_da_err[ip] = fun(ph_i[da_mask_i],
+                                       tail_min_us=th_us_ch_da, **kwargs)
                     aa_mask_i = aa_mask[i0:i1]
                     bg_aa[ip], bg_aa_err[ip] = fun(ph_i[aa_mask_i],
                                        tail_min_us=th_us_ch_aa, **kwargs)
@@ -1195,17 +1205,22 @@ class Data(DataContainer):
             BG.append(bg);       BG_err.append(bg_err)
             BG_dd.append(bg_dd); BG_dd_err.append(bg_dd_err)
             BG_ad.append(bg_ad); BG_ad_err.append(bg_ad_err)
+            BG_da.append(bg_da); BG_da_err.append(bg_da_err)
             BG_aa.append(bg_aa); BG_aa_err.append(bg_aa_err)
             rate_m.append(bg.mean())
             rate_dd.append(bg_dd.mean())
             rate_ad.append(bg_ad.mean())
-            if self.ALEX: rate_aa.append(bg_aa.mean())
-        self.add(bg=BG, bg_dd=BG_dd, bg_ad=BG_ad, bg_aa=BG_aa, bg_err=BG_err,
-                 bg_dd_err=BG_dd_err, bg_ad_err=BG_ad_err, bg_aa_err=BG_aa_err,
+            if self.ALEX:
+                rate_da.append(bg_da.mean())
+                rate_aa.append(bg_aa.mean())
+        self.add(bg=BG, bg_dd=BG_dd, bg_ad=BG_ad, bg_da=BG_da, bg_aa=BG_aa,
+                 bg_err=BG_err, bg_dd_err=BG_dd_err, bg_ad_err=BG_ad_err,
+                 bg_da_err=BG_da_err, bg_aa_err=BG_aa_err,
                  Lim=Lim, Ph_p=Ph_p, nperiods=nperiods,
                  bg_fun=fun, bg_fun_name=fun.__name__,
                  bg_time_s=time_s, bg_ph_sel=Ph_sel('all'), rate_m=rate_m,
-                 rate_dd=rate_dd, rate_ad=rate_ad, rate_aa=rate_aa,
+                 rate_dd=rate_dd, rate_ad=rate_ad,
+                 rate_da=rate_da, rate_aa=rate_aa,
                  bg_th_us=Th_us, bg_auto_th=bg_auto_th)
         pprint("[DONE]\n")
 
@@ -1428,7 +1443,13 @@ class Data(DataContainer):
         pprint("[DONE]\n", mute)
 
         self.add(m=m, L=L, ph_sel=ph_sel)  # P and F are saved in _calc_T()
-        self.add(bg_corrected=False, bt_corrected=False, dithering=False)
+
+        # The correction flags are both set here and in calc_ph_num() so that
+        # they are always consistent. Case 1: we perform only burst search
+        # (with no call to calc_ph_num). Case 2: we re-call calc_ph_num()
+        # without doing a new burst search
+        self.add(bg_corrected=False, bt_corrected=False, dir_corrected=False,
+                 dithering=False)
 
         if not nofret:
             pprint(" - Counting D and A ph and calculating FRET ... \n", mute)
@@ -1490,7 +1511,8 @@ class Data(DataContainer):
             nt = [d+a+aa for d, a, aa in zip(nd, na, naa)]
             assert (nt[0] == na[0] + nd[0] + naa[0]).all()
         self.add(nd=nd, na=na, nt=nt,
-                bt_corrected=False, bg_corrected=False, dithering=False)
+                 bt_corrected=False, bg_corrected=False, dir_corrected=False,
+                 dithering=False)
 
     def fuse_bursts(self, ms=0, process=True):
         """Return a new :class:`Data` object with nearby bursts fused together.
@@ -1508,7 +1530,8 @@ class Data(DataContainer):
         new_d = Data(**self)
         for k in ['E', 'S', 'nd', 'na', 'naa', 'nt', 'lsb', 'bp']:
             if k in new_d: new_d.delete(k)
-        new_d.add(bt_corrected=False, bg_corrected=False, dithering=False)
+        new_d.add(bt_corrected=False, bg_corrected=False, dir_corrected=False,
+                  dithering=False)
         new_d.add(mburst=mburst, fuse=ms)
         if 'bg' in new_d: new_d._calc_burst_period()
         if process:
@@ -1540,6 +1563,8 @@ class Data(DataContainer):
                 self.nt[ich] = nd + na
             if self.ALEX:
                 self.naa[ich] -= self.bg_aa[ich][period] * width
+                if 'nda' in self:
+                    self.nda[ich] -= self.bg_da[ich][period] * width
                 self.nt[ich] += self.naa[ich]
 
     def bleed_through_correction(self, mute=False):
@@ -1556,6 +1581,20 @@ class Data(DataContainer):
             if self.ALEX: self.nt[i] += self.naa[i]
         self.add(bt_corrected=True)
 
+    def direct_excitation_correction(self, mute=False):
+        """Apply direct excitation correction to bursts (ALEX-only).
+
+        If performs: na -= naa*dir
+        """
+        if self.dir_corrected: return -1
+        pprint("   - Applying direct excitation correction.\n", mute)
+        for i in range(self.nch):
+            if self.na[i].size == 0: continue  # if no bursts skip this ch
+            self.na[i] -= self.naa[i]*self.dir
+            self.nt[i] = self.nd[i] + self.na[i]
+            if self.ALEX: self.nt[i] += self.naa[i]
+        self.add(dir_corrected=True)
+
     def dither(self, lsb=2, mute=False):
         """Add dithering (uniform random noise) to burst sizes (nd, na,...).
         `lsb` is the amplitude of dithering (if lsb=2 then noise is in -1..1).
@@ -1568,7 +1607,10 @@ class Data(DataContainer):
             na += lsb*(np.random.rand(na.size)-0.5)
         if self.ALEX:
             for naa in self.naa:
-                naa += lsb*(np.random.rand(na.size)-0.5)
+                naa += lsb*(np.random.rand(naa.size)-0.5)
+            if 'nda' in self:
+                for nda in self.nda:
+                    nda += lsb*(np.random.rand(nda.size)-0.5)
         self.add(lsb=lsb)
 
     def calc_chi_ch(self):
@@ -1586,29 +1628,52 @@ class Data(DataContainer):
         return chi_ch
 
     def corrections(self, mute=False):
-        """Apply both background (BG) and bleed-through (BT) corrections."""
+        """Apply corrections on burst-counts: nd, na, nda, naa.
+
+        The corrections are: background, bleed-through or leakage (BT) and
+        direct excitation (dir).
+        """
         self.background_correction_t(mute=mute)
         self.bleed_through_correction(mute=mute)
+        if 'dir' in self:
+            self.direct_excitation_correction(mute=mute)
+
+    def _update_corrections(self):
+        """Recompute corrections whose flag is True.
+
+        Check the flags .bg_corrected, .bt_corrected, .dir_corrected,
+        dithering and recompute the corrensponding correction if the flag
+        is True (i.e. if the correction was already applied).
+
+        Allows to recompute only the corrections the are already applied.
+        """
+        old_bg_corrected = self.bg_corrected
+        old_bt_corrected = self.bt_corrected
+        old_dir_corrected = self.dir_corrected
+        old_dithering = self.dithering
+        self.calc_ph_num()       # recompute uncorrected na, nd, nda, naa
+        if old_bg_corrected:
+            self.background_correction_t()
+        if old_bt_corrected:
+            self.bleed_through_correction()
+        if old_dir_corrected:
+            self.direct_excitation_correction()
+        if old_dithering:
+            self.dither(self.lsb)
+        # Recompute E and S with no corrections (because already applied)
+        self.calc_fret(count_ph=False, corrections=False)
 
     def update_bt(self, BT):
-        """Change the bleed-through value `BT` and recompute FRET."""
-        if not self.bt_corrected:
-            # if not previously BT-corrected just apply BT correction
-            # NOTE: previous BG correction or dithering is maintained
-            self.add(BT=BT)
-            self.bleed_through_correction()
-        else:
-            # if already BT-corrected need to recompute na,nd,nt to avoid
-            # overcorrection
-            self.add(BT=BT, bt_corrected=False)
-            old_bg_corrected = self.bg_corrected
-            old_dithering = self.dithering
-            self.calc_ph_num()       # recomupte uncorrected na,nd...
-            if old_bg_corrected: self.background_correction_t()
-            self.bleed_through_correction()
-            if old_dithering: self.dither(self.lsb)
-        # Recompute FRET with no corrections (because already applied)
-        self.calc_fret(count_ph=False, corrections=False)
+        """Apply/update bleed-through (leakage) correction with value `BT`.
+        """
+        self.add(BT=BT, bt_corrected=True)
+        self._update_corrections()
+
+    def update_dir(self, dir):
+        """Apply/update direct excitation correction with value `dir`.
+        """
+        self.add(dir=dir, dir_corrected=True)
+        self._update_corrections()
 
     def update_chi_ch(self, chi_ch):
         """Change the `chi_ch` value and recompute FRET."""
@@ -1703,7 +1768,7 @@ class Data(DataContainer):
             None, all the results are saved in the object.
         """
         if count_ph:
-            self.calc_ph_num(pure_python=pure_python)
+            self.calc_ph_num(pure_python=pure_python, alex_all=True)
         if dither:
             self.dither(mute=mute)
         if corrections:
@@ -1754,10 +1819,12 @@ class Data(DataContainer):
         if 'bg_fun' in self: s += " BG%s" % self.bg_fun.__name__[:-4]
         if 'bg_time_s' in self: s += "-%ds" % self.bg_time_s
         if 'fuse' in self: s += " Fuse%.1fms" % self.fuse
-        if 'bt_corrected' in self and self.bt_corrected:
-            s += " BT%.3f" % np.mean(self.BT)
         if 'bg_corrected' in self and self.bg_corrected:
             s += " bg"
+        if 'bt_corrected' in self and self.bt_corrected:
+            s += " BT%.3f" % np.mean(self.BT)
+        if 'dir_corrected' in self and self.dir_corrected:
+            s += " dir%.1f" % (self.dir*100)
         if 'dithering' in self and self.dithering:
             s += " Dith%d" % self.lsb
         if 's' in self: s += ' '.join(self.s)
