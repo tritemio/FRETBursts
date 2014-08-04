@@ -22,3 +22,4 @@ notebooks/dev/docs/docs_html
 *.hdf5
 notebooks/data
 *.lnk
+notebooks/dev/tests/*evaluated.ipynb
