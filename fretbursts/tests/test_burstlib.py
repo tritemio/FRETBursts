@@ -13,19 +13,17 @@ import pytest
 import numpy as np
 
 from fretbursts import loader
-from fretbursts.path_def import data_dir
 import fretbursts.background as bg
 import fretbursts.burstlib as bl
 from fretbursts.ph_sel import Ph_sel
 
-
-#DATASETS_DIR = u'/Users/anto/Dropbox/notebooks/frebursts_notebooks/data/'
-DATASETS_DIR = data_dir
+# data subdir the the notebook folder
+DATASETS_DIR = u'notebooks/data/'
 
 
 def load_dataset_1ch():
     fn = "0023uLRpitc_NTP_20dT_0.5GndCl.sm"
-    fname = DATASETS_DIR + 'alex/131126/' + fn
+    fname = DATASETS_DIR + fn
     d = loader.usalex(fname=fname, BT=0.11, gamma=1.)
     d.add(det_donor_accept=(0, 1), alex_period=4000,
           D_ON=(2850, 580), A_ON=(900, 2580))
@@ -37,7 +35,7 @@ def load_dataset_1ch():
 
 def load_dataset_8ch():
     fn = "12d_New_30p_320mW_steer_3.dat"
-    fname = DATASETS_DIR + "2013-05-15/" + fn
+    fname = DATASETS_DIR + fn
     BT = 0.038
     gamma = 0.43
     d = loader.multispot8(fname=fname, BT=BT, gamma=gamma)
@@ -194,8 +192,10 @@ def test_burst_corrections(data):
         if d.ALEX:
             nda, naa = d.nda[ich], d.naa[ich]
             period = d.bp[ich]
+            bg_da = d.bg_da[ich][period]*width
             bg_aa = d.bg_aa[ich][period]*width
-            burst_size_raw2 = nd + na + bg_d + bg_a + bt*nd + naa + nda + bg_aa
+            burst_size_raw2 = nd + na + bg_d + bg_a + bt*nd + nda + naa + \
+                              bg_da + bg_aa
             assert np.allclose(burst_size_raw, burst_size_raw2)
         else:
             burst_size_raw2 = nd + na + bg_d + bg_a + bt*nd

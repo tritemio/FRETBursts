@@ -1637,7 +1637,7 @@ class Data(DataContainer):
         """
         self.background_correction_t(mute=mute)
         self.bleed_through_correction(mute=mute)
-        if 'dir_ex' in self:
+        if 'dir_ex' in self and self.ALEX:
             self.direct_excitation_correction(mute=mute)
 
     def _update_corrections(self):
