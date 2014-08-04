@@ -51,11 +51,10 @@ def _get_bg_arrays_info(dx):
                        'get the auto threshold',
     )
     bg_arrays_info_noauto = dict(
-        bg_th_us_all = 'Waiting time threshold for BG fit of all timestamps',
-        bg_th_us_DD = 'Waiting time threshold for BG fit of D_em D_ex timestamps',
-        bg_th_us_AD = 'Waiting time threshold for BG fit of A_em D_ex timestamps',
-        bg_th_us_DA = 'Waiting time threshold for BG fit of D_em A_ex timestamps',
-        bg_th_us_AA = 'Waiting time threshold for BG fit of A_em A_ex timestamps',
+        bg_th_us_user = ('Waiting time thresholds for BG fit. '
+                         'This array contains 5 thresholds for different '
+                         'photon selections. In the order: all photons, '
+                         ' D_em-D_ex, A_em-D_ex, D_em-A_ex, A_em-A_ex.')
     )
 
     if dx.bg_auto_th:
