@@ -17,7 +17,7 @@ import fretbursts.background as bg
 import fretbursts.burstlib as bl
 from fretbursts.ph_sel import Ph_sel
 
-# data subdir the the notebook folder
+# data subdir in the notebook folder
 DATASETS_DIR = u'notebooks/data/'
 
 
