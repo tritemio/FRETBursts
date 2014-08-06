@@ -24,10 +24,11 @@ __all__ = [
 
         # Local modules
         "loader", "select_bursts", "bl", "bg", "bpl", "bext", "bg_cache",
-        "hdf5", "download_file",
+        "hdf5", "fretmath",
 
         # Classes, functions, variables
         "Data", "Sel", "Sel_mask", "Sel_mask_apply", "gui_fname", "Ph_sel",
+        "download_file",
 
         # Standalone plots or plots as a function of ch
         "mch_plot_bg", "plot_alternation_hist",
@@ -60,6 +61,7 @@ import burstlib as bl
 from .burstlib import Data, Sel, Sel_mask, Sel_mask_apply
 import burstlib_ext as bext
 from .ph_sel import Ph_sel
+import fretmath
 
 import burst_plot as bpl
 from burst_plot import (
