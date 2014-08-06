@@ -436,16 +436,6 @@ def ES_histo(E, S, bin_step=0.05, E_bins=None, S_bins=None):
     H, E_bins, S_bins = np.histogram2d(E, S, bins=[E_bins, S_bins])
     return H, E_bins, S_bins
 
-def gamma_correct_E(Er, gamma):
-    """Apply gamma correction to the uncorrected FRET `Er`."""
-    Er = np.asarray(Er)
-    return Er/(gamma-gamma*Er+Er)
-
-def gamma_uncorrect_E(E, gamma):
-    """Reverse gamma correction and return uncorrected FRET."""
-    E = np.asarray(E)
-    return gamma*E/(1 - E + gamma*E)
-
 def delta(x):
     """Return x.max() - x.min()"""
     return x.max() - x.min()
