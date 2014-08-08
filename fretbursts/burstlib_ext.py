@@ -22,6 +22,75 @@ from ph_sel import Ph_sel
 import burstsearch.burstsearchlib as bslib
 from utils.misc import pprint
 
+import fret_fit
+from fit.weighted_kde import gaussian_kde_w
+
+
+def fit_E_kde_peak(dx, ich=0, E_range=(-0.1, 1.1), bandwidth=0.02,
+                   E_ax=None, weights='size', return_pdf=False):
+    """Fit E by finding the KDE maximum.
+
+    Parameters
+        dx (Data): `Data` object containing the FRET data
+        ich (int): channel number for multi-spot data. Default 0.
+        E_range (tuple of floats): min-max range where to search for the peak.
+            Used to select a single peak in a multi-peaks distribution.
+        bandwidth (float): bandwidth for the Kernel Densisty Estimation
+        E_ax (array or None): FRET efficiency axis (i.e. x-axis) used to
+            evaluate the Kernel Density
+        weights (string or None): kind of burst weights.
+            See :func:`fretbursts.fret_fit.get_weights`.
+        return_pdf (bool): if True returns also the (x, y) values of the
+            PDF computed by the KDE.
+
+    Returns
+        Fitted E value and (optionally) the KDE of the PDF.
+    """
+    E_ax, E_pdf = compute_E_kde(dx, ich=ich, bandwidth=bandwidth,
+                                E_ax=E_ax, weights=weights)
+    E_fit = find_max(E_ax, E_pdf, xmin=E_range[0], xmax=E_range[1])
+
+    if return_pdf:
+        return E_fit, E_ax, E_pdf
+    else:
+        return E_fit
+
+def find_max(x, y, xmin=None, xmax=None):
+    """Find peak position of a curve (x, y) between `xmin` and `xmax`.
+    """
+    if xmin is None:
+        xmin = x.min()
+    if xmax is None:
+        xmax = x.max()
+
+    mask = np.where((x >= xmin)*(x <= xmax))
+    return x[mask][y[mask].argmax()]
+
+def compute_E_kde(dx, ich=0, bandwidth=0.02, E_ax=None, weights='size'):
+    """Compute the KDE for E values in `dx`, channel `ich`.
+
+    Parameters
+        dx (Data): `Data` object containing the FRET data
+        ich (int): channel number for multi-spot data. Default 0.
+        bandwidth (float): bandwidth for the Kernel Densisty Estimation
+        E_ax (array or None): FRET efficiency axis (i.e. x-axis) used to
+            evaluate the Kernel Density
+        weights (string or None): kind of burst weights.
+            See :func:`fretbursts.fret_fit.get_weights`.
+
+    Returns
+        Arrays of E (x-axis) and KDE PDF (y-axis)
+    """
+
+    if E_ax is None:
+        E_ax = np.arange(-0.2, 1.2, 0.0002)
+
+    w = fret_fit.get_weights(dx.nd[ich], dx.na[ich], weights=weights)
+    kde = gaussian_kde_w(dx.E[ich], bw_method=bandwidth, weights=w)
+    E_pdf = kde.evaluate(E_ax)
+
+    return E_ax, E_pdf
+
 
 def _get_bg_distrib_erlang(d, ich=0, m=10, ph_sel=Ph_sel('all'), bp=(0, -1)):
     """Return a frozen (scipy) erlang distrib. with rate equal to the bg rate.
