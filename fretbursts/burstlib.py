@@ -1292,7 +1292,10 @@ class Data(DataContainer):
         BG = {Ph_sel('all'): self.bg, Ph_sel(Dex='Dem'): self.bg_dd,
               Ph_sel(Dex='Aem'): self.bg_ad, Ph_sel(Dex='DAem'): bg_Dex}
         if self.ALEX:
-            BG.update(**{Ph_sel(Aex='Aem'): self.bg_aa})
+            bg_Aem = [bg_ad + bg_aa for bg_ad, bg_aa in
+                            zip(self.bg_ad, self.bg_aa)]
+            BG.update(**{Ph_sel(Aex='Aem'): self.bg_aa,
+                         Ph_sel(Dex='Aem', Aex='Aem'): bg_Aem})
         for bg_ch, F_ch, P_ch in zip(BG[ph_sel], FF, PP):
             # All "T" are in seconds
             Tch = find_T(m, F_ch, P_ch, bg_ch)
