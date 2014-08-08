@@ -26,6 +26,7 @@ from poisson_threshold import find_optimal_T_bga
 import fret_fit
 import bg_cache
 from ph_sel import Ph_sel
+from fretmath import gamma_correct_E, gamma_uncorrect_E
 
 from burstsearch import burstsearchlib as bslib
 from burstsearch.burstsearchlib import (
