@@ -63,13 +63,26 @@ def data_8ch(request):
 # Test functions
 #
 
+def list_equal(list1, list2, eq_func=np.all):
+    """Test numerical equality of all the elements in the two lists.
+    """
+    return eq_func([val1 == val2 for val1, val2 in zip(list1, list2)])
+
 def test_bg_calc(data):
     data.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
     data.calc_bg(bg.exp_fit, time_s=30, tail_min_us='auto', F_bg=1.7)
 
 def test_burst_search(data):
     data.burst_search_t(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Dem'))
+    assert list_equal(data.bg_bs, data.bg_dd)
     data.burst_search_t(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Aem'))
+    assert list_equal(data.bg_bs, data.bg_ad)
+    data.burst_search_t(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Aem', Aex='Aem'))
+    if data.ALEX:
+        bg_Aem = [b1 + b2 for b1, b2 in zip(data.bg_ad, data.bg_aa)]
+        assert list_equal(data.bg_bs, bg_Aem)
+    else:
+        assert list_equal(data.bg_bs, data.bg_ad)
     data.burst_search_t(L=10, m=10, F=7)
 
 def test_ph_selection(data):
