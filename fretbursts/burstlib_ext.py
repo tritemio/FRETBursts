@@ -26,9 +26,53 @@ import fret_fit
 from fit.weighted_kde import gaussian_kde_w
 
 
-def fit_E_kde_peak(dx, ich=0, E_range=(-0.1, 1.1), bandwidth=0.02,
+def fit_E_kde_peak(dx, E_range=(-0.1, 1.1), bandwidth=0.02, E_ax=None,
+                   weights='size', return_pdf=False):
+    """Fit E by finding the KDE maximum on all the channels.
+
+    Parameters
+        dx (Data): `Data` object containing the FRET data
+        E_range (tuple of floats): min-max range where to search for the peak.
+            Used to select a single peak in a multi-peaks distribution.
+        bandwidth (float): bandwidth for the Kernel Densisty Estimation
+        E_ax (array or None): FRET efficiency axis (i.e. x-axis) used to
+            evaluate the Kernel Density
+        weights (string or None): kind of burst weights.
+            See :func:`fretbursts.fret_fit.get_weights`.
+        return_pdf (bool): if True returns also the (x, y) values of the
+            PDF computed by the KDE. Default False.
+
+    Returns
+        An array of E values (one per ch) and, if return_pdf is True,
+        the array of E values (size M) and the array of PDF (size nch x M).
+    """
+    if E_ax is None:
+        E_ax = np.arange(-0.2, 1.2, 0.0002)
+
+    E_fit_mch = np.zeros(dx.nch)
+    if return_pdf:
+        E_pdf_mch = np.zeros((dx.nch, E_ax.size))
+
+    for ich in range(dx.nch):
+
+        res = fit_E_kde_peak_single_ch(dx, ich=ich,
+                              E_range=E_range, bandwidth=bandwidth, E_ax=E_ax,
+                              weights=weights, return_pdf=return_pdf)
+
+        if return_pdf:
+            E_fit_mch[ich] = res[0]
+            E_pdf_mch[ich] = res[2]
+        else:
+             E_fit_mch[ich] = res
+
+    if return_pdf:
+        return E_fit_mch, E_ax, E_pdf_mch
+    else:
+        return E_fit_mch
+
+def fit_E_kde_peak_single_ch(dx, ich=0, E_range=(-0.1, 1.1), bandwidth=0.02,
                    E_ax=None, weights='size', return_pdf=False):
-    """Fit E by finding the KDE maximum.
+    """Fit E by finding the KDE maximum on channel `ich`.
 
     Parameters
         dx (Data): `Data` object containing the FRET data
@@ -41,7 +85,7 @@ def fit_E_kde_peak(dx, ich=0, E_range=(-0.1, 1.1), bandwidth=0.02,
         weights (string or None): kind of burst weights.
             See :func:`fretbursts.fret_fit.get_weights`.
         return_pdf (bool): if True returns also the (x, y) values of the
-            PDF computed by the KDE.
+            PDF computed by the KDE. Default False.
 
     Returns
         Fitted E value and (optionally) the KDE of the PDF.
