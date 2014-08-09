@@ -26,7 +26,7 @@ import fret_fit
 from fit.weighted_kde import gaussian_kde_w
 
 
-def fit_E_kde_peak(dx, E_range=(-0.1, 1.1), bandwidth=0.02, E_ax=None,
+def fit_E_kde_peak(dx, E_range=(-0.1, 1.1), bandwidth=0.025, E_ax=None,
                    weights='size', return_pdf=False):
     """Fit E by finding the KDE maximum on all the channels.
 
@@ -70,7 +70,7 @@ def fit_E_kde_peak(dx, E_range=(-0.1, 1.1), bandwidth=0.02, E_ax=None,
     else:
         return E_fit_mch
 
-def fit_E_kde_peak_single_ch(dx, ich=0, E_range=(-0.1, 1.1), bandwidth=0.02,
+def fit_E_kde_peak_single_ch(dx, ich=0, E_range=(-0.1, 1.1), bandwidth=0.025,
                    E_ax=None, weights='size', return_pdf=False):
     """Fit E by finding the KDE maximum on channel `ich`.
 
