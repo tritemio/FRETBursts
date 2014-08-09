@@ -8,11 +8,13 @@ Run this file from a notebook as follows:
 
 """
 
+import sys
 import os
 from IPython.display import display, Math, clear_output
 
 HOME = os.environ['HOME'] if 'HOME' in os.environ else ''
 
+no_gui = len(sys.argv) > 1 and sys.argv[1] == '--nogui'
 
 # Modify these to point to your FRETBursts source folder
 # or set an environment variable FRETBURSTS_DIR containing the path
@@ -37,7 +39,8 @@ ip = get_ipython()
 # Workaround for open-file dialog in IPython Notebook
 # see https://github.com/ipython/ipython/issues/5798
 ip.enable_matplotlib("inline")
-ip.enable_gui("qt")
+if not no_gui:
+    ip.enable_gui("qt")
 
 # Save current dir as NOTEBOOK_DIR
 if not 'NOTEBOOK_DIR' in globals():
