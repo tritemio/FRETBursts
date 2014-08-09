@@ -972,10 +972,8 @@ class Data(DataContainer):
                                             self.iter_ph_masks(ph_sel=ph_sel),
                                             self.mburst)]
 
-        BG = {Ph_sel('all'): self.bg, Ph_sel(Dex='Dem'): self.bg_dd,
-              Ph_sel(Dex='Aem'): self.bg_ad}
         Max_Rate = [mr/self.clk_p - bg[bp] for bp, bg, mr in
-                    zip(self.bp, BG[ph_sel], Max_Rate)]
+                    zip(self.bp, self.bg_from(ph_sel), Max_Rate)]
         self.add(max_rate=Max_Rate)
 
     def delete_burst_data(self):
@@ -1264,6 +1262,22 @@ class Data(DataContainer):
         assert size(par) == 1 or size(par) == self.nch
         return np.repeat(par, self.nch) if size(par) == 1 else np.asarray(par)
 
+    def bg_from(self, ph_sel):
+        """Return the background rates for the specified photon selection.
+        """
+        bg_Dex = [bg_dd + bg_ad for bg_dd, bg_ad in
+                        zip(self.bg_dd, self.bg_ad)]
+        BG = {Ph_sel('all'): self.bg, Ph_sel(Dex='Dem'): self.bg_dd,
+              Ph_sel(Dex='Aem'): self.bg_ad, Ph_sel(Dex='DAem'): bg_Dex}
+        if self.ALEX:
+            bg_Aem = [bg_ad + bg_aa for bg_ad, bg_aa in
+                            zip(self.bg_ad, self.bg_aa)]
+            BG.update(**{Ph_sel(Aex='Aem'): self.bg_aa,
+                         Ph_sel(Dex='Aem', Aex='Aem'): bg_Aem})
+        if ph_sel not in BG:
+            raise NotImplementedError('Photong selection not implemented.')
+        return BG[ph_sel]
+
     def _calc_T(self, m, P, F=1., ph_sel=Ph_sel('all')):
         """If P is None use F, otherwise uses both P *and* F (F defaults to 1).
         """
@@ -1277,22 +1291,14 @@ class Data(DataContainer):
                 print "WARNING: BS prob. th. with modified BG rate (F=%.1f)"%F
             find_T = lambda m, Fi, Pi, bg: find_optimal_T_bga(bg*Fi, m, 1-Pi)
         TT, T, rate_th = [], [], []
-        bg_Dex = [bg_dd + bg_ad for bg_dd, bg_ad in
-                        zip(self.bg_dd, self.bg_ad)]
-        BG = {Ph_sel('all'): self.bg, Ph_sel(Dex='Dem'): self.bg_dd,
-              Ph_sel(Dex='Aem'): self.bg_ad, Ph_sel(Dex='DAem'): bg_Dex}
-        if self.ALEX:
-            bg_Aem = [bg_ad + bg_aa for bg_ad, bg_aa in
-                            zip(self.bg_ad, self.bg_aa)]
-            BG.update(**{Ph_sel(Aex='Aem'): self.bg_aa,
-                         Ph_sel(Dex='Aem', Aex='Aem'): bg_Aem})
-        for bg_ch, F_ch, P_ch in zip(BG[ph_sel], FF, PP):
+        bg_bs = self.bg_from(ph_sel)
+        for bg_ch, F_ch, P_ch in zip(bg_bs, FF, PP):
             # All "T" are in seconds
             Tch = find_T(m, F_ch, P_ch, bg_ch)
             TT.append(Tch)
             T.append(Tch.mean())
             rate_th.append(np.mean(m/Tch))
-        self.add(TT=TT, T=T, bg_bs=BG[ph_sel], FF=FF, PP=PP, F=F, P=P,
+        self.add(TT=TT, T=T, bg_bs=bg_bs, FF=FF, PP=PP, F=F, P=P,
                  rate_th=rate_th)
 
     def _burst_search_rate(self, m, L, min_rate_cps, ph_sel=Ph_sel('all'),
