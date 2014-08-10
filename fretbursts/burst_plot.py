@@ -37,7 +37,7 @@ from scipy.interpolate import UnivariateSpline
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import (plot, hist, xlabel, ylabel, grid, title, legend,
                                gca, gcf)
-from matplotlib.patches import Rectangle
+from matplotlib.patches import Rectangle, Ellipse
 from matplotlib.collections import PatchCollection
 #from matplotlib.collections import PathCollection
 #from matplotlib.path import Path
@@ -174,30 +174,14 @@ def _plot_bursts(d, i, t_max_clk, pmax=1e3, pmin=0):
     bs = b[bl.b_start(b) < t_max_clk]
     start = bl.b_start(bs)*d.clk_p
     end = bl.b_end(bs)*d.clk_p
-    R, R2 = [], []
+    R = []
     width = end-start
     ax = gca()
     for s,w in zip(start,width):
-        #codes = [Path.MOVETO,
-        #    Path.LINETO,
-        #    Path.LINETO,
-        #    Path.LINETO,
-        #    Path.CLOSEPOLY,
-        #    ]
-        #verts = array([[s,0],[s,pmax],[e,pmax],[e,0],[s,0]])
-        #path = Path(verts, codes)
-        #r = patches.PathPatch(path)
-
         r = Rectangle(xy=(s,pmin), height=pmax-pmin, width=w)
         r.set_clip_box(ax.bbox); r.set_zorder(0)
-
-        #r2 = Line2D(xdata=[s+0.5*w,s+0.5*w], ydata=[-pmax,0])
-        #axvspan(s, e, color='#DDDDDD', alpha=1)
-        #ax.add_artist(r)
         R.append(r)
-        #R2.append(r2)
     ax.add_artist(PatchCollection(R, lw=0,color="#999999"))
-    #ax.add_artist(PatchCollection(R2, lw=2, color="#FF0000"))
     pprint("[DONE]\n")
 
 def _timetrace_bg(d, i, BG, bin_width=None, F=None, Th=True, color='r'):
@@ -647,6 +631,43 @@ def hist2d_alex(d, i=0, vmin=2, vmax=0, bin_step=None,
     if gui_sel:
         # the selection object must be saved (otherwise will be destroyed)
         hist2d_alex.gui_sel = gs.rectSelection(gcf(), gca())
+
+
+def plot_ES_selection(ax, E1, E2, S1, S2, rect=True, **kwargs):
+    """Plot an overlay ROI on top of an E-S plot (i.e. ALEX histogram).
+
+    This function plots a rectangle and inscribed ellipsis with x-axis limits
+    (E1, E2) and y-axsis limits (S1, S2).
+
+    Note that, a dict with keys (E1, E2, S1, S2, rect) can be both passed to
+    :func:`fretbursts.select_bursts.ES` to apply a selection, and to
+    `plot_ES_selection` to plot it.
+
+    Parameters:
+        ax (matplotlib axis): the axis where the rectangle is plotted.
+            Typically you pass the axis of a previous E-S scatter plot
+            or histogram.
+        E1, E2, S1, S2 (floats): limits for E and S (X and Y axis respectively)
+            used to plot the rectangle.
+        rect (bool): if True, the rectangle is highlighted and the ellipsis is
+            grey. The color are swapped otherwise.
+
+    Any additional keyword argument specifies the matplotlib patch style
+    for both the rectangle and the ellipsis.
+    """
+    if rect:
+        rect_color, ellips_color = 'blue', 'gray'
+    else:
+        rect_color, ellips_color = 'gray', 'blue'
+    patch_style = dict(fill=False, lw=1.5, alpha=0.5)
+    patch_style.update(**kwargs)
+    rect = Rectangle(xy=(E1, S1), height=(S2 - S1), width=(E2 - E1),
+                     color=rect_color, **patch_style)
+    ellips = Ellipse(xy=(0.5*(E1 +  E2), 0.5*(S1 + S2)), height=(S2 - S1),
+                     width=(E2 - E1), color=ellips_color, **patch_style)
+    ax.add_patch(rect)
+    ax.add_patch(ellips)
+    return rect, ellips
 
 def get_ES_range():
     """Get the range of ES histogram selected via GUI.
