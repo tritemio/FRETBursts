@@ -58,33 +58,47 @@ def str_G(gamma, gamma1):
 
 ## Selection on E or S values
 def E(d, ich=0, E1=-np.inf, E2=np.inf):
-    """Select the burst with E between E1 and E2."""
+    """Select bursts with E between E1 and E2."""
     burst_mask = (d.E[ich] >= E1)*(d.E[ich] <= E2)
     return burst_mask, ''
 
 def S(d, ich=0, S1=-np.inf, S2=np.inf):
-    """Select the burst with S between S1 and S2."""
+    """Select bursts with S between S1 and S2."""
     burst_mask = (d.S[ich] >= S1)*(d.S[ich] <= S2)
     return burst_mask, ''
 
-def ES(d, ich=0, E1=-np.inf, E2=np.inf, S1=-np.inf, S2=np.inf):
-    """Select the burst with E between E1 and E2 and S between S1 and S2."""
+def ES(d, ich=0, E1=-np.inf, E2=np.inf, S1=-np.inf, S2=np.inf, rect=True):
+    """Select bursts with E between E1 and E2 and S between S1 and S2.
+
+    When `rect` is True the selection is rectangular otherwise is elliptical.
+    """
+    if rect:
+        return ES_rect(d, ich, E1=E1, E2=E2, S1=S1, S2=S2)
+    else:
+        return ES_ellips(d, ich, E1=E1, E2=E2, S1=S1, S2=S2)
+
+def ES_rect(d, ich=0, E1=-np.inf, E2=np.inf, S1=-np.inf, S2=np.inf):
+    """Select bursts inside the rectangle defined by E1, E2, S1, S2.
+    """
     burst_mask = (d.S[ich] >= S1)*(d.S[ich] <= S2) * \
             (d.E[ich] >= E1)*(d.E[ich] <= E2)
     return burst_mask, ''
 
-def ESe(d, ich=0, E1=-np.inf, E2=np.inf, S1=-np.inf, S2=np.inf):
-    """Select the burst with E-S inside an ellipsis inscribed in E1,E2,S1,S2"""
-    def ellips(x,y,x1,x2,y1,y2):
+def ES_ellips(d, ich=0, E1=-1e3, E2=1e3, S1=-1e3, S2=1e3):
+    """Select bursts with E-S inside an ellipsis inscribed in E1, E2, S1, S2.
+    """
+    def ellips(x, y, x1, x2, y1, y2):
         rx, ry = 0.5*abs(x2-x1), 0.5*abs(y2-y1)
-        return ((x-np.mean([x1,x2]))/rx)**2 + ((y-np.mean([y1,y2]))/ry)**2
-    burst_mask = (ellips(d.E[ich],d.S[ich],E1,E2,S1,S2) <= 1)
+        return ((x - np.mean([x1,x2]))/rx)**2 + ((y - np.mean([y1,y2]))/ry)**2
+
+    burst_mask = (ellips(d.E[ich], d.S[ich], E1, E2, S1, S2) <= 1)
     return burst_mask, ''
 
+ESe = deprecate(ES_ellips, "select_bursts.ESe", "select_bursts.ES_ellips")
 
 ## Selection on static burst size, width or period
 def period(d, ich=0, bp1=0, bp2=None):
-    """Select the burst from period bp1 to period bp2 (included)."""
+    """Select bursts from period bp1 to period bp2 (included)."""
     if bp2 is None: bp2 = d.bp[ich].max()
     burst_mask = (d.bp[ich] >= bp1)*(d.bp[ich] <= bp2)
     return burst_mask, ''
