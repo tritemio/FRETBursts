@@ -603,25 +603,27 @@ def hist_S(d, i=0, bins=None, binw=0.02, weights=None, gamma=1., normed=False,
     if normed: ylabel('PDF')
     plt.ylim(ymin=0); plt.xlim(-0.2,1.2)
 
-def hist2d_alex(d, i=0, vmin=2, vmax=0, bin_step=None,
+def hist2d_alex(d, i=0, vmin=2, vmax=0, bin_step=None, S_max_norm=0.8,
                 interp='bicubic', cmap='hot', under_color='white',
                 over_color='white', scatter=True, scatter_ms=3,
                 scatter_color='orange', scatter_alpha=0.2, gui_sel=False):
-    """Plot 2D ALEX histogram and scatterplot overlay."""
-    if bin_step is not None: d.calc_alex_hist(bin_step=bin_step)
-    AH, E_bins,S_bins, E_ax,S_ax = d.AH[i], d.E_bins,d.S_bins, d.E_ax,d.S_ax
+    """Plot 2-D E-S ALEX histogram with a scatterplot overlay.
+    """
+    if bin_step is not None:
+        d.calc_alex_hist(bin_step=bin_step)
+    ES_hist, E_bins, S_bins, S_ax = d.AH[i], d.E_bins, d.S_bins, d.S_ax
 
     colormap = plt.get_cmap(cmap)
+    # Heuristic for colormap range
     if vmax <= vmin:
-        #E_range = (E_bins > 0.4)*(E_bins < 0.8)
-        S_range = (S_bins < 0.8)
-        vmax = AH[:,S_range].max()
+        S_range = (S_ax < S_max_norm)
+        vmax = ES_hist[:, S_range].max()
         if vmax <= vmin: vmax = 10*vmin
     if scatter:
         plot(d.E[i],d.S[i], 'o', mew=0, ms=scatter_ms, alpha=scatter_alpha,
                 color=scatter_color)
-    im = plt.imshow(AH[:,::-1].T, interpolation=interp,
-            extent=(E_bins[0],E_bins[-1],S_bins[0],S_bins[-1]),
+    im = plt.imshow(ES_hist[:, ::-1].T, interpolation=interp,
+            extent=(E_bins[0], E_bins[-1], S_bins[0], S_bins[-1]),
             vmin=vmin, vmax=vmax, cmap=colormap)
     im.cmap.set_under(under_color)
     im.cmap.set_over(over_color)
