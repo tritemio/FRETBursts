@@ -611,7 +611,7 @@ def hist2d_alex(d, i=0, vmin=2, vmax=0, bin_step=None, S_max_norm=0.8,
     """
     if bin_step is not None:
         d.calc_alex_hist(bin_step=bin_step)
-    ES_hist, E_bins, S_bins, S_ax = d.AH[i], d.E_bins, d.S_bins, d.S_ax
+    ES_hist, E_bins, S_bins, S_ax = d.ES_hist[i], d.E_bins, d.S_bins, d.S_ax
 
     colormap = plt.get_cmap(cmap)
     # Heuristic for colormap range
