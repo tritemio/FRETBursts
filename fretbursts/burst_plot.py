@@ -1089,7 +1089,7 @@ def dplot_48ch(d, fun=scatter_width_size, sharex=True, sharey=True,
     return AX, s
 
 def dplot_8ch(d, fun=scatter_width_size, sharex=True,sharey=True,
-        scroll=False,pgrid=True, figsize=(12,9), nosuptitle=False, AX=None,
+        scroll=False,pgrid=True, figsize=(12, 9), nosuptitle=False, AX=None,
         scale=True, **kwargs):
     """Plot wrapper for 8-spot measurements. Use `dplot` instead."""
     if AX is None:
@@ -1134,7 +1134,7 @@ def dplot_8ch(d, fun=scatter_width_size, sharex=True,sharey=True,
     return AX, s
 
 def dplot_1ch(d, fun, scroll=False, pgrid=True, ax=None,
-              figsize=(9,4.5), fignum=None, nosuptitle=False, **kwargs):
+              figsize=(9, 4.5), fignum=None, nosuptitle=False, **kwargs):
     """Plot wrapper for single-spot measurements. Use `dplot` instead."""
     if ax is None:
         fig = plt.figure(num=fignum, figsize=figsize)
@@ -1195,7 +1195,8 @@ def splot(d, fun=scatter_width_size,
 #  Other misc plot functions
 #
 def bplot(d, ich, b_index,  ph0=True, pad=0):
-    """Plot a single burst in d.mburst[ich][b_index]."""
+    """Plot photons in a burst as vertical bars. Burst: d.mburst[ich][b_index].
+    """
     br = bl.b_irange(d.mburst[ich], b_index, pad=pad)
     accept = d.A_em[ich][br]
     donor = -accept
