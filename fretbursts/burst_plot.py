@@ -1011,9 +1011,11 @@ def scatter_naa_nt(d, i=0, alpha=0.5):
 
 def scatter_alex(d, i=0, **kwargs):
     """Scatterplot of E vs S. Keyword arguments passed to `plot`."""
-    plot_style = dict(marker='o', mew=0, ms=3, alpha=0.2)
-    plot_style.update(**kwargs)
-    plot(d.E[i], d.S[i], 'd', **plot_style)
+    plot_style = dict(mew=1, ms=4, mec='black', color='purple',
+                      alpha=0.1)
+    plot_style = _normalize_kwargs(plot_style, 'line2d')
+    plot_style.update(**_normalize_kwargs(kwargs))
+    plot(d.E[i], d.S[i], 'o', **plot_style)
     xlabel("E"); ylabel('S')
     plt.xlim(-0.2,1.2); plt.ylim(-0.2,1.2)
 
