@@ -486,7 +486,7 @@ def hist_width(d, i=0, bins=r_[0:10:0.025], yscale='log', density=True,
 
 def hist_size(d, i=0, vmax=1000, bins=r_[:1e3:2]-1, which='all', yscale='log',
         legend=True, **kwargs):
-    assert which in ["all", "nt", "nd", "na", "naa"]
+    assert which in ["all", "nt", "nd", "na", "naa", "nd+na"]
     if which == 'nt' or which == 'all':
         H, A = np.histogram(d.nt[i], bins=bins)
         plot_style = dict(lw=2, color='k'); plot_style.update(**kwargs)
@@ -503,6 +503,10 @@ def hist_size(d, i=0, vmax=1000, bins=r_[:1e3:2]-1, which='all', yscale='log',
         H, A = np.histogram(d.naa[i], bins=bins)
         plot_style = dict(lw=2, color='orange'); plot_style.update(**kwargs)
         plot(A[:-1]-0.5*(A[1]-A[0]), H, label='AA', **plot_style)
+    if which == 'nd+na':
+        H, A = np.histogram(d.nd[i] + d.na[i], bins=bins)
+        plot_style = dict(lw=2, color='brown'); plot_style.update(**kwargs)
+        plot(A[:-1]-0.5*(A[1]-A[0]), H, label='DemDex + AemDex', **plot_style)
     gca().set_yscale(yscale)
     xlabel('# Ph.'); ylabel('# Bursts')
     if legend: gca().legend(loc='best')
