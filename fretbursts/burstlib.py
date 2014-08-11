@@ -292,7 +292,7 @@ def b_fuse(mburst, ms=0, clk_p=12.5e-9):
             than that will be fuse in asingle burst.
 
     Returns:
-        new_mbursts (2D array): new array of burst data
+        new_mburst (2D array): new array of burst data
     """
     max_delay_clk = (ms*1e-3)/clk_p
     # Nearby bursts masks
@@ -1648,6 +1648,8 @@ class Data(DataContainer):
 
         Allows to recompute only the corrections the are already applied.
         """
+        if 'mburst' not in self: return  # no burst search performed yet
+
         old_bg_corrected = self.bg_corrected
         old_leakage_corrected = self.leakage_corrected
         old_dir_ex_corrected = self.dir_ex_corrected
