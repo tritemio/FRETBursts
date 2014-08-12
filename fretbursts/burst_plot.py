@@ -610,9 +610,12 @@ def hist_S(d, i=0, bins=None, binw=0.02, weights=None, gamma=1., normed=False,
 def hist2d_alex(d, i=0, vmin=2, vmax=0, bin_step=None, S_max_norm=0.8,
                 interp='bicubic', cmap='hot', under_color='white',
                 over_color='white', scatter=True, scatter_ms=3,
-                scatter_color='orange', scatter_alpha=0.2, gui_sel=False):
+                scatter_color='orange', scatter_alpha=0.2, gui_sel=False,
+                ax=None, cbar_ax=None):
     """Plot 2-D E-S ALEX histogram with a scatterplot overlay.
     """
+    if ax is None:
+        ax = plt.gca()
     if bin_step is not None:
         d.calc_alex_hist(bin_step=bin_step)
     ES_hist, E_bins, S_bins, S_ax = d.ES_hist[i], d.E_bins, d.S_bins, d.S_ax
@@ -623,17 +626,22 @@ def hist2d_alex(d, i=0, vmin=2, vmax=0, bin_step=None, S_max_norm=0.8,
         S_range = (S_ax < S_max_norm)
         vmax = ES_hist[:, S_range].max()
         if vmax <= vmin: vmax = 10*vmin
+
     if scatter:
-        plot(d.E[i],d.S[i], 'o', mew=0, ms=scatter_ms, alpha=scatter_alpha,
+        ax.plot(d.E[i],d.S[i], 'o', mew=0, ms=scatter_ms, alpha=scatter_alpha,
                 color=scatter_color)
-    im = plt.imshow(ES_hist[:, ::-1].T, interpolation=interp,
+    im = ax.imshow(ES_hist[:, ::-1].T, interpolation=interp,
             extent=(E_bins[0], E_bins[-1], S_bins[0], S_bins[-1]),
             vmin=vmin, vmax=vmax, cmap=colormap)
     im.cmap.set_under(under_color)
     im.cmap.set_over(over_color)
-    gcf().colorbar(im)
-    plt.xlim(-0.2,1.2); plt.ylim(-0.2,1.2)
-    xlabel('E'); ylabel('S'); grid(color='gray')
+    if cbar_ax is None:
+        gcf().colorbar(im)
+    else:
+        cbar_ax.colorbar(im)
+    ax.set_xlim(-0.2, 1.2); ax.set_ylim(-0.2, 1.2)
+    ax.set_xlabel('E');     ax.set_ylabel('S')
+    ax.grid(color='gray')
     if gui_sel:
         # the selection object must be saved (otherwise will be destroyed)
         hist2d_alex.gui_sel = gs.rectSelection(gcf(), gca())

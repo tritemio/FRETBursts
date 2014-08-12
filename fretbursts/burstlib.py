@@ -431,9 +431,9 @@ def ES_histog(E, S, bin_step=0.05, E_bins=None, S_bins=None):
     """Returns 2D (ALEX) histogram and bins of bursts (E,S).
     """
     if E_bins is None:
-        E_bins = np.arange(-0.2, 1.2+1e-4, bin_step)
+        E_bins = np.arange(-0.6, 1.6+1e-4, bin_step)
     if S_bins is None:
-        S_bins = np.arange(-0.2, 1.2+1e-4, bin_step)
+        S_bins = np.arange(-0.6, 1.6+1e-4, bin_step)
     H, E_bins, S_bins = np.histogram2d(E, S, bins=[E_bins, S_bins])
     return H, E_bins, S_bins
 
