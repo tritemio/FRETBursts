@@ -18,6 +18,7 @@ For usage example see the IPython Notebooks in sub-folder "notebooks".
 
 import os
 import numpy as np
+import copy
 from numpy import zeros, size, r_
 import scipy.stats as SS
 
@@ -660,13 +661,15 @@ class Data(DataContainer):
         new_d = Data(**self) # this make a shallow copy (like a pointer)
 
         ## Deep copy (not just reference) or array data
-        for k in ['mburst', 'nd', 'na', 'nt', 'naa', 'E', 'S']:
+        for field in self.burst_fields + self.bg_fields:
             # Making sure k is defined
-            if k in self:
-                # Make the new list with a copy of the original arrays
-                new_d[k] = [self[k][i].copy() for i in range(self.nch)]
+            if field in self:
+
+                # Make a deepcopy of the per-channel lists
+                new_d[field] = copy.deepcopy(self[field])
+
                 # Set the attribute: new_d.k = new_d[k]
-                setattr(new_d, k, new_d[k])
+                setattr(new_d, field, new_d[field])
         return new_d
 
     def iter_ph_masks(self, ph_sel=Ph_sel('all')):
