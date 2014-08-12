@@ -727,6 +727,10 @@ class Data(DataContainer):
         elif ph_sel == Ph_sel(Aex='DAem'):
             return self.get_A_ex(ich)
 
+        # Selection of all photons except for Dem during Aex
+        elif ph_sel == Ph_sel(Dex='DAem', Aex='Aem'):
+            return self.get_D_ex(ich) + self.get_A_em(ich)*self.get_A_ex(ich)
+
         else:
             raise ValueError('Selection not implemented.')
 
@@ -1272,8 +1276,11 @@ class Data(DataContainer):
         if self.ALEX:
             bg_Aem = [bg_ad + bg_aa for bg_ad, bg_aa in
                             zip(self.bg_ad, self.bg_aa)]
+            bg_noDA = [bg_dd + bg_ad + bg_aa for bg_dd, bg_ad, bg_aa in
+                            zip(self.bg_dd, self.bg_ad, self.bg_aa)]
             BG.update(**{Ph_sel(Aex='Aem'): self.bg_aa,
-                         Ph_sel(Dex='Aem', Aex='Aem'): bg_Aem})
+                         Ph_sel(Dex='Aem', Aex='Aem'): bg_Aem,
+                         Ph_sel(Dex='DAem', Aex='Aem'): bg_noDA})
         if ph_sel not in BG:
             raise NotImplementedError('Photong selection not implemented.')
         return BG[ph_sel]
