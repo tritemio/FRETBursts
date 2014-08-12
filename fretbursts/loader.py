@@ -48,7 +48,7 @@ def hdf5(fname):
         assert file_format[1] == data_file.root._v_attrs[file_format[0]]
 
     # Default values for optional parameters
-    params = dict(BT=0., gamma=1.)
+    params = dict(leakage=0., gamma=1.)
 
     # Load mandatory parameters
     for field in ('clk_p', 'nch', 'ALEX'):
@@ -57,7 +57,7 @@ def hdf5(fname):
         params[field] = data_file.get_node('/', name=field).read()
 
     # Load optional parameter (overwriting defaults)
-    for field in ('BT', 'gamma'):
+    for field in ('leakage', 'gamma'):
         if '/' + field in data_file:
             params[field] = data_file.get_node('/', name=field).read()
 
@@ -102,18 +102,19 @@ def hdf5(fname):
 ##
 # Multi-spot loader functions
 #
-def multispot8(fname, bytes_to_read=-1, swap_D_A=True, BT=0, gamma=1.):
+def multispot8(fname, bytes_to_read=-1, swap_D_A=True, leakage=0, gamma=1.):
     """Load a 8-ch multispot file and return a Data() object. Cached version.
     """
     fname_c = fname + '_cache.pickle'
     try:
         var = pickle.load(open(fname_c, 'rb'))
-        dx = Data(fname=fname, clk_p=12.5e-9, nch=8, BT=BT, gamma=gamma)
+        dx = Data(fname=fname, clk_p=12.5e-9, nch=8, leakage=leakage,
+                  gamma=gamma)
         dx.add(ph_times_m=var['ph_times_m'], A_em=var['A_em'], ALEX=False)
         pprint(" - File loaded from cache: %s\n" % fname)
     except IOError:
         dx = multispot8_core(fname, bytes_to_read=bytes_to_read,
-                             swap_D_A=swap_D_A, BT=BT, gamma=gamma)
+                             swap_D_A=swap_D_A, leakage=leakage, gamma=gamma)
         D = {'ph_times_m': dx.ph_times_m, 'A_em': dx.A_em}
         pprint(" - Pickling data ... ")
         pickle.dump(D, open(fname_c, 'wb'), -1)
@@ -122,21 +123,21 @@ def multispot8(fname, bytes_to_read=-1, swap_D_A=True, BT=0, gamma=1.):
 
 load_multispot8 = deprecate(multispot8, "load_multispot8", "loader.multispot8")
 
-def multispot8_core(fname, bytes_to_read=-1, swap_D_A=True, BT=0,
+def multispot8_core(fname, bytes_to_read=-1, swap_D_A=True, leakage=0,
                          gamma=1.):
     """Load a 8-ch multispot file and return a Data() object.
     """
-    dx = Data(fname=fname, clk_p=12.5e-9, nch=8, BT=BT, gamma=gamma)
+    dx = Data(fname=fname, clk_p=12.5e-9, nch=8, leakage=leakage, gamma=gamma)
     ph_times_m, A_em, ph_times_det = load_data_ordered16(fname=fname,
             n_bytes_to_read=bytes_to_read, swap_D_A=swap_D_A)
     dx.add(ph_times_m=ph_times_m, A_em=A_em, ALEX=False)
     return dx
 
-def multispot48_simple(fname, BT=0, gamma=1.,
+def multispot48_simple(fname, leakage=0, gamma=1.,
                      i_start=0, i_stop=None, debug=False):
     """Load a 48-ch multispot file and return a Data() object.
     """
-    dx = Data(fname=fname, clk_p=10e-9, nch=48, BT=BT, gamma=gamma)
+    dx = Data(fname=fname, clk_p=10e-9, nch=48, leakage=leakage, gamma=gamma)
     ph_times_m, big_fifo, ch_fifo = load_manta_timestamps(
                 fname, i_start=i_start, i_stop=i_stop, debug=debug)
     A_em = [True] * len(ph_times_m)
@@ -151,7 +152,7 @@ def multispot48_simple(fname, BT=0, gamma=1.,
         dx.add(ch_fifo=ch_fifo)
     return dx
 
-def multispot48(fname, BT=0, gamma=1., reprocess=False,
+def multispot48(fname, leakage=0, gamma=1., reprocess=False,
                 i_start=0, i_stop=None, debug=False):
     """Load a 48-ch multispot file and return a Data() object.
     """
@@ -192,7 +193,7 @@ def multispot48(fname, BT=0, gamma=1., reprocess=False,
     ## Current data has only acceptor ch
     A_em = [True] * len(ph_times_m)
 
-    dx = Data(fname=fname, clk_p=10e-9, nch=48, BT=BT, gamma=gamma)
+    dx = Data(fname=fname, clk_p=10e-9, nch=48, leakage=leakage, gamma=gamma)
     dx.add(ph_times_m=ph_times_m, A_em=A_em, ALEX=False,
            data_file=ph_times_m.data_file, bg_data_file=ph_times_m.data_file)
     big_fifo_full = np.array([b[:].any() for b in big_fifo]).any()
@@ -221,7 +222,7 @@ def _select_range(times, period, edges):
     return _select_inner_range(times, period, edges) if edges[0] < edges[1] \
             else _select_outer_range(times, period, edges)
 
-def usalex(fname, BT=0, gamma=1., header=166, bytes_to_read=-1):
+def usalex(fname, leakage=0, gamma=1., header=166, bytes_to_read=-1, BT=None):
     """Load a usALEX file and return a Data() object.
 
     This function returns a Data() object to which you need to apply
@@ -241,6 +242,9 @@ def usalex(fname, BT=0, gamma=1., header=166, bytes_to_read=-1):
     Now `d` is ready for futher processing such as background estimation,
     burst search, etc...
     """
+    if BT is not None:
+        print 'WARNING: `BT` argument is deprecated, use `leakage` instead.'
+        leakage = BT
     print " - Loading '%s' ... " % fname
     ph_times_t, det_t = load_sm(fname, header=header)
     print " [DONE]\n"
@@ -249,7 +253,7 @@ def usalex(fname, BT=0, gamma=1., header=166, bytes_to_read=-1):
     ACCEPT_ON = (930, 2580)
     alex_period = 4000
 
-    dx = Data(fname=fname, clk_p=12.5e-9, nch=1, BT=BT, gamma=gamma,
+    dx = Data(fname=fname, clk_p=12.5e-9, nch=1, leakage=leakage, gamma=gamma,
               ALEX=True,
               D_ON=DONOR_ON, A_ON=ACCEPT_ON, alex_period=alex_period,
               ph_times_t=ph_times_t, det_t=det_t, det_donor_accept=(0, 1),
@@ -332,7 +336,7 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
 # nsALEX loader functions
 #
 
-def nsalex(fname, BT=0, gamma=1.):
+def nsalex(fname, leakage=0, gamma=1.):
     """Load a nsALEX file and return a Data() object.
 
     This function returns a Data() object to which you need to apply
