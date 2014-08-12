@@ -544,13 +544,13 @@ def hist_fret(d, i=0, bins=None, binw=0.02, show_fit=False, show_model=True,
             plt.figtext(0.4, 0.01, _get_fit_E_text(d), fontsize=14)
 hist_E = hist_fret
 
-def kde_fret(d, i=0, bandwidth=0.04, show_fit=False, show_model=False,
+def kde_fret(d, i=0, bandwidth=0.03, show_fit=False, show_model=False,
              weights=None, gamma=1., no_text=False, verbose=False,
              fit_color='k', fit_alpha=0.5, fit_lw=2.5, fit_fillcolor=None,
              **kwargs):
     """Plot the KDE for FRET distribution and optionally the fitted model
     """
-    E_ax = np.arange(-0.19, 1.19, 0.001)
+    E_ax = np.arange(-0.25, 1.25, 0.001)
     w = bl.fret_fit.get_weights(d.nd[i], d.na[i], weights=weights, gamma=gamma)
     kde = gaussian_kde_w(d.E[i], bw_method=bandwidth, weights=w)
     E_pdf = kde.evaluate(E_ax)
@@ -577,7 +577,7 @@ def kde_fret(d, i=0, bandwidth=0.04, show_fit=False, show_model=False,
         if i == 0 and not no_text:
             plt.figtext(0.4, 0.01, _get_fit_E_text(d), fontsize=14)
 
-def hist_fret_kde(d, i=0, bins=None, binw=0.02, bandwidth=0.04, show_fit=False,
+def hist_fret_kde(d, i=0, bins=None, binw=0.02, bandwidth=0.03, show_fit=False,
         no_text=False, weights=None, gamma=1., **kwargs):
     """Plot the FRET histogram and a KDE overlay
     """
