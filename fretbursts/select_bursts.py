@@ -128,7 +128,7 @@ def naa(d, ich=0, th1=20, th2=np.inf):
     return bursts_mask, ''
 
 def size(d, ich=0, th1=20, th2=np.inf, gamma=1., gamma1=None,
-                      add_naa=False):
+         add_naa=False):
     """Select bursts with burst sizes between th1 and th2.
 
     The parameters `gamma`, `gamma1` and `add_naa` are passed to
