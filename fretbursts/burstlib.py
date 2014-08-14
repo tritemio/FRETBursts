@@ -682,6 +682,21 @@ class Data(DataContainer):
         for ich in xrange(self.nch):
             yield self.get_ph_mask(ich, ph_sel=ph_sel)
 
+    def _check_ph_sel(self, ph_sel):
+        """Check consistency of `ph_sel` with current data (ALEX vs not ALEX).
+        """
+        assert type(ph_sel) is Ph_sel
+
+        if not self.ALEX and ph_sel == Ph_sel(Dex='DAem'):
+            ph_sel = Ph_sel('all')
+
+        # Except for 'all' any other selection with Aex != None requires ALEX
+        not_ph_sel_all = ph_sel != Ph_sel('all')
+        if not_ph_sel_all and (not self.ALEX) and (ph_sel.Aex is not None):
+            raise ValueError('Use of acceptor excitation with non-ALEX data.')
+
+        return ph_sel
+
     def get_ph_mask(self, ich=0, ph_sel=Ph_sel('all')):
         """Returns a mask for `ph_sel` photons in channel `ich`.
 
@@ -693,7 +708,7 @@ class Data(DataContainer):
             ph_sel (Ph_sel object): object defining the photon selection.
                 See :class:`fretbursts.ph_sel.Ph_sel` for details.
         """
-        assert type(ph_sel) is Ph_sel
+        ph_sel = self._check_ph_sel(ph_sel)
 
         # This is the only case in which Aex='DAem' for non-ALEX data is OK
         if ph_sel == Ph_sel('all'):
@@ -703,10 +718,6 @@ class Data(DataContainer):
             # Note: the drawback is that the slice cannot be indexed
             #       (where a normal boolean array would)
             return slice(None)
-
-        # Any other selection with Aex != None requires ALEX
-        if not self.ALEX and ph_sel.Aex is not None:
-            raise ValueError('Use of acceptor excitation with non-ALEX data.')
 
         # Base selections
         elif ph_sel == Ph_sel(Dex='Dem'):
@@ -1272,16 +1283,29 @@ class Data(DataContainer):
     def bg_from(self, ph_sel):
         """Return the background rates for the specified photon selection.
         """
-        bg_Dex = [bg_dd + bg_ad for bg_dd, bg_ad in
-                        zip(self.bg_dd, self.bg_ad)]
-        BG = {Ph_sel('all'): self.bg, Ph_sel(Dex='Dem'): self.bg_dd,
-              Ph_sel(Dex='Aem'): self.bg_ad, Ph_sel(Dex='DAem'): bg_Dex}
+        ph_sel = self._check_ph_sel(ph_sel)
+
+        if ph_sel == Ph_sel('all'):
+            return self.bg
+
+        BG = {Ph_sel(Dex='Dem'): self.bg_dd,
+              Ph_sel(Dex='Aem'): self.bg_ad}
         if self.ALEX:
+            bg_Dex = [bg_dd + bg_ad for bg_dd, bg_ad in
+                            zip(self.bg_dd, self.bg_ad)]
+            bg_Aex = [bg_da + bg_aa for bg_da, bg_aa in
+                            zip(self.bg_da, self.bg_aa)]
+            bg_Dem = [bg_dd + bg_ad for bg_dd, bg_ad in
+                            zip(self.bg_dd, self.bg_ad)]
             bg_Aem = [bg_ad + bg_aa for bg_ad, bg_aa in
                             zip(self.bg_ad, self.bg_aa)]
             bg_noDA = [bg_dd + bg_ad + bg_aa for bg_dd, bg_ad, bg_aa in
                             zip(self.bg_dd, self.bg_ad, self.bg_aa)]
             BG.update(**{Ph_sel(Aex='Aem'): self.bg_aa,
+                         Ph_sel(Aex='Dem'): self.bg_da,
+                         Ph_sel(Dex='DAem'): bg_Dex,
+                         Ph_sel(Aex='DAem'): bg_Aex,
+                         Ph_sel(Dex='Dem', Aex='Dem'): bg_Dem,
                          Ph_sel(Dex='Aem', Aex='Aem'): bg_Aem,
                          Ph_sel(Dex='DAem', Aex='Aem'): bg_noDA})
         if ph_sel not in BG:
