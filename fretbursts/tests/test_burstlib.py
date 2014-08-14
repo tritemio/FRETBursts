@@ -69,10 +69,15 @@ def list_equal(list1, list2):
     """
     return np.all([val1 == val2 for val1, val2 in zip(list1, list2)])
 
-def list_array_equal(list1, list2, eq_func=np.all):
+def list_array_equal(list1, list2):
     """Test numerical equality between two lists of arrays.
     """
-    return np.all([eq_func([arr1, arr2]) for arr1, arr2 in zip(list1, list2)])
+    return np.all([np.all(arr1 == arr2) for arr1, arr2 in zip(list1, list2)])
+
+def list_array_allclose(list1, list2):
+    """Test float closeness (np.allclose) between two lists of arrays.
+    """
+    return np.all([np.allclose(arr1, arr2) for arr1, arr2 in zip(list1, list2)])
 
 def test_bg_calc(data):
     data.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
@@ -127,7 +132,7 @@ def test_iter_ph_times(data):
     # TODO add all the ph_sel combinations like in test_bg_from()
     d = data
 
-    #assert list_array_equal(d.ph_times_m, d.iter_ph_times())
+    assert list_array_equal(d.ph_times_m, d.iter_ph_times())
 
     for ich, ph in enumerate(d.iter_ph_times()):
         assert (ph == d.ph_times_m[ich]).all()
