@@ -1295,8 +1295,8 @@ class Data(DataContainer):
                             zip(self.bg_dd, self.bg_ad)]
             bg_Aex = [bg_da + bg_aa for bg_da, bg_aa in
                             zip(self.bg_da, self.bg_aa)]
-            bg_Dem = [bg_dd + bg_ad for bg_dd, bg_ad in
-                            zip(self.bg_dd, self.bg_ad)]
+            bg_Dem = [bg_dd + bg_da for bg_dd, bg_da in
+                            zip(self.bg_dd, self.bg_da)]
             bg_Aem = [bg_ad + bg_aa for bg_ad, bg_aa in
                             zip(self.bg_ad, self.bg_aa)]
             bg_noDA = [bg_dd + bg_ad + bg_aa for bg_dd, bg_ad, bg_aa in
