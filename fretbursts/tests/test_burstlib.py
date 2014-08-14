@@ -34,11 +34,12 @@ def load_dataset_1ch():
     return d
 
 def load_dataset_8ch():
-    fn = "12d_New_30p_320mW_steer_3.dat"
+    fn = "12d_New_30p_320mW_steer_3.hdf5"
     fname = DATASETS_DIR + fn
     leakage = 0.038
     gamma = 0.43
-    d = loader.multispot8(fname=fname, leakage=leakage, gamma=gamma)
+    d = loader.hdf5(fname=fname)
+    d.add(leakage=leakage, gamma=gamma)
     d.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
     d.burst_search_t(L=10, m=10, F=7)
     return d
