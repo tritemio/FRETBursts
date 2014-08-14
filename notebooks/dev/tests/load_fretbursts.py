@@ -10,45 +10,46 @@ Run this file from a notebook as follows:
 
 import sys
 import os
+
+# Import some useful functions for the ipyton notebook
 from IPython.display import display, Math, clear_output
 
-HOME = os.environ['HOME'] if 'HOME' in os.environ else ''
-
+# Process the command-line arguments
 no_gui = len(sys.argv) > 1 and sys.argv[1] == '--nogui'
 
-# Modify these to point to your FRETBursts source folder
-# or set an environment variable FRETBURSTS_DIR containing the path
-# (the environment variable, if set, has the precedence).
-FRETBURSTS_DIR_WIN = r"C:\Data\Antonio\software\src\fretbursts"
-FRETBURSTS_DIR_POSIX = HOME + "/src/fretbursts"
-
-
-if 'FRETBURSTS_DIR' in os.environ:
-    FRETBURSTS_DIR = os.environ['FRETBURSTS_DIR']
-elif os.name == 'posix':
-    # Runnning Mac OSX or Linux
-    FRETBURSTS_DIR = FRETBURSTS_DIR_POSIX
+## Find FRETBursts sources folder
+if os.name == 'posix':
+    # Linux or Mac
+    HOME = os.environ['HOME'] + '/'
 elif os.name == 'nt':
-    # Running Windows
-    FRETBURSTS_DIR = FRETBURSTS_DIR_WIN
+    # Windows
+    HOME = os.environ['HOMEPATH'] + '/'
 else:
     raise OSError ("Operating system not recognized (%s)." % os.name)
 
-ip = get_ipython()
+config_file_name = '.fretbursts'
+with open(HOME + config_file_name) as f:
+    FRETBURSTS_DIR = f.read().strip()
 
-# Workaround for open-file dialog in IPython Notebook
-# see https://github.com/ipython/ipython/issues/5798
-ip.enable_matplotlib("inline")
-if not no_gui:
-    ip.enable_gui("qt")
-
-# Save current dir as NOTEBOOK_DIR
+## Save current dir as NOTEBOOK_DIR
 if not 'NOTEBOOK_DIR' in globals():
-    NOTEBOOK_DIR = ip.magic('%pwd')
+    NOTEBOOK_DIR = os.path.abspath('.')
 
-ip.magic('%cd "$FRETBURSTS_DIR"')
+## Change to FRETBursts folder and import the software
+os.chdir(FRETBURSTS_DIR)
 
 from fretbursts import *
 from fretbursts.utils import git
 
 git.print_summary('FRETBursts')
+
+os.chdir(NOTEBOOK_DIR)
+
+## Enable inline plots and QT windows.
+# Workaround for open-file dialog in IPython Notebook
+# see https://github.com/ipython/ipython/issues/5798
+ip = get_ipython()
+ip.enable_matplotlib("inline")
+if not no_gui:
+    ip.enable_gui("qt")
+
