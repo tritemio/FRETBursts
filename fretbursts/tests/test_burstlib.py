@@ -24,7 +24,7 @@ DATASETS_DIR = u'notebooks/data/'
 def load_dataset_1ch():
     fn = "0023uLRpitc_NTP_20dT_0.5GndCl.sm"
     fname = DATASETS_DIR + fn
-    d = loader.usalex(fname=fname, BT=0.11, gamma=1.)
+    d = loader.usalex(fname=fname, leakage=0.11, gamma=1.)
     d.add(det_donor_accept=(0, 1), alex_period=4000,
           D_ON=(2850, 580), A_ON=(900, 2580))
     loader.usalex_apply_period(d)
@@ -36,9 +36,9 @@ def load_dataset_1ch():
 def load_dataset_8ch():
     fn = "12d_New_30p_320mW_steer_3.dat"
     fname = DATASETS_DIR + fn
-    BT = 0.038
+    leakage = 0.038
     gamma = 0.43
-    d = loader.multispot8(fname=fname, BT=BT, gamma=gamma)
+    d = loader.multispot8(fname=fname, leakage=leakage, gamma=gamma)
     d.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
     d.burst_search_t(L=10, m=10, F=7)
     return d
@@ -194,24 +194,24 @@ def test_burst_corrections(data):
     d = data
     d.calc_ph_num(alex_all=True)
     d.corrections()
-    BT = d.get_BT_array()
+    leakage = d.get_leakage_array()
 
     for ich, mb in enumerate(d.mburst):
         if mb.size == 0: continue  # if no bursts skip this ch
         nd, na, bg_d, bg_a, width = d.expand(ich, width=True)
         burst_size_raw = bl.b_size(mb)
 
-        bt = BT[ich]
+        lk = leakage[ich]
         if d.ALEX:
             nda, naa = d.nda[ich], d.naa[ich]
             period = d.bp[ich]
             bg_da = d.bg_da[ich][period]*width
             bg_aa = d.bg_aa[ich][period]*width
-            burst_size_raw2 = nd + na + bg_d + bg_a + bt*nd + nda + naa + \
+            burst_size_raw2 = nd + na + bg_d + bg_a + lk*nd + nda + naa + \
                               bg_da + bg_aa
             assert np.allclose(burst_size_raw, burst_size_raw2)
         else:
-            burst_size_raw2 = nd + na + bg_d + bg_a + bt*nd
+            burst_size_raw2 = nd + na + bg_d + bg_a + lk*nd
             assert np.allclose(burst_size_raw, burst_size_raw2)
 
 def test_burst_size_da(data):
