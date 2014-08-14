@@ -63,31 +63,70 @@ def data_8ch(request):
 # Test functions
 #
 
-def list_equal(list1, list2, eq_func=np.all):
+def list_equal(list1, list2):
     """Test numerical equality of all the elements in the two lists.
     """
-    return eq_func([val1 == val2 for val1, val2 in zip(list1, list2)])
+    return np.all([val1 == val2 for val1, val2 in zip(list1, list2)])
+
+def list_array_equal(list1, list2, eq_func=np.all):
+    """Test numerical equality between two lists of arrays.
+    """
+    return np.all([eq_func([arr1, arr2]) for arr1, arr2 in zip(list1, list2)])
 
 def test_bg_calc(data):
     data.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
     data.calc_bg(bg.exp_fit, time_s=30, tail_min_us='auto', F_bg=1.7)
 
-def test_burst_search(data):
-    data.burst_search_t(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Dem'))
-    assert list_equal(data.bg_bs, data.bg_dd)
-    data.burst_search_t(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Aem'))
-    assert list_equal(data.bg_bs, data.bg_ad)
-    data.burst_search_t(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Aem', Aex='Aem'))
-    if data.ALEX:
-        bg_Aem = [b1 + b2 for b1, b2 in zip(data.bg_ad, data.bg_aa)]
-        assert list_equal(data.bg_bs, bg_Aem)
-    else:
-        assert list_equal(data.bg_bs, data.bg_ad)
-    data.burst_search_t(L=10, m=10, F=7)
-
-def test_ph_selection(data):
-    """Test photon selection 'all', DD, AD and AA."""
+def test_bg_from(data):
+    """Test the method .bg_from() for all the ph_sel combinations.
+    """
     d = data
+
+    bg = d.bg_from(ph_sel=Ph_sel('all'))
+    assert list_array_equal(bg, d.bg)
+    bg = d.bg_from(ph_sel=Ph_sel(Dex='Dem'))
+    assert list_array_equal(bg, d.bg_dd)
+    bg = d.bg_from(ph_sel=Ph_sel(Dex='Aem'))
+    assert list_array_equal(bg, d.bg_ad)
+
+    if not d.ALEX:
+        bg = d.bg_from(ph_sel=Ph_sel(Dex='DAem'))
+        assert list_array_equal(bg, d.bg)
+    else:
+        bg = d.bg_from(ph_sel=Ph_sel(Aex='Dem'))
+        assert list_array_equal(bg, d.bg_da)
+        bg = d.bg_from(ph_sel=Ph_sel(Aex='Aem'))
+        assert list_array_equal(bg, d.bg_aa)
+
+        bg = d.bg_from(ph_sel=Ph_sel(Dex='DAem'))
+        bg_c = [bg1 + bg2 for bg1, bg2 in zip(d.bg_dd, d.bg_ad)]
+        assert list_array_equal(bg, bg_c)
+
+        bg = d.bg_from(ph_sel=Ph_sel(Aex='DAem'))
+        bg_c = [bg1 + bg2 for bg1, bg2 in zip(d.bg_da, d.bg_aa)]
+        assert list_array_equal(bg, bg_c)
+
+        bg = d.bg_from(ph_sel=Ph_sel(Dex='Dem', Aex='Dem'))
+        bg_c = [bg1 + bg2 for bg1, bg2 in zip(d.bg_dd, d.bg_da)]
+        assert list_array_equal(bg, bg_c)
+
+        bg = d.bg_from(ph_sel=Ph_sel(Dex='Aem', Aex='Aem'))
+        bg_c = [bg1 + bg2 for bg1, bg2 in zip(d.bg_ad, d.bg_aa)]
+        assert list_array_equal(bg, bg_c)
+
+        bg = d.bg_from(ph_sel=Ph_sel(Dex='DAem', Aex='Aem'))
+        bg_c = [bg1 + bg2 + bg3 for bg1, bg2, bg3 in
+                        zip(d.bg_dd, d.bg_ad, d.bg_aa)]
+        assert list_array_equal(bg, bg_c)
+
+
+def test_iter_ph_times(data):
+    """Test method .iter_ph_times() for all the ph_sel combinations.
+    """
+    # TODO add all the ph_sel combinations like in test_bg_from()
+    d = data
+
+    #assert list_array_equal(d.ph_times_m, d.iter_ph_times())
 
     for ich, ph in enumerate(d.iter_ph_times()):
         assert (ph == d.ph_times_m[ich]).all()
@@ -107,6 +146,25 @@ def test_ph_selection(data):
     if d.ALEX:
         for ich, ph in enumerate(d.iter_ph_times(Ph_sel(Aex='Aem'))):
             assert (ph == d.ph_times_m[ich][d.A_em[ich]*d.A_ex[ich]]).all()
+    else:
+        for ph1, ph2 in zip(d.iter_ph_times(Ph_sel('all')),
+                            d.iter_ph_times(Ph_sel(Dex='DAem'))):
+            assert ph1.size == ph2.size
+            assert (ph1 == ph2).all()
+
+def test_burst_search(data):
+    data.burst_search_t(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Dem'))
+    assert list_equal(data.bg_bs, data.bg_dd)
+    data.burst_search_t(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Aem'))
+    assert list_equal(data.bg_bs, data.bg_ad)
+
+    if data.ALEX:
+        data.burst_search_t(L=10, m=10, F=7,
+                            ph_sel=Ph_sel(Dex='Aem', Aex='Aem'))
+        bg_Aem = [b1 + b2 for b1, b2 in zip(data.bg_ad, data.bg_aa)]
+        assert list_equal(data.bg_bs, bg_Aem)
+
+    data.burst_search_t(L=10, m=10, F=7)
 
 def test_b_functions(data):
     itstart, iwidth, inum_ph, iistart, iiend, itend = 0, 1, 2, 3, 4, 5
