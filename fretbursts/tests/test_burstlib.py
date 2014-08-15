@@ -134,9 +134,6 @@ def test_iter_ph_times(data):
 
     assert list_array_equal(d.ph_times_m, d.iter_ph_times())
 
-    for ich, ph in enumerate(d.iter_ph_times()):
-        assert (ph == d.ph_times_m[ich]).all()
-
     for ich, ph in enumerate(d.iter_ph_times(Ph_sel(Dex='Dem'))):
         if d.ALEX:
             assert (ph == d.ph_times_m[ich][d.D_em[ich]*d.D_ex[ich]]).all()
@@ -150,13 +147,28 @@ def test_iter_ph_times(data):
             assert (ph == d.ph_times_m[ich][d.A_em[ich]]).all()
 
     if d.ALEX:
+        for ich, ph in enumerate(d.iter_ph_times(Ph_sel(Aex='Dem'))):
+            assert (ph == d.ph_times_m[ich][d.D_em[ich]*d.A_ex[ich]]).all()
         for ich, ph in enumerate(d.iter_ph_times(Ph_sel(Aex='Aem'))):
             assert (ph == d.ph_times_m[ich][d.A_em[ich]*d.A_ex[ich]]).all()
+
+        for ich, ph in enumerate(d.iter_ph_times(Ph_sel(Dex='DAem'))):
+            assert (ph == d.ph_times_m[ich][d.D_ex[ich]]).all()
+        for ich, ph in enumerate(d.iter_ph_times(Ph_sel(Aex='DAem'))):
+            assert (ph == d.ph_times_m[ich][d.A_ex[ich]]).all()
+
+        for ich, ph in enumerate(d.iter_ph_times(Ph_sel(Dex='Dem', Aex='Dem'))):
+            assert (ph == d.ph_times_m[ich][d.D_em[ich]]).all()
+        for ich, ph in enumerate(d.iter_ph_times(Ph_sel(Dex='Aem', Aex='Aem'))):
+            assert (ph == d.ph_times_m[ich][d.A_em[ich]]).all()
+
+        for ich, ph in enumerate(d.iter_ph_times(
+                                    Ph_sel(Dex='DAem', Aex='Aem'))):
+            mask = d.D_ex[ich] + d.A_em[ich]*d.A_ex[ich]
+            assert (ph == d.ph_times_m[ich][mask]).all()
     else:
-        for ph1, ph2 in zip(d.iter_ph_times(Ph_sel('all')),
-                            d.iter_ph_times(Ph_sel(Dex='DAem'))):
-            assert ph1.size == ph2.size
-            assert (ph1 == ph2).all()
+        assert list_array_equal(d.iter_ph_times(),
+                                d.iter_ph_times(Ph_sel(Dex='DAem')))
 
 def test_burst_search(data):
     data.burst_search_t(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Dem'))
