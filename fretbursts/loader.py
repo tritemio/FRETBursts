@@ -30,6 +30,107 @@ from dataload.manta_reader import (load_manta_timestamps,
 from utils.misc import pprint, deprecate
 from burstlib import Data
 from dataload.pytables_array_list import PyTablesList
+from hdf5 import hdf5_data_map
+
+
+def _is_valid_hdf5_phdata(h5file):
+    meta = dict(format_name = 'HDF5-Ph-Data', format_version = '0.2')
+    for attr, value in meta.items():
+        if attr not in h5file.root._v_attrs:
+            return False
+        if h5file.root._v_attrs[attr] != meta[attr]:
+            return False
+    return True
+
+def _is_basic_layout(h5file):
+    return 'photon_data' in h5file.root
+
+class H5Loader():
+
+    def __init__(self, h5file, data):
+        self.h5file = h5file
+        self.data = data
+
+    def load_data(self, where, name, dest_name=None):
+        try:
+            node = self.h5file.get_node(where, name)
+        except tables.NoSuchNodeError:
+            raise (IOError, "Invalid file format: '%s' is missing." % name)
+
+        if dest_name is None:
+            dest_name = hdf5_data_map[name]
+        self.data.add(**{dest_name: node.read()})
+
+def hdf5_phdata(fname):
+    """Load a data file saved in HDF5-Ph-Data format.
+
+    Any :class:`fretbursts.burstlib.Data` object can be saved in HDF5 format
+    using :func:`fretbursts.hdf5.store` .
+    """
+    if not os.path.isfile(fname):
+        raise IOError, 'File not found.'
+    data_file = tables.open_file(fname, mode = "r")
+    if not _is_valid_hdf5_phdata(data_file):
+        raise (IOError, 'The file is not a valid HDF5-Ph-Data format.')
+
+    # Default values for some parameters
+    params = dict(leakage=0., gamma=1.)
+    d = Data(fname=fname, **params)
+    loader = H5Loader(data_file, d)
+
+    # Load mandatory parameters
+    mandatory_fields = ['timestamps_unit', 'number_confocal_spots', 'alex',
+                        'lifetime']
+    for field in mandatory_fields:
+        loader.load_data('/', field)
+
+    if d.ALEX:
+        loader.load_data('/', 'alternation_period')
+
+    if d.lifetime:
+        loader.load_data('/', 'nanotime_unit')
+
+    if _is_basic_layout(data_file):
+        ph_group = data_file.root.photon_data
+        loader.load_data(ph_group, 'timestamps')
+
+        if d.lifetime:
+            try:
+                assert 'nanotimes' in ph_group
+                assert 'nanotimes_specs' in ph_group
+            except AssertionError:
+                raise (IOError, ('The lifetime flag is True but the TCSPC '
+                                 'data is missing.'))
+
+        for ph_data in ['detectors', 'nanotimes', 'particles']:
+            if ph_data in ph_group:
+                loader.load_data(ph_group, ph_data)
+
+        if 'detectors_specs' in ph_group:
+            det_specs = ph_group.detectors_specs
+            if 'donor' in det_specs and 'acceptor' in det_specs:
+                donor = det_specs.donor.read()
+                accept = det_specs.acceptor.read()
+                d.add(det_donor_accept=(donor, accept))
+
+        if 'nanotimes_specs' in ph_group:
+            nanot_specs = ph_group.nanotimes_specs
+            nanotime_params = {}
+            for name in ['tcspc_bin', 'tcspc_nbins', 'tcspc_range']:
+                value = nanot_specs._f_get_child(name).read()
+                nanotime_params.update(**{name: value})
+            for name in ['tau_accept_only', 'tau_donor_only',
+                         'tau_fret_trans']:
+                if name in nanot_specs:
+                    value = nanot_specs._f_get_child(name).read()
+                    nanotime_params.update(**{name: value})
+            d.add(nanotime_params=nanotime_params)
+    else:
+        raise NotImplemented
+
+    d.add(data_file=data_file)
+    return d
+
 
 
 def hdf5(fname):

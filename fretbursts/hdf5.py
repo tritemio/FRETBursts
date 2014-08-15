@@ -12,15 +12,14 @@ also provided.
 """
 
 import os
-import numpy as np
 import tables
 
 
 # Metadata for the HDF5 root node
 _format_meta = dict(
-    name = 'HDF5-Ph-Data',
-    title = 'HDF5-based format for timeseries of photon data.',
-    version = '0.2'
+    format_name = 'HDF5-Ph-Data',
+    format_title = 'HDF5-based format for timeseries of photon data.',
+    format_version = '0.2'
     )
 
 # Metadata for different fields (arrays) in the HDF5 format
@@ -54,8 +53,8 @@ _fields_meta = dict(
     tcspc_range = 'TCSPC full-scale range in seconds.',
 )
 
-_hdf5_map = {key: key for key in _fields_meta.keys()}
-_hdf5_map.update(
+hdf5_data_map = {key: key for key in _fields_meta.keys()}
+hdf5_data_map.update(
             timestamps_unit = 'clk_p',
             number_confocal_spots = 'nch',
             alex = 'ALEX',
@@ -77,8 +76,8 @@ class H5Writer():
 
     def _add_data(self, where, name, func, obj=None, **kwargs):
         if obj is None:
-            assert _hdf5_map[name] in self.data
-            obj = self.data[_hdf5_map[name]]
+            assert hdf5_data_map[name] in self.data
+            obj = self.data[hdf5_data_map[name]]
 
         func(where, name, obj=obj,
              title=_fields_meta[name],
