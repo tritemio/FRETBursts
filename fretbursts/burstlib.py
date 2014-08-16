@@ -690,10 +690,11 @@ class Data(DataContainer):
         if not self.ALEX and ph_sel == Ph_sel(Dex='DAem'):
             ph_sel = Ph_sel('all')
 
-        # Except for 'all' any other selection with Aex != None requires ALEX
+        # If Aex != None and not ALEX print a warning and set Aex to None
         not_ph_sel_all = ph_sel != Ph_sel('all')
         if not_ph_sel_all and (not self.ALEX) and (ph_sel.Aex is not None):
-            raise ValueError('Use of acceptor excitation with non-ALEX data.')
+            print 'WARNING: Use of acceptor excitation with non-ALEX data.'
+            ph_sel = Ph_sel(Dex=ph_sel.Dex)
 
         return ph_sel
 
