@@ -29,8 +29,12 @@ _fields_meta = dict(
     num_spots = 'Number of excitation or detection spots',
     alex = 'If True the file contains ALternated EXcitation data.',
     lifetime = 'If True the data contains nanotimes from TCSPC hardware',
-    alternation_period = ('The duration of the excitation alternation using '
-                          'the same units as the timestamps.'),
+    alex_period = ('The duration of the excitation alternation using '
+                   'the same units as the timestamps.'),
+    alex_period_donor = ('Start and stop values identifying the donor '
+                         'emission period of us-ALEX measurements'),
+    alex_period_acceptor = ('Start and stop values identifying the acceptor '
+                            'emission period of us-ALEX measurements'),
     nanotimes_unit = 'TCSPC time bin duration in seconds.',
 
     # Photon-data
@@ -39,7 +43,7 @@ _fields_meta = dict(
     timestamps = 'Array of photon timestamps',
     detectors = 'Array of detector numbers for each timestamp',
     nanotimes = 'TCSPC photon arrival time (nanotimes)',
-    particles = ('Particle label (number) for each timestamp.'),
+    particles = 'Particle label (integer) for each timestamp.',
 
     detectors_specs = 'Group for detector-specific data.',
     donor = 'Detectors for the donor spectral range',
@@ -59,12 +63,14 @@ hdf5_data_map.update(
             num_spots = 'nch',
             alex = 'ALEX',
             #lifetime
-            alternation_period = 'alex_period',
+            #alex_period
             #nanotimes_unit
             timestamps = 'ph_times_t',
             detectors = 'det_t',
-            nanotimes = 'nanotime',
-            particles = 'par',
+            #nanotimes = 'nanotime',
+            #particles = 'par',
+            alex_period_donor = 'D_ON',
+            alex_period_acceptor = 'A_ON',
             )
 
 class H5Writer():
@@ -132,7 +138,9 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None):
         writer.add_array('/', field)
 
     if d.ALEX:
-        writer.add_array('/', 'alternation_period')
+        writer.add_array('/', 'alex_period')
+        writer.add_array('/', 'alex_period_donor')
+        writer.add_array('/', 'alex_period_acceptor')
 
     ## Save the photon-data
     if d.nch == 1:

@@ -91,7 +91,9 @@ def hdf5_phdata(fname):
         loader.load_data('/', field)
 
     if d.ALEX:
-        loader.load_data('/', 'alternation_period')
+        loader.load_data('/', 'alex_period')
+        loader.load_data('/', 'alex_period_donor')
+        loader.load_data('/', 'alex_period_acceptor')
 
     if d.lifetime:
         loader.load_data('/', 'nanotime_unit')
