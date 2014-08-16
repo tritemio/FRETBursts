@@ -547,13 +547,13 @@ hist_E = hist_fret
 def kde_fret(d, i=0, bandwidth=0.03, show_fit=False, show_model=False,
              weights=None, gamma=1., no_text=False, verbose=False,
              fit_color='k', fit_alpha=0.5, fit_lw=2.5, fit_fillcolor=None,
-             **kwargs):
+             E_range=None, E_ax=None, **kwargs):
     """Plot the KDE for FRET distribution and optionally the fitted model
     """
-    E_ax = np.arange(-0.25, 1.25, 0.001)
-    w = bl.fret_fit.get_weights(d.nd[i], d.na[i], weights=weights, gamma=gamma)
-    kde = gaussian_kde_w(d.E[i], bw_method=bandwidth, weights=w)
-    E_pdf = kde.evaluate(E_ax)
+    if E_ax is None:
+        E_ax = np.arange(-0.25, 1.25, 0.001)
+    E_ax, E_pdf = bext.compute_E_kde(d, ich=i, bandwidth=bandwidth, E_ax=E_ax,
+                                     E_range=E_range, weights=weights)
     if verbose: print 'KDE Integral:', np.trapz(E_pdf, E_ax)
 
     style_kwargs = dict(facecolor='#80b3ff', edgecolor='#5f8dd3',
@@ -584,7 +584,10 @@ def hist_fret_kde(d, i=0, bins=None, binw=0.02, bandwidth=0.03, show_fit=False,
     hist_fret(d, i, bins=bins, binw=binw, show_fit=show_fit,
               no_text=no_text, weights=weights, gamma=gamma,
               show_model=False, normed=True, **kwargs)
-    kde_fret(d, i, bandwidth=bandwidth, show_fit=False,
+    E_range = None
+    if np.size(bins) > 2:
+        E_range = bins.min(), bins.max()
+    kde_fret(d, i, bandwidth=bandwidth, show_fit=False, E_range=E_range,
              weights=weights, gamma=gamma,
              facecolor='#8c8c8c', edgecolor='k', lw=2, alpha=0.5, zorder=2)
 

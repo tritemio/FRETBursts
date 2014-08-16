@@ -19,6 +19,8 @@ from scipy.stats import erlang
 from scipy.optimize import leastsq
 
 from ph_sel import Ph_sel
+import select_bursts
+import burstlib as bl
 import burstsearch.burstsearchlib as bslib
 from utils.misc import pprint
 
@@ -110,7 +112,8 @@ def find_max(x, y, xmin=None, xmax=None):
     mask = np.where((x >= xmin)*(x <= xmax))
     return x[mask][y[mask].argmax()]
 
-def compute_E_kde(dx, ich=0, bandwidth=0.03, E_ax=None, weights='size'):
+def compute_E_kde(dx, ich=0, bandwidth=0.03, E_ax=None, weights='size',
+                  E_range=None):
     """Compute the KDE for E values in `dx`, channel `ich`.
 
     Parameters
@@ -121,6 +124,8 @@ def compute_E_kde(dx, ich=0, bandwidth=0.03, E_ax=None, weights='size'):
             evaluate the Kernel Density
         weights (string or None): kind of burst weights.
             See :func:`fretbursts.fret_fit.get_weights`.
+        E_range (None or tuple): if not None, the KDE is computed on the
+            bursts between min/max E values in `E_range`.
 
     Returns
         Arrays of E (x-axis) and KDE PDF (y-axis)
@@ -128,6 +133,9 @@ def compute_E_kde(dx, ich=0, bandwidth=0.03, E_ax=None, weights='size'):
 
     if E_ax is None:
         E_ax = np.arange(-0.2, 1.2, 0.0002)
+
+    if E_range is not None:
+        dx = bl.Sel(dx, select_bursts.E, E1=E_range[0], E2=E_range[1])
 
     w = fret_fit.get_weights(dx.nd[ich], dx.na[ich], weights=weights)
     kde = gaussian_kde_w(dx.E[ich], bw_method=bandwidth, weights=w)
