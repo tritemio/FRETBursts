@@ -26,7 +26,7 @@ _format_meta = dict(
 _fields_meta = dict(
     # Global data
     timestamps_unit = 'Time in seconds of 1-unit increment in timestamps.',
-    number_confocal_spots = 'Number of confocal excitation spots',
+    num_spots = 'Number of excitation or detection spots',
     alex = 'If True the file contains ALternated EXcitation data.',
     lifetime = 'If True the data contains nanotimes from TCSPC hardware',
     alternation_period = ('The duration of the excitation alternation using '
@@ -56,7 +56,7 @@ _fields_meta = dict(
 hdf5_data_map = {key: key for key in _fields_meta.keys()}
 hdf5_data_map.update(
             timestamps_unit = 'clk_p',
-            number_confocal_spots = 'nch',
+            num_spots = 'nch',
             alex = 'ALEX',
             #lifetime
             alternation_period = 'alex_period',
@@ -127,8 +127,7 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None):
         data_file.root._f_setattr(name, value)
 
     ## Save the mandatory parameters
-    mandatory_fields = ['timestamps_unit', 'number_confocal_spots', 'alex',
-                        'lifetime']
+    mandatory_fields = ['timestamps_unit', 'num_spots', 'alex', 'lifetime']
     for field in mandatory_fields:
         writer.add_array('/', field)
 

@@ -85,7 +85,7 @@ def hdf5_phdata(fname):
     loader = H5Loader(data_file, d)
 
     # Load mandatory parameters
-    mandatory_fields = ['timestamps_unit', 'number_confocal_spots', 'alex',
+    mandatory_fields = ['timestamps_unit', 'num_spots', 'alex',
                         'lifetime']
     for field in mandatory_fields:
         loader.load_data('/', field)
