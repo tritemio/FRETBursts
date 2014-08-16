@@ -67,8 +67,8 @@ class H5Loader():
             else:
                 self.data[dest_name].append(node.read())
 
-def hdf5_phdata(fname):
-    """Load a data file saved in HDF5-Ph-Data format.
+def hdf5(fname):
+    """Load a data file saved in HDF5-Ph-Data format version 0.2 or higher.
 
     Any :class:`fretbursts.burstlib.Data` object can be saved in HDF5 format
     using :func:`fretbursts.hdf5.store` .
@@ -171,11 +171,10 @@ def hdf5_phdata(fname):
 
 
 
-def hdf5(fname):
-    """Load a data file saved in HDF5 smFRET format.
+def hdf5_legacy(fname):
+    """Load a data file saved in the old HDF5 smFRET format version 0.1.
 
-    Any :class:`fretbursts.burstlib.Data` object can be saved in HDF5 format
-    using :func:`fretbursts.hdf5.store` .
+    For new data use :func:`hdf5` instead.
     """
     if not os.path.isfile(fname):
         raise IOError, 'File not found.'
