@@ -18,7 +18,7 @@ import tables
 # Metadata for the HDF5 root node
 _format_meta = dict(
     format_name = 'HDF5-Ph-Data',
-    format_title = 'HDF5-based format for timeseries of photon data.',
+    format_title = 'HDF5-based format for time-series of photon data.',
     format_version = '0.2'
     )
 
@@ -44,8 +44,8 @@ _fields_meta = dict(
     detectors_specs = 'Group for detector-specific data.',
     donor = 'Detectors for the donor spectral range',
     acceptor = 'Detectors for the acceptor spectral range',
-    polariz_paral = 'Detectors for the parallel polarization',
-    polariz_horiz = 'Detectors for the perpendicular polarization',
+    polariz_paral = 'Detectors for polarization parallel to excitation',
+    polariz_perp = 'Detectors for polarization perpendicular to excitation',
 
     nanotimes_specs =  'Group for nanotime-specific data.',
     tcspc_bin = 'TCSPC time bin duration in seconds.',
