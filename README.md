@@ -6,31 +6,35 @@ FRETBursts
 Project description
 -------------------
 
-**[FRETBursts](https://github.com/tritemio/FRETBursts)** is an opensource
-software toolkit for analysis of timestamps series from confocal
+**[FRETBursts](https://github.com/tritemio/FRETBursts)** is a
+software toolkit for burst analysis of confocal
 [single-molecule FRET](http://en.wikipedia.org/wiki/Single-molecule_FRET)
-(smFRET) experiments on freely diffusing molecules.
+(smFRET) measurements.
 
-In the spirit of reproducible research, this software allows the authors and
-others to reproduce previous research and to perform new one. FRETBursts
-is open to public scrutiny and the authors are committed to promptly fix bugs
-whenever they are discovered.
+FRETBursts is an effort to bring
+[reproducible computing](http://dx.doi.org/10.1371/journal.pcbi.1003285)
+to the field of single-molecule confocal microscopy. It provides
+a standard implementation of state-of-the-art algorithms
+for confocal smFRET analysis.
+FRETBursts is opensource and contributions are welcome.
+The authors are committed to promptly fix bugs whenever discovered.
 
-Issues can be reported or discussed on the [issue tracker](https://github.com/tritemio/FRETBursts/issues?state=open).
+Issues can be reported and discussed on the
+[issue tracker](https://github.com/tritemio/FRETBursts/issues?state=open).
 Fixes or enhancements can be sent with a [github pull request](https://help.github.com/articles/creating-a-pull-request).
-Typo fixes or small corrections can be made directly online
-by clicking on the GitHub edit button for a specific file.
+Small corrections can be made directly online
+by clicking on the GitHub edit button of a specific file.
 
 FRETBursts allows to analyze both [single-spot](http://dx.doi.org/10.1126/science.283.5408.1676)
 and [multi-spot smFRET](http://dx.doi.org/10.1117/12.2003704) data.
 Alternating laser excitation ([ALEX](http://dx.doi.org/10.1529/biophysj.104.054114))
-scheme is supported as well.
+scheme is supported.
 
 Main analysis features includes:
 
 - background estimation as a function of time (for example in 30s windows)
 - sliding-window burst search with adaptive (background-dependent) threshold
-- burst corrections: background, leakage (bleed-through), direct excitation,
+- burst corrections: background, spectral leakage (bleed-through), A-direct excitation,
 gamma-factor
 - per-burst quantities (# photons, burst duration, E, S, etc...)
 - post-burst-search selection based on multiple criteria (for ex.:
@@ -62,7 +66,7 @@ implementation make the comparison of experiments performed by different
 groups problematic.
 
 We envision FRETBursts both as a state-of-the-art burst analysis package
-for basic smFRET users, and as a benchmark for advanced users willing
+for smFRET experimenters, and as a benchmark for advanced users willing
 to explore new algorithms or to compare alternative implementations.
 
 Software Environment
