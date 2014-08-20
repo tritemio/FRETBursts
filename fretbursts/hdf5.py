@@ -39,7 +39,7 @@ _fields_meta = dict(
 
     # Photon-data
     photon_data = ('Group containing arrays of photon-data (one element per '
-                   'photon'),
+                   'photon)'),
     timestamps = 'Array of photon timestamps',
     detectors = 'Array of detector numbers for each timestamp',
     nanotimes = 'TCSPC photon arrival time (nanotimes)',
