@@ -72,7 +72,7 @@ List of :class:`Data` methods used to apply burst corrections.
 
     .. automethod:: background_correction_t
 
-    .. automethod:: bleed_through_correction
+    .. automethod:: leakage_correction
 
     .. automethod:: dither
 
