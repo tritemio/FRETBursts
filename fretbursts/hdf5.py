@@ -13,163 +13,177 @@ also provided.
 
 import os
 import tables
-from dataload.pytables_array_list import PyTablesList
 
 
-_hdf5_smfret_meta = dict(
-    clk_p = 'Duration in seconds of 1 timestamp unit (clock period).',
-    nch = 'Number of confocal excitation spots',
-    ALEX = 'If True the file contains ALternated EXcitation data.',
+# Metadata for the HDF5 root node
+_format_meta = dict(
+    format_name = 'HDF5-Ph-Data',
+    format_title = 'HDF5-based format for time-series of photon data.',
+    format_version = '0.2'
+    )
 
-    # ALEX
-    timestamps_t = 'Array of all the timestamps (before alternation selection)',
-    detectors_t = 'Array of detector numbers for each timestamp',
+# Metadata for different fields (arrays) in the HDF5 format
+_fields_meta = dict(
+    # Global data
+    timestamps_unit = 'Time in seconds of 1-unit increment in timestamps.',
+    num_spots = 'Number of excitation or detection spots',
+    alex = 'If True the file contains ALternated EXcitation data.',
+    lifetime = 'If True the data contains nanotimes from TCSPC hardware',
+    alex_period = ('The duration of the excitation alternation using '
+                   'the same units as the timestamps.'),
+    alex_period_donor = ('Start and stop values identifying the donor '
+                         'emission period of us-ALEX measurements'),
+    alex_period_acceptor = ('Start and stop values identifying the acceptor '
+                            'emission period of us-ALEX measurements'),
+    nanotimes_unit = 'TCSPC time bin duration in seconds.',
 
-    # Non-ALEX
-    timestamps = ('Donor + Acceptor timestamp arrays. Contains a series of '
-                  'timestamp arrays, one for each spot.'),
-    acceptor_emission = ('Contains a list of bool arrays, one for each spot. '
-                         'Each bool element indicates whether the '
-                         'corresponding timestamp has been detected in the '
-                         'acceptor channel (True) or in the donor channel '
-                         '(False).'),
+    # Photon-data
+    photon_data = ('Group containing arrays of photon-data (one element per '
+                   'photon)'),
+    timestamps = 'Array of photon timestamps',
+    detectors = 'Array of detector numbers for each timestamp',
+    nanotimes = 'TCSPC photon arrival time (nanotimes)',
+    particles = 'Particle label (integer) for each timestamp.',
 
-    # Lifetime
-    nanotime = 'TCSPC photon arrival time (nanotime)',
-    nanotime_params = 'TCSPC hardware and lifetime data parameters',
+    detectors_specs = 'Group for detector-specific data.',
+    donor = 'Detectors for the donor spectral range',
+    acceptor = 'Detectors for the acceptor spectral range',
+    polariz_paral = 'Detectors for polarization parallel to excitation',
+    polariz_perp = 'Detectors for polarization perpendicular to excitation',
 
-    # Simulation
-    particles = ('Particle label (number) for each timestamp.'),
-
-    # Optional parameters
-    BT = ('Bleed-through or leakage coefficient (donor emission in the '
-          'acceptor ch)'),
-    gamma = 'Gamma factor',
+    nanotimes_specs =  'Group for nanotime-specific data.',
+    tcspc_bin = 'TCSPC time bin duration in seconds.',
+    tcspc_nbins = 'Number of TCSPC bins.',
+    tcspc_range = 'TCSPC full-scale range in seconds.',
 )
 
-_hdf5_map = {key: key for key in _hdf5_smfret_meta.keys()}
-_hdf5_map['timestamps_t'] = 'ph_times_t'
-_hdf5_map['detectors_t'] = 'det_t'
-_hdf5_map['particles'] = 'par'
+hdf5_data_map = {key: key for key in _fields_meta.keys()}
+hdf5_data_map.update(
+            timestamps_unit = 'clk_p',
+            num_spots = 'nch',
+            alex = 'ALEX',
+            #lifetime
+            #alex_period
+            #nanotimes_unit
+            timestamps = 'ph_times_t',
+            detectors = 'det_t',
+            #nanotimes = 'nanotime',
+            #particles = 'par',
+            alex_period_donor = 'D_ON',
+            alex_period_acceptor = 'A_ON',
+            )
+
+class H5Writer():
+
+    def __init__(self, h5file, data, comp_filter):
+        self.h5file = h5file
+        self.data = data
+        self.comp_filter = comp_filter
+
+    def _add_data(self, where, name, func, obj=None, **kwargs):
+        if obj is None:
+            assert hdf5_data_map[name] in self.data
+            obj = self.data[hdf5_data_map[name]]
+
+        func(where, name, obj=obj,
+             title=_fields_meta[name],
+             **kwargs)
+
+    def add_carray(self, where, name, obj=None):
+        self._add_data(where, name, self.h5file.create_carray, obj=obj,
+                       filters=self.comp_filter)
+
+    def add_array(self, where, name, obj=None):
+        self._add_data(where, name, self.h5file.create_array, obj=obj)
+
+    def add_group(self, where, name, metakey=None):
+        if metakey is None:
+            metakey = name
+        return self.h5file.create_group(where, name,
+                                        title=_fields_meta[metakey])
 
 
-def store(d, compression=dict(complevel=6, complib='zlib')):
+
+def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None):
     """
-    Saves the `Data` object `d` in an HDF5 file using pytables.
+    Saves the `Data` object `d` in HDF5 format.
 
-    The file name is obtained from d.fname, by replacing the extension
-    with '.hdf5'.
+    The file name is `h5_fname` or generated from d.fname, by replacing
+    the original extension with '.hdf5'.
 
     **HDF5-smFRET file structure**
 
-    Attributes on the root node:
-        - smFRET_format_title: a string description for the file format
-        - smFRET_format_version: file-format version string ('0.1')
-
-    Mandatory parameters:
-        - /nch: number of confocal excitation spots
-        - /clk_p: (float) duration in seconds of 1 timestamp unit (clock period)
-        - /ALEX: (bool) If True the file contains ALternated EXcitation data
-
-    Optional parameters:
-        - /BT: Bleed-through (or leakage) coefficient
-        - /gamma: gamma factor
-        - /nanotime: TCSPC photon arrival time (nanotime)
-        - /nanotime_params (group): TCSPC hardware and lifetime data parameters
-        - /particles: particle label (number) for each timestamp.
-
-    Saved timestamps if ALEX:
-        - /timestamps_t: Array of all the timestamps (before alternation
-          selection. Maps to `Data` attribute `ph_times_t`.
-        - /detectors_t: Array of detector numbers for each timestamp.
-          Maps to `Data` attribute `det_t`.
-
-    Saved timestamps if NOT ALEX:
-        - /timestamps: (group) Donor + Acceptor timestamp arrays. Contains a
-          series of timestamp arrays, one for each spot.
-          Arrays names: /timestamps/ts_0 , ts_1, etc. Maps to `Data` attribute
-          `ph_times_m`.
-        - /acceptor_emission: (group): Contains a list of bool arrays, one for
-          each spot. Each bool element indicates whether the corresponding
-          timestamp has been detected in the acceptor channel (True) or in
-          the donor channel (False).
-          Arrays names /acceptor_emssion/a_em_0, a_em1, etc. Maps to `Data`
-          attribute `A_em`.
-
-    Additional optional parameters (TODO):
-        - /orig_data_file (string)
+    For complete specs of this specific HDF5 format see:
+    https://github.com/tritemio/FRETBursts/wiki/HDF5-smFRET-format---Draft-0.2-(WIP)
 
     """
     comp_filter = tables.Filters(**compression)
+    if 'lifetime' not in d:
+        d.add(lifetime='nanotime' in d)
 
-    basename, extension = os.path.splitext(d.fname)
-    h5_fname = basename + '.hdf5'
+    if h5_fname is None:
+        basename, extension = os.path.splitext(d.fname)
+        h5_fname = basename + '.hdf5'
     data_file = tables.open_file(h5_fname, mode = "w",
                                  title = "Confocal smFRET data")
+    writer = H5Writer(data_file, d, comp_filter)
 
-    # Save the metadata for the file and the root node
-    smFRET_format_title = ('HDF5-based file format for confocal single-'
-                           'molecule FRET data')
-    smFRET_format_version = '0.1'
-    data_file.root._v_attrs.smFRET_format_title = smFRET_format_title
-    data_file.root._v_attrs.smFRET_format_version = smFRET_format_version
+    ## Save the root-node metadata
+    for name, value in _format_meta.items():
+        data_file.root._f_setattr(name, value)
 
-    # Save the mandatory parameters
-    mandatory_fields = ['clk_p', 'nch', 'ALEX']
+    ## Save the mandatory parameters
+    mandatory_fields = ['timestamps_unit', 'num_spots', 'alex', 'lifetime']
     for field in mandatory_fields:
-        data_file.create_array('/', field, obj=d[field],
-                               title=_hdf5_smfret_meta[field])
+        writer.add_array('/', field)
 
-    # Save the timestamps
     if d.ALEX:
-        alex_fields = ['timestamps_t', 'detectors_t']
+        writer.add_array('/', 'alex_period')
+        writer.add_array('/', 'alex_period_donor')
+        writer.add_array('/', 'alex_period_acceptor')
 
-        for field in alex_fields:
-            assert _hdf5_map[field] in d
-            data_file.create_carray('/', field, obj=d[_hdf5_map[field]],
-                                    title=_hdf5_smfret_meta[field],
-                                    filters=comp_filter)
+    ## Save the photon-data
+    if d.nch == 1:
+        # Single-spot: using "basic layout"
+        ph_group = writer.add_group('/', 'photon_data')
+
+        for field in ['timestamps', 'detectors']:
+            writer.add_carray(ph_group, field)
+
+        # If present save detector_specs
+        if 'det_donor_accept' in d:
+            donor, accept = d.det_donor_accept
+            det_group = writer.add_group(ph_group, 'detectors_specs')
+            writer.add_array(det_group, 'donor', obj=donor)
+            writer.add_array(det_group, 'acceptor', obj=accept)
+
+        # If present save nanotime data
+        if d.lifetime:
+            writer.add_carray(ph_group, 'nanotime')
+            nt_group = writer.add_group(ph_group, 'nanotime_specs')
+            for spec in ['tcspc_bin', 'tcspc_nbins', 'tcspc_range']:
+                writer.add(nt_group, spec, obj=d.nanotime_params[spec])
+
+        if 'par' in d:
+            writer.add_carray(ph_group, 'particles')
+
     else:
-        # Non-ALEX case: save directly the list of timestamps per-ch
-        d.ts_list = PyTablesList(data_file, group_name='timestamps',
-                        group_descr=_hdf5_smfret_meta['timestamps'],
-                        prefix='ts_', compression=compression)
-        for ph in d.ph_times_m:
-            d.ts_list.append(ph)
+        # Multi-spot: using "multi-spot layout"
+        for ich, ph in enumerate(d.iter_ph_times()):
+            ch_group = writer.add_group('/', 'photon_data_%d' % ich,
+                                        metakey='photon_data')
 
-        d.a_em_list = PyTablesList(data_file, group_name='acceptor_emission',
-                        group_descr=_hdf5_smfret_meta['acceptor_emission'],
-                        prefix='a_em_', compression=compression)
-        for aem in d.A_em:
-            d.a_em_list.append(aem)
+            writer.add_carray(ch_group, 'timestamps', obj=ph)
 
-    # Optional parameters
-    optional_fields = ['nanotime', 'BT', 'gamma']
-    for field in optional_fields:
-        if _hdf5_map[field] in d:
-            data_file.create_array('/', field, obj=d[_hdf5_map[field]],
-                                   title=_hdf5_smfret_meta[field])
-
-    if 'par' in d:
-        # Array of particles, used for simulated data
-        d.par_list = PyTablesList(data_file, group_name='particles',
-                                  group_descr=_hdf5_smfret_meta['particles'],
-                                  prefix='par_', compression=compression)
-        for par in d.par:
-            d.par_list.append(par)
-
-    if 'nanotime_params' in d:
-        # Parameters for the TCSPC configuration
-        data_file.create_group('/', 'nanotime_params',
-                               title=_hdf5_smfret_meta['nanotime_params'])
-
-        for key, val in d.nanotime_params.iteritems():
-            if type(val) is tuple:
-                obj, title = val
-            else:
-                obj, title = val, ''
-            data_file.create_array('/nanotime_params', key, obj=obj,
-                                   title=title)
+            # If A_em[ich] is a slice we have a single color so we don't
+            # save the detector (there is only one detector per channel).
+            a_em = d.A_em[ich]
+            if type(a_em) is not slice:
+                writer.add_carray(ch_group, 'detectors', obj=a_em)
+                # Detector specs
+                det_group = writer.add_group(ch_group, 'detectors_specs')
+                writer.add_array(det_group, 'donor', obj=False)
+                writer.add_array(det_group, 'acceptor', obj=True)
 
     data_file.flush()
     d.add(data_file=data_file)
