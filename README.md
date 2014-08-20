@@ -108,9 +108,10 @@ distribution, downloading FRETBursts sources, and setting up a folder for the
 FRETBursts notebooks.
 
 FRETBursts is loaded running a small script (`load_fretbursts.py`) placed
-in the notebooks folder. The first time you execute FRETBursts, you need to
-edit `load_fretbursts.py` to specify where the FRETBursts source directory is
-on your system.
+in the notebooks folder. The first time you download FRETBursts, you need to
+run the [Installation.ipynb](http://nbviewer.ipython.org/github/tritemio/FRETBursts/blob/master/notebooks/Installation.ipynb)
+notebook that will write a configuration file
+containing FRETBursts's source folder.
 
 A detailed description of the installation can be found in:
 

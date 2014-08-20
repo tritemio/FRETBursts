@@ -1,7 +1,7 @@
 Installation
 ============
 
-FRETBursts is currently distributed as source code.
+FRETBursts is distributed as source code.
 The installation consists in installing a scientific python
 distribution, downloading FRETBursts sources, and setting a folder
 for the FRETBursts notebooks.
@@ -45,9 +45,9 @@ Installing Git (optional)
 FRETBursts uses `Git <http://git-scm.com/>`__ as revision control
 system. Even if not necessary, we strongly recommend installing it because
 FRETBursts notebooks can keep track of the software revision.
-Furthermore, Git will make easier to download any future update.
+Furthermore, Git will make easier downloading future updates.
 
-Unless you are familiar with Git we suggest to install a graphical
+Unless you are familiar with Git it is preferable to install a graphical
 interface like `SourceTree <http://www.sourcetreeapp.com/>`__.
 
 On **Windows**, install SourceTree and, when asked, select the
@@ -80,31 +80,46 @@ current folder):
     git clone https://github.com/tritemio/FRETBursts.git
 
 
-Configure the IPython Notebook
-------------------------------
+IPython Notebook startup folder
+-------------------------------
 
-To use the IPython Notebook you have to launch a local notebook server from
-the folder containing the notebooks files.
+To use the IPython Notebook you have to launch a local notebook server in
+the folder containing the notebooks files (or in a parent folder).
 
-On windows, you can create a new IPython launcher by copying the IPython
-Notebook icon from the windows menu to some convenient location (i.e. the
-Desktop or your notebook folder). Then you need to modify the *Start in* field
-as follows: right click on the *IPython Notebook icon* -> *Properties*, paste
-your desired notebook folder in the *Start in* field.
+On windows (Anaconda), you can copy and modify the IPython launcher you find in
+the start menu. To change the
+startup folder right click on the
+*IPython Notebook icon* -> *Properties*, and set the new folder
+in the *Start in* field.
 
-On other platforms, you can start IPython Notebook from the terminal with:
+On all the platforms, you can start IPython Notebook from the terminal
+(cmd.exe on Windows) with:
 
 ::
 
-    cd my_notebook_folder
+    cd notebook_folder
     ipython notebook
-
 
 .. Note ::
 
     The preferred browser is Chrome or Firefox. The use of MS Explorer is
     discouraged as its implementation of web standards is incomplete and not
     compliant.
+
+FRETBursts installation
+-----------------------
+
+The first time you download FRETBursts you need to run the
+`Installation <http://nbviewer.ipython.org/github/tritemio/FRETBursts/blob/master/notebooks/Installation.ipynb>`_
+ notebook.
+This notebook
+writes a configuration file named `.fretbursts` in your home folder
+containing the path to FRETBursts.
+
+Once the configuration is done, you can load FRETBursts in any notebook
+by running `run load_fretbursts`. Note that you need a copy of the
+`load_fretbursts.py <https://github.com/tritemio/FRETBursts/blob/master/notebooks/load_fretbursts.py>`_
+script in the notebook folder.
 
 
 Downloading the data-samples
