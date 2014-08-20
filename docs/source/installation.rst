@@ -111,10 +111,9 @@ FRETBursts installation
 
 The first time you download FRETBursts you need to run the
 `Installation <http://nbviewer.ipython.org/github/tritemio/FRETBursts/blob/master/notebooks/Installation.ipynb>`_
- notebook.
-This notebook
-writes a configuration file named `.fretbursts` in your home folder
-containing the path to FRETBursts.
+notebook that
+writes a configuration file named `.fretbursts` in your home folder.
+This file contains the path to FRETBursts folder.
 
 Once the configuration is done, you can load FRETBursts in any notebook
 by running `run load_fretbursts`. Note that you need a copy of the
