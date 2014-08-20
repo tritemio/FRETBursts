@@ -64,16 +64,14 @@ graphical interface.
 Downloading FRETBursts
 ----------------------
 
-Once Git is installed you can download the latest FRETBursts version by
-copying the **clone URL** and using either SourceTree or the command
-line.
+To download FRETBursts either click on **Download ZIP** on GitHub
+or clone the git repository using the **Clone URL**.
 
 From SourceTree, click on *Clone/New* -> *Clone Repository* and paste
 the **clone URL** in *Source Path/URL*. You can choose where to put the
 sources.
 
-From the command line, type (FRETBursts will be downloaded in the
-current folder):
+From the command line, type:
 
 ::
 
