@@ -33,18 +33,26 @@ scheme is supported.
 Main analysis features includes:
 
 - background estimation as a function of time (for example in 30s windows)
-- sliding-window burst search with adaptive (background-dependent) threshold
-- burst corrections: background, spectral leakage (bleed-through), A-direct excitation,
+- sliding-window burst search with adaptive (background-dependent) rate-threshold. No timetrace binning required.
+- burst corrections: background, D-spectral leakage (bleed-through), A-direct excitation,
 gamma-factor
-- per-burst quantities (# photons, burst duration, E, S, etc...)
-- post-burst-search selection based on multiple criteria (for ex.:
-burst size, burst width, E, S, ...). Defining a new burst selection
+- per-burst statistics (# photons, burst duration, E, S, peak rate in burst, etc...)
+- post-burst-search [selection functions](http://fretbursts.readthedocs.org/burst_selection.html) 
+  (for ex.: [burst size](http://fretbursts.readthedocs.org/burst_selection.html#fretbursts.select_bursts.size), 
+  [burst width](http://fretbursts.readthedocs.org/burst_selection.html#fretbursts.select_bursts.width), 
+  [E, S](http://fretbursts.readthedocs.org/burst_selection.html#fretbursts.select_bursts.ES), ...). 
+  Defining a new burst selection
 criterium requires only a couple of lines of code.
-- fit routines for FRET efficiency (1 and 2-gaussians histogram fit,
-MLE Poisson models, weighted least squares models,
-weighted expectation maximization, etc...)
+- [fit routines](http://fretbursts.readthedocs.org/fit.html) for FRET efficiency 
+  ([1 and 2-gaussians histogram fit](http://fretbursts.readthedocs.org/data_class.html#fretbursts.burstlib.Data.fit_E_generic),
+  [MLE Poisson models](http://fretbursts.readthedocs.org/data_class.html#fretbursts.burstlib.Data.fit_E_ML_poiss), 
+  [weighted least squares models](http://fretbursts.readthedocs.org/data_class.html#fretbursts.burstlib.Data.fit_E_m),
+  [weighted expectation maximization](http://fretbursts.readthedocs.org/data_class.html#fretbursts.burstlib.Data.fit_E_two_gauss_EM), 
+  etc...)
 
-Moreover FRETBursts includes a large set of modular plot functions for
+Moreover FRETBursts includes 
+[a large set](https://github.com/tritemio/FRETBursts/blob/master/fretbursts/burst_plot.py) of modular 
+[plot functions](http://fretbursts.readthedocs.org/files_description.html#module-fretbursts.burst_plot) for
 background, time-traces, rate-traces, E, S, ALEX histograms, weighted kernel
 density estimation ([KDE](http://en.wikipedia.org/wiki/Kernel_density_estimation))
 and more. Thanks to the excellent [Matplotlib](http://matplotlib.org/) library,
