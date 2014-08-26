@@ -72,6 +72,9 @@ def hdf5(fname):
 
     Any :class:`fretbursts.burstlib.Data` object can be saved in HDF5 format
     using :func:`fretbursts.hdf5.store` .
+
+    For description and specs of the HDF5-Ph-Data format see:
+    https://github.com/tritemio/FRETBursts/wiki/HDF5-Ph-Data-format-0.2-Draft
     """
     if not os.path.isfile(fname):
         raise IOError, 'File not found.'

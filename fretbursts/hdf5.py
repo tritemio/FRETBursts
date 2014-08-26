@@ -106,16 +106,21 @@ class H5Writer():
 
 def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None):
     """
-    Saves the `Data` object `d` in HDF5 format.
+    Saves the `Data` object `d` in the HDF5-Ph-Data format.
 
-    The file name is `h5_fname` or generated from d.fname, by replacing
-    the original extension with '.hdf5'.
+    As a side effect the `d` object is modified by adding the attribute
+    `data_file` that contains a reference to the pytables file.
 
-    **HDF5-smFRET file structure**
+    Arguments:
+        d (Data object): the Data object containing the smFRET measurement.
+        compression (dict): a dictionary containing the compression type
+            and level. Passed to pytables `tables.Filters()`.
+        h5_fname (string or None): if not None, contains the file name
+            to be used for the HDF5 file. If None, the file name is generated
+            from `d.fname`, by replacing the original extension with '.hdf5'.
 
-    For complete specs of this specific HDF5 format see:
-    https://github.com/tritemio/FRETBursts/wiki/HDF5-smFRET-format---Draft-0.2-(WIP)
-
+    For description and specs of the HDF5-Ph-Data format see:
+    https://github.com/tritemio/FRETBursts/wiki/HDF5-Ph-Data-format-0.2-Draft
     """
     comp_filter = tables.Filters(**compression)
     if 'lifetime' not in d:

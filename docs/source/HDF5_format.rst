@@ -3,33 +3,24 @@
 Why an HDF5-based smFRET file format
 ====================================
 
-FRETBursts allows saving and loading confocal smFRET data from and to
-the `HDF5 file format <http://www.hdfgroup.org/HDF5/>`_ (see also
-`HDF on Wikipedia <http://en.wikipedia.org/wiki/Hierarchical_Data_Format>`_).
-
-For documentation on HDF5-smFRET file format in *FRETBursts* see:
-
-.. toctree::
-    :maxdepth: 1
-
-    HDF5_smFRET
-
-For an introduction to HDF5 and why is importand for smFRET data read on.
-
+In this page we briefly introduce what the HDF5 format is and why it is
+important for single-molecule FRET data.
 
 What is HDF5?
 -------------
 
-HDF5 is standard and general-purposes container-format for binary data.
+`HDF5 <http://www.hdfgroup.org/HDF5/>`_ is standard and general-purposes
+container-format for binary data (see also
+`HDF on Wikipedia <http://en.wikipedia.org/wiki/Hierarchical_Data_Format>`_).
 The format can store any number of
 multi-dimensional arrays with no size limit in a hierarchical fashion
 (i.e. arrays can be put in folders and subfolders called groups).
 Any dataset or folder can have metadata attached to it (for example a
-description, a date, or an ancillary array of parameters, etc...).
+description, a date, or an array of parameters).
 
 The format is self-describing, so any HDF5 compatible application can read
-any array without needing to know the type (i.e. int32 or float) or the
-byte layout (i.e. big-endian little-endian).
+the file content without knowing in advance the data-type (i.e. int32 or float)
+or the byte layout (i.e. big-endian little-endian).
 
 HDF5 supports transparent data compression using the zlib algorithm
 or any third-party algorithm via plugins.
@@ -78,9 +69,9 @@ highly preferable to the Babel of formats used today.
 Numerous advantages can be easily envisioned:
 
 * **Efficiency**: HDF5 is highly efficient both for space and speed. Libraries
-  to interoperate the format are broadly used and heavily tested. We scientist
-  don't need to reinvent the wheel, we can (and should) use state-of-the art
-  (software) technologies already available.
+  to interoperate with the format are broadly used and heavily tested.
+  Scientists don't need to reinvent the wheel and can leverage the already
+  available state-of-the art software technologies.
 
 * **Long-term persistence:** in 5-10-20 years the data can be always read
   without relying on obscure, poorly document, (or in some case vendor
@@ -91,3 +82,21 @@ Numerous advantages can be easily envisioned:
   the output of different analysis software, encourages reproducibility and
   foster collaboration between different groups.
 
+HDF5 in FRETBursts
+------------------
+
+FRETBursts allows saving and loading smFRET data from and to
+an HDF5-based file format called **HDF5-Ph-Data**.
+
+The **HDF5-Ph-Data** is basically a pre-defined layout to be used with
+smFRET and other data involving time-series of photon-data.
+
+A description of the HDF5-Ph-Data format and its specifications can be found in
+`HDF5-Ph-Data format 0.2 Draft <https://github.com/tritemio/FRETBursts/wiki/HDF5-Ph-Data-format-0.2-Draft>`_.
+
+For documentation on using the HDF5-Ph-Data format in *FRETBursts* see:
+
+.. toctree::
+    :maxdepth: 1
+
+    HDF5_smFRET

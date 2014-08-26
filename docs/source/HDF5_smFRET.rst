@@ -3,33 +3,30 @@ HDF5-based smFRET file format
 
 .. module:: fretbursts
 
+We developed an HDF5-based format called **HDF5-Ph-Data** for smFRET
+and other measurements involving series of photon timestamps.
+The specifications of the HDF5-Ph-Data format can be found in
+`HDF5-Ph-Data format 0.2 Draft <https://github.com/tritemio/FRETBursts/wiki/HDF5-Ph-Data-format-0.2-Draft>`_.
+
+For a general overview on the importance of a standard file format
+for smFRET see also :ref:`hdf5-advantages`.
+
+
 Read and write HDF5 smFRET files
 --------------------------------
 
-.. warning::
-
-    At the moment the **HDF5-smFRET** format is tentative and open to
-    discussion. However we already reserved a version attribute to be able to
-    upgrade the format in a backward compatible manner.
-
-    If you have suggestions or want to contribute developing the format
-    please contact us.
-
-See also :ref:`hdf5-advantages`.
-
-FRETBursts can read and save the HDF5-smFRET format.
-
-To load a smFRET data-file from the HDF5-smFRET format use the loader
+To load a smFRET data contained in HDF5-Ph-Data use the
 function :func:`loader.hdf5`.
 
-A dataset loaded in a :class:`burstlib.Data` object can be saved in HDF5
-with :func:`hdf5.store`. The function :func:`hdf5.store` also contains
-documentation for the current version of the HDF5-smFRET data format.
-
-The documentation for :mod:`fretbursts.hdf5` module follows.
+Any measurements data loaded in a :class:`burstlib.Data` object can be saved
+in HDF5-Ph-Data format by using the :func:`hdf5.store` function.
 
 FRETBursts `hdf5` module
 ------------------------
+
+The module :mod:`fretbursts.hdf5` provides the :func:`hdf5.store` function
+and other utility functions to quickly print structure (hierarchy)
+and attributes (metadata) of HDF5 files.
 
 .. automodule:: fretbursts.hdf5
     :members:
