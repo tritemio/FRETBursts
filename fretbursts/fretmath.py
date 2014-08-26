@@ -29,7 +29,8 @@ def correct_E_gamma_leak_dir(Eraw, gamma=1, leakage=0, dir_ex_t=0):
     Returns
         Corrected FRET effciency
     """
-    Eraw = np.asarray(Eraw)
+    if type(Eraw) is list:
+        Eraw = np.asarray(Eraw)
     return (Eraw*(leakage + dir_ex_t*gamma + 1) - leakage - dir_ex_t*gamma) \
            / ( Eraw*(leakage -  gamma + 1) - leakage + gamma )
 
@@ -50,7 +51,8 @@ def uncorrect_E_gamma_leak_dir(E, gamma=1, leakage=0, dir_ex_t=0):
     Returns
         Proximity ratio (reverses gamma, leakage and direct excitation)
     """
-    E = np.asarray(E)
+    if type(E) is list:
+        E = np.asarray(E)
     return (E*(gamma - leakage) + leakage + dir_ex_t*gamma) \
            / ( E*(gamma - leakage - 1) + leakage + dir_ex_t*gamma + 1 )
 
@@ -69,7 +71,8 @@ def gamma_correct_E(Eraw, gamma):
 
     For the inverse see :func:`gamma_uncorrect_E`.
     """
-    Eraw = np.asarray(Eraw)
+    if type(Eraw) is list:
+        Eraw = np.asarray(Eraw)
     return Eraw / (gamma - gamma*Eraw + Eraw)
 
 def gamma_uncorrect_E(E, gamma):
@@ -77,7 +80,8 @@ def gamma_uncorrect_E(E, gamma):
 
     For the inverse see :func:`gamma_correct_E`.
     """
-    E = np.asarray(E)
+    if type(E) is list:
+        E = np.asarray(E)
     return gamma*E/(1 - E + gamma*E)
 
 
@@ -86,7 +90,8 @@ def leakage_correct_E(Eraw, leakage):
 
     For the inverse see :func:`leakage_uncorrect_E`.
     """
-    Eraw = np.asarray(Eraw)
+    if type(Eraw) is list:
+        Eraw = np.asarray(Eraw)
     return (Eraw*(leakage + 1) - leakage) / (Eraw*leakage - leakage + 1)
 
 def leakage_uncorrect_E(E, leakage):
@@ -94,7 +99,8 @@ def leakage_uncorrect_E(E, leakage):
 
     For the inverse see :func:`leakage_correct_E`.
     """
-    E = np.asarray(E)
+    if type(E) is list:
+        E = np.asarray(E)
     return (E + leakage - E*leakage) / (1 + leakage - E*leakage)
 
 
@@ -108,7 +114,8 @@ def dir_ex_correct_E(Eraw, dir_ex_t):
 
     For the inverse see :func:`dir_ex_uncorrect_E`.
     """
-    Eraw = np.asarray(Eraw)
+    if type(Eraw) is list:
+        Eraw = np.asarray(Eraw)
     return Eraw*(dir_ex_t + 1) - dir_ex_t
 
 def dir_ex_uncorrect_E(E, dir_ex_t):
@@ -116,7 +123,8 @@ def dir_ex_uncorrect_E(E, dir_ex_t):
 
     For the inverse see :func:`dir_ex_correct_E`.
     """
-    E = np.asarray(E)
+    if type(E) is list:
+        E = np.asarray(E)
     return (E + dir_ex_t) / (dir_ex_t + 1)
 
 
