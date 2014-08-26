@@ -113,7 +113,7 @@ def find_max(x, y, xmin=None, xmax=None):
     return x[mask][y[mask].argmax()]
 
 def compute_E_kde(dx, ich=0, bandwidth=0.03, E_ax=None, weights='size',
-                  E_range=None):
+                  gamma=1., E_range=None):
     """Compute the KDE for E values in `dx`, channel `ich`.
 
     Parameters
@@ -137,7 +137,8 @@ def compute_E_kde(dx, ich=0, bandwidth=0.03, E_ax=None, weights='size',
     if E_range is not None:
         dx = bl.Sel(dx, select_bursts.E, E1=E_range[0], E2=E_range[1])
 
-    w = fret_fit.get_weights(dx.nd[ich], dx.na[ich], weights=weights)
+    w = fret_fit.get_weights(dx.nd[ich], dx.na[ich], weights=weights,
+                             gamma=gamma)
     kde = gaussian_kde_w(dx.E[ich], bw_method=bandwidth, weights=w)
     E_pdf = kde.evaluate(E_ax)
 

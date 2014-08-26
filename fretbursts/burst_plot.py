@@ -49,10 +49,8 @@ from ph_sel import Ph_sel
 import burstlib as bl
 import burstlib_ext as bext
 import background as bg
-from fit import gaussian_fitting
 from utils.misc import binning, clk_to_s, pprint
 from scroll_gui import ScrollingToolQT
-from fit.weighted_kde import gaussian_kde_w
 import gui_selection as gs
 
 #ip = get_ipython()
@@ -553,7 +551,8 @@ def kde_fret(d, i=0, bandwidth=0.03, show_fit=False, show_model=False,
     if E_ax is None:
         E_ax = np.arange(-0.25, 1.25, 0.001)
     E_ax, E_pdf = bext.compute_E_kde(d, ich=i, bandwidth=bandwidth, E_ax=E_ax,
-                                     E_range=E_range, weights=weights)
+                                     E_range=E_range, weights=weights,
+                                     gamma=gamma)
     if verbose: print 'KDE Integral:', np.trapz(E_pdf, E_ax)
 
     style_kwargs = dict(facecolor='#80b3ff', edgecolor='#5f8dd3',
