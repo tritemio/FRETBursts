@@ -198,14 +198,22 @@ def factory_two_asym_gaussians(add_bridge=False):
 #
 class MultiFitterBase(object):
     """Base class for fitting multiple dataset contained in a list.
+
+    Datasets weights: You can set weigths for all the datasets in the list
+    assigning the `.weights` attribute with a list in which each element
+    is an array with same sive of the corresponding array in `data_list`.
+
+    Alternatively you can use a function that return the weigths for each
+    dataset. In this case, the function is specified by calling
+    `.set_weights_func`.
     """
     def __init__(self, data_list):
         self.data_list = data_list
         self.ndata = len(data_list)
-        self.set_weights()
+        self.weights = [None]*self.ndata
 
-    def set_weights(self, weight_func=None, weight_kwargs=None):
-        """Set weights for each data-set.
+    def set_weights_func(self, weight_func, weight_kwargs=None):
+        """Setup of the function returning the weights for each data-set.
 
         To compute the weights fo each dataset the `weight_func` is called
         multiple times. Keys in `weight_kwargs` are arguments of
@@ -218,14 +226,11 @@ class MultiFitterBase(object):
             weight_kwargs (dict): keywork arguments to be passed to
                 `weight_func`.
         """
-        if weight_func is None:
-            self.weights = [None]*self.ndata
-        else:
-            self.weights = []
-            for i in range(self.ndata):
-                weight_kw_i = {k: v[i] if np.size(v) > 1 else v
-                                    for k, v in weight_kwargs.items()}
-                self.weights.append( weight_func(**weight_kw_i) )
+        self.weights = []
+        for i in range(self.ndata):
+            weight_kw_i = {k: v[i] if np.size(v) > 1 else v
+                                for k, v in weight_kwargs.items()}
+            self.weights.append( weight_func(**weight_kw_i) )
 
 class MultiFitterKDE(MultiFitterBase):
     """
