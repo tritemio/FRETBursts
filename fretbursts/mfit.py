@@ -353,7 +353,7 @@ class MultiFitter(FitterBase):
 
         A list of `lmfit.Minimizer` is stored in `.fit_obj`.
         The fitted values for all the parameters and all the channels are
-        save in a Pandas DataFrame `.fit_params`.
+        save in a Pandas DataFrame `.params`.
 
         Arguments:
             model_func (function): when called it returns an lmfit Model with
@@ -370,13 +370,13 @@ class MultiFitter(FitterBase):
         model_class = partial(self.model_class, **self.model_class_kwargs)
 
         data_list = self.hist_pdf if pdf else self.hist_counts
-        self.fit_params = pd.DataFrame(index=range(self.ndata),
-                                       columns=model_class().param_names)
+        self.params = pd.DataFrame(index=range(self.ndata),
+                                   columns=model_class().param_names)
         self.fit_obj = []
         for i, data in enumerate(data_list):
             self.fit_obj.append(model_class().fit(data, x=self.hist_axis,
                                 **fit_kwargs) )
-            self.fit_params.iloc[i] = pd.Series(self.fit_obj[-1].values)
+            self.params.iloc[i] = pd.Series(self.fit_obj[-1].values)
 
     def calc_kde(self, bandwidth=0.03):
         """Compute the list of kde functions and save it in `.kde`.
@@ -432,8 +432,8 @@ def plot_mfit(fitter, ich=0, residuals=False, ax=None, plot_kde=False,
                 ax.plot(x, component.eval(x=x, **fit_obj.values), '--k',
                         alpha=0.8)
         for param in ['center', 'p1_center', 'p2_center']:
-            if param in fitter.fit_params:
-                ax.axvline(fitter.fit_params[param][ich], ls='--', color=red)
+            if param in fitter.params:
+                ax.axvline(fitter.params[param][ich], ls='--', color=red)
 
         if residuals:
             ax.xaxis.set_ticklabels([])
