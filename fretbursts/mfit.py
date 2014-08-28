@@ -12,7 +12,19 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import fretbursts.fit.gaussian_fitting as gf
-import fretbursts.burstlib_ext as bext
+
+
+## Utility functions
+def find_max(x, y, xmin=None, xmax=None):
+    """Find peak position of a curve (x, y) between `xmin` and `xmax`.
+    """
+    if xmin is None:
+        xmin = x.min()
+    if xmax is None:
+        xmax = x.max()
+
+    mask = np.where((x >= xmin)*(x <= xmax))
+    return x[mask][y[mask].argmax()]
 
 
 ## Base function shapes
@@ -398,7 +410,7 @@ class MultiFitter(FitterBase):
         self.kde_max_pos = np.zeros(self.ndata)
         for ich, kde in enumerate(self.kde):
             self.kde_max_pos[ich] = \
-                    bext.find_max(x_kde, kde(x_kde), xmin=xmin, xmax=xmax)
+                    find_max(x_kde, kde(x_kde), xmin=xmin, xmax=xmax)
 
 
 def plot_mfit(fitter, ich=0, residuals=False, ax=None, plot_kde=False,
