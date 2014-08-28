@@ -27,7 +27,7 @@ import mfit
 
 
 def fit_bursts_kde_peak(dx, burst_data='E', bandwidth=0.03, weights='size',
-                        gamma=1, x_range=(-0.1, 1.1), x_ax=None,
+                        gamma=1, add_naa=False, x_range=(-0.1, 1.1), x_ax=None,
                         return_fitter=False):
     """Fit burst data (typ. E or S) by finding the KDE max on all the channels.
 
@@ -41,6 +41,7 @@ def fit_bursts_kde_peak(dx, burst_data='E', bandwidth=0.03, weights='size',
         weights (string or None): kind of burst-size weights.
             See :func:`fretbursts.fret_fit.get_weights`.
         gamma (float): gamma factor passed to `get_weights()`.
+        add_naa (bool): if True adds `naa` to the burst size.
         return_fitter (bool): if True returns the `MultiFitter` object
             used to fit the data. Default False.
 
@@ -49,16 +50,18 @@ def fit_bursts_kde_peak(dx, burst_data='E', bandwidth=0.03, weights='size',
         also return the `MultiFitter` object used to fit the data
     """
     fitter = calc_bursts_kde(dx, burst_data=burst_data, bandwidth=bandwidth,
-                             weights=weights, gamma=gamma)
+                             weights=weights, gamma=gamma, add_naa=add_naa)
     assert burst_data in dx
 
     if x_ax is None:
         x_ax = np.arange(-0.2, 1.2, 0.0002)
 
     fitter = mfit.MultiFitter(dx[burst_data])
+    weight_kwargs = dict(weights=weights, gamma=gamma, nd=dx.nd, na=dx.na)
+    if add_naa:
+        weight_kwargs.update(naa = dx.naa)
     fitter.set_weights_func(weight_func = fret_fit.get_weights,
-                            weight_kwargs = dict(weights=weights, gamma=gamma,
-                                             nd=dx.nd, na=dx.na))
+                            weight_kwargs = weight_kwargs)
     fitter.calc_kde(bandwidth=bandwidth)
     fitter.find_kde_max(x_ax, xmin=x_range[0], xmax=x_range[1])
     KDE_max_mch = fitter.kde_max_pos
@@ -69,7 +72,7 @@ def fit_bursts_kde_peak(dx, burst_data='E', bandwidth=0.03, weights='size',
         return KDE_max_mch
 
 def calc_bursts_kde(dx, burst_data='E', bandwidth=0.03,
-                    weights='size', gamma=1):
+                    weights='size', gamma=1, add_naa=False):
     """Compute KDE of burst data (typ. E or S) on all the channels.
 
     Parameters
@@ -88,7 +91,7 @@ def calc_bursts_kde(dx, burst_data='E', bandwidth=0.03,
     fitter = mfit.MultiFitter(dx[burst_data])
     fitter.set_weights_func(weight_func = fret_fit.get_weights,
                             weight_kwargs = dict(weights=weights, gamma=gamma,
-                                             nd=dx.nd, na=dx.na))
+                                                 nd=dx.nd, na=dx.na))
     fitter.calc_kde(bandwidth=bandwidth)
     return fitter
 

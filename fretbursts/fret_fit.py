@@ -11,8 +11,7 @@ This module provides a standard interface for different fitting techniques.
 
 import numpy as np
 from scipy.stats import binom, expon
-from scipy.optimize import minimize_scalar, minimize, leastsq
-from utils.misc import pprint
+from scipy.optimize import minimize_scalar, leastsq
 
 import fit.gaussian_fitting as gf
 
@@ -173,14 +172,14 @@ def get_dist_euclid(nd, na, E_fit=None, slope=None):
     distances = np.sqrt((nd-nd_l)**2 + (na-na_l)**2)
     return distances
 
-def get_weights(nd, na, weights, gamma=1.):
+def get_weights(nd, na, weights, naa=0, gamma=1.):
     """Return burst weigths computed according to different criteria.
 
     `nd`, `na`: background corrected donor and acceptor ph. per burst
     `weights`: (string) type of weights (if None returns uniform weights).
                 see source for all the possible weights.
     """
-    nt = nd*gamma + na
+    nt = nd*gamma + na + naa
     if weights is None:           # all weights the same
         weights = np.ones(nd.size)
     elif weights is 'size':       # weight = burst size (with gamma)
