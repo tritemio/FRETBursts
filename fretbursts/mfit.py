@@ -122,7 +122,7 @@ def factory_gaussian():
     model.set_param('center', 0.1)
     model.set_param('sigma', 0.1)
     model.set_param('amplitude', 1)
-    model.name = 'gaussian'
+    #model.name = 'gaussian'
     return model
 
 def factory_asym_gaussian():
@@ -142,7 +142,7 @@ def factory_asym_gaussian():
     model.set_param('sigma1', 0.1)
     model.set_param('sigma2', 0.1)
     model.set_param('amplitude', 1)
-    model.name = 'asym-gaussian'
+    #model.name = 'asym-gaussian'
     return model
 
 def factory_two_gaussians(add_bridge=False, p1_center=0., p2_center=0.5,
