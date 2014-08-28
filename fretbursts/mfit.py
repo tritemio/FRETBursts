@@ -347,7 +347,8 @@ class MultiFitter(FitterBase):
     def model_name(self):
         return self.model_class(**self.model_class_kwargs).name
 
-    def fit_histogram(self, pdf=True, **fit_kwargs):
+    def fit_histogram(self, model_class=None, model_class_kwargs=None,
+                      pdf=True, **fit_kwargs):
         """Fit the histogram of each channel using the same lmfit model.
 
         A list of `lmfit.Minimizer` is stored in `.fit_obj`.
@@ -362,6 +363,10 @@ class MultiFitter(FitterBase):
 
             fit_kwargs (dict): keyword arguments passed to `model().fit`.
         """
+        if model_class is not None:
+            self.model_class = model_class
+        if model_class_kwargs is not None:
+            self.model_class_kwargs = model_class_kwargs
         model_class = partial(self.model_class, **self.model_class_kwargs)
 
         data_list = self.hist_pdf if pdf else self.hist_counts
