@@ -153,7 +153,7 @@ def factory_two_gaussians(add_bridge=False, p1_center=0., p2_center=0.5,
         add_bridge (bool): if True adds a bridge function between the two
             gaussian peaks. If False the model has only two Gaussians.
 
-    The other arguments are intial values for the model parameters.
+    The other arguments are initial values for the model parameters.
 
     Returns
         An `lmfit.Model` object with all the parameters already initialized.
@@ -193,7 +193,7 @@ def factory_two_asym_gaussians(add_bridge=False, p1_center=0., p2_center=0.5,
         add_bridge (bool): if True adds a bridge function between the two
             gaussian peaks. If False the model has only two Asym-Gaussians.
 
-    The other arguments are intial values for the model parameters.
+    The other arguments are initial values for the model parameters.
 
     Returns
         An `lmfit.Model` object with all the parameters already initialized.
@@ -229,10 +229,10 @@ def factory_two_asym_gaussians(add_bridge=False, p1_center=0., p2_center=0.5,
 # Classes to perform fit-related operations on multi-channel data
 #
 class FitterBase(object):
-    """Base class for fitting a dataset.
+    """Base class for histogramming a dataset.
 
-    To set weights assign the `.weights` attribute an array with same size
-    as `data`.
+    To set weights assign attribute an array with same size as `data` to
+    the attribute `.weights`.
     """
     def __init__(self, data):
         self.data = data
@@ -267,20 +267,22 @@ class FitterBase(object):
 
 
 class MultiFitter(FitterBase):
-    """A class for fitting multiple dataset contained in a list.
+    """A class for histogram, fit, KDE multiple datasets contained in a list.
 
-    Performs histogramming and fitting to a model on a list of data
-    populations (one population per channel).
+    Starting from the datasets in the `data_list` this class allows to
+    conveniently compute histogram and KDE.
 
-    It can alos perform KDE and KDE peak finding.
+    The histograms can be then fitted with an model (lmfit.Model).
+    From the KDEs we can fit the peak position in a range.
 
-    Datasets weights: You can set weigths for all the datasets in the list
-    assigning the `.weights` attribute with a list in which each element
-    is an array with same sive of the corresponding array in `data_list`.
+    Optionally weights can be assigned to each element in a dataset.
+    To assign weights assigning the `.weights` attribute with a list of arrays;
+    Corresponding arrays in `.weights` and `.data_list` must have the same
+    size.
 
-    Alternatively you can use a function that return the weigths for each
-    dataset. In this case, the function is specified by calling
-    `.set_weights_func`.
+    Alternatively a function returning the weights can be used. In this case,
+    the method `.set_weights_func` allows to set the function to be called
+    to generate weights.
     """
     def __init__(self, data_list):
         self.data_list = data_list
@@ -304,7 +306,7 @@ class MultiFitter(FitterBase):
     def set_weights_func(self, weight_func, weight_kwargs=None):
         """Setup of the function returning the weights for each data-set.
 
-        To compute the weights fo each dataset the `weight_func` is called
+        To compute the weights for each dataset the `weight_func` is called
         multiple times. Keys in `weight_kwargs` are arguments of
         `weight_func`. Values in `weight_kwargs` are either scalars, in which
         case they are passed to `weight_func`, or lists. When an argument
