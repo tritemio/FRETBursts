@@ -124,6 +124,25 @@ def factory_gaussian():
     model.set_param('amplitude', 1)
     return model
 
+def factory_asym_gaussian():
+    """Return a Asymmetric Gaussian model that can fit data.
+
+    For the definition of asymmetric Gaussian see :func:`asym_gaussian`.
+
+    Arguments:
+        add_bridge (bool): if True adds a bridge function between the two
+            gaussian peaks. If False the model has only two Gaussians.
+
+    Returns
+        An `lmfit.Model` object with all the parameters already initialized.
+    """
+    model = lmfit.model.Model(asym_gaussian)
+    model.set_param('center', 0.1)
+    model.set_param('sigma1', 0.1)
+    model.set_param('sigma2', 0.1)
+    model.set_param('amplitude', 1)
+    return model
+
 def factory_two_gaussians(add_bridge=False, p1_center=0., p2_center=0.5,
                           p1_sigma=0.03, p2_sigma=0.08):
     """Return a 2-Gaussian + (optional) bridge model that can fit data.
@@ -131,6 +150,8 @@ def factory_two_gaussians(add_bridge=False, p1_center=0., p2_center=0.5,
     Arguments:
         add_bridge (bool): if True adds a bridge function between the two
             gaussian peaks. If False the model has only two Gaussians.
+
+    The other arguments are intial values for the model parameters.
 
     Returns
         An `lmfit.Model` object with all the parameters already initialized.
@@ -157,7 +178,8 @@ def factory_two_gaussians(add_bridge=False, p1_center=0., p2_center=0.5,
     return model
 
 ## lmfit composite model used for fitting
-def factory_two_asym_gaussians(add_bridge=False):
+def factory_two_asym_gaussians(add_bridge=False, p1_center=0., p2_center=0.5,
+                               p1_sigma=0.03, p2_sigma=0.08):
     """Return a 2-Asym-Gaussians + (optional) bridge model that can fit data.
 
     The Asym-Gaussian function is :func:`asym_gaussian`.
@@ -166,24 +188,27 @@ def factory_two_asym_gaussians(add_bridge=False):
         add_bridge (bool): if True adds a bridge function between the two
             gaussian peaks. If False the model has only two Asym-Gaussians.
 
+    The other arguments are intial values for the model parameters.
+
     Returns
         An `lmfit.Model` object with all the parameters already initialized.
     """
     peak1 = lmfit.model.Model(asym_gaussian, prefix='p1_')
     peak2 = lmfit.model.Model(asym_gaussian, prefix='p2_')
-    bridge = lmfit.model.Model(bridge_function, prefix='br_')
+    model = peak1 + peak2
 
-    peak1.set_param('center', 0.0, min=-0.15, max=0.15)
-    peak1.set_param('sigma1', 0.03, min=0.02, max=0.5)
-    peak1.set_param('sigma2', 0.03, min=0.02, max=0.5)
-    peak1.set_param('amplitude', 1, min=0.01)
-    peak2.set_param('center', 0.8, min=0.2, max=1)
-    peak2.set_param('sigma1', 0.08, min=0.02, max=0.5)
-    peak2.set_param('sigma2', 0.08, min=0.02, max=0.5)
-    peak2.set_param('amplitude', 1, min=0.01)
+    model.set_param('p1_center', p1_center, min=-0.15, max=0.15)
+    model.set_param('p2_center', p2_center, min=0.2, max=1)
+    model.set_param('p1_sigma1', p1_sigma, min=0.02, max=0.2)
+    model.set_param('p1_sigma2', p1_sigma, min=0.02, max=0.2)
+    model.set_param('p2_sigma1', p2_sigma, min=0.02, max=0.2)
+    model.set_param('p2_sigma2', p2_sigma, min=0.02, max=0.2)
+    model.set_param('p1_amplitude', 1, min=0.01)
+    model.set_param('p2_amplitude', 1, min=0.01)
 
     model = peak1 + peak2
     if add_bridge:
+        bridge = lmfit.model.Model(bridge_function, prefix='br_')
         model += bridge
         bridge.set_param('amplitude', 0.0001, min=0)
         model.params['br_center1'].expr = 'p1_center'
