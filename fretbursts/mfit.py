@@ -122,6 +122,7 @@ def factory_gaussian():
     model.set_param('center', 0.1)
     model.set_param('sigma', 0.1)
     model.set_param('amplitude', 1)
+    model.name = 'gaussian'
     return model
 
 def factory_asym_gaussian():
@@ -141,6 +142,7 @@ def factory_asym_gaussian():
     model.set_param('sigma1', 0.1)
     model.set_param('sigma2', 0.1)
     model.set_param('amplitude', 1)
+    model.name = 'asym-gaussian'
     return model
 
 def factory_two_gaussians(add_bridge=False, p1_center=0., p2_center=0.5,
@@ -166,6 +168,7 @@ def factory_two_gaussians(add_bridge=False, p1_center=0., p2_center=0.5,
     model.set_param('p2_sigma', p2_sigma, min=0.02, max=0.2)
     model.set_param('p1_amplitude', 1, min=0.01)
     model.set_param('p2_amplitude', 1, min=0.01)
+    name = '2-gaussians'
 
     if add_bridge:
         bridge = lmfit.model.Model(bridge_function, prefix='br_')
@@ -175,6 +178,8 @@ def factory_two_gaussians(add_bridge=False, p1_center=0., p2_center=0.5,
         model.params['br_center2'].expr = 'p2_center'
         model.params['br_sigma1'].expr = 'p1_sigma'
         model.params['br_sigma2'].expr = 'p2_sigma'
+        name += '-bridge'
+    model.name = name
     return model
 
 ## lmfit composite model used for fitting
@@ -205,8 +210,8 @@ def factory_two_asym_gaussians(add_bridge=False, p1_center=0., p2_center=0.5,
     model.set_param('p2_sigma2', p2_sigma, min=0.02, max=0.2)
     model.set_param('p1_amplitude', 1, min=0.01)
     model.set_param('p2_amplitude', 1, min=0.01)
+    name = '2-asym-gaussians'
 
-    model = peak1 + peak2
     if add_bridge:
         bridge = lmfit.model.Model(bridge_function, prefix='br_')
         model += bridge
@@ -215,6 +220,8 @@ def factory_two_asym_gaussians(add_bridge=False, p1_center=0., p2_center=0.5,
         model.params['br_center2'].expr = 'p2_center'
         model.params['br_sigma1'].expr = 'p1_sigma2'
         model.params['br_sigma2'].expr = 'p2_sigma1'
+        name += '-bridge'
+    model.name = name
     return model
 
 
