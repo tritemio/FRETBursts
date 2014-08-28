@@ -548,11 +548,14 @@ def kde_fret(d, i=0, bandwidth=0.03, show_fit=False, show_model=False,
              E_range=None, E_ax=None, **kwargs):
     """Plot the KDE for FRET distribution and optionally the fitted model
     """
-    if E_ax is None:
-        E_ax = np.arange(-0.25, 1.25, 0.001)
-    E_ax, E_pdf = bext.compute_E_kde(d, ich=i, bandwidth=bandwidth, E_ax=E_ax,
-                                     E_range=E_range, weights=weights,
-                                     gamma=gamma)
+    if 'E_fitter' not in d:
+        raise ValueError('Assign E_fitter first')
+
+    if not d.E_fitter._hist_computed:
+        d.E_fitter.histogram()
+
+    E_ax = d.E_fitter.x_axis
+    E_pdf = d.E_fitter.kde[i](E_ax)
     if verbose: print 'KDE Integral:', np.trapz(E_pdf, E_ax)
 
     style_kwargs = dict(facecolor='#80b3ff', edgecolor='#5f8dd3',

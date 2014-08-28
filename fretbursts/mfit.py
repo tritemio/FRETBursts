@@ -249,6 +249,7 @@ class FitterBase(object):
     def __init__(self, data):
         self.data = data
         self.weights = None
+        self._hist_computed = False
 
     def histogram(self, **kwargs):
         """Compute the histogram of the data.
@@ -269,6 +270,7 @@ class FitterBase(object):
         self.hist_pdf = np.array(hist_counts, dtype=np.float)
         self.hist_pdf /= self.hist_counts.sum(1)[:, np.newaxis]
         self.hist_pdf /= self.hist_bin_width
+        self._hist_computed = True
 
     @property
     def x_axis(self):
@@ -300,14 +302,15 @@ class MultiFitter(FitterBase):
         self.data_list = data_list
         self.ndata = len(data_list)
         self.weights = [None]*self.ndata
+        self._hist_computed = False
+        self._kde_computed = False
 
-    def histogram(self, **kwargs):
+    def histogram(self, bin_width=0.03, **kwargs):
         """Compute the histogram of the data for each channel.
 
         All the kwargs are passed to `numpy.histogram`.
         """
-        if 'bin_width' in kwargs:
-            bin_width = kwargs.pop('bin_width')
+        if 'bins' not in kwargs:
             kwargs.update(bins=np.r_[-0.2 : 1.2 : bin_width])
         kwargs.update(density=False)
         hist_counts = []
@@ -399,6 +402,7 @@ class MultiFitter(FitterBase):
             self.kde.append(
                 gf.gaussian_kde_w(data, bw_method=bandwidth,
                                   weights=weights_i))
+        self._kde_computed = True
 
     def find_kde_max(self, x_kde, xmin=None, xmax=None):
         """Finds the peak position of kde functions between `xmin` and `xmax`.

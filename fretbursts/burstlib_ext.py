@@ -26,43 +26,71 @@ import fret_fit
 import mfit
 
 
-def fit_bursts_kde_peak(dx, burst_data='E', x_range=(-0.1, 1.1),
-                        bandwidth=0.03, x_ax=None, weights='size', gamma=1,
+def fit_bursts_kde_peak(dx, burst_data='E', bandwidth=0.03, weights='size',
+                        gamma=1, x_range=(-0.1, 1.1), x_ax=None,
                         return_fitter=False):
     """Fit burst data (typ. E or S) by finding the KDE max on all the channels.
 
     Parameters
         dx (Data): `Data` object containing the FRET data
+        burst_data (string): name of burst-data attribute (i.e 'E' or 'S').
         x_range (tuple of floats): min-max range where to search for the peak.
             Used to select a single peak in a multi-peaks distribution.
         bandwidth (float): bandwidth for the Kernel Densisty Estimation
         x_ax (array or None): x-axis used to evaluate the Kernel Density
-        weights (string or None): kind of burst weights.
+        weights (string or None): kind of burst-size weights.
             See :func:`fretbursts.fret_fit.get_weights`.
+        gamma (float): gamma factor passed to `get_weights()`.
         return_fitter (bool): if True returns the `MultiFitter` object
             used to fit the data. Default False.
 
     Returns
         An array of values (one per ch). If return_fitter is True,
-        also return the `MultiFitter` object            used to fit the data
+        also return the `MultiFitter` object used to fit the data
     """
+    fitter = calc_bursts_kde(dx, burst_data=burst_data, bandwidth=bandwidth,
+                             weights=weights, gamma=gamma)
     assert burst_data in dx
 
     if x_ax is None:
         x_ax = np.arange(-0.2, 1.2, 0.0002)
 
-    fitter = mfit.fitter(dx[burst_data])
+    fitter = mfit.MultiFitter(dx[burst_data])
     fitter.set_weights_func(weight_func = fret_fit.get_weights,
                             weight_kwargs = dict(weights=weights, gamma=gamma,
                                              nd=dx.nd, na=dx.na))
     fitter.calc_kde(bandwidth=bandwidth)
-    fitter.find_kde_max(xmin=x_range[0], xmax=x_range[1])
+    fitter.find_kde_max(x_ax, xmin=x_range[0], xmax=x_range[1])
     KDE_max_mch = fitter.kde_max_pos
 
     if return_fitter:
         return KDE_max_mch, fitter
     else:
         return KDE_max_mch
+
+def calc_bursts_kde(dx, burst_data='E', bandwidth=0.03,
+                    weights='size', gamma=1):
+    """Compute KDE of burst data (typ. E or S) on all the channels.
+
+    Parameters
+        dx (Data): `Data` object containing the FRET data
+        burst_data (string): name of burst-data attribute (i.e 'E' or 'S').
+        bandwidth (float): bandwidth for the Kernel Densisty Estimation
+        weights (string or None): kind of burst-size weights.
+            See :func:`fretbursts.fret_fit.get_weights`.
+        gamma (float): gamma factor passed to `get_weights()`.
+
+    Returns
+        The `MultiFitter` object wiht an the `kde` attribute containing a
+        list of KDE functions (on per channel).
+    """
+    assert burst_data in dx
+    fitter = mfit.MultiFitter(dx[burst_data])
+    fitter.set_weights_func(weight_func = fret_fit.get_weights,
+                            weight_kwargs = dict(weights=weights, gamma=gamma,
+                                             nd=dx.nd, na=dx.na))
+    fitter.calc_kde(bandwidth=bandwidth)
+    return fitter
 
 
 def _get_bg_distrib_erlang(d, ich=0, m=10, ph_sel=Ph_sel('all'), bp=(0, -1)):
