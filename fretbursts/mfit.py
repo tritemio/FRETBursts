@@ -294,6 +294,9 @@ class MultiFitter(FitterBase):
 
         All the kwargs are passed to `numpy.histogram`.
         """
+        if 'bin_width' in kwargs:
+            bin_width = kwargs.pop('bin_width')
+            kwargs.update(bins=np.r_[-0.2 : 1.2 : bin_width])
         kwargs.update(density=False)
         hist_counts = []
         for data, weights in zip(self.data_list, self.weights):
