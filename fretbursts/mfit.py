@@ -228,8 +228,51 @@ def factory_two_asym_gaussians(add_bridge=False, p1_center=0., p2_center=0.5,
 ##
 # Classes to perform fit-related operations on multi-channel data
 #
-class MultiFitterBase(object):
-    """Base class for fitting multiple dataset contained in a list.
+class FitterBase(object):
+    """Base class for fitting a dataset.
+
+    To set weights assign the `.weights` attribute an array with same size
+    as `data`.
+    """
+    def __init__(self, data):
+        self.data = data
+        self.weights = None
+
+    def histogram(self, **kwargs):
+        """Compute the histogram of the data.
+
+        All the kwargs are passed to `numpy.histogram`.
+        """
+        kwargs.update(density=False)
+        if self.weights is not None:
+            kwargs.update(weights=self.weights)
+        hist_counts, bins = np.histogram(self.data, **kwargs)
+        self._set_hist_data(hist_counts, bins)
+
+    def _set_hist_data(self, hist_counts, bins):
+        self.hist_bins = bins
+        self.hist_bin_width = (bins[1] - bins[0])
+        self.hist_axis = bins[:-1] + 0.5*self.hist_bin_width
+        self.hist_counts = np.array(hist_counts)
+        self.hist_pdf = np.array(hist_counts, dtype=np.float)
+        self.hist_pdf /= self.hist_counts.sum(1)[:, np.newaxis]
+        self.hist_pdf /= self.hist_bin_width
+
+    @property
+    def x_axis(self):
+        if not hasattr(self, '_x_axis'):
+            self._x_axis = np.linspace(self.hist_axis[0],
+                                       self.hist_axis[-1], 1000)
+        return self._x_axis
+
+
+class MultiFitter(FitterBase):
+    """A class for fitting multiple dataset contained in a list.
+
+    Performs histogramming and fitting to a model on a list of data
+    populations (one population per channel).
+
+    It can alos perform KDE and KDE peak finding.
 
     Datasets weights: You can set weigths for all the datasets in the list
     assigning the `.weights` attribute with a list in which each element
@@ -243,6 +286,20 @@ class MultiFitterBase(object):
         self.data_list = data_list
         self.ndata = len(data_list)
         self.weights = [None]*self.ndata
+
+    def histogram(self, **kwargs):
+        """Compute the histogram of the data for each channel.
+
+        All the kwargs are passed to `numpy.histogram`.
+        """
+        kwargs.update(density=False)
+        hist_counts = []
+        for data, weights in zip(self.data_list, self.weights):
+            if weights is not None:
+                kwargs.update(weights=weights)
+            counts, bins = np.histogram(data, **kwargs)
+            hist_counts.append( counts )
+        self._set_hist_data(hist_counts, bins)
 
     def set_weights_func(self, weight_func, weight_kwargs=None):
         """Setup of the function returning the weights for each data-set.
@@ -263,73 +320,6 @@ class MultiFitterBase(object):
             weight_kw_i = {k: v[i] if np.size(v) > 1 else v
                                 for k, v in weight_kwargs.items()}
             self.weights.append( weight_func(**weight_kw_i) )
-
-class MultiFitterKDE(MultiFitterBase):
-    """
-    Performs KDE and fitting of peak position on a list of data populations
-    (one population per channel).
-
-    Arguments:
-        data_list (list): a list of data populations. For example
-            a list of per-channel E or S values (one value per burst).
-    """
-    def __init__(self, data_list):
-        super(MultiFitterKDE, self).__init__(data_list)
-
-    def calc_kde(self, bandwidth=0.03):
-        """Compute the list of kde functions and save it in `.kde`.
-        """
-        self.kde_bandwidth = bandwidth
-        self.kde = []
-        for data, weights_i in zip(self.data_list, self.weights):
-            self.kde.append(
-                gf.gaussian_kde_w(data, bw_method=bandwidth,
-                                  weights=weights_i))
-
-    def find_kde_max(self, x_kde, xmin=None, xmax=None):
-        """Finds the peak position of kde functions between `xmin` and `xmax`.
-
-        Results are saved in the list `.kde_max_pos`.
-        """
-        if not hasattr(self, 'kde'):
-            self.calc_kde()
-        self.kde_max_pos = np.zeros(self.ndata)
-        for ich, kde in enumerate(self.kde):
-            self.kde_max_pos[ich] = \
-                    bext.find_max(x_kde, kde(x_kde), xmin=xmin, xmax=xmax)
-
-
-class MultiFitterModel(MultiFitterBase):
-    """
-    Performs histogramming and fitting to a model on a list of data
-    populations (one population per channel).
-
-    Arguments:
-        data_list (list): a list of data populations. For example
-            a list of per-channel E or S values (one value per burst).
-    """
-    def __init__(self, data_list):
-        super(MultiFitterModel, self).__init__(data_list)
-
-    def histogram(self, **kwargs):
-        """Compute the histogram of the data for each channel.
-
-        All the kwargs are passed to `numpy.histogram`.
-        """
-        kwargs.update(density=False)
-        hist_counts = []
-        for data, weights in zip(self.data_list, self.weights):
-            if weights is not None:
-                kwargs.update(weights=weights)
-            counts, bins = np.histogram(data, **kwargs)
-            hist_counts.append( counts )
-        self.hist_bins = bins
-        self.hist_bin_width = (bins[1] - bins[0])
-        self.hist_axis = bins[:-1] + 0.5*self.hist_bin_width
-        self.hist_counts = np.array(hist_counts)
-        self.hist_pdf = np.array(hist_counts, dtype=np.float)
-        self.hist_pdf /= self.hist_counts.sum(1)[:, np.newaxis]
-        self.hist_pdf /= self.hist_bin_width
 
     @property
     def model_class(self):
@@ -378,15 +368,31 @@ class MultiFitterModel(MultiFitterBase):
                                 **fit_kwargs) )
             self.fit_params.iloc[i] = pd.Series(self.fit_obj[-1].values)
 
-    @property
-    def x_axis(self):
-        if not hasattr(self, '_x_axis'):
-            self._x_axis = np.linspace(self.hist_axis[0],
-                                       self.hist_axis[-1], 1000)
-        return self._x_axis
+    def calc_kde(self, bandwidth=0.03):
+        """Compute the list of kde functions and save it in `.kde`.
+        """
+        self.kde_bandwidth = bandwidth
+        self.kde = []
+        for data, weights_i in zip(self.data_list, self.weights):
+            self.kde.append(
+                gf.gaussian_kde_w(data, bw_method=bandwidth,
+                                  weights=weights_i))
+
+    def find_kde_max(self, x_kde, xmin=None, xmax=None):
+        """Finds the peak position of kde functions between `xmin` and `xmax`.
+
+        Results are saved in the list `.kde_max_pos`.
+        """
+        if not hasattr(self, 'kde'):
+            self.calc_kde()
+        self.kde_max_pos = np.zeros(self.ndata)
+        for ich, kde in enumerate(self.kde):
+            self.kde_max_pos[ich] = \
+                    bext.find_max(x_kde, kde(x_kde), xmin=xmin, xmax=xmax)
 
 
-def plot_mfit(fitter, ich=0, residuals=False, ax=None):
+def plot_mfit(fitter, ich=0, residuals=False, ax=None, plot_kde=False,
+              plot_model=True):
     """Plot data histogram and fitted model from a `MultiFiter` object.
 
     Assumes data between 0 and 1 and a two peaks model with parameters
@@ -396,7 +402,7 @@ def plot_mfit(fitter, ich=0, residuals=False, ax=None):
         A matplotlib figure object.
     """
     if ax is None:
-        fig = plt.figure(figsize=(7, 5.5))
+        fig = plt.figure(figsize=(7, 4.5))
         ax = fig.add_subplot(111)
     else:
         fig = ax.figure
@@ -404,33 +410,37 @@ def plot_mfit(fitter, ich=0, residuals=False, ax=None):
     num_bursts = fitter.data_list[ich].size
     ax.set_title('CH = %d #Bursts %d' % (ich, num_bursts))
     ax.set_xlim(-0.19, 1.19)
-
-    if not hasattr(fitter, 'fit_obj'):
-        return fig
-
-    fit_obj = fitter.fit_obj[ich]
-    x = fitter.x_axis
+    ax.grid(True)
     red = '#E41A1C'
 
-    ax.plot(x, fit_obj.model.eval(x=x, **fit_obj.values), 'k', alpha=0.8)
-    if  fit_obj.model.components is not None:
-        for component in fit_obj.model.components:
-            ax.plot(x, component.eval(x=x, **fit_obj.values), '--k',
-                    alpha=0.8)
-    for param in ['center', 'p1_center', 'p2_center']:
-        if param in fitter.fit_params:
-            ax.axvline(fitter.fit_params[param][ich], ls='--', color=red)
+    if hasattr(fitter, 'fit_obj') and plot_model:
+        fit_obj = fitter.fit_obj[ich]
+        x = fitter.x_axis
+        ax.plot(x, fit_obj.model.eval(x=x, **fit_obj.values), 'k', alpha=0.8)
+        if  fit_obj.model.components is not None:
+            for component in fit_obj.model.components:
+                ax.plot(x, component.eval(x=x, **fit_obj.values), '--k',
+                        alpha=0.8)
+        for param in ['center', 'p1_center', 'p2_center']:
+            if param in fitter.fit_params:
+                ax.axvline(fitter.fit_params[param][ich], ls='--', color=red)
 
-    if residuals:
-        ax.xaxis.set_ticklabels([])
-        divider = make_axes_locatable(ax)
-        ax_resid = divider.append_axes("bottom", size=1.2, pad=0.1,
-                                       sharex=ax)
-        ax_resid.plot(fitter.hist_axis,
-                      fitter.hist_pdf[ich] - fit_obj.best_fit)
-        ax_resid.set_yticks(np.r_[-2:2:0.5])
-        ax_resid.set_ylim(-0.49, 0.49)
-        ax_resid.set_xlim(-0.2, 1.2)
+        if residuals:
+            ax.xaxis.set_ticklabels([])
+            divider = make_axes_locatable(ax)
+            ax_resid = divider.append_axes("bottom", size=1.2, pad=0.1,
+                                           sharex=ax)
+            ax_resid.plot(fitter.hist_axis,
+                          fitter.hist_pdf[ich] - fit_obj.best_fit)
+            ax_resid.set_yticks(np.r_[-2:2:0.5])
+            ax_resid.set_ylim(-0.49, 0.49)
+            ax_resid.set_xlim(-0.2, 1.2)
+    elif hasattr(fitter, 'kde') and plot_kde:
+        kde = fitter.kde[ich]
+        x = fitter.x_axis
+        ax.plot(x, kde(x), color='gray', alpha=0.8)
+        if hasattr(fitter, 'kde_max_pos'):
+            ax.axvline(fitter.kde_max_pos[ich], ls='--', color=red)
     return fig
 
 
