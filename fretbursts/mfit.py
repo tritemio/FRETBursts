@@ -348,6 +348,10 @@ class MultiFitterModel(MultiFitterBase):
     def model_class_kwargs(self, kwargs):
         self._model_class_kwargs = kwargs
 
+    @property
+    def model_name(self):
+        return self.model_class(**self.model_class_kwargs).name
+
     def fit_histogram(self, pdf=True, **fit_kwargs):
         """Fit the histogram of each channel using the same lmfit model.
 
