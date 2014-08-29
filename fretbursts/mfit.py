@@ -418,7 +418,7 @@ class MultiFitter(FitterBase):
 
 
 def plot_mfit(fitter, ich=0, residuals=False, ax=None, plot_kde=False,
-              plot_model=True):
+              plot_model=True, return_fig=False):
     """Plot data histogram and fitted model from a `MultiFiter` object.
 
     Assumes data between 0 and 1 and a two peaks model with parameters
@@ -432,6 +432,9 @@ def plot_mfit(fitter, ich=0, residuals=False, ax=None, plot_kde=False,
         ax = fig.add_subplot(111)
     else:
         fig = ax.figure
+
+    if not fitter._hist_computed:
+        fitter.histogram()
     ax.plot(fitter.hist_axis, fitter.hist_pdf[ich], '-o', alpha=0.5)
     num_bursts = fitter.data_list[ich].size
     ax.set_title('CH = %d #Bursts %d' % (ich, num_bursts))
@@ -467,6 +470,7 @@ def plot_mfit(fitter, ich=0, residuals=False, ax=None, plot_kde=False,
         ax.plot(x, kde(x), color='gray', alpha=0.8)
         if hasattr(fitter, 'kde_max_pos'):
             ax.axvline(fitter.kde_max_pos[ich], ls='--', color=red)
-    return fig
+    if return_fig:
+        return fig
 
 
