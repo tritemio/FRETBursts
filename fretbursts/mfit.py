@@ -355,6 +355,8 @@ class MultiFitter(FitterBase):
         """
         if model is not None:
             self.model = model
+        if not self._hist_computed:
+            self.histogram()
 
         data_list = self.hist_pdf if pdf else self.hist_counts
         self.params = pd.DataFrame(index=range(self.ndata),
