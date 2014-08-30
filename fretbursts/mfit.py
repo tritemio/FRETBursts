@@ -308,7 +308,7 @@ class MultiFitter(FitterBase):
 
         All the kwargs are passed to `numpy.histogram`.
         """
-        if 'bins' not in kwargs:
+        if 'bins' not in kwargs or kwargs['bins'] is None:
             kwargs.update(bins=np.r_[-0.2 : 1.2 : bin_width])
         kwargs.update(density=False)
         hist_counts = []
@@ -392,7 +392,7 @@ class MultiFitter(FitterBase):
 
 
 def plot_mfit(fitter, ich=0, residuals=False, ax=None, plot_kde=False,
-              plot_model=True, return_fig=False):
+              plot_model=True, return_fig=False, bins=None):
     """Plot data histogram and fitted model from a `MultiFiter` object.
 
     Assumes data between 0 and 1 and a two peaks model with parameters
@@ -407,8 +407,8 @@ def plot_mfit(fitter, ich=0, residuals=False, ax=None, plot_kde=False,
     else:
         fig = ax.figure
 
-    if not fitter._hist_computed:
-        fitter.histogram()
+    if not fitter._hist_computed or bins is not None:
+        fitter.histogram(bins=bins)
     ax.plot(fitter.hist_axis, fitter.hist_pdf[ich], '-o', alpha=0.5)
     num_bursts = fitter.data_list[ich].size
     ax.set_title('CH = %d #Bursts %d' % (ich, num_bursts))
