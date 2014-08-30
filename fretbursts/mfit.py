@@ -120,7 +120,7 @@ def bridge_function2(x, center1, center2, sigma1, sigma2, amplitude):
 ##
 # Factory functions that return initialized `lmfit.Model` objects
 #
-def factory_gaussian():
+def factory_gaussian(center=0.1, sigma=0.1, amplitude=1):
     """Return a Gaussian model that can fit data.
 
     Arguments:
@@ -131,13 +131,12 @@ def factory_gaussian():
         An `lmfit.Model` object with all the parameters already initialized.
     """
     model = lmfit.models.GaussianModel()
-    model.set_param('center', 0.1)
-    model.set_param('sigma', 0.1)
-    model.set_param('amplitude', 1)
-    #model.name = 'gaussian'
+    model.set_param('center', center)
+    model.set_param('sigma', sigma)
+    model.set_param('amplitude', amplitude)
     return model
 
-def factory_asym_gaussian():
+def factory_asym_gaussian(center=0.1, sigma1=0.1, sigma2=0.1, amplitude=1):
     """Return a Asymmetric Gaussian model that can fit data.
 
     For the definition of asymmetric Gaussian see :func:`asym_gaussian`.
@@ -150,11 +149,10 @@ def factory_asym_gaussian():
         An `lmfit.Model` object with all the parameters already initialized.
     """
     model = lmfit.model.Model(asym_gaussian)
-    model.set_param('center', 0.1)
-    model.set_param('sigma1', 0.1)
-    model.set_param('sigma2', 0.1)
-    model.set_param('amplitude', 1)
-    #model.name = 'asym-gaussian'
+    model.set_param('center', center)
+    model.set_param('sigma1', sigma1)
+    model.set_param('sigma2', sigma2)
+    model.set_param('amplitude', amplitude)
     return model
 
 def factory_two_gaussians(add_bridge=False, p1_center=0., p2_center=0.5,
