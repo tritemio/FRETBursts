@@ -4,7 +4,7 @@ is treated independently.
 """
 
 from __future__ import division
-from functools import partial
+import copy
 import numpy as np
 import pandas as pd
 import lmfit
@@ -341,57 +341,33 @@ class MultiFitter(FitterBase):
                                 for k, v in weight_kwargs.items()}
             self.weights.append( weight_func(**weight_kw_i) )
 
-    @property
-    def model_class(self):
-        return self._model_class
-
-    @model_class.setter
-    def model_class(self, model_class):
-        self._model_class = model_class
-        self.model_class_kwargs = {}
-
-    @property
-    def model_class_kwargs(self):
-        return self._model_class_kwargs
-
-    @model_class_kwargs.setter
-    def model_class_kwargs(self, kwargs):
-        self._model_class_kwargs = kwargs
-
-    @property
-    def model_name(self):
-        return self.model_class(**self.model_class_kwargs).name
-
-    def fit_histogram(self, model_class=None, model_class_kwargs=None,
-                      pdf=True, **fit_kwargs):
+    def fit_histogram(self, model=None, pdf=True, **fit_kwargs):
         """Fit the histogram of each channel using the same lmfit model.
 
-        A list of `lmfit.Minimizer` is stored in `.fit_obj`.
+        A list of `lmfit.Minimizer` is stored in `.fit_res`.
         The fitted values for all the parameters and all the channels are
         save in a Pandas DataFrame `.params`.
 
         Arguments:
-            model_func (function): when called it returns an lmfit Model with
-                all the parameters already initialized.
+            model (lmfit.Model object): lmfit Model with all the parameters
+                already initialized used for fitting.
             pdf (bool): if True fit the normalized histogram (.hist_pdf)
                 otherwise fit the raw counts (.hist_counts).
-
             fit_kwargs (dict): keyword arguments passed to `model().fit`.
         """
-        if model_class is not None:
-            self.model_class = model_class
-        if model_class_kwargs is not None:
-            self.model_class_kwargs = model_class_kwargs
-        model_class = partial(self.model_class, **self.model_class_kwargs)
+        if model is not None:
+            self.model = model
 
         data_list = self.hist_pdf if pdf else self.hist_counts
         self.params = pd.DataFrame(index=range(self.ndata),
-                                   columns=model_class().param_names)
-        self.fit_obj = []
+                                   columns=self.model.param_names)
+        self.fit_res = []
+        init_params = copy.deepcopy(self.model.params)
         for i, data in enumerate(data_list):
-            self.fit_obj.append(model_class().fit(data, x=self.hist_axis,
-                                **fit_kwargs) )
-            self.params.iloc[i] = pd.Series(self.fit_obj[-1].values)
+            self.fit_res.append(self.model.fit(data, x=self.hist_axis,
+                                               params=init_params,
+                                               **fit_kwargs) )
+            self.params.iloc[i] = pd.Series(self.fit_res[-1].values)
 
     def calc_kde(self, bandwidth=0.03):
         """Compute the list of kde functions and save it in `.kde`.
@@ -442,13 +418,13 @@ def plot_mfit(fitter, ich=0, residuals=False, ax=None, plot_kde=False,
     ax.grid(True)
     red = '#E41A1C'
 
-    if hasattr(fitter, 'fit_obj') and plot_model:
-        fit_obj = fitter.fit_obj[ich]
+    if hasattr(fitter, 'fit_res') and plot_model:
+        fit_res = fitter.fit_res[ich]
         x = fitter.x_axis
-        ax.plot(x, fit_obj.model.eval(x=x, **fit_obj.values), 'k', alpha=0.8)
-        if  fit_obj.model.components is not None:
-            for component in fit_obj.model.components:
-                ax.plot(x, component.eval(x=x, **fit_obj.values), '--k',
+        ax.plot(x, fit_res.model.eval(x=x, **fit_res.values), 'k', alpha=0.8)
+        if  fit_res.model.components is not None:
+            for component in fit_res.model.components:
+                ax.plot(x, component.eval(x=x, **fit_res.values), '--k',
                         alpha=0.8)
         for param in ['center', 'p1_center', 'p2_center']:
             if param in fitter.params:
@@ -460,7 +436,7 @@ def plot_mfit(fitter, ich=0, residuals=False, ax=None, plot_kde=False,
             ax_resid = divider.append_axes("bottom", size=1.2, pad=0.1,
                                            sharex=ax)
             ax_resid.plot(fitter.hist_axis,
-                          fitter.hist_pdf[ich] - fit_obj.best_fit)
+                          fitter.hist_pdf[ich] - fit_res.best_fit)
             ax_resid.set_yticks(np.r_[-2:2:0.5])
             ax_resid.set_ylim(-0.49, 0.49)
             ax_resid.set_xlim(-0.2, 1.2)
