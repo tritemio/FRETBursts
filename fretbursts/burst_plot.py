@@ -52,6 +52,7 @@ import background as bg
 from utils.misc import binning, clk_to_s, pprint
 from scroll_gui import ScrollingToolQT
 import gui_selection as gs
+import mfit
 
 #ip = get_ipython()
 #ip.magic("run -i scroll_gui.py")
@@ -509,75 +510,73 @@ def hist_size(d, i=0, vmax=1000, bins=r_[:1e3:2]-1, which='all', yscale='log',
     xlabel('# Ph.'); ylabel('# Bursts')
     if legend: gca().legend(loc='best')
 
-def hist_fret(d, i=0, bins=None, binw=0.02, show_fit=False, show_model=True,
-        no_text=False, normed=False, weights=None, gamma=1., verbose=False,
-        fit_color='k', fit_alpha=0.5, fit_lw=2.5, fit_fillcolor=None,
-        two_gauss_model=False, **kwargs):
-    """Plot the FRET histogram and optionally the fitted model
-    """
-    if bins is None: bins = r_[-0.2:1.2:binw]
-    #plot_style = dict(color='#4f8ae3', alpha=1, histtype='bar',
-    #        edgecolor='white', lw=1.2)
-    style_kwargs = dict(bins=bins, normed=normed, histtype='stepfilled',
-                        facecolor='#80b3ff', edgecolor='#5f8dd3',
-                        linewidth=1.5, alpha=1)
-    # kwargs overwrite style_kwargs
-    style_kwargs.update(**_normalize_kwargs(kwargs))
-    if weights is not None:
-        w = bl.fret_fit.get_weights(d.nd[i], d.na[i], weights, gamma=gamma)
-        w *= w.size/w.sum()
-        style_kwargs.update(weights=w)
-    hist(1.*d.E[i], **style_kwargs)
-    xlabel('FRET Efficiency'); ylabel('# Bursts')
-    if normed: ylabel('PDF')
-    plt.ylim(ymin=0); plt.xlim(-0.2,1.2)
-    if show_fit:
-        F = 1 if normed else d.E[i].size*binw
-        kw = dict(color=fit_color, alpha=fit_alpha, lw=fit_lw,
-                  fillcolor=fit_fillcolor)
-        _fitted_E_plot(d, i, F=F, no_E=no_text, show_model=show_model,
-                 verbose=verbose, two_gauss_model=two_gauss_model, **kw)
-        # Shows E_fit mean and std only if nch > 1
-        if i == 1 and not no_text:
-            plt.figtext(0.4, 0.01, _get_fit_E_text(d), fontsize=14)
-hist_E = hist_fret
 
-def kde_fret(d, i=0, bandwidth=0.03, show_fit=False, show_model=False,
-             weights=None, gamma=1., no_text=False, verbose=False,
-             fit_color='k', fit_alpha=0.5, fit_lw=2.5, fit_fillcolor=None,
-             E_range=None, E_ax=None, **kwargs):
-    """Plot the KDE for FRET distribution and optionally the fitted model
-    """
-    if 'E_fitter' not in d:
-        raise ValueError('Assign E_fitter first')
+def hist_fret(d, i=0, bins=None, binw=0.03, pdf=True, hist_style='bar',
+              weights=None, gamma=1., add_naa=False,           # weights args
+              show_fit_text=False, fit_text='kde',
+              show_kde=False, bandwidth=0.03, show_kde_peak=False,  # kde args
+              show_model=False, show_model_peaks=True):                               # fit model args
+    red = '#E41A1C'
+    if 'E_fitter' not in d or d.burst_weights != (weights, gamma, add_naa):
+        bext.bursts_fitter(d, weights=weights, gamma=gamma, add_naa=add_naa)
 
-    if not d.E_fitter._hist_computed:
-        d.E_fitter.histogram()
-
-    E_ax = d.E_fitter.x_axis
-    E_pdf = d.E_fitter.kde[i](E_ax)
-    if verbose: print 'KDE Integral:', np.trapz(E_pdf, E_ax)
-
-    style_kwargs = dict(facecolor='#80b3ff', edgecolor='#5f8dd3',
-                        linewidth=1.5, alpha=1)
-    # kwargs overwrite plot_style
-    style_kwargs.update(**_normalize_kwargs(kwargs))
-    if style_kwargs['facecolor'] is None:
-        style_kwargs.pop('facecolor')
-        if not 'color' in style_kwargs:
-            style_kwargs.update(color=style_kwargs.pop('edgecolor'))
-        plot(E_ax, E_pdf, **style_kwargs)
+    d.E_fitter.histogram(bin_width=binw, bins=bins)
+    if pdf:
+        hist_vals = d.E_fitter.hist_pdf[i]
     else:
-        plt.fill_between(E_ax, E_pdf, **style_kwargs)
-    xlabel('FRET Efficiency')
-    ylabel('PDF')
-    if show_fit:
-        kw = dict(color=fit_color, alpha=fit_alpha, lw=fit_lw,
-                  fillcolor=fit_fillcolor)
-        _fitted_E_plot(d, i, F=1, no_E=no_text, show_model=show_model,
-                 verbose=verbose, **kw)
-        if i == 0 and not no_text:
-            plt.figtext(0.4, 0.01, _get_fit_E_text(d), fontsize=14)
+        hist_vals = d.E_fitter.hist_counts[i]
+
+    hist_bar_style = dict(facecolor='#80b3ff', edgecolor='#5f8dd3',
+                          linewidth=1.5, alpha=1)
+
+    hist_plot_style = dict(ccolor='#5f8dd3', linewidth=1.5, alpha=1)
+    if hist_style == 'bar':
+        plt.bar(left = d.E_fitter.hist_bins[:-1], height=hist_vals,
+                width = d.E_fitter.hist_bin_width, **hist_bar_style)
+    else:
+        plt.plot(d.E_fitter.hist_ax, hist_vals, **hist_plot_style)
+
+    if show_model:
+        fit_res = d.E_fitter.fit_res[i]
+        x = d.E_fitter.x_axis
+        plt.plot(x, fit_res.model.eval(x=x, **fit_res.values), 'k', alpha=0.8)
+        if  fit_res.model.components is not None:
+            for component in fit_res.model.components:
+                plt.plot(x, component.eval(x=x, **fit_res.values), '--k',
+                         alpha=0.8)
+        if show_model_peaks:
+            for param in ['center', 'p1_center', 'p2_center']:
+                if param in d.E_fitter.params:
+                    plt.axvline(d.E_fitter.params[param][i], ls='--',
+                                color=red)
+
+    if show_kde:
+        x = d.E_fitter.x_axis
+        d.E_fitter.calc_kde(bandwidth=bandwidth)
+        ## plot kde
+        kde_style = dict(lw=1.5, color='k', alpha=0.8)
+        plt.plot(x, d.E_fitter.kde[i](x), **kde_style)
+    if show_kde_peak:
+        plt.axvline(d.E_fitter.kde_max_po[i], lw=1.5, ls='--', color='orange')
+
+    if show_fit_text:
+        if i == 0:
+            if fit_text == 'kde':
+                fit_arr = d.E_fitter.kde_max_pos
+            else:
+                assert fit_text in d.E_fitter.params
+                fit_arr = d.E_fitter.params[fit_text]
+            plt.figtext(0.4, 0.01, _get_fit_stats_text(fit_arr), fontsize=14)
+
+def _get_fit_stats_text(fit_arr, pylab=True):
+    """Return a formatted string for fitted E."""
+    delta = (fit_arr.max() - fit_arr.min())*100
+    fit_text = r'\langle{E}_{fit}\rangle = %.3f \qquad ' % fit_arr.mean()
+    fit_text += r'\Delta E_{fit} = %.2f \%%' % delta
+    if pylab: fit_text = r'$'+fit_text+r'$'
+    return fit_text
+
+
 
 def hist_fret_kde(d, i=0, bins=None, binw=0.02, bandwidth=0.03, show_fit=False,
         no_text=False, weights=None, gamma=1., **kwargs):
