@@ -532,6 +532,8 @@ def hist_fret(d, i=0, ax=None, bins=None, binw=0.03, pdf=True, hist_style='bar',
     if ax is None:
         ax = gca()
     if 'E_fitter' not in d or d.burst_weights != (weights, gamma, add_naa):
+        if 'E_fitter' in d:
+            print ' - Overwriting the old E_fitter object with the new weights.'
         bext.bursts_fitter(d, weights=weights, gamma=gamma, add_naa=add_naa)
 
     d.E_fitter.histogram(bin_width=binw, bins=bins)
@@ -541,11 +543,12 @@ def hist_fret(d, i=0, ax=None, bins=None, binw=0.03, pdf=True, hist_style='bar',
         hist_vals = d.E_fitter.hist_counts[i]
 
     hist_bar_style_ = dict(facecolor='#80b3ff', edgecolor='#5f8dd3',
-                           linewidth=1.5, alpha=0.7)
-    hist_bar_style_.update(**hist_bar_style)
+                           linewidth=1.5, alpha=0.7, label='E Histogram')
+    hist_bar_style_.update(**_normalize_kwargs(hist_bar_style))
 
-    hist_plot_style_ = dict(ls='-', marker='o', ms=6, lw=2, alpha=0.6)
-    hist_plot_style_.update(**hist_plot_style)
+    hist_plot_style_ = dict(linestyle='-', marker='o', markersize=6,
+                            linewidth=2, alpha=0.6, label='E Histogram')
+    hist_plot_style_.update(**_normalize_kwargs(hist_plot_style, kind='line2d'))
     if hist_style == 'bar':
         ax.bar(left = d.E_fitter.hist_bins[:-1], height=hist_vals,
                 width = d.E_fitter.hist_bin_width, **hist_bar_style_)
@@ -553,15 +556,16 @@ def hist_fret(d, i=0, ax=None, bins=None, binw=0.03, pdf=True, hist_style='bar',
         ax.plot(d.E_fitter.hist_axis, hist_vals, **hist_plot_style_)
 
     if show_model:
-        model_plot_style_ = dict(color='k', alpha=0.8)
-        model_plot_style_.update(**model_plot_style)
+        model_plot_style_ = dict(color='k', alpha=0.8, label='Model')
+        model_plot_style_.update(**_normalize_kwargs(model_plot_style,
+                                                     kind='line2d'))
         fit_res = d.E_fitter.fit_res[i]
         x = d.E_fitter.x_axis
         ax.plot(x, fit_res.model.eval(x=x, **fit_res.values),
                  **model_plot_style_)
         if  fit_res.model.components is not None:
             for component in fit_res.model.components:
-                model_plot_style_.update(ls = '--')
+                model_plot_style_.update(ls = '--', label='Model component')
                 ax.plot(x, component.eval(x=x, **fit_res.values),
                          **model_plot_style_)
         if show_model_peaks:
@@ -569,13 +573,13 @@ def hist_fret(d, i=0, ax=None, bins=None, binw=0.03, pdf=True, hist_style='bar',
                 if param.endswith('center'):
                     ax.axvline(d.E_fitter.params[param][i], ls='--',
                                 color=red)
-
     if show_kde:
         x = d.E_fitter.x_axis
         d.E_fitter.calc_kde(bandwidth=bandwidth)
         ## plot kde
-        kde_plot_style_ = dict(lw=1.5, color='k', alpha=0.8)
-        kde_plot_style_.update(**kde_plot_style)
+        kde_plot_style_ = dict(linewidth=1.5, color='k', alpha=0.8, label='KDE')
+        kde_plot_style_.update(**_normalize_kwargs(kde_plot_style,
+                                                   kind='line2d'))
         ax.plot(x, d.E_fitter.kde[i](x), **kde_plot_style_)
     if show_kde_peak:
         ax.axvline(d.E_fitter.kde_max_pos[i], ls='--', color='orange')
@@ -609,21 +613,6 @@ def _plot_fit_text_ch(fit_arr, ich, fmt_str="CH%d: $E_{fit} = %.3f$", ax=None,
     xtext = xtext_high if fit_arr[ich] < xtext_high else xtext_low
     ax.text(xtext, 0.81, fmt_str % (ich+1, fit_arr[ich]),
             transform = ax.transAxes, fontsize=fontsize, bbox=bbox)
-
-
-def hist_fret_kde(d, i=0, bins=None, binw=0.02, bandwidth=0.03, show_fit=False,
-        no_text=False, weights=None, gamma=1., **kwargs):
-    """Plot the FRET histogram and a KDE overlay
-    """
-    hist_fret(d, i, bins=bins, binw=binw, show_fit=show_fit,
-              no_text=no_text, weights=weights, gamma=gamma,
-              show_model=False, normed=True, **kwargs)
-    E_range = None
-    if np.size(bins) > 2:
-        E_range = bins.min(), bins.max()
-    kde_fret(d, i, bandwidth=bandwidth, show_fit=False, E_range=E_range,
-             weights=weights, gamma=gamma,
-             facecolor='#8c8c8c', edgecolor='k', lw=2, alpha=0.5, zorder=2)
 
 def hist_S(d, i=0, bins=None, binw=0.02, weights=None, gamma=1., normed=False,
            **kwargs):
