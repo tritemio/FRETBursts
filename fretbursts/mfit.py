@@ -131,7 +131,7 @@ def factory_gaussian(center=0.1, sigma=0.1, amplitude=1):
         An `lmfit.Model` object with all the parameters already initialized.
     """
     model = lmfit.models.GaussianModel()
-    model.set_param('center', center)
+    model.set_param('center', center, min=-0.1, max=1.1)
     model.set_param('sigma', sigma)
     model.set_param('amplitude', amplitude)
     return model
@@ -149,14 +149,14 @@ def factory_asym_gaussian(center=0.1, sigma1=0.1, sigma2=0.1, amplitude=1):
         An `lmfit.Model` object with all the parameters already initialized.
     """
     model = lmfit.model.Model(asym_gaussian)
-    model.set_param('center', center)
+    model.set_param('center', center, min=-0.1, max=1.1)
     model.set_param('sigma1', sigma1)
     model.set_param('sigma2', sigma2)
     model.set_param('amplitude', amplitude)
     return model
 
-def factory_two_gaussians(add_bridge=False, p1_center=0., p2_center=0.5,
-                          p1_sigma=0.03, p2_sigma=0.08):
+def factory_two_gaussians(add_bridge=False, p1_center=0.1, p2_center=0.9,
+                          p1_sigma=0.03, p2_sigma=0.03):
     """Return a 2-Gaussian + (optional) bridge model that can fit data.
 
     Arguments:
@@ -172,10 +172,10 @@ def factory_two_gaussians(add_bridge=False, p1_center=0., p2_center=0.5,
     peak2 = lmfit.models.GaussianModel(prefix='p2_')
     model = peak1 + peak2
 
-    model.set_param('p1_center', p1_center, min=-0.15, max=0.15)
-    model.set_param('p2_center', p2_center, min=0.2, max=1)
-    model.set_param('p1_sigma', p1_sigma, min=0.02, max=0.2)
-    model.set_param('p2_sigma', p2_sigma, min=0.02, max=0.2)
+    model.set_param('p1_center', p1_center, min=-0.1, max=1.1)
+    model.set_param('p2_center', p2_center, min=-0.1, max=1.1)
+    model.set_param('p1_sigma', p1_sigma, min=0.01, max=0.2)
+    model.set_param('p2_sigma', p2_sigma, min=0.01, max=0.2)
     model.set_param('p1_amplitude', 1, min=0.01)
     model.set_param('p2_amplitude', 1, min=0.01)
     name = '2-gaussians'
@@ -212,7 +212,7 @@ def factory_three_gaussians(p1_center=0., p2_center=0.5, p3_center=1,
 
     model.set_param('p1_center', p1_center, min=0, max=1)
     model.set_param('p2_center', p2_center, min=0, max=1)
-    model.set_param('p2_center', p3_center, min=0, max=1)
+    model.set_param('p3_center', p3_center, min=0, max=1)
     model.set_param('p1_sigma', sigma, min=0.02, max=0.2)
     model.set_param('p2_sigma', sigma, min=0.02, max=0.2)
     model.set_param('p3_sigma', sigma, min=0.02, max=0.2)
@@ -223,8 +223,8 @@ def factory_three_gaussians(p1_center=0., p2_center=0.5, p3_center=1,
     return model
 
 ## lmfit composite model used for fitting
-def factory_two_asym_gaussians(add_bridge=False, p1_center=0., p2_center=0.5,
-                               p1_sigma=0.03, p2_sigma=0.08):
+def factory_two_asym_gaussians(add_bridge=False, p1_center=0.1, p2_center=0.9,
+                               p1_sigma=0.03, p2_sigma=0.03):
     """Return a 2-Asym-Gaussians + (optional) bridge model that can fit data.
 
     The Asym-Gaussian function is :func:`asym_gaussian`.
@@ -242,12 +242,12 @@ def factory_two_asym_gaussians(add_bridge=False, p1_center=0., p2_center=0.5,
     peak2 = lmfit.model.Model(asym_gaussian, prefix='p2_')
     model = peak1 + peak2
 
-    model.set_param('p1_center', p1_center, min=-0.15, max=0.15)
-    model.set_param('p2_center', p2_center, min=0.2, max=1)
-    model.set_param('p1_sigma1', p1_sigma, min=0.02, max=0.2)
-    model.set_param('p1_sigma2', p1_sigma, min=0.02, max=0.2)
-    model.set_param('p2_sigma1', p2_sigma, min=0.02, max=0.2)
-    model.set_param('p2_sigma2', p2_sigma, min=0.02, max=0.2)
+    model.set_param('p1_center', p1_center, min=-0.1, max=1.1)
+    model.set_param('p2_center', p2_center, min=-0.1, max=1.1)
+    model.set_param('p1_sigma1', p1_sigma, min=0.01, max=0.2)
+    model.set_param('p1_sigma2', p1_sigma, min=0.01, max=0.2)
+    model.set_param('p2_sigma1', p2_sigma, min=0.01, max=0.2)
+    model.set_param('p2_sigma2', p2_sigma, min=0.01, max=0.2)
     model.set_param('p1_amplitude', 1, min=0.01)
     model.set_param('p2_amplitude', 1, min=0.01)
     name = '2-asym-gaussians'
