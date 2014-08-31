@@ -34,16 +34,16 @@ def fit_bursts_kde_peak(dx, burst_data='E', bandwidth=0.03, weights='size',
     Parameters
         dx (Data): `Data` object containing the FRET data
         burst_data (string): name of burst-data attribute (i.e 'E' or 'S').
-        x_range (tuple of floats): min-max range where to search for the peak.
-            Used to select a single peak in a multi-peaks distribution.
         bandwidth (float): bandwidth for the Kernel Densisty Estimation
-        x_ax (array or None): x-axis used to evaluate the Kernel Density
         weights (string or None): kind of burst-size weights.
             See :func:`fretbursts.fret_fit.get_weights`.
         gamma (float): gamma factor passed to `get_weights()`.
         add_naa (bool): if True adds `naa` to the burst size.
         save_fitter (bool): if True save the `MultiFitter` object in the
             `dx` object with name: burst_data + '_fitter'.
+        x_range (tuple of floats): min-max range where to search for the peak.
+            Used to select a single peak in a multi-peaks distribution.
+        x_ax (array or None): x-axis used to evaluate the Kernel Density
 
     Returns
         An array of max peak positions (one per ch). If the number of
@@ -52,43 +52,45 @@ def fit_bursts_kde_peak(dx, burst_data='E', bandwidth=0.03, weights='size',
     if x_ax is None:
         x_ax = np.arange(-0.2, 1.2, 0.0002)
 
-    fitter = calc_bursts_kde(dx, burst_data=burst_data, bandwidth=bandwidth,
-                             weights=weights, gamma=gamma, add_naa=add_naa)
+    fitter = bursts_fitter(dx, burst_data=burst_data, save_fitter=save_fitter,
+                           weights=weights, gamma=gamma, add_naa=add_naa)
+    fitter.calc_kde(bandwidth=bandwidth)
     fitter.find_kde_max(x_ax, xmin=x_range[0], xmax=x_range[1])
     KDE_max_mch = fitter.kde_max_pos
     if dx.nch == 1:
         KDE_max_mch = KDE_max_mch[0]
-    if save_fitter:
-        dx.add(**{burst_data + '_fitter': fitter})
     return KDE_max_mch
 
-def calc_bursts_kde(dx, burst_data='E', bandwidth=0.03,
-                    weights='size', gamma=1, add_naa=False):
+def bursts_fitter(dx, burst_data='E', save_fitter=True,
+                  weights=None, gamma=1, add_naa=False):
     """Compute KDE of burst data (typ. E or S) on all the channels.
 
     Parameters
         dx (Data): `Data` object containing the FRET data
+        save_fitter (bool): if True save the `MultiFitter` object in the
+            `dx` object with name: burst_data + '_fitter'.
         burst_data (string): name of burst-data attribute (i.e 'E' or 'S').
-        bandwidth (float): bandwidth for the Kernel Densisty Estimation
         weights (string or None): kind of burst-size weights.
             See :func:`fretbursts.fret_fit.get_weights`.
         gamma (float): gamma factor passed to `get_weights()`.
+        add_naa (bool): if True adds `naa` to the burst size.
 
     Returns
-        The `MultiFitter` object wiht an the `kde` attribute containing a
-        list of KDE functions (on per channel).
+        The `MultiFitter` object with the specified burst-size weights.
     """
     assert burst_data in dx
     fitter = mfit.MultiFitter(dx[burst_data])
-    weight_kwargs = dict(weights=weights, gamma=gamma, nd=dx.nd, na=dx.na)
-    if add_naa:
-        weight_kwargs.update(naa = dx.naa)
-    fitter.set_weights_func(weight_func = fret_fit.get_weights,
-                            weight_kwargs = dict(weights=weights, gamma=gamma,
-                                                 nd=dx.nd, na=dx.na))
-    fitter.calc_kde(bandwidth=bandwidth)
+    if weights is not None:
+        weight_kwargs = dict(weights=weights, gamma=gamma, nd=dx.nd, na=dx.na)
+        if add_naa:
+            weight_kwargs.update(naa = dx.naa)
+        fitter.set_weights_func(weight_func = fret_fit.get_weights,
+                                weight_kwargs = dict(weights=weights,
+                                                     gamma=gamma,
+                                                     nd=dx.nd, na=dx.na))
+    if save_fitter:
+        dx.add(**{burst_data + '_fitter': fitter})
     return fitter
-
 
 def _get_bg_distrib_erlang(d, ich=0, m=10, ph_sel=Ph_sel('all'), bp=(0, -1)):
     """Return a frozen (scipy) erlang distrib. with rate equal to the bg rate.
