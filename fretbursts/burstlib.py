@@ -1825,6 +1825,9 @@ class Data(DataContainer):
         if self.ALEX:
             self.calculate_stoich()
             self.calc_alex_hist()
+        for fitter in ['E_fitter', 'S_fitter']:
+            if fitter in self:
+                self.delete(fitter)
 
     def calculate_fret_eff(self):
         """Compute FRET efficiency (`E`) for each burst."""
