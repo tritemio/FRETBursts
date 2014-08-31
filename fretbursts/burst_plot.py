@@ -545,8 +545,8 @@ def hist_fret(d, i=0, bins=None, binw=0.03, pdf=True, hist_style='bar',
                 plt.plot(x, component.eval(x=x, **fit_res.values), '--k',
                          alpha=0.8)
         if show_model_peaks:
-            for param in ['center', 'p1_center', 'p2_center']:
-                if param in d.E_fitter.params:
+            for param in d.E_fitter.params:
+                if param.endswith('center'):
                     plt.axvline(d.E_fitter.params[param][i], ls='--',
                                 color=red)
 

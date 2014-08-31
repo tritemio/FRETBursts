@@ -192,6 +192,36 @@ def factory_two_gaussians(add_bridge=False, p1_center=0., p2_center=0.5,
     model.name = name
     return model
 
+def factory_three_gaussians(p1_center=0., p2_center=0.5, p3_center=1,
+                            sigma=0.05):
+    """Return a 2-Gaussian + (optional) bridge model that can fit data.
+
+    Arguments:
+        add_bridge (bool): if True adds a bridge function between the two
+            gaussian peaks. If False the model has only two Gaussians.
+
+    The other arguments are initial values for the model parameters.
+
+    Returns
+        An `lmfit.Model` object with all the parameters already initialized.
+    """
+    peak1 = lmfit.models.GaussianModel(prefix='p1_')
+    peak2 = lmfit.models.GaussianModel(prefix='p2_')
+    peak3 = lmfit.models.GaussianModel(prefix='p3_')
+    model = peak1 + peak2 + peak3
+
+    model.set_param('p1_center', p1_center, min=0, max=1)
+    model.set_param('p2_center', p2_center, min=0, max=1)
+    model.set_param('p2_center', p3_center, min=0, max=1)
+    model.set_param('p1_sigma', sigma, min=0.02, max=0.2)
+    model.set_param('p2_sigma', sigma, min=0.02, max=0.2)
+    model.set_param('p3_sigma', sigma, min=0.02, max=0.2)
+    model.set_param('p1_amplitude', 1, min=0.01)
+    model.set_param('p2_amplitude', 1, min=0.01)
+    model.set_param('p3_amplitude', 1, min=0.01)
+    model.name = '3-gaussians'
+    return model
+
 ## lmfit composite model used for fitting
 def factory_two_asym_gaussians(add_bridge=False, p1_center=0., p2_center=0.5,
                                p1_sigma=0.03, p2_sigma=0.08):
