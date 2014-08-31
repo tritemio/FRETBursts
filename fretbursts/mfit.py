@@ -303,14 +303,25 @@ class MultiFitter(FitterBase):
         self._hist_computed = False
         self._kde_computed = False
 
-    def histogram(self, bin_width=0.03, **kwargs):
+    def histogram(self, bin_width=0.03, bins=None, **kwargs):
         """Compute the histogram of the data for each channel.
 
-        All the kwargs are passed to `numpy.histogram`.
+        If `bins` is None, `bin_width` determines the bins array (saved in
+        `self.hist_bins`). If `bins` is not None, `bin_width` is ignored and
+        `self.hist_bin_width` is computed from `self.hist_bins`.
+
+        All the kwargs (except for bin_width) are passed to `numpy.histogram`.
         """
-        if 'bins' not in kwargs or kwargs['bins'] is None:
-            kwargs.update(bins=np.r_[-0.2 : 1.2 : bin_width])
-        kwargs.update(density=False)
+        ## Check if the same histogram is alredy computed
+        if self._hist_computed:
+            if bins is None and self.hist_bin_width == bin_width:
+                return
+            elif bins is not None and (self.hist_bins == bins).all():
+                return
+
+        if bins is None:
+            bins = np.r_[-0.2 : 1.2 : bin_width]
+        kwargs.update(bins=bins, density=False)
         hist_counts = []
         for data, weights in zip(self.data_list, self.weights):
             if weights is not None:
@@ -372,6 +383,9 @@ class MultiFitter(FitterBase):
     def calc_kde(self, bandwidth=0.03):
         """Compute the list of kde functions and save it in `.kde`.
         """
+        if self._kde_computed and self.kde_bandwidth == bandwidth:
+            return
+
         self.kde_bandwidth = bandwidth
         self.kde = []
         for data, weights_i in zip(self.data_list, self.weights):
@@ -446,6 +460,7 @@ def plot_mfit(fitter, ich=0, residuals=False, ax=None, plot_kde=False,
         ax.plot(x, kde(x), color='gray', alpha=0.8)
         if hasattr(fitter, 'kde_max_pos'):
             ax.axvline(fitter.kde_max_pos[ich], ls='--', color=red)
+
     if return_fig:
         return fig
 
