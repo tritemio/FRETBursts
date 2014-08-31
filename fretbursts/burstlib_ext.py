@@ -49,20 +49,11 @@ def fit_bursts_kde_peak(dx, burst_data='E', bandwidth=0.03, weights='size',
         An array of max peak positions (one per ch). If the number of
         channels is 1 returns a scalar.
     """
-    fitter = calc_bursts_kde(dx, burst_data=burst_data, bandwidth=bandwidth,
-                             weights=weights, gamma=gamma, add_naa=add_naa)
-    assert burst_data in dx
-
     if x_ax is None:
         x_ax = np.arange(-0.2, 1.2, 0.0002)
 
-    fitter = mfit.MultiFitter(dx[burst_data])
-    weight_kwargs = dict(weights=weights, gamma=gamma, nd=dx.nd, na=dx.na)
-    if add_naa:
-        weight_kwargs.update(naa = dx.naa)
-    fitter.set_weights_func(weight_func = fret_fit.get_weights,
-                            weight_kwargs = weight_kwargs)
-    fitter.calc_kde(bandwidth=bandwidth)
+    fitter = calc_bursts_kde(dx, burst_data=burst_data, bandwidth=bandwidth,
+                             weights=weights, gamma=gamma, add_naa=add_naa)
     fitter.find_kde_max(x_ax, xmin=x_range[0], xmax=x_range[1])
     KDE_max_mch = fitter.kde_max_pos
     if dx.nch == 1:
@@ -89,6 +80,9 @@ def calc_bursts_kde(dx, burst_data='E', bandwidth=0.03,
     """
     assert burst_data in dx
     fitter = mfit.MultiFitter(dx[burst_data])
+    weight_kwargs = dict(weights=weights, gamma=gamma, nd=dx.nd, na=dx.na)
+    if add_naa:
+        weight_kwargs.update(naa = dx.naa)
     fitter.set_weights_func(weight_func = fret_fit.get_weights,
                             weight_kwargs = dict(weights=weights, gamma=gamma,
                                                  nd=dx.nd, na=dx.na))
