@@ -511,14 +511,26 @@ def hist_size(d, i=0, vmax=1000, bins=r_[:1e3:2]-1, which='all', yscale='log',
     if legend: gca().legend(loc='best')
 
 
-def hist_fret(d, i=0, bins=None, binw=0.03, pdf=True, hist_style='bar',
+def hist_fret(d, i=0, ax=None, bins=None, binw=0.03, pdf=True, hist_style='bar',
               weights=None, gamma=1., add_naa=False,            # weights args
-              show_fit_stats=False, fit_stats='kde',
+              show_fit_stats=False, show_fit_value=False, fit_from='kde',
               show_kde=False, bandwidth=0.03, show_kde_peak=False,  # kde args
               show_model=False, show_model_peaks=True,
               hist_bar_style={}, hist_plot_style={}, model_plot_style={},
               kde_plot_style={}):
+
+    """Plot FRET histogram and KDE.
+
+    When bins is not None it overrides binw.
+
+    Histograms and KDE can be plotted on any Data variable after burst search.
+    To show a model, a model must be fitted first, calling
+    d.E_fitter.fit_histogram(). To show KDE peaks, the KDE peak position
+    must be computed first with d.E_fitter.find_kde_max().
+    """
     red = '#E41A1C'
+    if ax is None:
+        ax = gca()
     if 'E_fitter' not in d or d.burst_weights != (weights, gamma, add_naa):
         bext.bursts_fitter(d, weights=weights, gamma=gamma, add_naa=add_naa)
 
@@ -529,33 +541,33 @@ def hist_fret(d, i=0, bins=None, binw=0.03, pdf=True, hist_style='bar',
         hist_vals = d.E_fitter.hist_counts[i]
 
     hist_bar_style_ = dict(facecolor='#80b3ff', edgecolor='#5f8dd3',
-                           linewidth=1.5, alpha=0.6)
+                           linewidth=1.5, alpha=0.7)
     hist_bar_style_.update(**hist_bar_style)
 
-    hist_plot_style_ = dict(ls='-', marker='o', ms=3, linewidth=2, alpha=0.6)
+    hist_plot_style_ = dict(ls='-', marker='o', ms=6, lw=2, alpha=0.6)
     hist_plot_style_.update(**hist_plot_style)
     if hist_style == 'bar':
-        plt.bar(left = d.E_fitter.hist_bins[:-1], height=hist_vals,
-                width = d.E_fitter.hist_bin_width, **hist_bar_style)
+        ax.bar(left = d.E_fitter.hist_bins[:-1], height=hist_vals,
+                width = d.E_fitter.hist_bin_width, **hist_bar_style_)
     else:
-        plt.plot(d.E_fitter.hist_axis, hist_vals, **hist_plot_style)
+        ax.plot(d.E_fitter.hist_axis, hist_vals, **hist_plot_style_)
 
     if show_model:
         model_plot_style_ = dict(color='k', alpha=0.8)
         model_plot_style_.update(**model_plot_style)
         fit_res = d.E_fitter.fit_res[i]
         x = d.E_fitter.x_axis
-        plt.plot(x, fit_res.model.eval(x=x, **fit_res.values),
+        ax.plot(x, fit_res.model.eval(x=x, **fit_res.values),
                  **model_plot_style_)
         if  fit_res.model.components is not None:
             for component in fit_res.model.components:
                 model_plot_style_.update(ls = '--')
-                plt.plot(x, component.eval(x=x, **fit_res.values),
+                ax.plot(x, component.eval(x=x, **fit_res.values),
                          **model_plot_style_)
         if show_model_peaks:
             for param in d.E_fitter.params:
                 if param.endswith('center'):
-                    plt.axvline(d.E_fitter.params[param][i], ls='--',
+                    ax.axvline(d.E_fitter.params[param][i], ls='--',
                                 color=red)
 
     if show_kde:
@@ -564,27 +576,39 @@ def hist_fret(d, i=0, bins=None, binw=0.03, pdf=True, hist_style='bar',
         ## plot kde
         kde_plot_style_ = dict(lw=1.5, color='k', alpha=0.8)
         kde_plot_style_.update(**kde_plot_style)
-        plt.plot(x, d.E_fitter.kde[i](x), **kde_plot_style_)
+        ax.plot(x, d.E_fitter.kde[i](x), **kde_plot_style_)
     if show_kde_peak:
-        plt.axvline(d.E_fitter.kde_max_po[i], ls='--', color='orange')
+        ax.axvline(d.E_fitter.kde_max_pos[i], ls='--', color='orange')
 
-    if show_fit_stats:
+    if show_fit_value or show_fit_stats:
         if i == 0:
-            if fit_stats == 'kde':
+            if fit_from == 'kde':
                 fit_arr = d.E_fitter.kde_max_pos
             else:
-                assert fit_stats in d.E_fitter.params
-                fit_arr = d.E_fitter.params[fit_stats]
-            plt.figtext(0.4, 0.01, _get_fit_stats_text(fit_arr), fontsize=14)
+                assert fit_from in d.E_fitter.params
+                fit_arr = d.E_fitter.params[fit_from]
+            if show_fit_stats:
+                plt.figtext(0.4, 0.01, _get_fit_text_stats(fit_arr),
+                            fontsize=16)
+        if show_fit_value:
+            _plot_fit_text_ch(fit_arr, i, ax=ax)
 
-def _get_fit_stats_text(fit_arr, pylab=True):
-    """Return a formatted string for fitted E."""
+def _get_fit_text_stats(fit_arr, pylab=True):
+    """Return a formatted string for mean E and max delta-E."""
     delta = (fit_arr.max() - fit_arr.min())*100
     fit_text = r'\langle{E}_{fit}\rangle = %.3f \qquad ' % fit_arr.mean()
     fit_text += r'\Delta E_{fit} = %.2f \%%' % delta
     if pylab: fit_text = r'$'+fit_text+r'$'
     return fit_text
 
+def _plot_fit_text_ch(fit_arr, ich, fmt_str="CH%d: $E_{fit} = %.3f$", ax=None,
+            bbox=dict(boxstyle='round', facecolor='#dedede', alpha=0.5),
+            xtext_low=0.2, xtext_high=0.6, fontsize=16):
+    """Plot a text box with ch and fit value."""
+    if ax is None: ax = gca()
+    xtext = xtext_high if fit_arr[ich] < xtext_high else xtext_low
+    ax.text(xtext, 0.81, fmt_str % (ich+1, fit_arr[ich]),
+            transform = ax.transAxes, fontsize=fontsize, bbox=bbox)
 
 
 def hist_fret_kde(d, i=0, bins=None, binw=0.02, bandwidth=0.03, show_fit=False,
