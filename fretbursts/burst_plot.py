@@ -538,9 +538,12 @@ def hist_fret(d, i=0, ax=None, bins=None, binw=0.03, pdf=True, hist_style='bar',
 
     d.E_fitter.histogram(bin_width=binw, bins=bins)
     if pdf:
+        ax.set_ylabel('PDF')
         hist_vals = d.E_fitter.hist_pdf[i]
     else:
+        ax.set_ylabel('# Bursts')
         hist_vals = d.E_fitter.hist_counts[i]
+    ax.set_xlabel('E')
 
     hist_bar_style_ = dict(facecolor='#80b3ff', edgecolor='#5f8dd3',
                            linewidth=1.5, alpha=0.7, label='E Histogram')
