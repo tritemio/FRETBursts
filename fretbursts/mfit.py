@@ -333,7 +333,7 @@ class MultiFitter(FitterBase):
         self._hist_computed = False
         self._kde_computed = False
 
-    def histogram(self, bin_width=0.03, bins=None, **kwargs):
+    def histogram(self, bin_width=0.03, bins=None, verbose=False, **kwargs):
         """Compute the histogram of the data for each channel.
 
         If `bins` is None, `bin_width` determines the bins array (saved in
@@ -349,6 +349,8 @@ class MultiFitter(FitterBase):
             elif bins is not None and (self.hist_bins == bins).all():
                 return
 
+        if verbose:
+            print " - Computing histogram."
         if bins is None:
             bins = np.r_[-0.2 : 1.2 : bin_width]
         kwargs.update(bins=bins, density=False)

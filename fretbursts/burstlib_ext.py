@@ -90,7 +90,7 @@ def bursts_fitter(dx, burst_data='E', save_fitter=True,
                                                      nd=dx.nd, na=dx.na))
     if save_fitter:
         dx.add(**{burst_data + '_fitter': fitter,
-                  'burst_weights': (weights, gamma, add_naa)})
+                  'burst_weights': (weights, float(gamma), add_naa)})
     return fitter
 
 def _get_bg_distrib_erlang(d, ich=0, m=10, ph_sel=Ph_sel('all'), bp=(0, -1)):

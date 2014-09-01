@@ -517,26 +517,30 @@ def hist_fret(d, i=0, ax=None, bins=None, binw=0.03, pdf=True, hist_style='bar',
               show_kde=False, bandwidth=0.03, show_kde_peak=False,  # kde args
               show_model=False, show_model_peaks=True,
               hist_bar_style={}, hist_plot_style={}, model_plot_style={},
-              kde_plot_style={}):
+              kde_plot_style={}, verbose=False):
 
     """Plot FRET histogram and KDE.
 
-    When bins is not None it overrides binw.
+    When `bins` is not None it overrides `binw (bin width).
 
     Histograms and KDE can be plotted on any Data variable after burst search.
-    To show a model, a model must be fitted first, calling
-    d.E_fitter.fit_histogram(). To show KDE peaks, the KDE peak position
-    must be computed first with d.E_fitter.find_kde_max().
+    To show a model, a model must be fitted first by calling
+    d.E_fitter.fit_histogram(). To show the KDE peaks position, they must be
+    computed first with d.E_fitter.find_kde_max().
     """
     red = '#E41A1C'
     if ax is None:
         ax = gca()
-    if 'E_fitter' not in d or d.burst_weights != (weights, gamma, add_naa):
-        if 'E_fitter' in d:
+    weights_tuple = (weights, float(gamma), add_naa)
+    if not hasattr(d, 'E_fitter') or d.burst_weights != weights_tuple:
+        if hasattr(d, 'E_fitter'):
             print ' - Overwriting the old E_fitter object with the new weights.'
+            if verbose:
+                print '   Old weights:', d.burst_weights
+                print '   New weights:', weights_tuple
         bext.bursts_fitter(d, weights=weights, gamma=gamma, add_naa=add_naa)
 
-    d.E_fitter.histogram(bin_width=binw, bins=bins)
+    d.E_fitter.histogram(bin_width=binw, bins=bins, verbose=verbose)
     if pdf:
         ax.set_ylabel('PDF')
         hist_vals = d.E_fitter.hist_pdf[i]
@@ -579,7 +583,6 @@ def hist_fret(d, i=0, ax=None, bins=None, binw=0.03, pdf=True, hist_style='bar',
     if show_kde:
         x = d.E_fitter.x_axis
         d.E_fitter.calc_kde(bandwidth=bandwidth)
-        ## plot kde
         kde_plot_style_ = dict(linewidth=1.5, color='k', alpha=0.8, label='KDE')
         kde_plot_style_.update(**_normalize_kwargs(kde_plot_style,
                                                    kind='line2d'))
@@ -588,12 +591,13 @@ def hist_fret(d, i=0, ax=None, bins=None, binw=0.03, pdf=True, hist_style='bar',
         ax.axvline(d.E_fitter.kde_max_pos[i], ls='--', color='orange')
 
     if show_fit_value or show_fit_stats:
+        if fit_from == 'kde':
+            fit_arr = d.E_fitter.kde_max_pos
+        else:
+            assert fit_from in d.E_fitter.params
+            fit_arr = d.E_fitter.params[fit_from]
+
         if i == 0:
-            if fit_from == 'kde':
-                fit_arr = d.E_fitter.kde_max_pos
-            else:
-                assert fit_from in d.E_fitter.params
-                fit_arr = d.E_fitter.params[fit_from]
             if show_fit_stats:
                 plt.figtext(0.4, 0.01, _get_fit_text_stats(fit_arr),
                             fontsize=16)
