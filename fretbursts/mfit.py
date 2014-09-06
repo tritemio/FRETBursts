@@ -4,7 +4,6 @@ is treated independently.
 """
 
 from __future__ import division
-import copy
 import numpy as np
 import pandas as pd
 import lmfit
@@ -121,11 +120,9 @@ def bridge_function2(x, center1, center2, sigma1, sigma2, amplitude):
 # Factory functions that return initialized `lmfit.Model` objects
 #
 def factory_gaussian(center=0.1, sigma=0.1, amplitude=1):
-    """Return a Gaussian model that can fit data.
+    """Return an lmfit Gaussian model that be used to fit data.
 
-    Arguments:
-        add_bridge (bool): if True adds a bridge function between the two
-            gaussian peaks. If False the model has only two Gaussians.
+    Arguments are initial values for the model parameters.
 
     Returns
         An `lmfit.Model` object with all the parameters already initialized.
@@ -140,10 +137,7 @@ def factory_asym_gaussian(center=0.1, sigma1=0.1, sigma2=0.1, amplitude=1):
     """Return a Asymmetric Gaussian model that can fit data.
 
     For the definition of asymmetric Gaussian see :func:`asym_gaussian`.
-
-    Arguments:
-        add_bridge (bool): if True adds a bridge function between the two
-            gaussian peaks. If False the model has only two Gaussians.
+    Arguments are initial values for the model parameters.
 
     Returns
         An `lmfit.Model` object with all the parameters already initialized.
