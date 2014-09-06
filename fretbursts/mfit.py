@@ -250,6 +250,10 @@ def factory_two_asym_gaussians(add_bridge=False, p1_center=0.1, p2_center=0.9,
     model.set_param_hint('p2_sigma2', p2_sigma, min=0.01, max=0.2)
     model.set_param_hint('p1_amplitude', 1, min=0.01)
     model.set_param_hint('p2_amplitude', 1, min=0.01)
+
+    model.set_param_hint('pos_delta', 0.3, min=0)
+    model.set_param_hint('p2_center', expr='p1_center + pos_delta')
+
     name = '2-asym-gaussians'
 
     if add_bridge:
