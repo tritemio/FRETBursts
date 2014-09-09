@@ -483,7 +483,7 @@ def hist_width(d, i=0, bins=r_[0:10:0.025], yscale='log', density=True,
     xlabel('Burst width (ms)'); ylabel('# Burst')
     plt.xlim(xmin=0); plt.ylim(ymin=0)
 
-def hist_size(d, i=0, vmax=1000, binw=2, bins=None,
+def hist_size(d, i=0, vmax=600, binw=4, bins=None,
               which='all', gamma=1, add_naa=False,
               yscale='log', legend=True, plot_style={}):
 
@@ -539,7 +539,7 @@ def hist_size_all(d, i=0, **kwargs):
     if d.ALEX:
         fields.append('naa')
     for which in fields:
-        hist_size(d, i, which=field, **kwargs)
+        hist_size(d, i, which=which, **kwargs)
 
 
 def hist_fret(d, i=0, ax=None, bins=None, binw=0.03, pdf=True, hist_style='bar',
