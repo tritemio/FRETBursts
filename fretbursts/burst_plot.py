@@ -483,32 +483,63 @@ def hist_width(d, i=0, bins=r_[0:10:0.025], yscale='log', density=True,
     xlabel('Burst width (ms)'); ylabel('# Burst')
     plt.xlim(xmin=0); plt.ylim(ymin=0)
 
-def hist_size(d, i=0, vmax=1000, bins=r_[:1e3:2]-1, which='all', yscale='log',
-        legend=True, **kwargs):
-    assert which in ["all", "nt", "nd", "na", "naa", "nd+na"]
-    if which == 'nt' or which == 'all':
-        H, A = np.histogram(d.nt[i], bins=bins)
-        plot_style = dict(lw=2, color='k'); plot_style.update(**kwargs)
-        plot(A[:-1]-0.5*(A[1]-A[0]), H, label='T', **plot_style)
-    if which == 'nd' or which == 'all':
-        H, A = np.histogram(d.nd[i], bins=bins)
-        plot_style = dict(lw=2, color='g'); plot_style.update(**kwargs)
-        plot(A[:-1]-0.5*(A[1]-A[0]), H, label='D', **plot_style)
-    if which == 'na' or which == 'all':
-        H, A = np.histogram(d.na[i], bins=bins)
-        plot_style = dict(lw=2, color='r'); plot_style.update(**kwargs)
-        plot(A[:-1]-0.5*(A[1]-A[0]), H, label='A', **plot_style)
-    if d.ALEX and (which == 'naa' or which == 'all'):
-        H, A = np.histogram(d.naa[i], bins=bins)
-        plot_style = dict(lw=2, color='orange'); plot_style.update(**kwargs)
-        plot(A[:-1]-0.5*(A[1]-A[0]), H, label='AA', **plot_style)
-    if which == 'nd+na':
-        H, A = np.histogram(d.nd[i] + d.na[i], bins=bins)
-        plot_style = dict(lw=2, color='brown'); plot_style.update(**kwargs)
-        plot(A[:-1]-0.5*(A[1]-A[0]), H, label='DemDex + AemDex', **plot_style)
+def hist_size(d, i=0, vmax=1000, binw=2, bins=None,
+              which='all', gamma=1, add_naa=False,
+              yscale='log', legend=True, plot_style={}):
+
+    """Plot histogram of burst sizes.
+
+    Parameters:
+        d (Data): Data object
+        i (int): channel index
+        vmax (int/float): histogram max
+        binw (int/float): histogram bin width
+        bins (array or None): array of bin edges. If not NOne overrides `binw`
+        which (string): which counts to consider. 'all' all-photon size
+            computed with `d.burst_sizes()`; 'nd', 'na', 'naa' get counts from
+            `d.nd`, `d.na`, `d.naa` (respectively Dex-Dem, Dex-Aem, Aex-Aem).
+        yscale (string): 'log' or 'linear', sets the plot y scale.
+        legend (bool): if True add legend to plot
+        plot_style (dict): dict of matplotlib line style passed to `plot`.
+    """
+    valid_which = ["all", "nd", "na", "naa"]
+    assert which in valid_which
+    if which == 'all':
+        size = d.burst_sizes_ich(ich=i, gamma=gamma, add_naa=add_naa)
+        label = 'nd + na'
+        if gamma != 1:
+            label = "%.2f %s" % (gamma, label)
+        if add_naa:
+            label += " + naa"
+    else:
+        size = d[which][i]
+        label = which
+
+    colors = ['k', 'g', 'r', 'orange']
+    colors_dict = {k: c for k, c in zip(valid_which, colors)}
+
+    if bins is None:
+        bins = np.arange(0, vmax+binw, binw)
+    counts, bins = np.histogram(size, bins=bins)
+    x = bins[:-1] + 0.5*(bins[1] + bins[0])
+    plot_style_ = dict(linewidth=2, color=colors_dict[which])
+    plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
+    plot(x, counts, label=label, **plot_style_)
+
     gca().set_yscale(yscale)
     xlabel('# Ph.'); ylabel('# Bursts')
     if legend: gca().legend(loc='best')
+
+def hist_size_all(d, i=0, **kwargs):
+    """Plot burst sizes for all the combinations of photons.
+
+    Calls :func:`hist_size` multiple times with different `which` parameters.
+    """
+    fields = ['all', 'nd', 'na']
+    if d.ALEX:
+        fields.append('naa')
+    for which in fields:
+        hist_size(d, i, which=field, **kwargs)
 
 
 def hist_fret(d, i=0, ax=None, bins=None, binw=0.03, pdf=True, hist_style='bar',
