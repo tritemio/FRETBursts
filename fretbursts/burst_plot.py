@@ -1015,11 +1015,22 @@ def scatter_rate_da(d, i=0):
     plt.xlim(-20,100); plt.ylim(-20,100)
     legend(frameon=False)
 
-def scatter_fret_size(d, i=0):
-    """Scatterplot of FRET efficiency versus burst size (nt)."""
-    plot(d.E[i], d.nt[i], 'o', mew=0, ms=3, alpha=0.1, color="blue")
+def scatter_fret_size(d, i=0, which='all', gamma=1, add_naa=False,
+                      plot_style={}):
+    """Scatterplot of FRET efficiency versus burst size.
+    """
+    if which == 'all':
+        size = d.burst_sizes_ich(ich=i, gamma=gamma, add_naa=add_naa)
+    else:
+        assert which in d
+        size = d[which][i]
+
+    plot_style_ = dict(linestyle='', alpha=0.1, color='b',
+                       marker='o', markeredgewidth=0, markersize=3)
+    plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
+    plot(d.E[i], size, **plot_style_)
     xlabel("FRET Efficiency (E)")
-    ylabel("Burst size (#ph)")
+    ylabel("Corrected Burst size (#ph)")
 
 def scatter_fret_nd_na(d, i=0, show_fit=False, no_text=False, gamma=1.,
                        **kwargs):
