@@ -128,9 +128,9 @@ def factory_gaussian(center=0.1, sigma=0.1, amplitude=1):
         An `lmfit.Model` object with all the parameters already initialized.
     """
     model = lmfit.models.GaussianModel()
-    model.set_param_hint('center', center, min=-1, max=2)
-    model.set_param_hint('sigma', sigma)
-    model.set_param_hint('amplitude', amplitude)
+    model.set_param_hint('center', value=center, min=-1, max=2)
+    model.set_param_hint('sigma', value=sigma)
+    model.set_param_hint('amplitude', value=amplitude)
     return model
 
 def factory_asym_gaussian(center=0.1, sigma1=0.1, sigma2=0.1, amplitude=1):
@@ -143,10 +143,10 @@ def factory_asym_gaussian(center=0.1, sigma1=0.1, sigma2=0.1, amplitude=1):
         An `lmfit.Model` object with all the parameters already initialized.
     """
     model = lmfit.model.Model(asym_gaussian)
-    model.set_param_hint('center', center, min=-1, max=2)
-    model.set_param_hint('sigma1', sigma1)
-    model.set_param_hint('sigma2', sigma2)
-    model.set_param_hint('amplitude', amplitude)
+    model.set_param_hint('center', value=center, min=-1, max=2)
+    model.set_param_hint('sigma1', value=sigma1)
+    model.set_param_hint('sigma2', value=sigma2)
+    model.set_param_hint('amplitude', value=amplitude)
     return model
 
 def factory_two_gaussians(add_bridge=False, p1_center=0.1, p2_center=0.9,
@@ -166,18 +166,18 @@ def factory_two_gaussians(add_bridge=False, p1_center=0.1, p2_center=0.9,
     peak2 = lmfit.models.GaussianModel(prefix='p2_')
     model = peak1 + peak2
 
-    model.set_param_hint('p1_center', p1_center, min=-1, max=2)
-    model.set_param_hint('p2_center', p2_center, min=-1, max=2)
-    model.set_param_hint('p1_sigma', p1_sigma, min=0.01, max=0.2)
-    model.set_param_hint('p2_sigma', p2_sigma, min=0.01, max=0.2)
-    model.set_param_hint('p1_amplitude', 1, min=0.01)
-    model.set_param_hint('p2_amplitude', 1, min=0.01)
+    model.set_param_hint('p1_center', value=p1_center, min=-1, max=2)
+    model.set_param_hint('p2_center', value=p2_center, min=-1, max=2)
+    model.set_param_hint('p1_sigma', value=p1_sigma, min=0.01, max=0.2)
+    model.set_param_hint('p2_sigma', value=p2_sigma, min=0.01, max=0.2)
+    model.set_param_hint('p1_amplitude', value=1, min=0.01)
+    model.set_param_hint('p2_amplitude', value=1, min=0.01)
     name = '2-gaussians'
 
     if add_bridge:
         bridge = lmfit.model.Model(bridge_function, prefix='br_')
         model += bridge
-        bridge.set_param_hint('amplitude', 0.0001, min=0)
+        bridge.set_param_hint('amplitude', value=0.0001, min=0)
         model.set_param_hint('br_center1', expr = 'p1_center')
         model.set_param_hint('br_center2', expr = 'p2_center')
         model.set_param_hint('br_sigma1', expr = 'p1_sigma')
@@ -204,15 +204,15 @@ def factory_three_gaussians(p1_center=0., p2_center=0.5, p3_center=1,
     peak3 = lmfit.models.GaussianModel(prefix='p3_')
     model = peak1 + peak2 + peak3
 
-    model.set_param_hint('p1_center', p1_center, min=0, max=1)
-    model.set_param_hint('p2_center', p2_center, min=0, max=1)
-    model.set_param_hint('p3_center', p3_center, min=0, max=1)
-    model.set_param_hint('p1_sigma', sigma, min=0.02, max=0.2)
-    model.set_param_hint('p2_sigma', sigma, min=0.02, max=0.2)
-    model.set_param_hint('p3_sigma', sigma, min=0.02, max=0.2)
-    model.set_param_hint('p1_amplitude', 1, min=0.01)
-    model.set_param_hint('p2_amplitude', 1, min=0.01)
-    model.set_param_hint('p3_amplitude', 1, min=0.01)
+    model.set_param_hint('p1_center', value=p1_center, min=0, max=1)
+    model.set_param_hint('p2_center', value=p2_center, min=0, max=1)
+    model.set_param_hint('p3_center', value=p3_center, min=0, max=1)
+    model.set_param_hint('p1_sigma', value=sigma, min=0.02, max=0.2)
+    model.set_param_hint('p2_sigma', value=sigma, min=0.02, max=0.2)
+    model.set_param_hint('p3_sigma', value=sigma, min=0.02, max=0.2)
+    model.set_param_hint('p1_amplitude', value=1, min=0.01)
+    model.set_param_hint('p2_amplitude', value=1, min=0.01)
+    model.set_param_hint('p3_amplitude', value=1, min=0.01)
     model.name = '3-gaussians'
     return model
 
@@ -236,16 +236,16 @@ def factory_two_asym_gaussians(add_bridge=False, p1_center=0.1, p2_center=0.9,
     peak2 = lmfit.model.Model(asym_gaussian, prefix='p2_')
     model = peak1 + peak2
 
-    model.set_param_hint('p1_center', p1_center, min=-1, max=2)
-    model.set_param_hint('p2_center', p2_center, min=-1, max=2)
-    model.set_param_hint('p1_sigma1', p1_sigma, min=0.01, max=0.2)
-    model.set_param_hint('p1_sigma2', p1_sigma, min=0.01, max=0.2)
-    model.set_param_hint('p2_sigma1', p2_sigma, min=0.01, max=0.2)
-    model.set_param_hint('p2_sigma2', p2_sigma, min=0.01, max=0.2)
-    model.set_param_hint('p1_amplitude', 1, min=0.01)
-    model.set_param_hint('p2_amplitude', 1, min=0.01)
+    model.set_param_hint('p1_center', value=p1_center, min=-1, max=2)
+    model.set_param_hint('p2_center', value=p2_center, min=-1, max=2)
+    model.set_param_hint('p1_sigma1', value=p1_sigma, min=0.01, max=0.2)
+    model.set_param_hint('p1_sigma2', value=p1_sigma, min=0.01, max=0.2)
+    model.set_param_hint('p2_sigma1', value=p2_sigma, min=0.01, max=0.2)
+    model.set_param_hint('p2_sigma2', value=p2_sigma, min=0.01, max=0.2)
+    model.set_param_hint('p1_amplitude', value=1, min=0.01)
+    model.set_param_hint('p2_amplitude', value=1, min=0.01)
 
-    model.set_param_hint('pos_delta', 0.3, min=0)
+    model.set_param_hint('pos_delta', value=0.3, min=0)
     model.set_param_hint('p2_center', expr='p1_center + pos_delta')
 
     name = '2-asym-gaussians'
@@ -253,7 +253,7 @@ def factory_two_asym_gaussians(add_bridge=False, p1_center=0.1, p2_center=0.9,
     if add_bridge:
         bridge = lmfit.model.Model(bridge_function, prefix='br_')
         model += bridge
-        bridge.set_param_hint('amplitude', 0.0001, min=0)
+        bridge.set_param_hint('amplitude', value=0.0001, min=0)
         model.set_params_hint('br_center1', expr = 'p1_center')
         model.set_params_hint('br_center2', expr = 'p2_center')
         model.set_params_hint('br_sigma1', expr = 'p1_sigma2')
