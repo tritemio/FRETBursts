@@ -850,6 +850,29 @@ class Data(DataContainer):
         new_d.s.append(s)
         return new_d
 
+    def burst_sizes_ich(self, ich=0, gamma=1., gamma1=None, add_naa=False):
+        """Return gamma corrected burst sizes for channel `ich`.
+
+        The gamma corrected size is computed as::
+
+            1) nd + na/gamma  (so th1 is the min. burst size for donly bursts)
+            2) nd*gamma1 + na (so th1 is the min. burst size for high FRET
+            bursts)
+
+        If `gamma1` is not None, the definition (2) is used.
+        If `d.ALEX` and `add_naa` are True, `naa` is added to the burst size.
+
+        Returns
+            Array of burst sizes for channel `ich`.
+        """
+        if gamma1 is not None:
+            burst_size = 1.*self.nd[ich]*gamma1 + self.na[ich]
+        else:
+            burst_size = self.nd[ich] + 1.*self.na[ich]/gamma
+        if self.ALEX and add_naa:
+            burst_size += self.naa[ich]
+        return burst_size
+
     def bursts_slice(self, N1=0, N2=-1):
         """Return new Data object with bursts between `N1` and `N2`
         `N1` and `N2` can be scalars or lists (one per ch).
