@@ -63,7 +63,10 @@ def fit_bursts_kde_peak(dx, burst_data='E', bandwidth=0.03, weights='size',
 
 def bursts_fitter(dx, burst_data='E', save_fitter=True,
                   weights=None, gamma=1, add_naa=False):
-    """Compute KDE of burst data (typ. E or S) on all the channels.
+    """Create a mfit.MultiFitter object (for E or S) add it to `dx`.
+
+    A MultiFitter object allows to fit multi-channel data with the same
+    model.
 
     Parameters
         dx (Data): `Data` object containing the FRET data
@@ -76,7 +79,7 @@ def bursts_fitter(dx, burst_data='E', save_fitter=True,
         add_naa (bool): if True adds `naa` to the burst size.
 
     Returns
-        The `MultiFitter` object with the specified burst-size weights.
+        The `mfit.MultiFitter` object with the specified burst-size weights.
     """
     assert burst_data in dx
     fitter = mfit.MultiFitter(dx[burst_data])
