@@ -46,6 +46,15 @@ except ImportError:
 else:
     has_lmfit = True
 
+try:
+    import PySide
+except:
+    has_pyside = False
+    warnings.warn((' - Cannot import PySide. Some GUI functionalities '
+                   ' will not be avalable.'))
+else:
+    has_pyside = True
+
 
 __all__numpy = ["np", "r_", "zeros"]
 
@@ -99,30 +108,36 @@ if has_matplotlib:
 import background as bg
 import burstlib as bl
 from .burstlib import Data, Sel, Sel_mask, Sel_mask_apply
-import burstlib_ext as bext
 from .ph_sel import Ph_sel
 import fretmath
-import mfit
 
-import burst_plot as bpl
-from burst_plot import (
-        # Standalone plots as a function of ch
-        mch_plot_bg, plot_alternation_hist,
+if has_matplotlib and has_pandas and has_lmfit:
+    import burstlib_ext as bext
+    import mfit
 
-        # Plots types used for 1ch of multi-ch plots through `dplot`
-        timetrace, timetrace_da, ratetrace, ratetrace_da,
-        timetrace_alex, timetrace_fret,
-        timetrace_bg,
-        hist_width, hist_size, hist_size_all, hist_fret,
-        hist2d_alex, hist_S, hist_sbr, hist_asymmetry,
-        hist_bg_fit_single, hist_bg_fit, hist_ph_delays, hist_mdelays,
-        hist_mrates, hist_rate_in_burst, hist_burst_delays,
-        scatter_width_size, scatter_rate_da, scatter_fret_size,
-        scatter_fret_nd_na, scatter_fret_width, scatter_da,
-        scatter_naa_nt, scatter_alex,
+if has_matplotlib:
+    import burst_plot as bpl
+    from burst_plot import (
+            # Standalone plots as a function of ch
+            mch_plot_bg, plot_alternation_hist,
 
-        # Wrapper functions that create a plot for each channel
-        dplot, dplot_48ch, dplot_8ch, dplot_1ch,
-        )
-from utils.gui import gui_fname
+            # Plots types used for 1ch of multi-ch plots through `dplot`
+            timetrace, timetrace_da, ratetrace, ratetrace_da,
+            timetrace_alex, timetrace_fret,
+            timetrace_bg,
+            hist_width, hist_size, hist_size_all, hist_fret,
+            hist2d_alex, hist_S, hist_sbr, hist_asymmetry,
+            hist_bg_fit_single, hist_bg_fit, hist_ph_delays, hist_mdelays,
+            hist_mrates, hist_rate_in_burst, hist_burst_delays,
+            scatter_width_size, scatter_rate_da, scatter_fret_size,
+            scatter_fret_nd_na, scatter_fret_width, scatter_da,
+            scatter_naa_nt, scatter_alex,
+
+            # Wrapper functions that create a plot for each channel
+            dplot, dplot_48ch, dplot_8ch, dplot_1ch,
+            )
+
+if has_pyside:
+    from utils.gui import gui_fname
+
 from utils.misc import download_file

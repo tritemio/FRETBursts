@@ -10,6 +10,7 @@ models used to fit E or S histograms.
 """
 
 from __future__ import division
+
 import numpy as np
 import pandas as pd
 import lmfit
