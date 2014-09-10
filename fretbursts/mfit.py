@@ -120,7 +120,7 @@ def bridge_function2(x, center1, center2, sigma1, sigma2, amplitude):
 # Factory functions that return initialized `lmfit.Model` objects
 #
 def factory_gaussian(center=0.1, sigma=0.1, amplitude=1):
-    """Return an lmfit Gaussian model that be used to fit data.
+    """Return an lmfit Gaussian model that can be used to fit data.
 
     Arguments are initial values for the model parameters.
 
@@ -134,7 +134,7 @@ def factory_gaussian(center=0.1, sigma=0.1, amplitude=1):
     return model
 
 def factory_asym_gaussian(center=0.1, sigma1=0.1, sigma2=0.1, amplitude=1):
-    """Return a Asymmetric Gaussian model that can fit data.
+    """Return a lmfit Asymmetric Gaussian model that can be used to fit data.
 
     For the definition of asymmetric Gaussian see :func:`asym_gaussian`.
     Arguments are initial values for the model parameters.
