@@ -5,12 +5,41 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-The module `burtlib_ext.py` contains extensions to `burstslib.py`. It can be
-though as a simple plugin system for FRETBursts.
+The module `burtlib_ext.py` (usually imported as `bext`) contains extensions
+to `burstslib.py`. It can be though as a simple plugin system for FRETBursts.
 
 Functions here defined operate on :class:`fretbursts.burstlib.Data()` objects
 extending the functionality beyond the core functions and methods defined in
-`burstlib`.
+`burstlib`. This modularization allows to implement new functions without
+overloading the :class:`fretbursts.burstlib.Data` with an high number
+of non-core methods.
+
+The type of functions here implemented are quite diverse. A short summary
+follows.
+
+* :func:`bursts_fitter` and :func:`fit_bursts_kde_peak` help to build and
+  fit histograms and KDEs for E or S.
+
+* :func:`burst_search_and_gate` performs the AND-gate burst search taking
+  intersection of the bursts detected in two photons streams.
+
+* :func:`calc_mdelays_hist` computes the histogram of the m-delays
+  distribution of photon intervals.
+
+* :func:`burst_data_period_mean` computes a mean of any "burst data"
+  for each background period.
+
+* :func:`join_data` joins different measuremets to create a single
+  "virtual" measurement from a series of measurements.
+
+Finally a few functions deal with burst timestamps:
+
+* :func:`get_burst_photons` returns a list of timestamps for each burst.
+* :func:`ph_burst_stats` compute any statistics (for example mean or median)
+  on the timestamps of each burst.
+* :func:`asymmetry` returns a burst "asymmetry index" based on the difference
+  between Donor and Acceptor timestamps.
+
 """
 from __future__ import division
 
@@ -375,7 +404,8 @@ def get_burst_photons(d, ich=0, ph_sel=Ph_sel('all')):
         d (Data): Data() object
         ich (int): channel index
         ph_sel (Ph_sel): photon selection. It allows to select timestamps
-            from a specific photon selectio. Example ph_sel=Ph_sel(Dex='Dem').
+            from a specific photon selection. Example ph_sel=Ph_sel(Dex='Dem').
+            See :class:`fretbursts.ph_sel.Ph_sel` for details.
 
     Returns:
         A list of arrays of photon timestamps (one array per burst).
@@ -395,11 +425,41 @@ def get_burst_photons(d, ich=0, ph_sel=Ph_sel('all')):
     return burst_photons
 
 def ph_burst_stats(d, ich=0, func=np.mean, ph_sel=Ph_sel('all')):
+    """Applies function `func` to the timestamps of each burst.
+
+    Arguments:
+        d (Data): Data() object
+        ich (int): channel index
+        func (function): a function that take an array of burst-timestamps
+            and return a scalar. Default `numpy.mean`.
+        ph_sel (Ph_sel): photon selection. It allows to select timestamps
+            from a specific photon selection. Default Ph_sel('all').
+            See :class:`fretbursts.ph_sel.Ph_sel` for details.
+
+    Returns:
+        An array containing per-burst timestamp statistics.
+    """
     burst_photons = get_burst_photons(d, ich, ph_sel=ph_sel)
     stats = [func(times) for times in burst_photons]
     return np.array(stats)
 
 def asymmetry(d, ich=0, func=np.mean, dropnan=True):
+    """Compute an asymmetry index for each burst in channel `ich`.
+
+    It computes each burst the difference func({t_D}) - func({t_A})
+    where `func` is a function (default `mean`) that computes some statistics
+    on the timestamp and {t_D} and {t_A} are the sets of D or A timestamps
+    in a bursts (during D excitation).
+
+    Arguments:
+        d (Data): Data() object
+        ich (int): channel index
+        func (function): the function to be used to extract D and A photon
+            statistics in each bursts.
+
+    Returns:
+        An arrays of photon timestamps (one array per burst).
+    """
     stats_d = ph_burst_stats(d, ich=ich, func=func, ph_sel=Ph_sel(Dex='Dem'))
     stats_a = ph_burst_stats(d, ich=ich, func=func, ph_sel=Ph_sel(Dex='Aem'))
 

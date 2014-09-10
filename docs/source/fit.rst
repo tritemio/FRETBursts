@@ -3,18 +3,43 @@
 Fit framework
 =============
 
-For varius fittings needs, FRETBursts make use of the powerful
-`lmfit <http://lmfit.github.io/lmfit-py/>`_
-library. To install lmfit use this command in a terminal::
+This page contains only a general description of FRETBursts fitting
+functionalities. The content of this page is:
+
+.. contents::
+
+For the reference documentation for fitting multi-channel histograms see:
+
+.. toctree::
+    :maxdepth: 3
+
+    mfit
+
+For some legacy modules used for gaussian and exponential fitting see:
+
+.. toctree::
+    :maxdepth: 3
+
+    gaussian_fitting
+    exp_fitting
+
+
+Overview
+--------
+
+FRETBursts uses of the powerful `lmfit <http://lmfit.github.io/lmfit-py/>`_
+library for most fittings (like E or S histogram fitting). To install `lmfit`
+type this command in a terminal::
 
     pip install lmfit
 
-FRETBursts requires lmfit version 0.8rc4 or higher.
+FRETBursts requires `lmfit` version 0.8rc4 or higher.
 
 Fitting E or S histograms
 -------------------------
 
-The module :module:`mfit` provides a class :class:`fretbursts.mfit.MultiFitter`
+The module :mod:`fretbursts.mfit` provides a class
+:class:`fretbursts.mfit.MultiFitter`
 that allow to build histograms and KDE on a multi-channel sample population
 (typically E or S values for each burst). The MultiFitter class can find
 the max peak position of a KDE or fit the histogram with an abitrary model.
@@ -24,19 +49,19 @@ every detail of the fit by setting initial values, parameter bounds
 (min, max), algebric constrains and so on. New models can be created by
 composing simpler models (by using `+` operator).
 
-A convenience function :func:fretbursts.burstlib_ext.burst_fitter` can be
+A convenience function :func:`fretbursts.burstlib_ext.burst_fitter` can be
 used to create a `MultiFitter` object to fit either E or S. As an example
 let suppose to have a measurent loaded in the variable `d`. To create a
-fitter object and compute the FRET histogram we do::
+fitter object and compute the FRET histogram we execute::
 
     bext.burst_fitter(d)    # Creates d.E_fitter
     d.E_fitter.histogram()  # Compute the histogram for all the channels
 
-Now to fit with a 2-Gaussians models::
+Now we fit th E histogram with a 2-Gaussians model::
 
     d.E_fitter.fit_histogram(mfit.factory_two_gaussians)
 
-And to plot the histogram and the model with fitted parameters::
+And plot the histogram and the fitted model::
 
     dplot(d, hist_fret, show_model=True)
 
@@ -57,7 +82,9 @@ form. Basic models (such as a Gaussian peak) and be composed allowing
 an easy definitions of a variety of models (2 or 3 Gaussians).
 
 For more information refer to the official
-`lmfit documentation <>`_.
+`lmfit documentation <http://lmfit.github.io/lmfit-py/>`_.
+
+
 
 
 Legacy Fit functions

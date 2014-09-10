@@ -1,6 +1,12 @@
+#
+# FRETBursts - A single-molecule FRET burst analysis toolkit.
+#
+# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+#
 """
-Fit multiple data populations (multi-channel data). Each population/channel
-is treated independently.
+This model provides a class for fitting multi-channel data
+(:class:`MultiFitter`) and a series of predefined functions for common
+models used to fit E or S histograms.
 """
 
 from __future__ import division
