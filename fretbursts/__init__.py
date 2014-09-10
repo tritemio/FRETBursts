@@ -93,13 +93,11 @@ __all_local_names = [
 
 __all__ = __all__numpy + __all_local_names
 
-if has_matplotlib:
-    __all__ += __all__matplotlib
-
 import numpy as np
 from numpy import r_, zeros
 
 if has_matplotlib:
+    __all__ += __all__matplotlib
     from matplotlib import rcParams
     import matplotlib.pyplot as plt
     from matplotlib.pyplot import plot, hist, grid, xlim, ylim, gca, gcf
@@ -114,8 +112,6 @@ import fretmath
 if has_matplotlib and has_pandas and has_lmfit:
     import burstlib_ext as bext
     import mfit
-
-if has_matplotlib:
     import burst_plot as bpl
     from burst_plot import (
             # Standalone plots as a function of ch
