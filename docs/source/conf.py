@@ -38,6 +38,16 @@ try:
     print "matplotlib: %s, %s" % (matplotlib.__version__, matplotlib.__file__)
 except ImportError:
     print "no matplotlib"
+try:
+    import pandas
+    print "pandas: %s, %s" % (pandas.__version__, pandas.__file__)
+except ImportError:
+    print "no pandas"
+try:
+    import lmfit
+    print "lmfit: %s, %s" % (lmfit.__version__, lmfit.__file__)
+except ImportError:
+    print "no lmfit"
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the

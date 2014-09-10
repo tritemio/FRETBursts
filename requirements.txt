@@ -1,2 +1,4 @@
-numpy>=1.6
+numpy>=1.5
+scipy>=0.13
 sphinxcontrib-napoleon
+lmfit
