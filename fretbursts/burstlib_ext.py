@@ -22,6 +22,7 @@ from ph_sel import Ph_sel
 import burstsearch.burstsearchlib as bslib
 from utils.misc import pprint
 
+import burstlib
 import fret_fit
 import mfit
 
@@ -361,3 +362,50 @@ def burst_search_and_gate(dx, F=6, m=10, ph_sel1=Ph_sel(Dex='DAem'),
     pprint("   [DONE Counting D/A]\n", mute)
 
     return dx_and
+
+
+##
+#  Burst asymmetry
+#
+
+def get_burst_photons(d, ich=0, ph_sel=Ph_sel('all')):
+    """Return a list of arrays of photon timestamps in each burst.
+
+    Arguments:
+        d (Data): Data() object
+        ich (int): channel index
+        ph_sel (Ph_sel): photon selection. It allows to select timestamps
+            from a specific photon selectio. Example ph_sel=Ph_sel(Dex='Dem').
+
+    Returns:
+        A list of arrays of photon timestamps (one array per burst).
+    """
+    bursts = d.mburst[ich]
+    i_start, i_end = burstlib.b_istart(bursts), burstlib.b_iend(bursts)
+
+    ph_times = d.get_ph_times(ich)
+    burst_slices = [slice(i1, i2 + 1) for i1, i2 in zip(i_start, i_end)]
+    burst_photons = [ph_times[slice_i] for slice_i in burst_slices]
+
+    if ph_sel != Ph_sel('all'):
+        ph_times_mask = d.get_ph_mask(ich, ph_sel=ph_sel)
+        photon_masks = [ph_times_mask[slice_i] for slice_i in burst_slices]
+        burst_photons = [ph[mask] for ph, mask in zip(burst_photons,
+                                                      photon_masks)]
+    return burst_photons
+
+def ph_burst_stats(d, ich=0, func=np.mean, ph_sel=Ph_sel('all')):
+    burst_photons = get_burst_photons(d, ich, ph_sel=ph_sel)
+    stats = [func(times) for times in burst_photons]
+    return np.array(stats)
+
+def asymmetry(d, ich=0, func=np.mean, dropnan=True):
+    stats_d = ph_burst_stats(d, ich=ich, func=func, ph_sel=Ph_sel(Dex='Dem'))
+    stats_a = ph_burst_stats(d, ich=ich, func=func, ph_sel=Ph_sel(Dex='Aem'))
+
+    #b_size = d.burst_sizes(ich, add_naa=False)
+    #b_width = burstlib.b_width(d.mburst[ich])
+    burst_asym = (stats_d - stats_a)*d.clk_p*1e3
+    if dropnan:
+        burst_asym = burst_asym[-np.isnan(burst_asym)]
+    return burst_asym

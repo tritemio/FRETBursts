@@ -52,7 +52,7 @@ import background as bg
 from utils.misc import binning, clk_to_s, pprint
 from scroll_gui import ScrollingToolQT
 import gui_selection as gs
-import mfit
+
 
 #ip = get_ipython()
 #ip.magic("run -i scroll_gui.py")
@@ -994,30 +994,29 @@ def hist_burst_delays(d, i=0, tmax_seconds=0.5, bins=100, **kwargs):
     xlabel('Delays between bursts (s)'); ylabel('# bursts')
 
 ## Burst internal "symmetry"
-def hist_bleaching(d, i=0, bins=None,use_median=True, normalize=True, **kwargs):
-    if bins is None: bins=arange(-1,1.01,0.1)
-    # bleaching() defined in burstlib_misc.py
-    data, s1, s2 = bleaching(d, i, use_median=use_median, normalize=normalize)
-    h,x,_ = hist(data, alpha=0.5, bins=bins,**kwargs)
-    width = x[1]-x[0]
-    #xc = x[:-1]
-    #h_mask_neg = (x<-1e-14)[:-1];h_mask_pos = (x>-1e-14)[:-1]
-    #bh = (h-h[::-1])
-    bh = h - h[::-1]
-    #x_neg = x[x<-1e-14]
-    #bar(x_neg,h[h_mask_neg]-h[h_mask_pos][::-1],width=0.2,color='m',alpha=0.5)
-    plt.bar(x[:-1],bh,width=width,color='red',alpha=0.6,linewidth=0)
-    xlabel(s1); title(s2, fontsize=12)
+def hist_asymmetry(d, i=0, bin_max=2, binw=0.1, func=np.median):
+    burst_asym = bext.asymmetry(d, ich=i, func=func)
+    bins_pos = np.arange(0, bin_max+binw, binw)
+    bins = np.hstack([-bins_pos[1:][::-1], bins_pos])
+    izero = (bins.size - 1)/2.
+    assert izero == np.where(np.abs(bins) < 1e-8)[0]
 
-def hist_asymmetry(d, i=0, bins=None, **kwargs):
-    if bins is None: bins=arange(-100,101,10)
-    data, s = asymmetry(d, i)
-    h,x,_ = hist(data, alpha=0.5, bins=bins,**kwargs)
-    width = x[1]-x[0]
-    h_mask_neg = (x<-1e-14)[:-1]; h_mask_pos = (x>-1e-14)[:-1]
-    bh = (h - h[::-1])
-    plt.bar(x[:-1], bh, width=width, color='red', alpha=0.6, linewidth=0)
-    xlabel(s)#; title(s2, fontsize=12)
+    counts, _ = np.histogram(burst_asym, bins=bins)
+    asym_counts_neg = counts[:izero] - counts[izero:][::-1]
+    asym_counts_pos = counts[izero:] - counts[:izero][::-1]
+    asym_counts = np.hstack([asym_counts_neg, asym_counts_pos])
+
+    plt.bar(bins[:-1], width=binw, height=counts, fc='b', alpha=0.5)
+    plt.bar(bins[:-1], width=binw, height=asym_counts, fc='r', alpha=0.5)
+    plt.grid(True)
+    plt.xlabel('Time (ms)')
+    plt.ylabel('# Bursts')
+    plt.legend(['{func}$(t_D)$ - {func}$(t_A)$'.format(func=func.__name__),
+                'positive half - negative half'],
+                frameon=False, loc='best')
+    skew_abs = asym_counts_neg.sum()
+    skew_rel = 100.*skew_abs/counts.sum()
+    print 'Skew: %d bursts, (%.1f %%)' % (skew_abs, skew_rel)
 
 ##
 #  Scatter plots
