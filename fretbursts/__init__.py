@@ -17,11 +17,44 @@
 
 __version__ = '0.4.dev'
 
-__all__ = [
-        # Library modules and functions
-        "np", "r_", "zeros", "plt", "rcParams", "matplotlib", "plot", "hist",
-        "grid", "xlim", "ylim", "gca", "gcf",
+import warnings
 
+try:
+    import pandas
+except ImportError:
+    has_pandas = False
+    warnings.warn((' - Cannot import pandas. Some functionality will not be '
+                   'avalable.'))
+else:
+    has_pandas = True
+
+try:
+    import matplotlib
+except ImportError:
+    has_matplotlib = False
+    warnings.warn((' - Cannot import matplotlib. Plotting will not be '
+                   'avalable.'))
+else:
+    has_matplotlib = True
+
+try:
+    import lmfit
+except ImportError:
+    has_lmfit = False
+    warnings.warn((' - Cannot import lmfit. Some fitting functionalities '
+                   ' will not be avalable.'))
+else:
+    has_lmfit = True
+
+
+__all__numpy = ["np", "r_", "zeros"]
+
+__all__matplotlib = [
+        # Library modules and functions
+        "plt", "rcParams", "matplotlib", "plot", "hist",
+        "grid", "xlim", "ylim", "gca", "gcf",]
+
+__all_local_names = [
         # Local modules
         "loader", "select_bursts", "bl", "bg", "bpl", "bext", "bg_cache",
         "hdf5", "fretmath", "mfit",
@@ -49,12 +82,19 @@ __all__ = [
         "dplot", "dplot_48ch", "dplot_8ch", "dplot_1ch",
         ]
 
+__all__ = __all__numpy + __all_local_names
+
+if has_matplotlib:
+    __all__ += __all__matplotlib
+
 import numpy as np
 from numpy import r_, zeros
-import matplotlib
-from matplotlib import rcParams
-import matplotlib.pyplot as plt
-from matplotlib.pyplot import plot, hist, grid, xlim, ylim, gca, gcf
+
+if has_matplotlib:
+    from matplotlib import rcParams
+    import matplotlib.pyplot as plt
+    from matplotlib.pyplot import plot, hist, grid, xlim, ylim, gca, gcf
+    import style
 
 import background as bg
 import burstlib as bl
@@ -86,4 +126,3 @@ from burst_plot import (
         )
 from utils.gui import gui_fname
 from utils.misc import download_file
-import style
