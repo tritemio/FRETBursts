@@ -3,8 +3,9 @@
 Fit framework
 =============
 
-For histogram fittings, FRETBursts make use of the `lmfit <>`_ library.
-Since lmfit is a pure python package the installation requires just::
+For varius fittings needs, FRETBursts make use of the powerful
+`lmfit <http://lmfit.github.io/lmfit-py/>`_
+library. To install lmfit use this command in a terminal::
 
     pip install lmfit
 
@@ -39,9 +40,10 @@ And to plot the histogram and the model with fitted parameters::
 
     dplot(d, hist_fret, show_model=True)
 
-More detailed example can be found in the `tutorials <>`_
+More detailed example can be found in the
+`tutorials <https://github.com/tritemio/FRETBursts_notebooks>`_
 in notebooks on
-`us-ALEX analysis <>`_.
+`us-ALEX analysis <http://nbviewer.ipython.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/FRETBursts%20-%20us-ALEX%20smFRET%20burst%20analysis.ipynb>`_.
 
 Lmfit introduction
 ------------------
