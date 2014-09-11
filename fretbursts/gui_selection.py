@@ -13,6 +13,7 @@ import numpy as np
 from matplotlib.patches import Rectangle, Ellipse
 from utils.misc import pprint
 from burstsearch.burstsearchlib import b_start, b_end
+import burstlib_ext as bext
 
 
 class GuiSelection(object):
@@ -150,8 +151,10 @@ class MultiAxPointSelection(object):
         self.fig = fig
         self.d = d
         self.debug = debug
+        self._asymmetry_dict = {}
         self.id_press = fig.canvas.mpl_connect('button_press_event',
                                                 self.on_press)
+
     def on_press(self, event):
         if self.debug:
             pprint('PRESS button=%d, x=%d, y=%d, xdata=%f, ydata=%f\n' % (
@@ -168,6 +171,11 @@ class MultiAxPointSelection(object):
         self.xp, self.yp = event.xdata, event.ydata
         self.on_press_print()
 
+    def asymmetry(self, ich):
+        if ich not in self._asymmetry_dict:
+            self._asymmetry_dict[ich] = bext.asymmetry(self.d, ich)
+        return self._asymmetry_dict[ich]
+
     def on_press_print(self):
         if self.debug:
             pprint("%s %s %s\n" % (self.xp, self.yp, self.ich))
@@ -177,10 +185,11 @@ class MultiAxPointSelection(object):
         if mask.any():
             burst_index = np.where(mask)[0][0]
             ts = b_start(mburst)[burst_index]*self.d.clk_p
-            #skew = bleaching1(self.d, self.ich, burst_index, use_median=True,
-            #                  normalize=True)
-            pprint("Burst [%d-CH%d]: t = %d us   nt = %5.1f   E = %4.2f \n" % \
-                    (burst_index, self.ich+1, ts*1e6,
-                     self.d.nt[self.ich][burst_index],
-                     self.d.E[self.ich][burst_index],))
-                                      #skew))
+            asym = self.asymmetry(self.ich)[burst_index]
+            msg = "Burst [%d-CH%d]: " % (burst_index, self.ich+1)
+            msg += "t = %d us" % (ts*1e6)
+            msg += "   nt = %5.1f" % self.d.nt[self.ich][burst_index]
+            msg += "   E = %4.2f" % self.d.E[self.ich][burst_index]
+            msg += "   Asymmetry = %.2f ms" % asym
+            pprint(msg + '\n')
+
