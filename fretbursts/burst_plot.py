@@ -186,18 +186,17 @@ def _plot_bursts(d, i, t_max_clk, pmax=1e3, pmin=0):
     ax.add_artist(PatchCollection(R, lw=0, color="#999999"))
     pprint("[DONE]\n")
 
-def _gui_timetrace_burst_sel(d, i, func, fig, ax):
+def _gui_timetrace_burst_sel(d, func, fig, ax):
     """Add GUI burst selector via mouse click to the current plot."""
-    if i == 0:
+    if func.first_call:
         func.burst_sel = gs.MultiAxPointSelection(fig, ax, d)
     else:
         func.burst_sel.ax_list.append(ax)
 
-def _gui_timetrace_scroll(i, func, fig):
+def _gui_timetrace_scroll(func, fig):
     """Add GUI to scroll a timetrace wi a slider."""
-    if i == 0:
+    if func.first_call:
         func.scroll_gui = ScrollingToolQT(fig)
-
 
 def _plot_rate_th(d, i, F, ph_sel, invert=False, bin_width=1,
                   plot_style_={}, rate_th_style={}):
@@ -314,9 +313,9 @@ def timetrace_single(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
 
     xlabel('Time (s)'); ylabel('# ph')#; plt.xlim(tmin, tmin + 1)
     if burst_picker:
-        _gui_timetrace_burst_sel(d, i, timetrace_single, gcf(), gca())
+        _gui_timetrace_burst_sel(d, timetrace_single, gcf(), gca())
     if scroll:
-        _gui_timetrace_scroll(i, timetrace_single, gcf())
+        _gui_timetrace_scroll(timetrace_single, gcf())
 
 def timetrace(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
               bursts=False, burst_picker=True, scroll=False,
@@ -349,9 +348,9 @@ def timetrace(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
         plt.legend(loc='best', fancybox=True)
     # Activate the burst picker
     if burst_picker:
-        _gui_timetrace_burst_sel(d, i, timetrace, gcf(), gca())
+        _gui_timetrace_burst_sel(d, timetrace, gcf(), gca())
     if scroll:
-        _gui_timetrace_scroll(i, timetrace, gcf())
+        _gui_timetrace_scroll(timetrace, gcf())
 
 def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
                      ph_sel=Ph_sel('all'), invert=False, bursts=False,
@@ -403,9 +402,9 @@ def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
 
     xlabel('Time (s)'); ylabel('# ph')#; plt.xlim(tmin, tmin + 1)
     if burst_picker:
-        _gui_timetrace_burst_sel(d, i, ratetrace_single, gcf(), gca())
+        _gui_timetrace_burst_sel(d, ratetrace_single, gcf(), gca())
     if scroll:
-        _gui_timetrace_scroll(i, ratetrace_single, gcf())
+        _gui_timetrace_scroll(ratetrace_single, gcf())
 
 def ratetrace(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
               bursts=False, burst_picker=True, scroll=False,
@@ -438,9 +437,9 @@ def ratetrace(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
         plt.legend(loc='best', fancybox=True)
     # Activate the burst picker
     if burst_picker:
-        _gui_timetrace_burst_sel(d, i, ratetrace, gcf(), gca())
+        _gui_timetrace_burst_sel(d, ratetrace, gcf(), gca())
     if scroll:
-        _gui_timetrace_scroll(i, ratetrace, gcf())
+        _gui_timetrace_scroll(ratetrace, gcf())
 
 def sort_burst_sizes(sizes, levels=np.arange(1, 102, 20)):
     """Return a list of masks that split `sizes` in levels.
@@ -1237,14 +1236,10 @@ def scatter_alex(d, i=0, **kwargs):
 #  High-level plot wrappers
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def dplot_48ch(d, fun=scatter_width_size, sharex=True, sharey=True,
+def dplot_48ch(d, func, sharex=True, sharey=True,
         pgrid=True, figsize=None, AX=None, nosuptitle=False,
         scale=True, ich=None, **kwargs):
     """Plot wrapper for 48-spot measurements. Use `dplot` instead."""
-    # Some function need an index of the number of calls so they are sure
-    # that when idx == 0 it is thet first call of a series
-    idx_funcs = [timetrace, timetrace_single, ratetrace, ratetrace_single]
-
     if ich is None:
         iter_ch = xrange(d.nch)
         if d.nch == 48:
@@ -1285,8 +1280,8 @@ def dplot_48ch(d, fun=scatter_width_size, sharex=True, sharey=True,
         ax.set_title(s, fontsize=12)
         ax.grid(pgrid)
         plt.sca(ax)
-        if fun in idx_funcs: kwargs.update(idx=i)
-        fun(d, ich, **kwargs)
+        func.first_call = (i == 0)
+        func(d, ich, **kwargs)
     [a.set_xlabel('') for a in AX[:-1,:].ravel()]
     [a.set_ylabel('') for a in AX[:,1:].ravel()]
     if sharex:
@@ -1300,7 +1295,7 @@ def dplot_48ch(d, fun=scatter_width_size, sharex=True, sharey=True,
         if scale: ax.autoscale(enable=True, axis='y')
     return AX
 
-def dplot_8ch(d, fun=scatter_width_size, sharex=True, sharey=True,
+def dplot_8ch(d, func, sharex=True, sharey=True,
         pgrid=True, figsize=(12, 9), nosuptitle=False, AX=None,
         scale=True, **kwargs):
     """Plot wrapper for 8-spot measurements. Use `dplot` instead."""
@@ -1315,8 +1310,9 @@ def dplot_8ch(d, fun=scatter_width_size, sharex=True, sharey=True,
         old_ax = True
     for i in xrange(d.nch):
         b = d.mburst[i] if 'mburst' in d else None
-        if (not fun in [timetrace, ratetrace, hist_bg_fit_single, hist_bg_fit,
-            timetrace_bg]) and np.size(b) == 0:
+        if (func not in [timetrace, ratetrace, timetrace_single,
+                         ratetrace_single, hist_bg_fit_single, hist_bg_fit,
+                         timetrace_bg]) and np.size(b) == 0:
             continue
         ax = AX.ravel()[i]
         if i == 0 and not nosuptitle:
@@ -1328,7 +1324,8 @@ def dplot_8ch(d, fun=scatter_width_size, sharex=True, sharey=True,
         ax.set_title(s, fontsize=12)
         ax.grid(pgrid)
         plt.sca(ax)
-        fun(d, i, **kwargs)
+        func.first_call = (i == 0)
+        func(d, i, **kwargs)
         if i % 2 == 1: ax.yaxis.tick_right()
     [a.set_xlabel('') for a in AX[:-1,:].ravel()]
     [a.set_ylabel('') for a in AX[:,1:].ravel()]
@@ -1342,7 +1339,7 @@ def dplot_8ch(d, fun=scatter_width_size, sharex=True, sharey=True,
         if scale: ax.autoscale(enable=True, axis='y')
     return AX
 
-def dplot_1ch(d, fun, pgrid=True, ax=None,
+def dplot_1ch(d, func, pgrid=True, ax=None,
               figsize=(9, 4.5), fignum=None, nosuptitle=False, **kwargs):
     """Plot wrapper for single-spot measurements. Use `dplot` instead."""
     if ax is None:
@@ -1357,17 +1354,18 @@ def dplot_1ch(d, fun, pgrid=True, ax=None,
     if not nosuptitle: ax.set_title(s, fontsize=12)
     ax.grid(pgrid)
     plt.sca(ax)
-    fun(d, **kwargs)
+    func.first_call = True
+    func(d, **kwargs)
     return ax
 
-def dplot(d, fun, **kwargs):
+def dplot(d, func, **kwargs):
     """Main plot wrapper for single and multi-spot measurements."""
     if d.nch == 1:
-        return dplot_1ch(d=d, fun=fun, **kwargs)
+        return dplot_1ch(d=d, func=func, **kwargs)
     elif d.nch == 8:
-        return dplot_8ch(d=d, fun=fun, **kwargs)
+        return dplot_8ch(d=d, func=func, **kwargs)
     elif d.nch == 48:
-        return dplot_48ch(d=d, fun=fun, **kwargs)
+        return dplot_48ch(d=d, func=func, **kwargs)
 
 ##
 #  Other plot wrapper functions
