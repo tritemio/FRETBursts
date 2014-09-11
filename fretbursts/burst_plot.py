@@ -18,11 +18,11 @@ The 1-ch plot functions names all start with the plot type (`timetrace`,
 
 **Example 1** - Plot the timetrace for all ch::
 
-    dplot(d, timetrace_da, scroll=True)
+    dplot(d, timetrace, scroll=True)
 
 **Example 2** - Plot a FRET histogramm for each ch with a fit overlay::
 
-    dplot(d, hist_fret, show_fit=True)
+    dplot(d, hist_fret, show_model=True)
 
 """
 
@@ -193,6 +193,12 @@ def _gui_timetrace_burst_sel(d, i, func, fig, ax):
     else:
         func.burst_sel.ax_list.append(ax)
 
+def _gui_timetrace_scroll(i, func, fig):
+    """Add GUI to scroll a timetrace wi a slider."""
+    if i == 0:
+        func.scroll_gui = ScrollingToolQT(fig)
+
+
 def _plot_rate_th(d, i, F, ph_sel, invert=False, bin_width=1,
                   plot_style_={}, rate_th_style={}):
     """Plots background_rate*F as a function of time.
@@ -227,8 +233,9 @@ def _plot_rate_th(d, i, F, ph_sel, invert=False, bin_width=1,
 
 def timetrace_single(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
                      ph_sel=Ph_sel('all'), invert=False, bursts=False,
-                     burst_picker=True, cache_bins=True, plot_style={},
-                     show_rate_th=True, F=None, rate_th_style={}):
+                     burst_picker=True, scroll=False, cache_bins=True,
+                     plot_style={}, show_rate_th=True, F=None,
+                     rate_th_style={}):
     """Plot the timetrace (histogram) of timestamps for a photon selection.
 
     See :func:`timetrace` to plot multiple photon selections (i.e.
@@ -305,14 +312,16 @@ def timetrace_single(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
                       bin_width=bin_width, plot_style_=plot_style_,
                       rate_th_style=rate_th_style)
 
-    xlabel('Time (s)'); ylabel('# ph'); plt.xlim(tmin, tmin + 1)
+    xlabel('Time (s)'); ylabel('# ph')#; plt.xlim(tmin, tmin + 1)
     if burst_picker:
         _gui_timetrace_burst_sel(d, i, timetrace_single, gcf(), gca())
+    if scroll:
+        _gui_timetrace_scroll(i, timetrace_single, gcf())
 
 def timetrace(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
-              bursts=False, burst_picker=True,
+              bursts=False, burst_picker=True, scroll=False,
               show_rate_th=True, F=None, rate_th_style={'label': None},
-              show_aa=True, legend=True,
+              show_aa=True, legend=False,
               #dd_plot_style={}, ad_plot_style={}, aa_plot_style={}
               ):
     """Plot the timetraces (histogram) of photon timestamps.
@@ -333,20 +342,20 @@ def timetrace(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
         if not bl.mask_empty(d.get_ph_mask(i, ph_sel=ph_sel)):
             timetrace_single(d, i, bin_width=bin_width, bins=bins, tmin=tmin,
                     tmax=tmax, ph_sel=ph_sel, invert=invert, bursts=False,
-                    burst_picker=False, cache_bins=True,
+                    burst_picker=False, scroll=False, cache_bins=True,
                     show_rate_th=show_rate_th, F=F,
                     rate_th_style=rate_th_style)
-
     if legend:
         plt.legend(loc='best', fancybox=True)
     # Activate the burst picker
     if burst_picker:
         _gui_timetrace_burst_sel(d, i, timetrace, gcf(), gca())
-
+    if scroll:
+        _gui_timetrace_scroll(i, timetrace, gcf())
 
 def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
                      ph_sel=Ph_sel('all'), invert=False, bursts=False,
-                     burst_picker=True, plot_style={},
+                     burst_picker=True, scroll=False, plot_style={},
                      show_rate_th=True,  F=None, rate_th_style={}):
     """Plot the ratetrace of timestamps for a photon selection.
 
@@ -392,15 +401,16 @@ def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
         _plot_rate_th(d, i, F=F, ph_sel=ph_sel, invert=invert,
                       plot_style_=plot_style_, rate_th_style=rate_th_style)
 
-    xlabel('Time (s)'); ylabel('# ph'); plt.xlim(tmin, tmin + 1)
+    xlabel('Time (s)'); ylabel('# ph')#; plt.xlim(tmin, tmin + 1)
     if burst_picker:
-        _gui_timetrace_burst_sel(d, i, timetrace_single, gcf(), gca())
-
+        _gui_timetrace_burst_sel(d, i, ratetrace_single, gcf(), gca())
+    if scroll:
+        _gui_timetrace_scroll(i, ratetrace_single, gcf())
 
 def ratetrace(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
-              bursts=False, burst_picker=True,
+              bursts=False, burst_picker=True, scroll=False,
               show_rate_th=True, F=None, rate_th_style={'label': None},
-              show_aa=True, legend=True,
+              show_aa=True, legend=False,
               #dd_plot_style={}, ad_plot_style={}, aa_plot_style={}
               ):
     """Plot the ratetraces of photon timestamps.
@@ -420,16 +430,17 @@ def ratetrace(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
     for ph_sel, invert in zip(ph_sel_list, invert_list):
         if not bl.mask_empty(d.get_ph_mask(i, ph_sel=ph_sel)):
             ratetrace_single(d, i, m=m, max_num_ph=max_num_ph, tmin=tmin,
-                    tmax=tmax,  ph_sel=ph_sel, invert=invert, bursts=False,
-                    burst_picker=False, show_rate_th=show_rate_th,
-                    F=F, rate_th_style=rate_th_style)
-
+                    tmax=tmax, ph_sel=ph_sel, invert=invert, bursts=False,
+                    burst_picker=False, scroll=False,
+                    show_rate_th=show_rate_th, F=F,
+                    rate_th_style=rate_th_style)
     if legend:
         plt.legend(loc='best', fancybox=True)
     # Activate the burst picker
     if burst_picker:
-        _gui_timetrace_burst_sel(d, i, timetrace, gcf(), gca())
-
+        _gui_timetrace_burst_sel(d, i, ratetrace, gcf(), gca())
+    if scroll:
+        _gui_timetrace_scroll(i, ratetrace, gcf())
 
 def sort_burst_sizes(sizes, levels=np.arange(1, 102, 20)):
     """Return a list of masks that split `sizes` in levels.
@@ -1227,12 +1238,12 @@ def scatter_alex(d, i=0, **kwargs):
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def dplot_48ch(d, fun=scatter_width_size, sharex=True, sharey=True,
-        scroll=False, pgrid=True, figsize=None, AX=None, nosuptitle=False,
+        pgrid=True, figsize=None, AX=None, nosuptitle=False,
         scale=True, ich=None, **kwargs):
     """Plot wrapper for 48-spot measurements. Use `dplot` instead."""
     # Some function need an index of the number of calls so they are sure
     # that when idx == 0 it is thet first call of a series
-    idx_funcs = [timetrace, timetrace_da, ratetrace, ratetrace_da]
+    idx_funcs = [timetrace, timetrace_single, ratetrace, ratetrace_single]
 
     if ich is None:
         iter_ch = xrange(d.nch)
@@ -1287,13 +1298,10 @@ def dplot_48ch(d, fun=scatter_width_size, sharex=True, sharey=True,
              plt.setp([a.get_yticklabels() for a in AX[:, 1]], visible=False)
         fig.subplots_adjust(wspace=0.08)
         if scale: ax.autoscale(enable=True, axis='y')
-    s = None
-    if scroll: s = ScrollingToolQT(fig)
-    #s = RangeToolQT(fig)
-    return AX, s
+    return AX
 
 def dplot_8ch(d, fun=scatter_width_size, sharex=True, sharey=True,
-        scroll=False, pgrid=True, figsize=(12, 9), nosuptitle=False, AX=None,
+        pgrid=True, figsize=(12, 9), nosuptitle=False, AX=None,
         scale=True, **kwargs):
     """Plot wrapper for 8-spot measurements. Use `dplot` instead."""
     if AX is None:
@@ -1332,12 +1340,9 @@ def dplot_8ch(d, fun=scatter_width_size, sharex=True, sharey=True,
         plt.setp([a.get_yticklabels() for a in AX[:,1]], visible=False)
         fig.subplots_adjust(wspace=0.08)
         if scale: ax.autoscale(enable=True, axis='y')
-    s = None
-    if scroll: s = ScrollingToolQT(fig)
-    #s = RangeToolQT(fig)
-    return AX, s
+    return AX
 
-def dplot_1ch(d, fun, scroll=False, pgrid=True, ax=None,
+def dplot_1ch(d, fun, pgrid=True, ax=None,
               figsize=(9, 4.5), fignum=None, nosuptitle=False, **kwargs):
     """Plot wrapper for single-spot measurements. Use `dplot` instead."""
     if ax is None:
@@ -1353,9 +1358,7 @@ def dplot_1ch(d, fun, scroll=False, pgrid=True, ax=None,
     ax.grid(pgrid)
     plt.sca(ax)
     fun(d, **kwargs)
-    s = None
-    if scroll: s = ScrollingToolQT(fig)
-    return ax, s
+    return ax
 
 def dplot(d, fun, **kwargs):
     """Main plot wrapper for single and multi-spot measurements."""
