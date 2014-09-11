@@ -231,23 +231,43 @@ def test_burst_start_end_size(data):
         size2 = bl.b_iend(mb) - bl.b_istart(mb) + 1
         assert (size2 == bl.b_size(mb)).all()
 
+def test_burst_fuse(data):
+    """Test 2 independent implementations of fuse_bursts for consistency.
+    """
+    d = data
+    for mb in d.mburst:
+        new_mbursti = bl.fuse_bursts_iter(mb, ms=1)
+        new_mburstd = bl.fuse_bursts_direct(mb, ms=1)
+        assert (new_mbursti == new_mburstd).all()
+
 def test_burst_fuse_0ms(data):
     """Test that after fusing with ms=0 the sum of bursts sizes is that same
     as the number of ph in bursts (via burst selection).
     """
     d = data
-    if not hasattr(d, 'fuse'):
-        df = d.fuse_bursts(ms=0)
-        for ph, mb in zip(df.ph_times_m, df.mburst):
-            m = bl.ph_select(ph, mb)
-            assert m.sum() == bl.b_size(mb).sum()
 
-def test_get_burst_size(data):
-    """Test that get_burst_size() returns nd + na when gamma = 1.
+    df = d.fuse_bursts(ms=0)
+    for ph, mb in zip(df.ph_times_m, df.mburst):
+        m = bl.ph_select(ph, mb)
+        assert m.sum() == bl.b_size(mb).sum()
+
+def test_burst_fuse_separation(data):
+    """Test that after fusing bursts the minimum separation is equal
+    to the threshold usied during fusing.
+    """
+    d = data
+    fuse_ms = 2
+    df = d.fuse_bursts(ms=fuse_ms)
+    for mb in df.mburst:
+        separation = bl.b_separation(mb)*df.clk_p
+        assert separation.min() >= fuse_ms*1e-3
+
+def test_burst_sizes(data):
+    """Test that Data.burst_sizes_ich() returns nd + na when gamma = 1.
     """
     d = data
     for ich, (nd, na) in enumerate(zip(d.nd, d.na)):
-        burst_size = bl.select_bursts.get_burst_size(d, ich)
+        burst_size = d.burst_sizes_ich(ich)
         assert (burst_size == nd + na).all()
 
 def test_expand(data):

@@ -277,13 +277,108 @@ def find_burst(bursts, size, width_ms, clk_p=12.5e-9):
     th = 0.01e-3/clk_p # 800clk or 10us @ clk_p=12.5e-9s
     return np.where((b_size(bursts) == size)*(abs(b_width(bursts)-width) < th))
 
+def fuse_bursts_direct(mburst, ms=0, clk_p=12.5e-9, verbose=True):
+    """Fuse bursts separated by less than `ms` (milli-secs).
+
+    This function is a direct implementation using a single loop.
+    For a faster implementation see :func:`fuse_bursts_iter`.
+
+    Parameters:
+        bursts (2D array): Nx6 array of burst data, one row per burst
+            See `burstseach.burstseachlib.py` for details.
+        ms (float):
+            minimum waiting time between bursts (in millisec). Burst closer
+            than that will be fuse in asingle burst.
+        clk_p (float): clock period or timestamp units in seconds.
+        verbose (bool): if True print a summary of fused bursts.
+
+    Returns:
+        new_bursts (2D array): new array of burst data
+    """
+    max_delay_clk = (ms*1e-3)/clk_p
+
+    fused_bursts = []
+    fused_burst = None
+    for burst1, burst2 in zip(mburst[:-1], mburst[1:]):
+        if fused_burst is not None:
+            burst1c = fused_burst
+        else:
+            burst1c = burst1
+
+        separation = burst2[itstart] - burst1c[itend]
+        if separation <= max_delay_clk:
+            fb_tstart = burst1c[itstart]
+            fb_istart = burst1c[iistart]
+            fb_tend = burst2[itend]
+            fb_iend = burst2[iiend]
+            fb_width = burst1c[iwidth] + burst2[iwidth]
+            fb_num_ph = burst1c[inum_ph] + burst2[inum_ph]
+            if burst1c[iiend] >= burst2[iistart]:
+                n_overlap_ph = burst1c[iiend] - burst2[iistart] + 1
+                fb_num_ph -= n_overlap_ph
+                t_overlap = burst1c[itend] - burst2[itstart]
+                fb_width -= t_overlap
+            fused_burst = [fb_tstart, fb_width, fb_num_ph,
+                           fb_istart, fb_iend, fb_tend]
+        else:
+            if fused_burst is not None:
+                fused_bursts.append(fused_burst)
+                fused_burst = None
+            else:
+                fused_bursts.append(burst1c)
+
+    # Append the last bursts (either a fused one or isolated)
+    if fused_burst is not None:
+        fused_bursts.append(fused_burst)
+    else:
+        fused_bursts.append(burst2)
+
+    init_nburst = mburst.shape[0]
+    delta_b = init_nburst - len(fused_bursts)
+    pprint(" --> END Fused %d bursts (%.1f%%)\n\n" %\
+            (delta_b, 100.*delta_b/init_nburst), mute=-verbose)
+    return np.array(fused_bursts)
+
+def fuse_bursts_iter(bursts, ms=0, clk_p=12.5e-9, verbose=True):
+    """Fuse bursts separated by less than `ms` (milli-secs).
+
+    This function calls iteratively :func:`b_fuse` until there are no more
+    bursts to fuse. See also :func:`fuse_bursts_direct`.
+
+    Parameters:
+        bursts (2D array): Nx6 array of burst data, one row per burst
+            See `burstseach.burstseachlib.py` for details.
+        ms (float):
+            minimum waiting time between bursts (in millisec). Burst closer
+            than that will be fuse in asingle burst.
+        clk_p (float): clock period or timestamp units in seconds.
+        verbose (bool): if True print a summary of fused bursts.
+
+    Returns:
+        new_bursts (2D array): new array of burst data
+    """
+
+    z = 0
+    init_nburst = bursts.shape[0]
+    new_nburst, nburst = 0, 1  # starting condition
+    while (new_nburst < nburst):
+        z += 1
+        nburst = bursts.shape[0]
+        bursts = b_fuse(bursts, ms=ms, clk_p=clk_p)
+        new_nburst = bursts.shape[0]
+    delta_b = init_nburst-nburst
+    pprint(" --> END Fused %d bursts (%.1f%%, %d iter)\n\n" %\
+            (delta_b, 100.*delta_b/init_nburst, z), mute=-verbose)
+    return bursts
+
 def b_fuse(mburst, ms=0, clk_p=12.5e-9):
     """Fuse bursts separated by less than `ms` (milli-secs).
 
-    Note:
-        This function will fuse only 2 consecutive bursts. If there are groups
-        of 3 or more consecutive bursts all closer that `ms` the function
-        must be run several times to fuse all them together.
+    This is a low-level function htat only fuses 2 consecutive bursts
+    separated by less than `ms` millisec. If there are 3 or consecutive
+    bursts separated by less than `ms` only hte first 2 are fused.
+    See :func:`fuse_bursts_iter` or :func:`fuse_bursts_direct` for
+    higher level functions.
 
     Parameters:
         mburst (2D array): Nx6 array of burst data, one row per burst
@@ -343,12 +438,9 @@ def b_fuse(mburst, ms=0, clk_p=12.5e-9):
 
     new_burst = np.vstack([fused_burst1, mburst[-both_burst, :]])
     reorder = new_burst[:, itstart].argsort()
-    #pprint(" - Fused %4d of %5d bursts (%.1f%%).\n" %\
-    #        (first_burst.sum(), mburst.shape[0],
-    #         100.*first_burst.sum()/mburst.shape[0]))
     return new_burst[reorder, :]
 
-def mch_fuse_bursts(MBurst, ms=0, clk_p=12.5e-9):
+def mch_fuse_bursts(MBurst, ms=0, clk_p=12.5e-9, verbose=True):
     """Multi-ch version of `fuse_bursts`. `MBurst` is a list of arrays.
     """
     mburst = [b.copy() for b in MBurst] # safety copy
@@ -356,20 +448,11 @@ def mch_fuse_bursts(MBurst, ms=0, clk_p=12.5e-9):
     ch = 0
     for mb in mburst:
         ch += 1
-        print " - - - - - CHANNEL %2d - - - - " % ch
-        if mb.size == 0: continue
-        z = 0
-        init_nburst = mb.shape[0]
-        new_nburst, nburst = 0, 1  # starting condition
-        while (new_nburst < nburst):
-            z += 1
-            nburst = mb.shape[0]
-            mb = b_fuse(mb, ms=ms, clk_p=clk_p)
-            new_nburst = mb.shape[0]
-        new_mburst.append(mb)
-        delta_b = init_nburst-nburst
-        pprint(" --> [CH %d] END Fused %d bursts (%.1f%%, %d iter)\n\n" %\
-                (ch, delta_b, 100.*delta_b/init_nburst, z))
+        pprint(" - - - - - CHANNEL %2d - - - - \n" % ch, -verbose)
+        if mb.size == 0:
+            continue
+        new_bursts = fuse_bursts_iter(mb, ms=ms, clk_p=clk_p, verbose=verbose)
+        new_mburst.append(new_bursts)
     return new_mburst
 
 def stat_burst(d, ich=0, fun=np.mean):
