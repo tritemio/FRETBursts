@@ -76,9 +76,8 @@ __all_local_names = [
         "mch_plot_bg", "plot_alternation_hist",
 
         # Plots types used for 1ch of multi-ch plots through `dplot`
-        "timetrace", "timetrace_da", "ratetrace", "ratetrace_da",
-        "timetrace_alex", "timetrace_fret",
-        "timetrace_bg",
+        "timetrace", "timetrace_single", "ratetrace", "ratetrace_single",
+        "timetrace_fret", "timetrace_bg",
         "hist_width", "hist_size", "hist_size_all", "hist_fret",
         "hist2d_alex", "hist_S", "hist_sbr", "hist_asymmetry",
         "hist_bg_fit_single", "hist_bg_fit", "hist_ph_delays", "hist_mdelays",
@@ -118,9 +117,8 @@ if has_matplotlib and has_pandas and has_lmfit:
             mch_plot_bg, plot_alternation_hist,
 
             # Plots types used for 1ch of multi-ch plots through `dplot`
-            timetrace, timetrace_da, ratetrace, ratetrace_da,
-            timetrace_alex, timetrace_fret,
-            timetrace_bg,
+            timetrace, timetrace_single, ratetrace, ratetrace_single,
+            timetrace_fret, timetrace_bg,
             hist_width, hist_size, hist_size_all, hist_fret,
             hist2d_alex, hist_S, hist_sbr, hist_asymmetry,
             hist_bg_fit_single, hist_bg_fit, hist_ph_delays, hist_mdelays,

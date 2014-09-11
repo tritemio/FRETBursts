@@ -26,6 +26,8 @@ The 1-ch plot functions names all start with the plot type (`timetrace`,
 
 """
 
+import warnings
+
 # Numeric imports
 import numpy as np
 from numpy import arange, r_
@@ -180,19 +182,8 @@ def _plot_bursts(d, i, t_max_clk, pmax=1e3, pmin=0):
         r = Rectangle(xy=(s,pmin), height=pmax-pmin, width=w)
         r.set_clip_box(ax.bbox); r.set_zorder(0)
         R.append(r)
-    ax.add_artist(PatchCollection(R, lw=0,color="#999999"))
+    ax.add_artist(PatchCollection(R, lw=0, color="#999999"))
     pprint("[DONE]\n")
-
-def _timetrace_bg(d, i, BG, bin_width=None, F=None, Th=True, color='r'):
-    """Plot an overlay of background rate on a timetrace plot."""
-    if bin_width is None: bin_width = 1.
-    for ii, (bg_i ,php) in enumerate(zip(BG[i], d.Ph_p[i])):
-        ph_p = np.array(php)*d.clk_p
-        plot(ph_p, [bg_i*bin_width]*2, ls='--', color=color)
-        if hasattr(d, 'TT') and Th:
-            plot(ph_p, [bin_width*d.m/d.TT[i][ii]]*2, color='orange')
-        if F is not None:
-            plot(ph_p,[F*bg*bin_width]*2, color='m')
 
 def _gui_timetrace_burst_sel(d, i, func, fig, ax):
     """Add GUI burst selector via mouse click to the current plot."""
@@ -201,133 +192,240 @@ def _gui_timetrace_burst_sel(d, i, func, fig, ax):
     else:
         func.burst_sel.ax_list.append(ax)
 
-def timetrace_da(d, i=0, bin_width=1e-3, bins=100000, bursts=False):
-    """Timetrace of binned photons (donor-acceptor)."""
+def _plot_rate_th(d, i, F, ph_sel, invert=False, bin_width=1,
+                  plot_style_={}, rate_th_style={}):
+    """Plots background_rate*F as a function of time.
+
+    `plot_style_` is the style of a timetrace/ratetrace plot used as starting
+    style. Linestyle and label are changed. Finally, `rate_th_style` is
+    applied and can override any style property.
+    """
+    if F is None:
+        F = d.F if F in d else 6
+    bg_dict = {Ph_sel('all'): d.bg[i],
+               Ph_sel(Dex='Dem'): d.bg_dd[i],
+               Ph_sel(Dex='Aem'): d.bg_ad[i],
+               Ph_sel(Aex='Aem'): d.bg_aa[i],
+               Ph_sel(Aex='Dem'): d.bg_da[i]}
+    if ph_sel in bg_dict:
+        rate_th_style_ = dict(plot_style_)
+        rate_th_style_.update(linestyle='--', label='auto')
+        rate_th_style_.update(rate_th_style)
+        if rate_th_style_['label'] is 'auto':
+            rate_th_style_['label'] = 'bg_rate*%d %s' % \
+                                        (F, plot_style_['label'])
+        x_rate = np.hstack(d.Ph_p[i])*d.clk_p
+        y_rate = F*np.hstack([(rate, rate) for rate in bg_dict[ph_sel]])
+        y_rate *= bin_width
+        if invert:
+            y_rate *= -1
+        plot(x_rate, y_rate, **rate_th_style_)
+
+def timetrace_single(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
+                     ph_sel=Ph_sel('all'), invert=False, bursts=False,
+                     burst_picker=True, cache_bins=True, plot_style={},
+                     show_rate_th=True, F=None, rate_th_style={}):
+    """Plot the timetrace (histogram) of timestamps for a photon selection.
+
+    See :func:`timetrace` to plot multiple photon selections (i.e.
+    Donor and Acceptor photons) in one step.
+    """
+    def _get_cache():
+        return (timetrace_single.bins, timetrace_single.x,
+                timetrace_single.bin_width,
+                timetrace_single.tmin, timetrace_single.tmax)
+
+    def _set_cache(bins, x, bin_width, tmin, tmax):
+        cache = dict(bins=bins, x=x, bin_width=bin_width, tmin=tmin, tmax=tmax)
+        for name, value in cache.items():
+            setattr(timetrace_single, name, value)
+
+    def _del_cache():
+        names = ['bins', 'x', 'bin_width', 'tmin', 'tmax']
+        for name in names:
+            delattr(timetrace_single, name)
+
+    def _has_cache():
+        return hasattr(timetrace_single, 'bins')
+
+    def _has_cache_for(bin_width, tmin, tmax):
+        if _has_cache():
+            return (bin_width, tmin, tmax) == _get_cache()[2:]
+        return False
+
+    # If cache_bins is False delete any previously saved attribute
+    if not cache_bins and _has_cache:
+        _del_cache()
+
+    tmin_clk, tmax_clk = tmin/d.clk_p, tmax/d.clk_p
+    bin_width_clk = bin_width/d.clk_p
+
+    # If bins is not passed try to use the
+    if bins is None:
+        if cache_bins and _has_cache_for(bin_width, tmin, tmax):
+            bins, x = timetrace_single.bins, timetrace_single.x
+        else:
+            bins = np.arange(tmin_clk, tmax_clk + 1, bin_width_clk)
+            x = bins[:-1]*d.clk_p + 0.5*bin_width
+            if cache_bins:
+                _set_cache(bins, x, bin_width, tmin, tmax)
+
+    # Compute histogram
+    ph_times = d.get_ph_times(i, ph_sel=ph_sel)
+    timetrace, _ = np.histogram(ph_times, bins=bins)
+    if invert:
+        timetrace *= -1
+
+    # Plot bursts
     if bursts:
-        t_max_clk = int((bins*bin_width)/d.clk_p)
+        t_max_clk = int(tmax/d.clk_p)
         _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500)
 
-    if not bl.mask_empty(d.get_D_em(i)):
-        ph_d = d.get_ph_times(i, ph_sel=Ph_sel(Dex='Dem'))
-        tr_d, t_d = binning(ph_d,bin_width_ms=bin_width*1e3, max_num_bins=bins,
-                clk_p=d.clk_p)
-        t_d = t_d[1:]*d.clk_p-bin_width*0.5
-        plot(t_d, tr_d, 'g', lw=1.5, alpha=0.8)
-        if 'bg' in d:
-            _timetrace_bg(d, i, d.bg_dd, bin_width=bin_width, color='k',
-                          Th=False)
+    # Plot timetrace
+    color_dict = {Ph_sel('all'): 'k', Ph_sel(Dex='Dem'): 'g',
+                  Ph_sel(Dex='Aem'): 'r', Ph_sel(Aex='Aem'): 'm',
+                  Ph_sel(Aex='Dem'): 'c', }
+    label_dict = {Ph_sel('all'): 'All-ph', Ph_sel(Dex='Dem'): 'DexDem',
+                  Ph_sel(Dex='Aem'): 'DexAem', Ph_sel(Aex='Aem'): 'AexAem',
+                  Ph_sel(Aex='Dem'): 'AexDem'}
+    plot_style_ = dict(linestyle='-', linewidth=1.2, marker=None)
+    if ph_sel in color_dict:
+        plot_style_['color'] = color_dict[ph_sel]
+        plot_style_['label'] = label_dict[ph_sel]
+    plot_style_.update(plot_style)
+    plot(x, timetrace, **plot_style_)
 
-    if not bl.mask_empty(d.get_A_em(i)):
-        ph_a = d.get_ph_times(i, ph_sel=Ph_sel(Dex='Aem'))
-        tr_a, t_a = binning(ph_a,bin_width_ms=bin_width*1e3, max_num_bins=bins,
-                clk_p=d.clk_p)
-        t_a = t_a[1:]*d.clk_p-bin_width*0.5
-        plot(t_a, -tr_a, 'r', lw=1.5, alpha=0.8)
-        if 'bg' in d:
-            _timetrace_bg(d, i, -r_[d.bg_ad], bin_width=bin_width, color='k',
-                          Th=False)
-    xlabel('Time (s)'); ylabel('# ph')
-    _gui_timetrace_burst_sel(d, i, timetrace_da, gcf(), gca())
+    # Plot burst-search rate-threshold
+    if show_rate_th and 'bg' in d:
+        _plot_rate_th(d, i, F=F, ph_sel=ph_sel, invert=invert,
+                      bin_width=bin_width, plot_style_=plot_style_,
+                      rate_th_style=rate_th_style)
 
-def timetrace(d, i=0, bin_width=1e-3, bins=100000, bursts=False, F=None,
-              **kwargs):
-    """Timetrace of binned photons (total: donor + acceptor)."""
+    xlabel('Time (s)'); ylabel('# ph'); plt.xlim(tmin, tmin + 1)
+    if burst_picker:
+        _gui_timetrace_burst_sel(d, i, timetrace_single, gcf(), gca())
+
+def timetrace(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
+              bursts=False, burst_picker=True,
+              show_rate_th=True, F=None, rate_th_style={},
+              show_aa=True, legend=True,
+              #dd_plot_style={}, ad_plot_style={}, aa_plot_style={}
+              ):
+    """Plot the timetraces (histogram) of photon timestamps.
+    """
+    # Plot bursts
     if bursts:
-        t_max_clk = int((bins*bin_width)/d.clk_p)
-        _plot_bursts(d, i, t_max_clk, pmax=500)
-    #ph = d.ph_times_det[i]
-    ph = d.get_ph_times(i)
-    trace, time = binning(ph,bin_width_ms=bin_width*1e3, max_num_bins=bins,
-            clk_p=d.clk_p)
-    time = time[1:]*d.clk_p-bin_width*0.5
-    plot(time, trace, **kwargs)
-    if 'bg' in d:
-        _timetrace_bg(d, i, d.bg, bin_width=bin_width, F=F)
-    xlabel('Time (s)'); ylabel('# ph')
-    _gui_timetrace_burst_sel(d, i, timetrace, gcf(), gca())
+        t_max_clk = int(tmax/d.clk_p)
+        _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500)
 
-def ratetrace(d, i=0, m=None, max_ph=1e6, pmax=1e6, bursts=False,
-              F=None):
-    """Timetrace of photons rates (total: donor + acceptor)."""
-    if m is None: m = d.m
-    ph = d.get_ph_times(i)
-    max_ph = min(max_ph, ph.size)
+    # Plot multiple timetraces
+    ph_sel_list = [Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
+    invert_list = [False, True]
+    if d.ALEX and show_aa:
+         ph_sel_list.append(Ph_sel(Aex='Aem'))
+         invert_list.append(True)
+
+    for ph_sel, invert in zip(ph_sel_list, invert_list):
+        if not bl.mask_empty(d.get_ph_mask(i, ph_sel=ph_sel)):
+            timetrace_single(d, i, bin_width=bin_width, bins=bins, tmin=tmin,
+                    tmax=tmax, ph_sel=ph_sel, invert=invert, bursts=False,
+                    burst_picker=False, cache_bins=True,
+                    show_rate_th=show_rate_th, F=F,
+                    rate_th_style=rate_th_style)
+
+    if legend:
+        plt.legend()
+    # Activate the burst picker
+    if burst_picker:
+        _gui_timetrace_burst_sel(d, i, timetrace, gcf(), gca())
+
+
+def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
+                     ph_sel=Ph_sel('all'), invert=False, bursts=False,
+                     burst_picker=True, plot_style={},
+                     show_rate_th=True,  F=None, rate_th_style={}):
+    """Plot the ratetrace of timestamps for a photon selection.
+
+    See :func:`ratetrace` to plot multiple photon selections (i.e.
+    Donor and Acceptor photons) in one step.
+    """
+    if m is None:
+        m = d.m if m in d else 10
+
+    # Compute ratetrace
+    tmin_clk, tmax_clk = tmin/d.clk_p, tmax/d.clk_p
+    ph_times = d.get_ph_times(i, ph_sel=ph_sel)
+    iph1 = np.searchsorted(ph_times, tmin_clk)
+    iph2 = np.searchsorted(ph_times, tmax_clk)
+    if iph2 - iph1 > max_num_ph:
+        iph2 = iph1 + max_num_ph
+        tmax = ph_times[iph2]*d.clk_p
+        warnings.warn(('Reached max number of photons, tmax reduced to %d s.',
+                      '\nFor a wider time range increase `max_num_ph`'),
+                      UserWarning)
+    ph_times = ph_times[iph1:iph2]
+    rates = bl.ph_rate(m, ph_times)/d.clk_p
+    if invert:
+        rates *= -1
+    times = bl.ph_rate_t(m, ph_times)*d.clk_p
+
+    # Plot ratetrace
+    color_dict = {Ph_sel('all'): 'k', Ph_sel(Dex='Dem'): 'g',
+                  Ph_sel(Dex='Aem'): 'r', Ph_sel(Aex='Aem'): 'm',
+                  Ph_sel(Aex='Dem'): 'c', }
+    label_dict = {Ph_sel('all'): 'All-ph', Ph_sel(Dex='Dem'): 'DexDem',
+                  Ph_sel(Dex='Aem'): 'DexAem', Ph_sel(Aex='Aem'): 'AexAem',
+                  Ph_sel(Aex='Dem'): 'AexDem'}
+    plot_style_ = dict(linestyle='-', linewidth=1.2, marker=None)
+    if ph_sel in color_dict:
+        plot_style_['color'] = color_dict[ph_sel]
+        plot_style_['label'] = label_dict[ph_sel]
+    plot_style_.update(plot_style)
+    plot(times, rates, **plot_style_)
+
+    # Plot burst-search rate-threshold
+    if show_rate_th and 'bg' in d:
+        _plot_rate_th(d, i, F=F, ph_sel=ph_sel, invert=invert,
+                      plot_style_=plot_style_, rate_th_style=rate_th_style)
+
+    xlabel('Time (s)'); ylabel('# ph'); plt.xlim(tmin, tmin + 1)
+    if burst_picker:
+        _gui_timetrace_burst_sel(d, i, timetrace_single, gcf(), gca())
+
+
+def ratetrace(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
+              bursts=False, burst_picker=True,
+              show_rate_th=True, F=None, rate_th_style={},
+              show_aa=True, legend=True,
+              #dd_plot_style={}, ad_plot_style={}, aa_plot_style={}
+              ):
+    """Plot the ratetraces of photon timestamps.
+    """
+    # Plot bursts
     if bursts:
-        t_max_clk = ph[max_ph-1]
-        _plot_bursts(d, i, t_max_clk, pmax=pmax)
-    rates = bl.ph_rate(m, ph[:max_ph])/d.clk_p
-    times = bl.ph_rate_t(m, ph[:max_ph])*d.clk_p
-    plot(times, rates, lw=1.2)
-    if 'bg' in d:
-        _timetrace_bg(d, i, d.bg, F=F)
-    xlabel('Time (s)'); ylabel('# ph')
-    _gui_timetrace_burst_sel(d, i, ratetrace, gcf(), gca())
+        t_max_clk = int(tmax/d.clk_p)
+        _plot_bursts(d, i, t_max_clk, pmax=1e6, pmin=-1e6)
 
-def ratetrace_da(d, i=0, m=None, max_ph=1e6, pmax=1e6, bursts=False,
-                 F=None):
-    """Timetrace of photons rates (donor-acceptor)."""
-    if m is None: m = d.m
-    ph_d = d.get_ph_times(i, ph_sel=Ph_sel(Dex='Dem'))
-    ph_a = d.get_ph_times(i, ph_sel=Ph_sel(Dex='Aem'))
-    if not d.ALEX:
-        max_ph = min(max_ph, ph_d.size, ph_a.size)
-    else:
-        ph_aa = d.get_ph_times(i, ph_sel=Ph_sel(Aex='Aem'))
-        max_ph = min(max_ph, ph_d.size, ph_a.size, ph_aa.size)
-    if bursts:
-        t_max_clk = ph_d[max_ph-1]
-        _plot_bursts(d, i, t_max_clk, pmax=pmax, pmin=-pmax)
-    r_d = bl.ph_rate(m, ph_d[:max_ph])/d.clk_p
-    t_d = bl.ph_rate_t(m, ph_d[:max_ph])*d.clk_p
-    r_a = bl.ph_rate(m, ph_a[:max_ph])/d.clk_p
-    t_a = bl.ph_rate_t(m, ph_a[:max_ph])*d.clk_p
-    plot(t_d, r_d, 'g', lw=1.2)
-    plot(t_a, -r_a, 'r', lw=1.2)
-    if d.ALEX:
-        r_aa = bl.ph_rate(m, ph_aa[:max_ph])/d.clk_p
-        t_aa = bl.ph_rate_t(m, ph_aa[:max_ph])*d.clk_p
-        plot(t_aa, -r_aa, 'm', lw=1.2)
-    if 'bg' in d:
-        _timetrace_bg(d, i, d.bg_dd, F=F, color='k')
-        _timetrace_bg(d, i, -r_[d.bg_ad], F=F, color='k')
-    xlabel('Time (s)'); ylabel('# ph')
-    _gui_timetrace_burst_sel(d, i, ratetrace_da, gcf(), gca())
+    # Plot multiple timetraces
+    ph_sel_list = [Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
+    invert_list = [False, True]
+    if d.ALEX and show_aa:
+         ph_sel_list.append(Ph_sel(Aex='Aem'))
+         invert_list.append(True)
 
-def timetrace_alex(d, i=0, bin_width=1e-3, bins=100000, bursts=False,
-                   **plot_kw):
-    """Timetrace of binned photons (ALEX version: donor, acceptor, aa)."""
-    b = d.mburst[i]
-    ph_dd = d.get_ph_times(i, ph_sel=Ph_sel(Dex='Dem'))
-    ph_ad = d.get_ph_times(i, ph_sel=Ph_sel(Dex='Aem'))
-    ph_aa = d.get_ph_times(i, ph_sel=Ph_sel(Aex='Aem'))
+    for ph_sel, invert in zip(ph_sel_list, invert_list):
+        if not bl.mask_empty(d.get_ph_mask(i, ph_sel=ph_sel)):
+            ratetrace_single(d, i, m=m, max_num_ph=max_num_ph, tmin=tmin,
+                    tmax=tmax,  ph_sel=ph_sel, invert=invert, bursts=False,
+                    burst_picker=False, show_rate_th=show_rate_th,
+                    F=F, rate_th_style=rate_th_style)
 
-    t0 = d.ph_times_m[i][0]
-    bin_width_clk = bin_width/d.clk_p
-    rbins = arange(t0,t0+bins*bin_width_clk, bin_width_clk)
-    tracedd, tdd = np.histogram(ph_dd, bins=rbins)
-    tracead, tad = np.histogram(ph_ad, bins=rbins)
-    traceaa, taa = np.histogram(ph_aa, bins=rbins)
+    if legend:
+        plt.legend()
+    # Activate the burst picker
+    if burst_picker:
+        _gui_timetrace_burst_sel(d, i, timetrace, gcf(), gca())
 
-    assert ((tdd == taa) + (tdd == tad)).all()
-    t = tdd[1:]*d.clk_p
-
-    plt.axhline( d.m/d.T[i]*bin_width, color='b')
-    plt.axhline(-d.m/d.T[i]*bin_width, color='b')
-
-    plot(t, tracedd, 'g', lw=1.5, alpha=0.8, label='DD', **plot_kw)
-    plot(t, -tracead, 'r', lw=1.5, alpha=0.8, label='AD', **plot_kw)
-    plot(t, -traceaa, color='orange', lw=1.5, alpha=0.8, label='AA', **plot_kw)
-    xlabel('Time (s)'); ylabel('# ph')
-    if bursts:
-        imax = int((bins*bin_width)/d.clk_p)
-        tstart, istart, iend = bl.b_start(b), bl.b_istart(b), bl.b_iend(b)
-        burst_mask = (tstart < (bins*bin_width/d.clk_p))
-        start = d.ph_times_m[i][:imax][bl.b_istart(b[burst_mask,:])]*d.clk_p
-        end = d.ph_times_m[i][:imax][bl.b_iend(b[burst_mask,:])]*d.clk_p
-        plt.vlines(start, -100,100, color='k')
-        plt.vlines(end, -100,100, color='r')
-        #for s,e in zip(start,end):
-        #    axvspan(s, e, color='k', alpha=0.2)
 
 def sort_burst_sizes(sizes, levels=np.arange(1, 102, 20)):
     """Return a list of masks that split `sizes` in levels.
