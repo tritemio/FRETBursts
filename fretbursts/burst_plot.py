@@ -26,6 +26,7 @@ The 1-ch plot functions names all start with the plot type (`timetrace`,
 
 """
 
+from __future__ import division
 import warnings
 
 # Numeric imports
@@ -869,7 +870,7 @@ def hist_sbr(d, ich=0, **hist_kwargs):
     hist(d.sbr[ich], **style_kwargs)
     xlabel('SBR'); ylabel('# Bursts')
 
-def hist_bg_fit_single(d, i=0, bp=0, bg='bg_dd', bin_width_us=10, yscale='log',
+def hist_bg_fit_single(d, i=0, bp=0, bg='bg_dd', bin_width_us=50, yscale='log',
         F=0.15, **kwargs):
     """Histog. of ph-delays compared with BG fitting in burst period 'bp'.
     """
@@ -905,10 +906,11 @@ def hist_bg_fit_single(d, i=0, bp=0, bg='bg_dd', bin_width_us=10, yscale='log',
     plt.xlim(0,1500)
     plt.ylim(ymin=ym)
 
-def hist_bg_fit(d, i=0, bp=0, bin_width_us=10, yscale='log',
-                t_min_us=300, **kwargs):
+def hist_bg_fit(d, i=0, bp=0, bin_width_us=100, tmax=0.01, yscale='log',
+                t_min_us=500, plot_style={}):
     """Histog. of ph-delays compared with BG fitting in burst period 'bp'.
     """
+    # Compute histograms
     l1, l2 = d.Lim[i][bp][0], d.Lim[i][bp][1]
     ph = d.ph_times_m[i][l1:l2+1]*d.clk_p
 
@@ -920,44 +922,57 @@ def hist_bg_fit(d, i=0, bp=0, bin_width_us=10, yscale='log',
         ad_mask = d.A_em[i][l1:l2+1]
         dd_mask = -ad_mask
 
+    bins = np.arange(0, tmax*1e6, bin_width_us)
+    t = bins[:-1] + 0.5*bin_width_us
+
     dph = np.diff(ph)
     dph_d, dph_a = np.diff(ph[dd_mask]), np.diff(ph[ad_mask])
-    plot_kw = dict(bins=r_[0:3000:bin_width_us], histtype='step', lw=1.,
-                          normed=False)
-    plot_kw.update(**kwargs)
-    H = hist(dph*1e6, color='k', **plot_kw)
-    Hd = hist(dph_d*1e6, color='g', **plot_kw)
-    Ha = hist(dph_a*1e6, color='r', **plot_kw)
+    counts, _ = np.histogram(dph*1e6, bins=bins)
+    counts_d, _  = np.histogram(dph_d*1e6, bins=bins)
+    counts_a , _ = np.histogram(dph_a*1e6, bins=bins)
     if d.ALEX:
-        Haa = hist(np.diff(ph[aa_mask])*1e6, color='m', **plot_kw)
+        counts_aa, _ = np.histogram(np.diff(ph[aa_mask])*1e6, bins=bins)
 
-    gca().set_yscale('log')
-    xlabel(u'Ph delay time (μs)'); ylabel("# Ph")
+    # Plot histograms
+    plot_style_ = dict(marker='o', markersize=5, linestyle='none', alpha=0.6)
+    plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
+    plot(t, counts, color='k', label='T', **plot_style_)
+    plot(t, counts_d, color='g', label='D', **plot_style_)
+    plot(t, counts_a, color='r', label='A', **plot_style_)
+    if d.ALEX:
+        plot(t, counts_aa, color='m', label='AA', **plot_style_)
 
-    efun = lambda t, r: np.exp(-r*t)*r
+    # Plot fit
     r, rd, ra, = d.bg[i][bp], d.bg_dd[i][bp], d.bg_ad[i][bp]
-    raa = d.bg_aa[i][bp]
-    t = r_[0:plot_kw['bins'].max()]*1e-6
-    #nF = 1 if plot_kw['normed'] else H[0].sum()*(bin_width_us)
-
-    bins = plot_kw['bins'] #; ibin = bins.size*F; t_min = bins[ibin]*1e-6
-    ibin = np.where(bins >= t_min_us)[0][0]
-    C = H[0][ibin]/efun(t_min_us*1e-6, r)
-    Cd = Hd[0][ibin]/efun(t_min_us*1e-6, rd)
-    Ca = Ha[0][ibin]/efun(t_min_us*1e-6, ra)
-    plot(t*1e6, C*efun(t, r), lw=3, alpha=0.5, color='k',
-        label="T:  %d cps" % r)
-    plot(t*1e6, Cd*efun(t, rd), lw=3, alpha=0.5, color='g',
-        label="DD:  %d cps" % rd)
-    plot(t*1e6, Ca*efun(t, ra), lw=3, alpha=0.5, color='r',
-        label="AD:  %d cps" % ra)
     if d.ALEX:
-        Caa = Haa[0][ibin]/efun(t_min_us*1e-6, raa)
-        plot(t*1e6, Caa*efun(t, raa), lw=3, alpha=0.5, color='m',
-            label="AA:  %d cps" % raa)
-    ym = 0.5
-    if plot_kw['normed']: ym = 0.1/ph.size
-    plt.legend(loc='best', fancybox=True); plt.ylim(ymin=ym)
+        raa = d.bg_aa[i][bp]
+
+    i_th = np.searchsorted(t, t_min_us)
+
+    n_t = np.trim_zeros(counts).size
+    n_td = np.trim_zeros(counts_d).size
+    n_ta = np.trim_zeros(counts_a).size
+    C = counts[i_th]/np.exp(-t[i_th]*1e-6*r)
+    Cd = counts_d[i_th]/np.exp(-t[i_th]*1e-6*rd)
+    Ca = counts_a[i_th]/np.exp(-t[i_th]*1e-6*ra)
+
+    fit_style = dict(linewidth=4, alpha=0.5)
+    plot(t[:n_t], C*np.exp(-t[:n_t]*1e-6*r), color='k',
+         label="T:  %d cps" % r, **fit_style)
+    plot(t[:n_td], Cd*np.exp(-t[:n_td]*1e-6*rd), color='g',
+         label="DD:  %d cps" % rd, **fit_style)
+    plot(t[:n_ta], Ca*np.exp(-t[:n_ta]*1e-6*ra), color='r',
+         label="AD:  %d cps" % ra, **fit_style)
+    if d.ALEX:
+        n_taa = np.trim_zeros(counts_aa).size
+        Caa = counts_aa[i_th]/np.exp(-t[i_th]*1e-6*raa)
+        plot(t[:n_taa], Caa*np.exp(-t[:n_taa]*1e-6*raa), color='m',
+             label="AA:  %d cps" % raa, **fit_style)
+    if yscale == 'log':
+        gca().set_yscale(yscale)
+        plt.ylim(1)
+    xlabel(u'Ph delay time (μs)'); ylabel("# Ph")
+    plt.legend(loc='best', fancybox=True)
 
 def hist_ph_delays(d, i=0, time_min_s=0, time_max_s=30, bin_width_us=10,
         mask=None, yscale='log', hfit_bin_ms=1, efit_tail_min_us=1000,
