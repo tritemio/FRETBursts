@@ -486,7 +486,6 @@ def hist_width(d, i=0, bins=r_[0:10:0.025], yscale='log', density=True,
 def hist_size(d, i=0, vmax=600, binw=4, bins=None,
               which='all', gamma=1, add_naa=False,
               yscale='log', legend=True, plot_style={}):
-
     """Plot histogram of burst sizes.
 
     Parameters:
@@ -542,7 +541,7 @@ def hist_size_all(d, i=0, **kwargs):
         hist_size(d, i, which=which, **kwargs)
 
 
-def hist_fret(d, i=0, ax=None, bins=None, binw=0.03, pdf=True, hist_style='bar',
+def hist_fret(d, i=0, ax=None, binw=0.03, bins=None, pdf=True, hist_style='bar',
               weights=None, gamma=1., add_naa=False,            # weights args
               show_fit_stats=False, show_fit_value=False, fit_from='kde',
               show_kde=False, bandwidth=0.03, show_kde_peak=False,  # kde args
