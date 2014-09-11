@@ -16,7 +16,7 @@ from burstsearch.burstsearchlib import b_start, b_end
 
 
 class GuiSelection(object):
-    """Abstract class for range selection.
+    """Abstract class for range selection in a matplotlib axis.
 
     Methods on_press_draw(), on_motion_draw() and on_release_print() must
     be overloaded by children classes.
@@ -30,6 +30,7 @@ class GuiSelection(object):
                                                 self.on_press)
         if self.debug:
             pprint('Figure: ' + str(fig) + '\nAxis: ' + str(ax) + '\n')
+
     def on_press(self, event):
         if event.inaxes != self.ax: return
         self.pressed = True
@@ -73,7 +74,7 @@ class GuiSelection(object):
 
 
 class xspanSelection(GuiSelection):
-    """Select an x range on the figure"""
+    """Interactive selection of an x range on the axis"""
     def on_press_draw(self):
         if 'r' in self.__dict__:
             self.r.set_width(0)
@@ -97,7 +98,10 @@ class xspanSelection(GuiSelection):
 
 
 class rectSelection(GuiSelection):
-    """Select a rectangular region on the figure (for hist2d_alex())"""
+    """Interactive selection of a rectangular region on the axis.
+
+    Used by hist2d_alex().
+    """
     def on_press_draw(self):
         if 'r' in self.__dict__:
             self.r.set_height(0)
@@ -150,10 +154,15 @@ class MultiAxPointSelection(object):
                                                 self.on_press)
     def on_press(self, event):
         if self.debug:
-            print 'PRESS button=%d, x=%d, y=%d, xdata=%f, ydata=%f' % (
-                event.button, event.x, event.y, event.xdata, event.ydata)
+            pprint('PRESS button=%d, x=%d, y=%d, xdata=%f, ydata=%f\n' % (
+                event.button, event.x, event.y, event.xdata, event.ydata))
+
         iax = [i for i, ax in enumerate(self.ax_list) if ax == event.inaxes]
-        if len(iax) == 0: return
+        if len(iax) == 0:
+            if self.debug:
+                pprint('NO axis found. event.inaxes "%s".\n' % event.inaxes)
+                pprint('self.ax_list: ' + str(self.ax_list))
+            return
 
         self.ich = iax[0]
         self.xp, self.yp = event.xdata, event.ydata

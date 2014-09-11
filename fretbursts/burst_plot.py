@@ -201,7 +201,7 @@ def _gui_timetrace_burst_sel(d, i, func, fig, ax):
     else:
         func.burst_sel.ax_list.append(ax)
 
-def timetrace_da(d, i=0, idx=0, bin_width=1e-3, bins=100000, bursts=False):
+def timetrace_da(d, i=0, bin_width=1e-3, bins=100000, bursts=False):
     """Timetrace of binned photons (donor-acceptor)."""
     if bursts:
         t_max_clk = int((bins*bin_width)/d.clk_p)
@@ -227,9 +227,9 @@ def timetrace_da(d, i=0, idx=0, bin_width=1e-3, bins=100000, bursts=False):
             _timetrace_bg(d, i, -r_[d.bg_ad], bin_width=bin_width, color='k',
                           Th=False)
     xlabel('Time (s)'); ylabel('# ph')
-    _gui_timetrace_burst_sel(d, idx, timetrace_da, gcf(), gca())
+    _gui_timetrace_burst_sel(d, i, timetrace_da, gcf(), gca())
 
-def timetrace(d, i=0, idx=0, bin_width=1e-3, bins=100000, bursts=False, F=None,
+def timetrace(d, i=0, bin_width=1e-3, bins=100000, bursts=False, F=None,
               **kwargs):
     """Timetrace of binned photons (total: donor + acceptor)."""
     if bursts:
@@ -244,9 +244,9 @@ def timetrace(d, i=0, idx=0, bin_width=1e-3, bins=100000, bursts=False, F=None,
     if 'bg' in d:
         _timetrace_bg(d, i, d.bg, bin_width=bin_width, F=F)
     xlabel('Time (s)'); ylabel('# ph')
-    _gui_timetrace_burst_sel(d, idx, timetrace, gcf(), gca())
+    _gui_timetrace_burst_sel(d, i, timetrace, gcf(), gca())
 
-def ratetrace(d, i=0, idx=0, m=None, max_ph=1e6, pmax=1e6, bursts=False,
+def ratetrace(d, i=0, m=None, max_ph=1e6, pmax=1e6, bursts=False,
               F=None):
     """Timetrace of photons rates (total: donor + acceptor)."""
     if m is None: m = d.m
@@ -261,9 +261,9 @@ def ratetrace(d, i=0, idx=0, m=None, max_ph=1e6, pmax=1e6, bursts=False,
     if 'bg' in d:
         _timetrace_bg(d, i, d.bg, F=F)
     xlabel('Time (s)'); ylabel('# ph')
-    _gui_timetrace_burst_sel(d, idx, ratetrace, gcf(), gca())
+    _gui_timetrace_burst_sel(d, i, ratetrace, gcf(), gca())
 
-def ratetrace_da(d, i=0, idx=0, m=None, max_ph=1e6, pmax=1e6, bursts=False,
+def ratetrace_da(d, i=0, m=None, max_ph=1e6, pmax=1e6, bursts=False,
                  F=None):
     """Timetrace of photons rates (donor-acceptor)."""
     if m is None: m = d.m
@@ -291,7 +291,7 @@ def ratetrace_da(d, i=0, idx=0, m=None, max_ph=1e6, pmax=1e6, bursts=False,
         _timetrace_bg(d, i, d.bg_dd, F=F, color='k')
         _timetrace_bg(d, i, -r_[d.bg_ad], F=F, color='k')
     xlabel('Time (s)'); ylabel('# ph')
-    _gui_timetrace_burst_sel(d, idx, ratetrace_da, gcf(), gca())
+    _gui_timetrace_burst_sel(d, i, ratetrace_da, gcf(), gca())
 
 def timetrace_alex(d, i=0, bin_width=1e-3, bins=100000, bursts=False,
                    **plot_kw):
