@@ -51,7 +51,7 @@ from ph_sel import Ph_sel
 import burstlib as bl
 import burstlib_ext as bext
 import background as bg
-from utils.misc import binning, clk_to_s, pprint
+from utils.misc import clk_to_s, pprint
 from scroll_gui import ScrollingToolQT
 import gui_selection as gs
 
@@ -199,6 +199,9 @@ def _plot_rate_th(d, i, F, ph_sel, invert=False, bin_width=1,
     `plot_style_` is the style of a timetrace/ratetrace plot used as starting
     style. Linestyle and label are changed. Finally, `rate_th_style` is
     applied and can override any style property.
+
+    If rate_th_style_['label'] is 'auto' the label is generated from
+    plot_style_['label'] and F.
     """
     if F is None:
         F = d.F if F in d else 6
@@ -210,7 +213,7 @@ def _plot_rate_th(d, i, F, ph_sel, invert=False, bin_width=1,
     if ph_sel in bg_dict:
         rate_th_style_ = dict(plot_style_)
         rate_th_style_.update(linestyle='--', label='auto')
-        rate_th_style_.update(rate_th_style)
+        rate_th_style_.update(_normalize_kwargs(rate_th_style, kind='line2d'))
         if rate_th_style_['label'] is 'auto':
             rate_th_style_['label'] = 'bg_rate*%d %s' % \
                                         (F, plot_style_['label'])
@@ -292,7 +295,7 @@ def timetrace_single(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
     if ph_sel in color_dict:
         plot_style_['color'] = color_dict[ph_sel]
         plot_style_['label'] = label_dict[ph_sel]
-    plot_style_.update(plot_style)
+    plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
     plot(x, timetrace, **plot_style_)
 
     # Plot burst-search rate-threshold
@@ -307,7 +310,7 @@ def timetrace_single(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
 
 def timetrace(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
               bursts=False, burst_picker=True,
-              show_rate_th=True, F=None, rate_th_style={},
+              show_rate_th=True, F=None, rate_th_style={'label': None},
               show_aa=True, legend=True,
               #dd_plot_style={}, ad_plot_style={}, aa_plot_style={}
               ):
@@ -334,7 +337,7 @@ def timetrace(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
                     rate_th_style=rate_th_style)
 
     if legend:
-        plt.legend()
+        plt.legend(loc='best', fancybox=True)
     # Activate the burst picker
     if burst_picker:
         _gui_timetrace_burst_sel(d, i, timetrace, gcf(), gca())
@@ -380,7 +383,7 @@ def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
     if ph_sel in color_dict:
         plot_style_['color'] = color_dict[ph_sel]
         plot_style_['label'] = label_dict[ph_sel]
-    plot_style_.update(plot_style)
+    plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
     plot(times, rates, **plot_style_)
 
     # Plot burst-search rate-threshold
@@ -395,7 +398,7 @@ def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
 
 def ratetrace(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
               bursts=False, burst_picker=True,
-              show_rate_th=True, F=None, rate_th_style={},
+              show_rate_th=True, F=None, rate_th_style={'label': None},
               show_aa=True, legend=True,
               #dd_plot_style={}, ad_plot_style={}, aa_plot_style={}
               ):
@@ -421,7 +424,7 @@ def ratetrace(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
                     F=F, rate_th_style=rate_th_style)
 
     if legend:
-        plt.legend()
+        plt.legend(loc='best', fancybox=True)
     # Activate the burst picker
     if burst_picker:
         _gui_timetrace_burst_sel(d, i, timetrace, gcf(), gca())
@@ -1274,8 +1277,8 @@ def dplot_48ch(d, fun=scatter_width_size, sharex=True, sharey=True,
     #s = RangeToolQT(fig)
     return AX, s
 
-def dplot_8ch(d, fun=scatter_width_size, sharex=True,sharey=True,
-        scroll=False,pgrid=True, figsize=(12, 9), nosuptitle=False, AX=None,
+def dplot_8ch(d, fun=scatter_width_size, sharex=True, sharey=True,
+        scroll=False, pgrid=True, figsize=(12, 9), nosuptitle=False, AX=None,
         scale=True, **kwargs):
     """Plot wrapper for 8-spot measurements. Use `dplot` instead."""
     if AX is None:
