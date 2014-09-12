@@ -186,21 +186,21 @@ def _plot_bursts(d, i, t_max_clk, pmax=1e3, pmin=0):
     ax.add_artist(PatchCollection(R, lw=0, color="#999999"))
     pprint("[DONE]\n")
 
-gui_ref = {}
+gui_status = {}
 
 def _gui_timetrace_burst_sel(d, fig, ax):
     """Add GUI burst selector via mouse click to the current plot."""
-    global gui_ref
-    if gui_ref['first_call']:
-        gui_ref['burst_sel'] = gs.MultiAxPointSelection(fig, ax, d)
+    global gui_status
+    if gui_status['first_plot_in_figure']:
+        gui_status['burst_sel'] = gs.MultiAxPointSelection(fig, ax, d)
     else:
-        gui_ref['burst_sel'].burst_sel.ax_list.append(ax)
+        gui_status['burst_sel'].burst_sel.ax_list.append(ax)
 
 def _gui_timetrace_scroll(fig):
     """Add GUI to scroll a timetrace wi a slider."""
-    global gui_ref
-    if gui_ref['first_call']:
-        gui_ref['scroll_gui'] = ScrollingToolQT(fig)
+    global gui_status
+    if gui_status['first_plot_in_figure']:
+        gui_status['scroll_gui'] = ScrollingToolQT(fig)
 
 def _plot_rate_th(d, i, F, ph_sel, invert=False, scale=1,
                   plot_style_={}, rate_th_style={}):
@@ -320,12 +320,12 @@ def timetrace_single(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
         _gui_timetrace_burst_sel(d, gcf(), gca())
     if scroll:
         _gui_timetrace_scroll(gcf())
+
+    plt.xlim(tmin, tmin + 1)
+    if not invert:
+        plt.ylim(ymax=100)
     else:
-        plt.xlim(tmin, tmin + 1)
-        if not invert:
-            plt.ylim(ymax=100)
-        else:
-            plt.ylim(ymin=-100)
+        plt.ylim(ymin=-100)
 
 def timetrace(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
               bursts=False, burst_picker=True, scroll=False,
@@ -343,26 +343,24 @@ def timetrace(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
     # Plot multiple timetraces
     ph_sel_list = [Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
     invert_list = [False, True]
+    burst_picker_list = [burst_picker, False]
+    scroll_list = [scroll, False]
     if d.ALEX and show_aa:
          ph_sel_list.append(Ph_sel(Aex='Aem'))
          invert_list.append(True)
+         burst_picker_list.append(False)
+         scroll_list.append(False)
 
-    for ph_sel, invert in zip(ph_sel_list, invert_list):
+    for ix, (ph_sel, invert) in enumerate(zip(ph_sel_list, invert_list)):
         if not bl.mask_empty(d.get_ph_mask(i, ph_sel=ph_sel)):
             timetrace_single(d, i, bin_width=bin_width, bins=bins, tmin=tmin,
                     tmax=tmax, ph_sel=ph_sel, invert=invert, bursts=False,
-                    burst_picker=False, scroll=False, cache_bins=True,
+                    burst_picker=burst_picker_list[ix],
+                    scroll=scroll_list[ix], cache_bins=True,
                     show_rate_th=show_rate_th, F=F,
                     rate_th_style=rate_th_style)
     if legend:
         plt.legend(loc='best', fancybox=True)
-    # Activate the burst picker
-    if burst_picker:
-        _gui_timetrace_burst_sel(d, gcf(), gca())
-    if scroll:
-        _gui_timetrace_scroll(gcf())
-    else:
-        plt.xlim(tmin, tmin + 1)
 
 def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
                      ph_sel=Ph_sel('all'), invert=False, bursts=False,
@@ -375,6 +373,11 @@ def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
     """
     if m is None:
         m = d.m if m in d else 10
+
+    # Plot bursts
+    if bursts:
+        t_max_clk = int(tmax/d.clk_p)
+        _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500)
 
     # Compute ratetrace
     tmin_clk, tmax_clk = tmin/d.clk_p, tmax/d.clk_p
@@ -417,11 +420,12 @@ def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
         _gui_timetrace_burst_sel(d, gcf(), gca())
     if scroll:
         _gui_timetrace_scroll(gcf())
-        plt.xlim(tmin, tmin + 1)
-        if not invert:
-            plt.ylim(ymax=200)
-        else:
-            plt.ylim(ymin=-200)
+
+    plt.xlim(tmin, tmin + 1)
+    if not invert:
+        plt.ylim(ymax=200)
+    else:
+        plt.ylim(ymin=-200)
 
 
 def ratetrace(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
@@ -435,31 +439,29 @@ def ratetrace(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
     # Plot bursts
     if bursts:
         t_max_clk = int(tmax/d.clk_p)
-        _plot_bursts(d, i, t_max_clk, pmax=1e6, pmin=-1e6)
+        _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500)
 
     # Plot multiple timetraces
     ph_sel_list = [Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
     invert_list = [False, True]
+    burst_picker_list = [burst_picker, False]
+    scroll_list = [scroll, False]
     if d.ALEX and show_aa:
          ph_sel_list.append(Ph_sel(Aex='Aem'))
          invert_list.append(True)
+         burst_picker_list.append(False)
+         scroll_list.append(False)
 
-    for ph_sel, invert in zip(ph_sel_list, invert_list):
+    for ix, (ph_sel, invert) in enumerate(zip(ph_sel_list, invert_list)):
         if not bl.mask_empty(d.get_ph_mask(i, ph_sel=ph_sel)):
             ratetrace_single(d, i, m=m, max_num_ph=max_num_ph, tmin=tmin,
                     tmax=tmax, ph_sel=ph_sel, invert=invert, bursts=False,
-                    burst_picker=False, scroll=False,
+                    burst_picker=burst_picker_list[ix],
+                    scroll=scroll_list[ix],
                     show_rate_th=show_rate_th, F=F,
                     rate_th_style=rate_th_style)
     if legend:
         plt.legend(loc='best', fancybox=True)
-    # Activate the burst picker
-    if burst_picker:
-        _gui_timetrace_burst_sel(d, gcf(), gca())
-    if scroll:
-        _gui_timetrace_scroll(gcf())
-    else:
-        plt.xlim(tmin, tmin + 1)
 
 def sort_burst_sizes(sizes, levels=np.arange(1, 102, 20)):
     """Return a list of masks that split `sizes` in levels.
@@ -1260,6 +1262,7 @@ def dplot_48ch(d, func, sharex=True, sharey=True,
         pgrid=True, figsize=None, AX=None, nosuptitle=False,
         scale=True, ich=None, **kwargs):
     """Plot wrapper for 48-spot measurements. Use `dplot` instead."""
+    global gui_status
     if ich is None:
         iter_ch = xrange(d.nch)
         if d.nch == 48:
@@ -1300,7 +1303,7 @@ def dplot_48ch(d, func, sharex=True, sharey=True,
         ax.set_title(s, fontsize=12)
         ax.grid(pgrid)
         plt.sca(ax)
-        func.first_call = (i == 0)
+        gui_status['first_plot_in_figure'] = (i == 0)
         func(d, ich, **kwargs)
     [a.set_xlabel('') for a in AX[:-1,:].ravel()]
     [a.set_ylabel('') for a in AX[:,1:].ravel()]
@@ -1319,7 +1322,7 @@ def dplot_8ch(d, func, sharex=True, sharey=True,
         pgrid=True, figsize=(12, 9), nosuptitle=False, AX=None,
         scale=True, **kwargs):
     """Plot wrapper for 8-spot measurements. Use `dplot` instead."""
-    global gui_ref
+    global gui_status
     if AX is None:
         fig, AX = plt.subplots(4,2,figsize=figsize, sharex=sharex,
                                sharey=sharey)
@@ -1345,7 +1348,7 @@ def dplot_8ch(d, func, sharex=True, sharey=True,
         ax.set_title(s, fontsize=12)
         ax.grid(pgrid)
         plt.sca(ax)
-        gui_ref['first_call'] = (i == 0)
+        gui_status['first_plot_in_figure'] = (i == 0)
         func(d, i, **kwargs)
         if i % 2 == 1: ax.yaxis.tick_right()
     [a.set_xlabel('') for a in AX[:-1,:].ravel()]
@@ -1363,7 +1366,7 @@ def dplot_8ch(d, func, sharex=True, sharey=True,
 def dplot_1ch(d, func, pgrid=True, ax=None,
               figsize=(9, 4.5), fignum=None, nosuptitle=False, **kwargs):
     """Plot wrapper for single-spot measurements. Use `dplot` instead."""
-    global gui_ref
+    global gui_status
     if ax is None:
         fig = plt.figure(num=fignum, figsize=figsize)
         ax = fig.add_subplot(111)
@@ -1376,7 +1379,7 @@ def dplot_1ch(d, func, pgrid=True, ax=None,
     if not nosuptitle: ax.set_title(s, fontsize=12)
     ax.grid(pgrid)
     plt.sca(ax)
-    gui_ref['first_call'] = True
+    gui_status['first_plot_in_figure'] = True
     func(d, **kwargs)
     return ax
 
