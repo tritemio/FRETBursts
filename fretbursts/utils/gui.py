@@ -10,9 +10,9 @@ GUI related helper functions.
 from __future__ import print_function
 
 try:
-    from PySide import QtGui, QtCore
-except ImportError:
     from PyQt4 import QtGui, QtCore
+except ImportError:
+    from PySide import QtGui, QtCore
 
 
 def gui_fname(dir=None):

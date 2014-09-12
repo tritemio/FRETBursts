@@ -15,9 +15,9 @@ NOTE: Needs cleanups, comments and optimization (see examples in utils/ folder)
 
 import numpy as np
 try:
-    from PySide import QtGui, QtCore
-except ImportError:
     from PyQt4 import QtGui, QtCore
+except ImportError:
+    from PySide import QtGui, QtCore
 
 from utils.misc import pprint
 
