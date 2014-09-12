@@ -12,7 +12,7 @@ Used by `hist2d_alex() and other functions in `burst_plot.py.
 import numpy as np
 from matplotlib.patches import Rectangle, Ellipse
 from utils.misc import pprint
-from burstsearch.burstsearchlib import b_start, b_end
+from burstsearch.burstsearchlib import b_start, b_end, b_width
 import burstlib_ext as bext
 
 
@@ -185,11 +185,20 @@ class MultiAxPointSelection(object):
         if mask.any():
             burst_index = np.where(mask)[0][0]
             ts = b_start(mburst)[burst_index]*self.d.clk_p
+            width = b_width(mburst)[burst_index]*self.d.clk_p
             asym = self.asymmetry(self.ich)[burst_index]
             msg = "Burst [%d-CH%d]: " % (burst_index, self.ich+1)
-            msg += "t = %d us" % (ts*1e6)
-            msg += "   nt = %5.1f" % self.d.nt[self.ich][burst_index]
-            msg += "   E = %4.2f" % self.d.E[self.ich][burst_index]
-            msg += "   Asymmetry = %.2f ms" % asym
+            msg += "t = %7.2f ms" % (ts*1e3)
+            msg += "   width=%4.2f ms" % (width*1e3)
+            msg += "   size=(T%3d, D%3d, A%3d" % \
+                (self.d.nt[self.ich][burst_index],
+                 self.d.nd[self.ich][burst_index],
+                 self.d.na[self.ich][burst_index])
+            if self.d.ALEX:
+                msg += ", AA%3d" % self.d.naa[self.ich][burst_index]
+            msg += ")   E=%4.2f" % self.d.E[self.ich][burst_index]
+            if self.d.ALEX:
+                msg += "   S=%4.2f" % self.d.E[self.ich][burst_index]
+            msg += "   Asym(D-A)=%5.2f ms" % asym
             pprint(msg + '\n')
 
