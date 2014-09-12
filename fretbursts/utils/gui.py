@@ -7,7 +7,12 @@
 GUI related helper functions.
 """
 
-from PySide import QtGui
+from __future__ import print_function
+
+try:
+    from PySide import QtGui, QtCore
+except ImportError:
+    from PyQt4 import QtGui, QtCore
 
 
 def gui_fname(dir=None):
@@ -16,6 +21,12 @@ def gui_fname(dir=None):
     if dir is None: dir ='./'
     fname = QtGui.QFileDialog.getOpenFileName(None, "Select data file...",
             dir, filter="All files (*);; SM Files (*.sm)")
-    print fname[0]
-    return fname[0]
+
+    if type(fname) is tuple:
+        fname = fname[0]
+    elif type(fname) is QtCore.QString:
+        fname = str(fname)
+
+    print(fname)
+    return fname
 

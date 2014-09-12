@@ -46,15 +46,6 @@ except ImportError:
 else:
     has_lmfit = True
 
-try:
-    import PySide
-except:
-    has_pyside = False
-    warnings.warn((' - Cannot import PySide. Some GUI functionalities '
-                   ' will not be avalable.'))
-else:
-    has_pyside = True
-
 
 __all__numpy = ["np", "r_", "zeros"]
 
@@ -131,7 +122,6 @@ if has_matplotlib and has_pandas and has_lmfit:
             dplot, dplot_48ch, dplot_8ch, dplot_1ch,
             )
 
-if has_pyside:
-    from utils.gui import gui_fname
+from utils.gui import gui_fname
 
 from utils.misc import download_file
