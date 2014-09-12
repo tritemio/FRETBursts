@@ -310,6 +310,31 @@ def test_burst_corrections(data):
             burst_size_raw2 = nd + na + bg_d + bg_a + lk*nd
             assert np.allclose(burst_size_raw, burst_size_raw2)
 
+def test_burst_search_consistency(data):
+    """Test consistency of burst data array
+    """
+    d = data
+    for mb, ph in zip(d.mburst, d.iter_ph_times()):
+        tot_size = bl.b_size(mb)
+        istart, istop = bl.b_istart(mb), bl.b_iend(mb)
+        assert np.all(tot_size == istop - istart + 1)
+        start, stop, width = bl.b_start(mb), bl.b_end(mb), bl.b_width(mb)
+        assert np.all(width == stop - start)
+    df = d.fuse_bursts(ms=0)
+    for mb, ph in zip(df.mburst, df.iter_ph_times()):
+        tot_size = bl.b_size(mb)
+        istart, istop = bl.b_istart(mb), bl.b_iend(mb)
+        assert np.all(tot_size == istop - istart + 1)
+        start, stop, width = bl.b_start(mb), bl.b_end(mb), bl.b_width(mb)
+        assert np.all(width == stop - start)
+    df = d.fuse_bursts(ms=1)
+    for mb, ph in zip(df.mburst, df.iter_ph_times()):
+        tot_size = bl.b_size(mb)
+        istart, istop = bl.b_istart(mb), bl.b_iend(mb)
+        assert np.all(tot_size <= istop - istart + 1)
+        start, stop, width = bl.b_start(mb), bl.b_end(mb), bl.b_width(mb)
+        assert np.all(width <= stop - start)
+
 def test_burst_size_da(data):
     """Test that nd + na with no corrections is equal to b_size(mburst).
     """
