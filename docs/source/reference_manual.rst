@@ -14,4 +14,5 @@ Contents:
     fit
     plugins
     HDF5_format
+    fretmath
     files_description

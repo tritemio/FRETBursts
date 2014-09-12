@@ -53,8 +53,8 @@ used to create a `MultiFitter` object to fit either E or S. As an example
 let suppose haveing a measurement loaded in the variable `d`. To create a
 fitter object and compute the FRET histogram we execute::
 
-bext.burst_fitter(d) # Creates d.E_fitter
-d.E_fitter.histogram() # Compute the histogram for all the channels
+    bext.burst_fitter(d) # Creates d.E_fitter
+    d.E_fitter.histogram() # Compute the histogram for all the channels
 
 Now we fit the E histogram with a 2-Gaussians model::
 
