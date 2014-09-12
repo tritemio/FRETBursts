@@ -37,21 +37,21 @@ Main analysis features includes:
 - burst corrections: background, D-spectral leakage (bleed-through), A-direct excitation,
 gamma-factor
 - per-burst statistics (# photons, burst duration, E, S, peak rate in burst, etc...)
-- post-burst-search [selection functions](http://fretbursts.readthedocs.org/burst_selection.html) 
-  (for ex.: [burst size](http://fretbursts.readthedocs.org/burst_selection.html#fretbursts.select_bursts.size), 
-  [burst width](http://fretbursts.readthedocs.org/burst_selection.html#fretbursts.select_bursts.width), 
-  [E, S](http://fretbursts.readthedocs.org/burst_selection.html#fretbursts.select_bursts.ES), ...). 
+- post-burst-search [selection functions](http://fretbursts.readthedocs.org/burst_selection.html)
+  (for ex.: [burst size](http://fretbursts.readthedocs.org/burst_selection.html#fretbursts.select_bursts.size),
+  [burst width](http://fretbursts.readthedocs.org/burst_selection.html#fretbursts.select_bursts.width),
+  [E, S](http://fretbursts.readthedocs.org/burst_selection.html#fretbursts.select_bursts.ES), ...).
   Defining a new burst selection
 criterium requires only a couple of lines of code.
-- [fit routines](http://fretbursts.readthedocs.org/fit.html) for FRET efficiency 
+- [fit routines](http://fretbursts.readthedocs.org/fit.html) for FRET efficiency
   ([1 and 2-gaussians histogram fit](http://fretbursts.readthedocs.org/data_class.html#fretbursts.burstlib.Data.fit_E_generic),
-  [MLE Poisson models](http://fretbursts.readthedocs.org/data_class.html#fretbursts.burstlib.Data.fit_E_ML_poiss), 
+  [MLE Poisson models](http://fretbursts.readthedocs.org/data_class.html#fretbursts.burstlib.Data.fit_E_ML_poiss),
   [weighted least squares models](http://fretbursts.readthedocs.org/data_class.html#fretbursts.burstlib.Data.fit_E_m),
-  [weighted expectation maximization](http://fretbursts.readthedocs.org/data_class.html#fretbursts.burstlib.Data.fit_E_two_gauss_EM), 
+  [weighted expectation maximization](http://fretbursts.readthedocs.org/data_class.html#fretbursts.burstlib.Data.fit_E_two_gauss_EM),
   etc...)
 
-Moreover FRETBursts includes 
-[a large set](https://github.com/tritemio/FRETBursts/blob/master/fretbursts/burst_plot.py) of modular 
+Moreover FRETBursts includes
+[a large set](https://github.com/tritemio/FRETBursts/blob/master/fretbursts/burst_plot.py) of modular
 [plot functions](http://fretbursts.readthedocs.org/files_description.html#module-fretbursts.burst_plot) for
 background, time-traces, rate-traces, E, S, ALEX histograms, weighted kernel
 density estimation ([KDE](http://en.wikipedia.org/wiki/Kernel_density_estimation))
@@ -117,7 +117,7 @@ FRETBursts notebooks.
 
 FRETBursts is loaded running a small script (`load_fretbursts.py`) placed
 in the notebooks folder. The first time you download FRETBursts, you need to
-run the [Installation.ipynb](http://nbviewer.ipython.org/github/tritemio/FRETBursts/blob/master/notebooks/Installation.ipynb)
+run the [FRETBursts Installation.ipynb](http://nbviewer.ipython.org/github/tritemio/FRETBursts/blob/master/notebooks/FRETBursts Installation.ipynb)
 notebook that will write a configuration file
 containing FRETBursts's source folder.
 
@@ -149,7 +149,8 @@ repository.
 > [notebooks folder](https://github.com/tritemio/FRETBursts/tree/master/notebooks).
 
 We provide a public dataset [1] to test and demonstrate FRETBursts
-functionalities. These dataset files are needed to re-run the tutorials.
+functionalities. These dataset files will be downloaded when running
+the tutorials.
 
 [1] A. Ingargiola, S. Chung (2014): smFRET example datasets for the FRETBursts
 software. [DOI 10.6084/m9.figshare.1019906](http://dx.doi.org/10.6084/m9.figshare.1019906)

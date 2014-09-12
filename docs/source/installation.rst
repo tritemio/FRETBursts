@@ -43,7 +43,7 @@ the scientific packages is using a python distribution like
 distributions include, in the free version, all the needed software (and much
 more).
 
-Two dependencies, lmfit and pyside, are not installed by default by
+A pure-python dependency, lmfit, is not installed by default by
 Anaconda and will be installed by FRETBursts Installation notebook.
 
 FRETBursts has been tested on Anaconda 1.9 or newer.
@@ -55,7 +55,7 @@ If you prefer a manual installation, FRETBursts dependencies are:
 
 - Python 2.7
 - Numpy/Scipy (any version from 2013 on)
-- Matplotlib with qt (pyside) backend (1.3.x or greater)
+- Matplotlib (1.3.x or greater) with QT4 backend (either PyQT4 or PySide).
 - IPython 1.x (2.x recommended)
 - PyTables 3.x (optional). To load/save the :ref:`HDF5 Ph-Data <hdf5-format>`.
 - lmfit: (version 0.8rc3 or higher) for poweful and user-friendly fitting
