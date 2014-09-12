@@ -14,7 +14,10 @@ NOTE: Needs cleanups, comments and optimization (see examples in utils/ folder)
 """
 
 import numpy as np
-from PySide import QtGui, QtCore
+try:
+    from PySide import QtGui, QtCore
+except ImportError:
+    from PyQt4 import QtGui, QtCore
 
 from utils.misc import pprint
 

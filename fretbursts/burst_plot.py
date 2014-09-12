@@ -194,7 +194,7 @@ def _gui_timetrace_burst_sel(d, fig, ax):
     if gui_status['first_plot_in_figure']:
         gui_status['burst_sel'] = gs.MultiAxPointSelection(fig, ax, d)
     else:
-        gui_status['burst_sel'].burst_sel.ax_list.append(ax)
+        gui_status['burst_sel'].ax_list.append(ax)
 
 def _gui_timetrace_scroll(fig):
     """Add GUI to scroll a timetrace wi a slider."""
