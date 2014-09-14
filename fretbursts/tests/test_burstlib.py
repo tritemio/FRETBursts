@@ -270,6 +270,14 @@ def test_burst_sizes(data):
         burst_size = d.burst_sizes_ich(ich)
         assert (burst_size == nd + na).all()
 
+def test_calc_sbr(data):
+    """Smoke test Data.calc_sbr()"""
+    data.calc_sbr()
+
+def test_calc_max_rate(data):
+    """Smoke test Data.calc_max-rate()"""
+    data.calc_max_rate(m=10)
+
 def test_expand(data):
     """Test method `expand()` for `Data()`."""
     d = data

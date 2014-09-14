@@ -1883,7 +1883,7 @@ class Data(DataContainer):
                 sbr.append([])
                 continue  # if no bursts skip this ch
             nd, na, bg_d, bg_a = self.expand(ich)
-            nt = select_bursts.get_burst_size(self, ich, gamma=gamma)
+            nt = self.burst_sizes_ich(ich=ich, gamma=gamma)
 
             signal = {Ph_sel('all'): nt,
                       Ph_sel(Dex='Dem'): nd, Ph_sel(Dex='Aem'): na}
