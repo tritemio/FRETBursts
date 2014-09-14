@@ -46,6 +46,7 @@ from __future__ import division
 import numpy as np
 from scipy.stats import erlang
 from scipy.optimize import leastsq
+import pandas as pd
 
 from ph_sel import Ph_sel
 import burstsearch.burstsearchlib as bslib
@@ -54,6 +55,44 @@ from utils.misc import pprint
 import burstlib
 import fret_fit
 import mfit
+
+
+def burst_data(dx, ich=0, include_bg=False, include_ph_index=False):
+    """Return a pandas Dataframe (one row per bursts) with all the burst data.
+    """
+    if dx.ALEX:
+        nd, na, naa, bg_d, bg_a, bg_aa, wid = dx.expand(ich=ich, alex_naa=True,
+                                                        width=True)
+        nt = nd + na + naa + dx.nda[ich]
+    else:
+        nd, na, bg_d, bg_a, wid = dx.expand(ich=ich, width=True)
+        nt = nd + na
+
+    size_raw = burstlib.b_size(dx.mburst[ich])
+    t_start = burstlib.b_start(dx.mburst[ich])*dx.clk_p
+    t_end = burstlib.b_end(dx.mburst[ich])*dx.clk_p
+    i_start = burstlib.b_istart(dx.mburst[ich])
+    i_end = burstlib.b_iend(dx.mburst[ich])
+    asym = asymmetry(dx, dropnan=False)
+
+    data_dict = dict(size_raw=size_raw, nt=nt, width_ms=wid*1e3,
+                     t_start=t_start, t_end=t_end, asymmetry=asym)
+
+    if include_ph_index:
+        data_dict.update(i_start=i_start, i_end=i_end)
+
+    if include_bg:
+        data_dict.update(bg_d=bg_d, bg_a=bg_a)
+        if dx.ALEX:
+            data_dict.update(bg_aa=bg_aa)
+
+    burst_fields = dx.burst_fields[:]
+    burst_fields.remove('mburst')
+    for field in burst_fields:
+        if field in dx:
+            data_dict[field] = dx[field][ich]
+
+    return pd.DataFrame.from_dict(data_dict)
 
 
 def fit_bursts_kde_peak(dx, burst_data='E', bandwidth=0.03, weights='size',
@@ -443,7 +482,7 @@ def ph_burst_stats(d, ich=0, func=np.mean, ph_sel=Ph_sel('all')):
     stats = [func(times) for times in burst_photons]
     return np.array(stats)
 
-def asymmetry(d, ich=0, func=np.mean, dropnan=True):
+def asymmetry(dx, ich=0, func=np.mean, dropnan=True):
     """Compute an asymmetry index for each burst in channel `ich`.
 
     It computes each burst the difference func({t_D}) - func({t_A})
@@ -460,12 +499,12 @@ def asymmetry(d, ich=0, func=np.mean, dropnan=True):
     Returns:
         An arrays of photon timestamps (one array per burst).
     """
-    stats_d = ph_burst_stats(d, ich=ich, func=func, ph_sel=Ph_sel(Dex='Dem'))
-    stats_a = ph_burst_stats(d, ich=ich, func=func, ph_sel=Ph_sel(Dex='Aem'))
+    stats_d = ph_burst_stats(dx, ich=ich, func=func, ph_sel=Ph_sel(Dex='Dem'))
+    stats_a = ph_burst_stats(dx, ich=ich, func=func, ph_sel=Ph_sel(Dex='Aem'))
 
     #b_size = d.burst_sizes(ich, add_naa=False)
     #b_width = burstlib.b_width(d.mburst[ich])
-    burst_asym = (stats_d - stats_a)*d.clk_p*1e3
+    burst_asym = (stats_d - stats_a)*dx.clk_p*1e3
     if dropnan:
         burst_asym = burst_asym[-np.isnan(burst_asym)]
     return burst_asym

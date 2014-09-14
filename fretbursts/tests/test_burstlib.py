@@ -15,6 +15,7 @@ import numpy as np
 from fretbursts import loader
 import fretbursts.background as bg
 import fretbursts.burstlib as bl
+import fretbursts.burstlib_ext as bext
 from fretbursts.ph_sel import Ph_sel
 
 # data subdir in the notebook folder
@@ -277,6 +278,10 @@ def test_calc_sbr(data):
 def test_calc_max_rate(data):
     """Smoke test Data.calc_max-rate()"""
     data.calc_max_rate(m=10)
+
+def test_burst_data(data):
+    """Smoke test Data.calc_max-rate()"""
+    bext.burst_data(data, include_bg=True, include_ph_index=True)
 
 def test_expand(data):
     """Test method `expand()` for `Data()`."""
