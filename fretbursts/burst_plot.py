@@ -244,6 +244,9 @@ def timetrace_single(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
     See :func:`timetrace` to plot multiple photon selections (i.e.
     Donor and Acceptor photons) in one step.
     """
+    if tmax is None or tmax < 0:
+        tmax = d.time_max()
+
     def _get_cache():
         return (timetrace_single.bins, timetrace_single.x,
                 timetrace_single.bin_width,
@@ -371,6 +374,9 @@ def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
     See :func:`ratetrace` to plot multiple photon selections (i.e.
     Donor and Acceptor photons) in one step.
     """
+    if tmax is None or tmax < 0:
+        tmax = d.time_max()
+
     if m is None:
         m = d.m if m in d else 10
 
