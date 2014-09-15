@@ -350,7 +350,7 @@ def fuse_bursts_iter(bursts, ms=0, clk_p=12.5e-9, verbose=True):
             See `burstseach.burstseachlib.py` for details.
         ms (float):
             minimum waiting time between bursts (in millisec). Burst closer
-            than that will be fuse in asingle burst.
+            than that will be fused in a single burst.
         clk_p (float): clock period or timestamp units in seconds.
         verbose (bool): if True print a summary of fused bursts.
 
@@ -374,9 +374,9 @@ def fuse_bursts_iter(bursts, ms=0, clk_p=12.5e-9, verbose=True):
 def b_fuse(mburst, ms=0, clk_p=12.5e-9):
     """Fuse bursts separated by less than `ms` (milli-secs).
 
-    This is a low-level function htat only fuses 2 consecutive bursts
+    This is a low-level function that only fuses 2 consecutive bursts
     separated by less than `ms` millisec. If there are 3 or consecutive
-    bursts separated by less than `ms` only hte first 2 are fused.
+    bursts separated by less than `ms` only the first 2 are fused.
     See :func:`fuse_bursts_iter` or :func:`fuse_bursts_direct` for
     higher level functions.
 
@@ -385,7 +385,8 @@ def b_fuse(mburst, ms=0, clk_p=12.5e-9):
             See `burstseach.burstseachlib.py` for details.
         ms (float):
             minimum waiting time between bursts (in millisec). Burst closer
-            than that will be fuse in asingle burst.
+            than that will be fused in a single burst.
+        clk_p (float): clock period or timestamp units in seconds.
 
     Returns:
         new_mburst (2D array): new array of burst data
