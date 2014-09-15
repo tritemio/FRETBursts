@@ -238,7 +238,7 @@ def timetrace_single(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
                      ph_sel=Ph_sel('all'), invert=False, bursts=False,
                      burst_picker=True, scroll=False, cache_bins=True,
                      plot_style={}, show_rate_th=True, F=None,
-                     rate_th_style={}):
+                     rate_th_style={}, set_ax_limits=True):
     """Plot the timetrace (histogram) of timestamps for a photon selection.
 
     See :func:`timetrace` to plot multiple photon selections (i.e.
@@ -324,16 +324,17 @@ def timetrace_single(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
     if scroll:
         _gui_timetrace_scroll(gcf())
 
-    plt.xlim(tmin, tmin + 1)
-    if not invert:
-        plt.ylim(ymax=100)
-    else:
-        plt.ylim(ymin=-100)
+    if set_ax_limits:
+        plt.xlim(tmin, tmin + 1)
+        if not invert:
+            plt.ylim(ymax=100)
+        else:
+            plt.ylim(ymin=-100)
 
 def timetrace(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
               bursts=False, burst_picker=True, scroll=False,
               show_rate_th=True, F=None, rate_th_style={'label': None},
-              show_aa=True, legend=False,
+              show_aa=True, legend=False, set_ax_limits=True,
               #dd_plot_style={}, ad_plot_style={}, aa_plot_style={}
               ):
     """Plot the timetraces (histogram) of photon timestamps.
@@ -361,14 +362,15 @@ def timetrace(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
                     burst_picker=burst_picker_list[ix],
                     scroll=scroll_list[ix], cache_bins=True,
                     show_rate_th=show_rate_th, F=F,
-                    rate_th_style=rate_th_style)
+                    rate_th_style=rate_th_style, set_ax_limits=set_ax_limits)
     if legend:
         plt.legend(loc='best', fancybox=True)
 
 def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
                      ph_sel=Ph_sel('all'), invert=False, bursts=False,
                      burst_picker=True, scroll=False, plot_style={},
-                     show_rate_th=True,  F=None, rate_th_style={}):
+                     show_rate_th=True,  F=None, rate_th_style={},
+                     set_ax_limits=True):
     """Plot the ratetrace of timestamps for a photon selection.
 
     See :func:`ratetrace` to plot multiple photon selections (i.e.
@@ -427,17 +429,18 @@ def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
     if scroll:
         _gui_timetrace_scroll(gcf())
 
-    plt.xlim(tmin, tmin + 1)
-    if not invert:
-        plt.ylim(ymax=200)
-    else:
-        plt.ylim(ymin=-200)
+    if set_ax_limits:
+        plt.xlim(tmin, tmin + 1)
+        if not invert:
+            plt.ylim(ymax=100)
+        else:
+            plt.ylim(ymin=-100)
 
 
 def ratetrace(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
               bursts=False, burst_picker=True, scroll=False,
               show_rate_th=True, F=None, rate_th_style={'label': None},
-              show_aa=True, legend=False,
+              show_aa=True, legend=False, set_ax_limits=True,
               #dd_plot_style={}, ad_plot_style={}, aa_plot_style={}
               ):
     """Plot the ratetraces of photon timestamps.
@@ -465,7 +468,7 @@ def ratetrace(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
                     burst_picker=burst_picker_list[ix],
                     scroll=scroll_list[ix],
                     show_rate_th=show_rate_th, F=F,
-                    rate_th_style=rate_th_style)
+                    rate_th_style=rate_th_style, set_ax_limits=set_ax_limits)
     if legend:
         plt.legend(loc='best', fancybox=True)
 
