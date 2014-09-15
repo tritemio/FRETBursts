@@ -1992,9 +1992,12 @@ class Data(DataContainer):
 
     def name(self):
         """Return short filename (last subfolder + fname with no extension)"""
-        basename = os.path.splitext(os.path.basename(self.fname))[0]
+        name = basename = os.path.splitext(os.path.basename(self.fname))[0]
         last_dir = os.path.basename(os.path.dirname(self.fname))
-        return '_'.join([last_dir, basename])
+        if last_dir is not '':
+            name = '_'.join([last_dir, basename])
+        return name
+
 
     def Name(self, add=""):
         """Return short filename + status information."""
