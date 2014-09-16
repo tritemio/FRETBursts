@@ -28,16 +28,20 @@ __version__ = '0.4.dev'
 
 
 ## Citation information
-_CITATION = ('  FRETBursts - An opensource single-molecule FRET burst '
-             'analysis toolkit.\n  A. Ingargiola 2014. '
+_CITATION = ('   FRETBursts - An opensource single-molecule FRET burst '
+             'analysis toolkit.\n   A. Ingargiola 2014. '
              'https://github.com/tritemio/FRETBursts.')
 
-_INFO_CITATION = ('You are running FRETBursts a software for smFRET analysis. '
-                  '\n\nIf you use this software in a publication, please '
-                  'cite this software as:\n\n') + _CITATION + '\n'
+_INFO_CITATION = (' You are running FRETBursts, a software for smFRET analysis. '
+                  '\n\n If you use this software in a publication, please '
+                  'cite it as:\n\n') + _CITATION + '\n'
 
-def citation():
+def citation(bar=True):
+    if bar:
+        print('-------------------------------------------------------------')
     print(_INFO_CITATION)
+    if bar:
+        print('-------------------------------------------------------------')
 
 
 import warnings
