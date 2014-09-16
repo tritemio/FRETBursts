@@ -80,7 +80,7 @@ __all__matplotlib = [
 __all_local_names = [
         # Local modules
         "loader", "select_bursts", "bl", "bg", "bpl", "bext", "bg_cache",
-        "hdf5", "fretmath", "mfit",
+        "hdf5", "fretmath", "mfit", "citation",
 
         # Classes, functions, variables
         "Data", "Sel", "Sel_mask", "Sel_mask_apply", "gui_fname", "Ph_sel",

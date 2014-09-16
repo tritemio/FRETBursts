@@ -4,7 +4,7 @@ Helper script to load the FRETBursts from a IPython Notebook.
 
 Run this file from a notebook as follows:
 
-    run load_fretbursts
+    %run load_fretbursts
 
 """
 
@@ -42,6 +42,7 @@ from fretbursts import *
 from fretbursts.utils import git
 
 git.print_summary('FRETBursts')
+citation()
 
 os.chdir(NOTEBOOK_DIR)
 
