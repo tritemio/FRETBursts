@@ -1150,8 +1150,8 @@ def hist_burst_delays(d, i=0, tmax_seconds=0.5, bins=100, **kwargs):
     xlabel('Delays between bursts (s)'); ylabel('# bursts')
 
 ## Burst internal "symmetry"
-def hist_asymmetry(d, i=0, bin_max=2, binw=0.1, func=np.median):
-    burst_asym = bext.asymmetry(d, ich=i, func=func)
+def hist_asymmetry(d, i=0, bin_max=2, binw=0.1, stat_func=np.median):
+    burst_asym = bext.asymmetry(d, ich=i, func=stat_func)
     bins_pos = np.arange(0, bin_max+binw, binw)
     bins = np.hstack([-bins_pos[1:][::-1], bins_pos])
     izero = (bins.size - 1)/2.
@@ -1167,7 +1167,7 @@ def hist_asymmetry(d, i=0, bin_max=2, binw=0.1, func=np.median):
     plt.grid(True)
     plt.xlabel('Time (ms)')
     plt.ylabel('# Bursts')
-    plt.legend(['{func}$(t_D)$ - {func}$(t_A)$'.format(func=func.__name__),
+    plt.legend(['{func}$(t_D)$ - {func}$(t_A)$'.format(func=stat_func.__name__),
                 'positive half - negative half'],
                 frameon=False, loc='best')
     skew_abs = asym_counts_neg.sum()
