@@ -95,7 +95,7 @@ def burst_data(dx, ich=0, include_bg=False, include_ph_index=False):
     return pd.DataFrame.from_dict(data_dict)
 
 
-def fit_bursts_kde_peak(dx, burst_data='E', bandwidth=0.03, weights='size',
+def fit_bursts_kde_peak(dx, burst_data='E', bandwidth=0.03, weights=None,
                         gamma=1, add_naa=False, x_range=(-0.1, 1.1),
                         x_ax=None, save_fitter=True):
     """Fit burst data (typ. E or S) by finding the KDE max on all the channels.
