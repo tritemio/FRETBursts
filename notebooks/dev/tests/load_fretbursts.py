@@ -15,7 +15,18 @@ import os
 from IPython.display import display, Math, clear_output
 
 # Process the command-line arguments
-no_gui = len(sys.argv) > 1 and sys.argv[1] == '--nogui'
+enable_qt_gui = not (len(sys.argv) > 1 and '--nogui' in sys.argv[1:])
+enable_mpl = not (len(sys.argv) > 1 and '--nompl' in sys.argv[1:])
+load_mpl_style = not (len(sys.argv) > 1 and '--nostyle' in sys.argv[1:])
+
+## Enable inline plots and QT windows.
+# Workaround for open-file dialog in IPython Notebook
+# see https://github.com/ipython/ipython/issues/5798
+ip = get_ipython()
+if enable_mpl:
+    ip.enable_matplotlib("inline")
+if enable_qt_gui:
+    ip.enable_gui("qt")
 
 ## Find FRETBursts sources folder
 if os.name == 'posix':
@@ -40,17 +51,12 @@ os.chdir(FRETBURSTS_DIR)
 
 from fretbursts import *
 from fretbursts.utils import git
+if load_mpl_style:
+    import fretbursts.style
 
 git.print_summary('FRETBursts')
 citation()
 
 os.chdir(NOTEBOOK_DIR)
 
-## Enable inline plots and QT windows.
-# Workaround for open-file dialog in IPython Notebook
-# see https://github.com/ipython/ipython/issues/5798
-ip = get_ipython()
-ip.enable_matplotlib("inline")
-if not no_gui:
-    ip.enable_gui("qt")
 

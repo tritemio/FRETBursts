@@ -114,7 +114,6 @@ if has_matplotlib:
     from matplotlib import rcParams
     import matplotlib.pyplot as plt
     from matplotlib.pyplot import plot, hist, grid, xlim, ylim, gca, gcf
-    import style
 
 # Import plain module names
 import loader, hdf5, select_bursts, fretmath
