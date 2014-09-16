@@ -8,14 +8,37 @@
 
  Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 
- Import this package as
+
+ You can import this package as:
 
      from fretbursts import *
 
+ or as:
+
+     import fretbursts as fb
+
+ The loader script `load_fretbursts.py` uses the former import line
  to load the common namespace used in the example notebooks.
+
 """
 
+from __future__ import print_function
+
 __version__ = '0.4.dev'
+
+
+## Citation information
+_CITATION = ('  FRETBursts - An opensource single-molecule FRET burst '
+             'analysis toolkit.\n  A. Ingargiola 2014. '
+             'https://github.com/tritemio/FRETBursts.')
+
+_INFO_CITATION = ('You are running FRETBursts a software for smFRET analysis. '
+                  '\n\nIf you use this software in a publication, please '
+                  'cite this software as:\n\n') + _CITATION + '\n'
+
+def citation():
+    print(_INFO_CITATION)
+
 
 import warnings
 
