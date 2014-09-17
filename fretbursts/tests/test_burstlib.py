@@ -81,7 +81,17 @@ def list_array_allclose(list1, list2):
     return np.all([np.allclose(arr1, arr2) for arr1, arr2 in zip(list1, list2)])
 
 def test_bg_calc(data):
+    """Smoke test bg_calc() and test deletion of bg fields.
+    """
     data.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
+    data.calc_bg(bg.exp_fit, time_s=30, tail_min_us='auto', F_bg=1.7)
+    assert 'bg_auto_th_us0' in data
+    assert 'bg_auto_F_bg' in data
+    assert 'bg_th_us_user' not in data
+    data.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
+    assert 'bg_auto_th_us0' not in data
+    assert 'bg_auto_F_bg' not in data
+    assert 'bg_th_us_user' in data
     data.calc_bg(bg.exp_fit, time_s=30, tail_min_us='auto', F_bg=1.7)
 
 def test_bg_from(data):

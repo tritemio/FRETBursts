@@ -1184,9 +1184,7 @@ class Data(DataContainer):
         to avoid having old stale attributes of a previous background fit.
         """
         # Attributes specific of manual or 'auto' bg fit
-        field_list = ['bg_auto_th_us0', 'bg_auto_F_bg', 'bg_th_us_all',
-                      'bg_th_us_DD', 'bg_th_us_AD',
-                      'bg_th_us_DA', 'bg_th_us_AA']
+        field_list = ['bg_auto_th_us0', 'bg_auto_F_bg', 'bg_th_us_user']
         for field in field_list:
             if field in self:
                 self.delete(field)
