@@ -68,6 +68,17 @@ params = {
         }
 plt.rcParams.update(params)
 
+
+##
+# Globals
+#
+_ph_sel_color_dict = {Ph_sel('all'): 'k', Ph_sel(Dex='Dem'): 'g',
+                      Ph_sel(Dex='Aem'): 'r', Ph_sel(Aex='Aem'): 'm',
+                      Ph_sel(Aex='Dem'): 'c', }
+_ph_sel_label_dict = {Ph_sel('all'): 'All-ph', Ph_sel(Dex='Dem'): 'DexDem',
+                      Ph_sel(Dex='Aem'): 'DexAem', Ph_sel(Aex='Aem'): 'AexAem',
+                      Ph_sel(Aex='Dem'): 'AexDem'}
+
 ##
 #  Utility functions
 #
@@ -215,24 +226,19 @@ def _plot_rate_th(d, i, F, ph_sel, invert=False, scale=1,
     """
     if F is None:
         F = d.F if F in d else 6
-    bg_dict = {Ph_sel('all'): d.bg[i],
-               Ph_sel(Dex='Dem'): d.bg_dd[i],
-               Ph_sel(Dex='Aem'): d.bg_ad[i],
-               Ph_sel(Aex='Aem'): d.bg_aa[i],
-               Ph_sel(Aex='Dem'): d.bg_da[i]}
-    if ph_sel in bg_dict:
-        rate_th_style_ = dict(plot_style_)
-        rate_th_style_.update(linestyle='--', label='auto')
-        rate_th_style_.update(_normalize_kwargs(rate_th_style, kind='line2d'))
-        if rate_th_style_['label'] is 'auto':
-            rate_th_style_['label'] = 'bg_rate*%d %s' % \
-                                        (F, plot_style_['label'])
-        x_rate = np.hstack(d.Ph_p[i])*d.clk_p
-        y_rate = F*np.hstack([(rate, rate) for rate in bg_dict[ph_sel]])
-        y_rate *= scale
-        if invert:
-            y_rate *= -1
-        plot(x_rate, y_rate, **rate_th_style_)
+
+    rate_th_style_ = dict(plot_style_)
+    rate_th_style_.update(linestyle='--', label='auto')
+    rate_th_style_.update(_normalize_kwargs(rate_th_style, kind='line2d'))
+    if rate_th_style_['label'] is 'auto':
+        rate_th_style_['label'] = 'bg_rate*%d %s' % \
+                                    (F, plot_style_['label'])
+    x_rate = np.hstack(d.Ph_p[i])*d.clk_p
+    y_rate = F*np.hstack([(rate, rate) for rate in d.bg_from(ph_sel)[i]])
+    y_rate *= scale
+    if invert:
+        y_rate *= -1
+    plot(x_rate, y_rate, **rate_th_style_)
 
 def timetrace_single(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
                      ph_sel=Ph_sel('all'), invert=False, bursts=False,
@@ -299,16 +305,12 @@ def timetrace_single(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
         _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500)
 
     # Plot timetrace
-    color_dict = {Ph_sel('all'): 'k', Ph_sel(Dex='Dem'): 'g',
-                  Ph_sel(Dex='Aem'): 'r', Ph_sel(Aex='Aem'): 'm',
-                  Ph_sel(Aex='Dem'): 'c', }
-    label_dict = {Ph_sel('all'): 'All-ph', Ph_sel(Dex='Dem'): 'DexDem',
-                  Ph_sel(Dex='Aem'): 'DexAem', Ph_sel(Aex='Aem'): 'AexAem',
-                  Ph_sel(Aex='Dem'): 'AexDem'}
     plot_style_ = dict(linestyle='-', linewidth=1.2, marker=None)
-    if ph_sel in color_dict:
-        plot_style_['color'] = color_dict[ph_sel]
-        plot_style_['label'] = label_dict[ph_sel]
+    if ph_sel in _ph_sel_color_dict:
+        plot_style_['color'] = _ph_sel_color_dict[ph_sel]
+        plot_style_['label'] = _ph_sel_label_dict[ph_sel]
+    else:
+        plot_style_['label'] = str(ph_sel)
     plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
     plot(x, timetrace, **plot_style_)
 
@@ -405,16 +407,10 @@ def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
     times = bl.ph_rate_t(m, ph_times)*d.clk_p
 
     # Plot ratetrace
-    color_dict = {Ph_sel('all'): 'k', Ph_sel(Dex='Dem'): 'g',
-                  Ph_sel(Dex='Aem'): 'r', Ph_sel(Aex='Aem'): 'm',
-                  Ph_sel(Aex='Dem'): 'c', }
-    label_dict = {Ph_sel('all'): 'All-ph', Ph_sel(Dex='Dem'): 'DexDem',
-                  Ph_sel(Dex='Aem'): 'DexAem', Ph_sel(Aex='Aem'): 'AexAem',
-                  Ph_sel(Aex='Dem'): 'AexDem'}
     plot_style_ = dict(linestyle='-', linewidth=1.2, marker=None)
-    if ph_sel in color_dict:
-        plot_style_['color'] = color_dict[ph_sel]
-        plot_style_['label'] = label_dict[ph_sel]
+    if ph_sel in _ph_sel_color_dict:
+        plot_style_['color'] = _ph_sel_color_dict[ph_sel]
+        plot_style_['label'] = _ph_sel_label_dict[ph_sel]
     plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
     plot(times, rates, **plot_style_)
 
@@ -911,43 +907,64 @@ def hist_sbr(d, ich=0, **hist_kwargs):
     hist(d.sbr[ich], **style_kwargs)
     xlabel('SBR'); ylabel('# Bursts')
 
-def hist_bg_fit_single(d, i=0, bp=0, bg='bg_dd', bin_width_us=50, yscale='log',
-        F=0.15, **kwargs):
+
+def hist_bg_single(d, i=0, bp=0, bin_width_ms=0.1, bins=None, tmax=0.01,
+                   ph_sel=Ph_sel('all'), show_fit=True,
+                   yscale='log', xscale='linear', plot_style={}):
     """Histog. of ph-delays compared with BG fitting in burst period 'bp'.
     """
-    l1, l2 = d.Lim[i][bp][0], d.Lim[i][bp][1]
-    ph = d.ph_times_m[i][l1:l2+1]*d.clk_p
-    a_em = d.A_em[i][l1:l2+1]
-    d_em = -a_em
-    if bg=='bg': dph = np.diff(ph)
-    if bg=='bg_dd': dph = np.diff(ph[d_em])
-    if bg=='bg_ad': dph = np.diff(ph[a_em])
-    hist_kwargs = dict(bins=r_[0:2000:bin_width_us], histtype='step',
-                       color='k', lw=1)
-    hist_kwargs.update(**kwargs)
-    H = hist(dph*1e6, color='k', **hist_kwargs)
-    gca().set_yscale('log')
-    xlabel(u'Ph delay time (μs)')
-    ylabel("# Ph")
+    bin_width = bin_width_ms*1e-3
 
-    efun = lambda t, r: np.exp(-r*t)*r
-    r = d[bg][i][bp]
-    t = r_[0:2000]*1e-6
-    #nF = 1 if 'normed' in hist_kwargs else H[0].sum()*(bin_width_us)
+    # If bins is not passed try to use the
+    if bins is None:
+        bins = np.arange(0, tmax + bin_width, bin_width)
+        t_ax = bins[:-1] + 0.5*bin_width
 
-    bins = hist_kwargs['bins']
-    ibin = bins.size*F
-    t_min = bins[ibin]*1e-6
-    C = H[0][ibin]/efun(t_min, r)
-    plot(t*1e6, C*efun(t, r), lw=3, alpha=0.5, color='r',
-        label="%s:  %d cps" % (bg, r))
-    ym = 0.5
-    if 'normed' in hist_kwargs and hist_kwargs['normed']: ym = 0.1/ph.size
-    legend(loc='best', fancybox=True)
-    plt.xlim(0,1500)
-    plt.ylim(ymin=ym)
+    # Compute histograms
+    ph_times_period = d.get_ph_times_period(ich=i, period=bp, ph_sel=ph_sel)
+    delta_ph_t_period = np.diff(ph_times_period)*d.clk_p
+    counts, _ = np.histogram(delta_ph_t_period, bins=bins)
 
-def hist_bg_fit(d, i=0, bp=0, bin_width_us=100, tmax=0.01, yscale='log',
+    # Plot histograms
+    plot_style_ = dict(marker='o', markersize=5, linestyle='none', alpha=0.6)
+    if ph_sel in _ph_sel_color_dict:
+        plot_style_['color'] = _ph_sel_color_dict[ph_sel]
+        plot_style_['label'] = _ph_sel_label_dict[ph_sel]
+    plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
+    plot(t_ax*1e3, counts, **plot_style_)
+
+    if show_fit:
+        # Compute the fit function
+        bg_rate = d.bg_from(ph_sel)[i][bp]
+        tau_th = d.bg_th_us[ph_sel][i]*1e-6
+
+        i_tau_th = np.searchsorted(t_ax, tau_th)
+        tau_th_sampled = t_ax[i_tau_th]
+        counts_th = counts[i_tau_th]
+        exp_th = np.exp(- tau_th_sampled * bg_rate)
+        y_fit = (counts_th/exp_th)*np.exp(- t_ax * bg_rate)
+
+        # Plot
+        fit_style_ = dict(plot_style_)
+        fit_style_.update(linestyle='-', marker='', label='auto')
+        #fit_style_.update(_normalize_kwargs(fit_style, kind='line2d'))
+        if fit_style_['label'] is 'auto':
+            fit_style_['label'] = '%s, %.2f kcps' % (plot_style_['label'],
+                                                     bg_rate*1e-3)
+        plot(t_ax*1e3, y_fit, **fit_style_)
+
+    if yscale == 'log':
+        gca().set_yscale(yscale)
+        plt.ylim(1)
+    if xscale == 'log':
+        gca().set_xscale(yscale)
+        plt.xlim(0.5*bin_width)
+
+    xlabel(u'Ph delay time (ms)'); ylabel("# Ph")
+
+
+def hist_bg_fit(d, i=0, bp=0, bin_width_us=100, tmax=0.01,
+                yscale='log', xscale='log',
                 t_min_us=500, plot_style={}):
     """Histog. of ph-delays compared with BG fitting in burst period 'bp'.
     """
@@ -1012,6 +1029,10 @@ def hist_bg_fit(d, i=0, bp=0, bin_width_us=100, tmax=0.01, yscale='log',
     if yscale == 'log':
         gca().set_yscale(yscale)
         plt.ylim(1)
+    if xscale == 'log':
+        gca().set_xscale(yscale)
+        plt.xlim(0.5*bin_width_us)
+
     xlabel(u'Ph delay time (μs)'); ylabel("# Ph")
     plt.legend(loc='best', fancybox=True)
 
