@@ -181,6 +181,27 @@ def test_iter_ph_times(data):
         assert list_array_equal(d.iter_ph_times(),
                                 d.iter_ph_times(Ph_sel(Dex='DAem')))
 
+def test_get_ph_times_period(data):
+    for ich in range(data.nch):
+        data.get_ph_times_period(0, ich=ich)
+        data.get_ph_times_period(0, ich=ich, ph_sel=Ph_sel(Dex='Dem'))
+
+def test_iter_ph_times_period(data):
+    d = data
+    for ich in range(data.nch):
+        for period, ph_period in enumerate(d.iter_ph_times_period(ich=ich)):
+            istart, iend = d.Lim[ich][period]
+            assert (ph_period == d.ph_times_m[ich][istart : iend + 1]).all()
+
+        ph_sel = Ph_sel(Dex='Dem')
+        mask = d.get_ph_mask(ich=ich, ph_sel=ph_sel)
+        for period, ph_period in enumerate(d.iter_ph_times_period(ich=ich,
+                                                    ph_sel=ph_sel)):
+            istart, iend = d.Lim[ich][period]
+            ph_period_test = d.ph_times_m[ich][istart : iend + 1]
+            ph_period_test = ph_period_test[mask[istart : iend + 1]]
+            assert (ph_period == ph_period_test).all()
+
 def test_burst_search(data):
     data.burst_search_t(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Dem'))
     assert list_equal(data.bg_bs, data.bg_dd)

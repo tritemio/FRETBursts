@@ -906,6 +906,31 @@ class Data(DataContainer):
         else:
             return self.get_A_em(ich)
 
+    def iter_ph_times_period(self, ich=0, ph_sel=Ph_sel('all')):
+        """Iterate through arrays of ph timestamps in each background period.
+        """
+        mask = self.get_ph_mask(ich=ich, ph_sel=ph_sel)
+        for period in range(self.nperiods):
+            yield self.get_ph_times_period(period, ich=ich, mask=mask)
+
+    def get_ph_times_period(self, period, ich=0, ph_sel=Ph_sel('all'),
+                            mask=None):
+        """Return the array of ph_times in `period`, `ich` and `ph_sel`.
+        """
+        istart, iend = self.Lim[ich][period]
+        period_slice = slice(istart, iend + 1)
+
+        ph_times = self.get_ph_times(ich=ich)
+        if mask is None:
+            mask = self.get_ph_mask(ich=ich, ph_sel=ph_sel)
+
+        if type(mask) is slice and mask == slice(None):
+            ph_times_period = ph_times[period_slice]
+        else:
+            ph_times_period = ph_times[period_slice][mask[period_slice]]
+        return ph_times_period
+
+
     def slice_ph(self, time_s1=0, time_s2=None, s='slice'):
         """Return a new Data object with ph in [`time_s1`,`time_s2`] (seconds)
         """
