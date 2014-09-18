@@ -908,22 +908,24 @@ def hist_sbr(d, ich=0, **hist_kwargs):
     xlabel('SBR'); ylabel('# Bursts')
 
 
-def hist_bg_single(d, i=0, bp=0, bin_width_ms=0.1, bins=None, tmax=0.01,
-                   ph_sel=Ph_sel('all'), show_fit=True,
-                   yscale='log', xscale='linear', plot_style={}):
+def hist_bg_single(d, i=0, period=0, bin_width=1e-4, bins=None, tmax=0.01,
+                   ph_sel=Ph_sel('all'), show_fit=True, yscale='log',
+                   xscale='linear', plot_style={}, fit_style={}):
     """Histog. of ph-delays compared with BG fitting in burst period 'bp'.
     """
-    bin_width = bin_width_ms*1e-3
-
     # If bins is not passed try to use the
     if bins is None:
         bins = np.arange(0, tmax + bin_width, bin_width)
         t_ax = bins[:-1] + 0.5*bin_width
 
     # Compute histograms
-    ph_times_period = d.get_ph_times_period(ich=i, period=bp, ph_sel=ph_sel)
+    ph_times_period = d.get_ph_times_period(ich=i, period=period,
+                                            ph_sel=ph_sel)
     delta_ph_t_period = np.diff(ph_times_period)*d.clk_p
     counts, _ = np.histogram(delta_ph_t_period, bins=bins)
+
+    # Max index with counts > 0
+    n_trim = np.trim_zeros(counts).size + 1
 
     # Plot histograms
     plot_style_ = dict(marker='o', markersize=5, linestyle='none', alpha=0.6)
@@ -931,11 +933,11 @@ def hist_bg_single(d, i=0, bp=0, bin_width_ms=0.1, bins=None, tmax=0.01,
         plot_style_['color'] = _ph_sel_color_dict[ph_sel]
         plot_style_['label'] = _ph_sel_label_dict[ph_sel]
     plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
-    plot(t_ax*1e3, counts, **plot_style_)
+    plot(t_ax[:n_trim]*1e3, counts[:n_trim], **plot_style_)
 
     if show_fit:
         # Compute the fit function
-        bg_rate = d.bg_from(ph_sel)[i][bp]
+        bg_rate = d.bg_from(ph_sel)[i][period]
         tau_th = d.bg_th_us[ph_sel][i]*1e-6
 
         i_tau_th = np.searchsorted(t_ax, tau_th)
@@ -947,11 +949,11 @@ def hist_bg_single(d, i=0, bp=0, bin_width_ms=0.1, bins=None, tmax=0.01,
         # Plot
         fit_style_ = dict(plot_style_)
         fit_style_.update(linestyle='-', marker='', label='auto')
-        #fit_style_.update(_normalize_kwargs(fit_style, kind='line2d'))
+        fit_style_.update(_normalize_kwargs(fit_style, kind='line2d'))
         if fit_style_['label'] is 'auto':
             fit_style_['label'] = '%s, %.2f kcps' % (plot_style_['label'],
                                                      bg_rate*1e-3)
-        plot(t_ax*1e3, y_fit, **fit_style_)
+        plot(t_ax[:n_trim]*1e3,  y_fit[:n_trim], **fit_style_)
 
     if yscale == 'log':
         gca().set_yscale(yscale)
@@ -961,6 +963,27 @@ def hist_bg_single(d, i=0, bp=0, bin_width_ms=0.1, bins=None, tmax=0.01,
         plt.xlim(0.5*bin_width)
 
     xlabel(u'Ph delay time (ms)'); ylabel("# Ph")
+
+
+def hist_bg(d, i=0, period=0, bin_width=1e-4, bins=None, tmax=0.01,
+            show_da=False, show_fit=True, yscale='log', xscale='linear',
+            plot_style={}, fit_style={}, legend=True):
+
+    # Plot multiple timetraces
+    ph_sel_list = [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
+    if d.ALEX:
+         ph_sel_list.append(Ph_sel(Aex='Aem'))
+         if show_da:
+             ph_sel_list.append(Ph_sel(Aex='Dem'))
+
+    for ix, ph_sel in enumerate(ph_sel_list):
+        if not bl.mask_empty(d.get_ph_mask(i, ph_sel=ph_sel)):
+            hist_bg_single(d, i=i, period=period, bin_width=bin_width,
+                           bins=bins, tmax=tmax, ph_sel=ph_sel,
+                           show_fit=show_fit, yscale=yscale, xscale=xscale,
+                           plot_style=plot_style, fit_style=fit_style)
+    if legend:
+        plt.legend(loc='best', fancybox=True)
 
 
 def hist_bg_fit(d, i=0, bp=0, bin_width_us=100, tmax=0.01,
@@ -1365,7 +1388,7 @@ def dplot_8ch(d, func, sharex=True, sharey=True,
     for i in xrange(d.nch):
         b = d.mburst[i] if 'mburst' in d else None
         if (func not in [timetrace, ratetrace, timetrace_single,
-                         ratetrace_single, hist_bg_fit_single, hist_bg_fit,
+                         ratetrace_single, hist_bg_single, hist_bg,
                          timetrace_bg]) and np.size(b) == 0:
             continue
         ax = AX.ravel()[i]
