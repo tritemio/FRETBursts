@@ -79,6 +79,13 @@ _ph_sel_label_dict = {Ph_sel('all'): 'All-ph', Ph_sel(Dex='Dem'): 'DexDem',
                       Ph_sel(Dex='Aem'): 'DexAem', Ph_sel(Aex='Aem'): 'AexAem',
                       Ph_sel(Aex='Dem'): 'AexDem'}
 
+# Global store for plot statuses
+_plot_status = {}
+
+# Global store for GUI handlers
+gui_status = {}
+
+
 ##
 #  Utility functions
 #
@@ -197,7 +204,7 @@ def _plot_bursts(d, i, t_max_clk, pmax=1e3, pmin=0):
     ax.add_artist(PatchCollection(R, lw=0, color="#999999"))
     pprint("[DONE]\n")
 
-gui_status = {}
+
 
 def _gui_timetrace_burst_sel(d, fig, ax):
     """Add GUI burst selector via mouse click to the current plot."""
@@ -911,8 +918,11 @@ def hist_sbr(d, ich=0, **hist_kwargs):
 def hist_bg_single(d, i=0, period=0, bin_width=1e-4, bins=None, tmax=0.01,
                    ph_sel=Ph_sel('all'), show_fit=True, yscale='log',
                    xscale='linear', plot_style={}, fit_style={}):
-    """Histog. of ph-delays compared with BG fitting in burst period 'bp'.
+    """Plot histogram of photon interval for a single photon streams.
+
+    Optionally plots the fitted background.
     """
+
     # If bins is not passed try to use the
     if bins is None:
         bins = np.arange(0, tmax + bin_width, bin_width)
@@ -958,9 +968,11 @@ def hist_bg_single(d, i=0, period=0, bin_width=1e-4, bins=None, tmax=0.01,
     if yscale == 'log':
         gca().set_yscale(yscale)
         plt.ylim(1)
+        _plot_status['hist_bg_single'] = {'autoscale': False}
     if xscale == 'log':
         gca().set_xscale(yscale)
         plt.xlim(0.5*bin_width)
+        _plot_status['hist_bg_single'] = {'autoscale': False}
 
     xlabel(u'Ph delay time (ms)'); ylabel("# Ph")
 
@@ -968,7 +980,10 @@ def hist_bg_single(d, i=0, period=0, bin_width=1e-4, bins=None, tmax=0.01,
 def hist_bg(d, i=0, period=0, bin_width=1e-4, bins=None, tmax=0.01,
             show_da=False, show_fit=True, yscale='log', xscale='linear',
             plot_style={}, fit_style={}, legend=True):
+    """Plot histogram of photon interval for different photon streams.
 
+    Optionally plots the fitted background.
+    """
     # Plot multiple timetraces
     ph_sel_list = [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
     if d.ALEX:
@@ -985,79 +1000,9 @@ def hist_bg(d, i=0, period=0, bin_width=1e-4, bins=None, tmax=0.01,
     if legend:
         plt.legend(loc='best', fancybox=True)
 
+    if yscale == 'log' or xscale == 'log':
+        _plot_status['hist_bg'] = {'autoscale': False}
 
-def hist_bg_fit(d, i=0, bp=0, bin_width_us=100, tmax=0.01,
-                yscale='log', xscale='log',
-                t_min_us=500, plot_style={}):
-    """Histog. of ph-delays compared with BG fitting in burst period 'bp'.
-    """
-    # Compute histograms
-    l1, l2 = d.Lim[i][bp][0], d.Lim[i][bp][1]
-    ph = d.ph_times_m[i][l1:l2+1]*d.clk_p
-
-    if d.ALEX:
-        dd_mask = d.D_em[i][l1:l2+1]*d.D_ex[i][l1:l2+1]
-        ad_mask = d.A_em[i][l1:l2+1]*d.D_ex[i][l1:l2+1]
-        aa_mask = d.A_em[i][l1:l2+1]*d.A_ex[i][l1:l2+1]
-    else:
-        ad_mask = d.A_em[i][l1:l2+1]
-        dd_mask = -ad_mask
-
-    bins = np.arange(0, tmax*1e6, bin_width_us)
-    t = bins[:-1] + 0.5*bin_width_us
-
-    dph = np.diff(ph)
-    dph_d, dph_a = np.diff(ph[dd_mask]), np.diff(ph[ad_mask])
-    counts, _ = np.histogram(dph*1e6, bins=bins)
-    counts_d, _  = np.histogram(dph_d*1e6, bins=bins)
-    counts_a , _ = np.histogram(dph_a*1e6, bins=bins)
-    if d.ALEX:
-        counts_aa, _ = np.histogram(np.diff(ph[aa_mask])*1e6, bins=bins)
-
-    # Plot histograms
-    plot_style_ = dict(marker='o', markersize=5, linestyle='none', alpha=0.6)
-    plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
-    plot(t, counts, color='k', label='T', **plot_style_)
-    plot(t, counts_d, color='g', label='D', **plot_style_)
-    plot(t, counts_a, color='r', label='A', **plot_style_)
-    if d.ALEX:
-        plot(t, counts_aa, color='m', label='AA', **plot_style_)
-
-    # Plot fit
-    r, rd, ra, = d.bg[i][bp], d.bg_dd[i][bp], d.bg_ad[i][bp]
-    if d.ALEX:
-        raa = d.bg_aa[i][bp]
-
-    i_th = np.searchsorted(t, t_min_us)
-
-    n_t = np.trim_zeros(counts).size
-    n_td = np.trim_zeros(counts_d).size
-    n_ta = np.trim_zeros(counts_a).size
-    C = counts[i_th]/np.exp(-t[i_th]*1e-6*r)
-    Cd = counts_d[i_th]/np.exp(-t[i_th]*1e-6*rd)
-    Ca = counts_a[i_th]/np.exp(-t[i_th]*1e-6*ra)
-
-    fit_style = dict(linewidth=4, alpha=0.5)
-    plot(t[:n_t], C*np.exp(-t[:n_t]*1e-6*r), color='k',
-         label="T:  %d cps" % r, **fit_style)
-    plot(t[:n_td], Cd*np.exp(-t[:n_td]*1e-6*rd), color='g',
-         label="DD:  %d cps" % rd, **fit_style)
-    plot(t[:n_ta], Ca*np.exp(-t[:n_ta]*1e-6*ra), color='r',
-         label="AD:  %d cps" % ra, **fit_style)
-    if d.ALEX:
-        n_taa = np.trim_zeros(counts_aa).size
-        Caa = counts_aa[i_th]/np.exp(-t[i_th]*1e-6*raa)
-        plot(t[:n_taa], Caa*np.exp(-t[:n_taa]*1e-6*raa), color='m',
-             label="AA:  %d cps" % raa, **fit_style)
-    if yscale == 'log':
-        gca().set_yscale(yscale)
-        plt.ylim(1)
-    if xscale == 'log':
-        gca().set_xscale(yscale)
-        plt.xlim(0.5*bin_width_us)
-
-    xlabel(u'Ph delay time (μs)'); ylabel("# Ph")
-    plt.legend(loc='best', fancybox=True)
 
 def hist_ph_delays(d, i=0, time_min_s=0, time_max_s=30, bin_width_us=10,
         mask=None, yscale='log', hfit_bin_ms=1, efit_tail_min_us=1000,
@@ -1368,7 +1313,12 @@ def dplot_48ch(d, func, sharex=True, sharey=True,
         if AX.shape[1] > 1:
              plt.setp([a.get_yticklabels() for a in AX[:, 1]], visible=False)
         fig.subplots_adjust(wspace=0.08)
-        if scale: ax.autoscale(enable=True, axis='y')
+
+        func_allows_autoscale = True
+        if func.__name__ in _plot_status:
+            func_allows_autoscale = _plot_status[func.__name__]['autoscale']
+        if scale and func_allows_autoscale:
+            ax.autoscale(enable=True, axis='y')
     return AX
 
 def dplot_8ch(d, func, sharex=True, sharey=True,
@@ -1413,7 +1363,12 @@ def dplot_8ch(d, func, sharex=True, sharey=True,
     if sharey:
         plt.setp([a.get_yticklabels() for a in AX[:,1]], visible=False)
         fig.subplots_adjust(wspace=0.08)
-        if scale: ax.autoscale(enable=True, axis='y')
+
+        func_allows_autoscale = True
+        if func.__name__ in _plot_status:
+            func_allows_autoscale = _plot_status[func.__name__]['autoscale']
+        if scale and func_allows_autoscale:
+            ax.autoscale(enable=True, axis='y')
     return AX
 
 def dplot_1ch(d, func, pgrid=True, ax=None,
