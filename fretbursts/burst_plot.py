@@ -204,22 +204,6 @@ def _plot_bursts(d, i, t_max_clk, pmax=1e3, pmin=0):
     ax.add_artist(PatchCollection(R, lw=0, color="#999999"))
     pprint("[DONE]\n")
 
-
-
-def _gui_timetrace_burst_sel(d, fig, ax):
-    """Add GUI burst selector via mouse click to the current plot."""
-    global gui_status
-    if gui_status['first_plot_in_figure']:
-        gui_status['burst_sel'] = gs.MultiAxPointSelection(fig, ax, d)
-    else:
-        gui_status['burst_sel'].ax_list.append(ax)
-
-def _gui_timetrace_scroll(fig):
-    """Add GUI to scroll a timetrace wi a slider."""
-    global gui_status
-    if gui_status['first_plot_in_figure']:
-        gui_status['scroll_gui'] = ScrollingToolQT(fig)
-
 def _plot_rate_th(d, i, F, ph_sel, invert=False, scale=1,
                   plot_style_={}, rate_th_style={}):
     """Plots background_rate*F as a function of time.
@@ -246,6 +230,21 @@ def _plot_rate_th(d, i, F, ph_sel, invert=False, scale=1,
     if invert:
         y_rate *= -1
     plot(x_rate, y_rate, **rate_th_style_)
+
+def _gui_timetrace_burst_sel(d, fig, ax):
+    """Add GUI burst selector via mouse click to the current plot."""
+    global gui_status
+    if gui_status['first_plot_in_figure']:
+        gui_status['burst_sel'] = gs.MultiAxPointSelection(fig, ax, d)
+    else:
+        gui_status['burst_sel'].ax_list.append(ax)
+
+def _gui_timetrace_scroll(fig):
+    """Add GUI to scroll a timetrace wi a slider."""
+    global gui_status
+    if gui_status['first_plot_in_figure']:
+        gui_status['scroll_gui'] = ScrollingToolQT(fig)
+
 
 def timetrace_single(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
                      ph_sel=Ph_sel('all'), invert=False, bursts=False,
@@ -339,6 +338,8 @@ def timetrace_single(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
             plt.ylim(ymax=100)
         else:
             plt.ylim(ymin=-100)
+        _plot_status['timetrace_single'] = {'autoscale': False}
+
 
 def timetrace(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
               bursts=False, burst_picker=True, scroll=False,
@@ -374,6 +375,7 @@ def timetrace(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
                     rate_th_style=rate_th_style, set_ax_limits=set_ax_limits)
     if legend:
         plt.legend(loc='best', fancybox=True)
+
 
 def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
                      ph_sel=Ph_sel('all'), invert=False, bursts=False,
@@ -438,6 +440,7 @@ def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
             plt.ylim(ymax=100)
         else:
             plt.ylim(ymin=-100)
+        _plot_status['ratetrace_single'] = {'autoscale': False}
 
 
 def ratetrace(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
@@ -474,6 +477,7 @@ def ratetrace(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
                     rate_th_style=rate_th_style, set_ax_limits=set_ax_limits)
     if legend:
         plt.legend(loc='best', fancybox=True)
+
 
 def sort_burst_sizes(sizes, levels=np.arange(1, 102, 20)):
     """Return a list of masks that split `sizes` in levels.
