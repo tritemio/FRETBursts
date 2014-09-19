@@ -351,7 +351,7 @@ class MultiFitter(FitterBase):
         if self._hist_computed:
             if bins is None and self.hist_bin_width == bin_width:
                 return
-            elif bins is not None and (self.hist_bins == bins).all():
+            elif bins is not None and np.array_equal(self.hist_bins, bins):
                 return
 
         if verbose:

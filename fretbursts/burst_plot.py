@@ -691,7 +691,7 @@ def hist_size_all(d, i=0, **kwargs):
         hist_size(d, i, which=which, **kwargs)
 
 def hist_burst_data(d, i=0, data_name='E', ax=None, binw=0.03, bins=None,
-            pdf=True, hist_style='bar',
+            pdf=False, hist_style='bar',
             weights=None, gamma=1., add_naa=False,            # weights args
             show_fit_stats=False, show_fit_value=False, fit_from='kde',
             show_kde=False, bandwidth=0.03, show_kde_peak=False,  # kde args
@@ -721,7 +721,8 @@ def hist_burst_data(d, i=0, data_name='E', ax=None, binw=0.03, bins=None,
             if verbose:
                 print '   Old weights:', d.burst_weights
                 print '   New weights:', weights_tuple
-        bext.bursts_fitter(d, weights=weights, gamma=gamma, add_naa=add_naa)
+        bext.bursts_fitter(d, burst_data=data_name, weights=weights,
+                           gamma=gamma, add_naa=add_naa)
 
     fitter = d[fitter_name]
     fitter.histogram(bin_width=binw, bins=bins, verbose=verbose)
@@ -731,8 +732,9 @@ def hist_burst_data(d, i=0, data_name='E', ax=None, binw=0.03, bins=None,
     else:
         ax.set_ylabel('# Bursts')
         hist_vals = fitter.hist_counts[i]
-    ax.set_xlabel('E')
-    ax.set_xlim(-0.19, 1.19)
+    ax.set_xlabel(data_name)
+    if data_name in ['E', 'S']:
+        ax.set_xlim(-0.19, 1.19)
 
     hist_bar_style_ = dict(facecolor='#80b3ff', edgecolor='#5f8dd3',
                            linewidth=1.5, alpha=0.7, label='E Histogram')
