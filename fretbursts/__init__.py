@@ -97,6 +97,7 @@ __all_local_names = [
         "timetrace", "timetrace_single", "ratetrace", "ratetrace_single",
         "timetrace_fret", "timetrace_bg",
         "hist_width", "hist_size", "hist_size_all", "hist_fret",
+        "hist_burst_data",
         "hist2d_alex", "hist_S", "hist_sbr", "hist_asymmetry",
         "hist_bg_single", "hist_bg", "hist_ph_delays", "hist_mdelays",
         "hist_mrates", "hist_rate_in_burst", "hist_burst_delays",
@@ -142,7 +143,7 @@ if has_matplotlib and has_pandas and has_lmfit:
             # Plots types used for 1ch of multi-ch plots through `dplot`
             timetrace, timetrace_single, ratetrace, ratetrace_single,
             timetrace_fret, timetrace_bg,
-            hist_width, hist_size, hist_size_all, hist_fret,
+            hist_width, hist_size, hist_size_all, hist_fret, hist_burst_data,
             hist2d_alex, hist_S, hist_sbr, hist_asymmetry,
             hist_bg_single, hist_bg, hist_ph_delays, hist_mdelays,
             hist_mrates, hist_rate_in_burst, hist_burst_delays,
