@@ -68,7 +68,7 @@ def expon_fit(s, s_min=0, offset=0.5):
         The lambda parameter (1/life-time) of the exponential.
     """
     if s_min > 0: s = s[s >= s_min] - s_min
-    assert s.size > 0
+    assert s.size > 10
 
     # Maximum likelihood estimator of the waiting-time
     Tau = s.mean()
@@ -92,7 +92,7 @@ def expon_fit_cdf(s, s_min=0, offset=0.5):
         The lambda parameter (1/life-time) of the exponential.
     """
     if s_min > 0: s = s[s >= s_min] - s_min
-    assert s.size > 0
+    assert s.size > 10
 
     # Line fit the log of the eCDF to compute the rate (Lambda)
     ecdf = get_ecdf(s, offset=offset)
@@ -121,7 +121,7 @@ def expon_fit_hist(s, bins, s_min=0, weights=None, offset=0.5):
         The lambda parameter (1/life-time) of the exponential.
     """
     if s_min > 0: s = s[s >= s_min] - s_min
-    assert s.size > 0
+    assert s.size > 10
 
     counts, bins = np.histogram(s, bins=bins, density=True)
     x = bins[:-1] + 0.5*(bins[1] - bins[0])  # bin center position
