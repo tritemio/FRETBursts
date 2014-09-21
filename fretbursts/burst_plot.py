@@ -965,6 +965,7 @@ def hist_sbr(d, ich=0, **hist_kwargs):
 
 def hist_bg_single(d, i=0, period=0, bin_width=1e-4, bins=None, tmax=0.01,
                    ph_sel=Ph_sel('all'), show_fit=True, yscale='log',
+                   manual_rate=None, manual_tau_th=500,
                    xscale='linear', plot_style={}, fit_style={}):
     """Plot histogram of photon interval for a single photon streams.
 
@@ -993,10 +994,14 @@ def hist_bg_single(d, i=0, period=0, bin_width=1e-4, bins=None, tmax=0.01,
     plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
     plot(t_ax[:n_trim]*1e3, counts[:n_trim], **plot_style_)
 
-    if show_fit:
+    if show_fit or manual_rate is not None:
         # Compute the fit function
-        bg_rate = d.bg_from(ph_sel)[i][period]
-        tau_th = d.bg_th_us[ph_sel][i]*1e-6
+        if manual_rate is not None:
+            bg_rate = manual_rate
+            tau_th = manual_tau_th*1e-6
+        else:
+            bg_rate = d.bg_from(ph_sel)[i][period]
+            tau_th = d.bg_th_us[ph_sel][i]*1e-6
 
         i_tau_th = np.searchsorted(t_ax, tau_th)
         tau_th_sampled = t_ax[i_tau_th]
