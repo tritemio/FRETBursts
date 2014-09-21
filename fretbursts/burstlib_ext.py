@@ -110,7 +110,7 @@ def calc_bg_brute(dx, min_ph_delay_list=None, return_all=False):
                 best_bg.loc[(ich, str(ph_sel)), period] = \
                         BG_data[ph_sel][ich, period, i_best_th]
     if return_all:
-        return best_th, best_bg, BG_data, BG_data_e
+        return best_th, best_bg, BG_data, BG_data_e, min_ph_delay_list
     else:
         return best_th, best_bg
 
