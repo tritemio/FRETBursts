@@ -142,45 +142,6 @@ def exp_hist_fit(ph, tail_min_us, binw=50e-6, clk_p=12.5e-9,
 ##
 # Fit background as function of th
 #
-def fit_var_tail_us(d, Tail_min_us_list, t_max_s,
-                       bg_fit_fun=exp_fit, ph_sel=Ph_sel('all'), **kwargs):
-    """
-    Fit BG of a ph_sel on all CH for all the values in `Tail_min_us_list`.
-
-    The BG is fitted from the first `t_max_s` seconds of the measurement.
-
-    Returns
-        Two arrays for background rate and fit-error of shape
-        (nch, len(min_delta_ph_list)).
-    """
-    assert ph_sel in [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
-    BG = np.zeros((d.nch, np.size(Tail_min_us_list)))
-    BG_err = np.zeros((d.nch, np.size(Tail_min_us_list)))
-    t_max_clk = t_max_s/d.clk_p
-
-    ph_times_m_slice, A_em_slice = [], []
-    for ph, a_em in zip(d.ph_times_m, d.A_em):
-        ph_times_m_slice.append(ph[ph < t_max_clk])
-        A_em_slice.append(a_em[ph < t_max_clk])
-
-    Ph_times = []
-    for ph, a_em in zip(ph_times_m_slice, A_em_slice):
-        if ph_sel == Ph_sel(Dex='Dem'):
-            Ph_times.append(ph[-a_em])
-        elif ph_sel == Ph_sel(Dex='Aem'):
-            Ph_times.append(ph[a_em])
-        else:
-            Ph_times.append(ph)
-
-    for ch, ph_t in enumerate(Ph_times):
-        for it, t in enumerate(Tail_min_us_list):
-            try:
-                BG[ch, it], BG_err[ch, it] = bg_fit_fun(
-                        ph_t, tail_min_us=t, clk_p=d.clk_p, **kwargs)
-            except:
-                break # Skip remaining Tail_min
-    return BG, BG_err
-
 def fit_varying_min_delta_ph(d, min_delta_ph_list, bg_fit_fun=exp_fit,
                              ph_sel=Ph_sel('all'), **kwargs):
     """
@@ -218,6 +179,46 @@ def fit_varying_min_delta_ph(d, min_delta_ph_list, bg_fit_fun=exp_fit,
                                        clk_p=d.clk_p, **kwargs)
                 except AssertionError:
                     break # Skip remaining Tail_min
+    return BG, BG_err
+
+
+def fit_var_tail_us(d, Tail_min_us_list, t_max_s,
+                       bg_fit_fun=exp_fit, ph_sel=Ph_sel('all'), **kwargs):
+    """
+    Fit BG of a ph_sel on all CH for all the values in `Tail_min_us_list`.
+
+    The BG is fitted from the first `t_max_s` seconds of the measurement.
+
+    Returns
+        Two arrays for background rate and fit-error of shape
+        (nch, len(min_delta_ph_list)).
+    """
+    assert ph_sel in [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
+    BG = np.zeros((d.nch, np.size(Tail_min_us_list)))
+    BG_err = np.zeros((d.nch, np.size(Tail_min_us_list)))
+    t_max_clk = t_max_s/d.clk_p
+
+    ph_times_m_slice, A_em_slice = [], []
+    for ph, a_em in zip(d.ph_times_m, d.A_em):
+        ph_times_m_slice.append(ph[ph < t_max_clk])
+        A_em_slice.append(a_em[ph < t_max_clk])
+
+    Ph_times = []
+    for ph, a_em in zip(ph_times_m_slice, A_em_slice):
+        if ph_sel == Ph_sel(Dex='Dem'):
+            Ph_times.append(ph[-a_em])
+        elif ph_sel == Ph_sel(Dex='Aem'):
+            Ph_times.append(ph[a_em])
+        else:
+            Ph_times.append(ph)
+
+    for ch, ph_t in enumerate(Ph_times):
+        for it, t in enumerate(Tail_min_us_list):
+            try:
+                BG[ch, it], BG_err[ch, it] = bg_fit_fun(
+                        ph_t, tail_min_us=t, clk_p=d.clk_p, **kwargs)
+            except:
+                break # Skip remaining Tail_min
     return BG, BG_err
 
 
