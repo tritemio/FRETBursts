@@ -145,9 +145,13 @@ def exp_hist_fit(ph, tail_min_us, binw=50e-6, clk_p=12.5e-9,
 def fit_var_tail_us(d, Tail_min_us_list, t_max_s,
                        bg_fit_fun=exp_fit, ph_sel=Ph_sel('all'), **kwargs):
     """
-    Fit 'all', DD or AD bg on all CH for all the values in `Tail_min_us_list`.
+    Fit BG of a ph_sel on all CH for all the values in `Tail_min_us_list`.
 
     The BG is fitted from the first `t_max_s` seconds of the measurement.
+
+    Returns
+        Two arrays for background rate and fit-error of shape
+        (nch, len(min_delta_ph_list)).
     """
     assert ph_sel in [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
     BG = np.zeros((d.nch, np.size(Tail_min_us_list)))
@@ -182,11 +186,10 @@ def fit_varying_min_delta_ph(d, min_delta_ph_list, bg_fit_fun=exp_fit,
     """
     Fit the background as a function of the min photon interval threshold.
 
-    The background if fitted for all the channels, all the periods and all the
-    values in ``min_ph_iterval_list
+    The background is fitted for all the channels, all the periods and all the
+    values in `min_ph_iterval_list`.
 
-
-    Arguments:
+    Parameters
         d (Data object): the Data object containing the timestamps. You need to
             call d.calc_bg() before calling this function in order to create
             the background periods.
@@ -195,6 +198,10 @@ def fit_varying_min_delta_ph(d, min_delta_ph_list, bg_fit_fun=exp_fit,
         bg_fit_fun (function): function used to fit the background.
         ph_sel (Ph_sel object): photon selection on which the background is
             computed. See :class:`fretbursts.ph_sel.Ph_sel` for details.
+
+    Returns
+        Two arrays for background rate and fit-error of shape
+        (nch, nperiods, len(min_delta_ph_list)).
     """
 
     BG = np.zeros((d.nch, d.nperiods, np.size(min_delta_ph_list)))
@@ -212,6 +219,7 @@ def fit_varying_min_delta_ph(d, min_delta_ph_list, bg_fit_fun=exp_fit,
                 except AssertionError:
                     break # Skip remaining Tail_min
     return BG, BG_err
+
 
 ##
 # Other functions
