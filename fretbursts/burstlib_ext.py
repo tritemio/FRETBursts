@@ -83,11 +83,7 @@ def calc_bg_brute(dx, min_ph_delay_list=None, return_all=False):
     else:
         min_ph_delay_list = np.asfarray(min_ph_delay_list)
 
-    ph_selections = [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
-    ph_sel_labels = [str(p) for p in ph_selections]
-    if dx.ALEX:
-        ph_selections.append(Ph_sel(Aex='Dem'))
-        ph_selections.append(Ph_sel(Aex='Aem'))
+    ph_sel_labels = [str(p) for p in dx.ph_streams]
 
     BG_data, BG_data_e = {}, {}
 
@@ -98,7 +94,7 @@ def calc_bg_brute(dx, min_ph_delay_list=None, return_all=False):
     best_th.sortlevel(inplace=True)
     best_bg = best_th.copy()
 
-    for ph_sel in ph_selections:
+    for ph_sel in dx.ph_streams:
         # Compute BG and error for all ch, periods and thresholds
         # Shape: (nch, nperiods, len(thresholds))
         BG_data[ph_sel], BG_data_e[ph_sel] = bg.fit_varying_min_delta_ph(
