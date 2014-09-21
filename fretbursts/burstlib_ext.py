@@ -50,11 +50,73 @@ import pandas as pd
 
 from ph_sel import Ph_sel
 import burstsearch.burstsearchlib as bslib
+import background as bg
 from utils.misc import pprint
 
 import burstlib
 import fret_fit
 import mfit
+
+
+def calc_bg_brute(dx, min_ph_delay_list=None, return_all=False):
+    """Compute background for all the ch, ph_sel and periods.
+
+    This function performs a brute-force search of the min ph delay
+    threshold. The best threshold is the one the minimizes the error
+    function. The best background fit is the rate fitted using the
+    best threshold.
+
+    Parameters
+        min_ph_delay_list (sequence): sequence of values used for the
+            brute-force search. Background and error will be computed
+            for each value in `min_ph_delay_list`.
+        return_all (bool): if True return all the fitted backgrounds and
+            error functions. Default False.
+
+    Returns
+        Two arrays with best threshold (us) and best background. If
+        `return_all = True` also returns the dictionaries containing all the
+        fitted backgrounds and errors.
+    """
+    if min_ph_delay_list is None:
+        min_ph_delay_list = np.arange(100, 8500, 100)
+    else:
+        min_ph_delay_list = np.asfarray(min_ph_delay_list)
+
+    ph_selections = [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
+    ph_sel_labels = [str(p) for p in ph_selections]
+    if dx.ALEX:
+        ph_selections.append(Ph_sel(Aex='Dem'))
+        ph_selections.append(Ph_sel(Aex='Aem'))
+
+    BG_data, BG_data_e = {}, {}
+
+    index = pd.MultiIndex.from_product([range(dx.nch), ph_sel_labels],
+                                       names=['CH', 'ph_sel'])
+    best_th = pd.DataFrame(index=index, columns=np.arange(dx.nperiods))
+    best_th.columns.name = 'period'
+    best_th.sortlevel(inplace=True)
+    best_bg = best_th.copy()
+
+    for ph_sel in ph_selections:
+        # Compute BG and error for all ch, periods and thresholds
+        # Shape: (nch, nperiods, len(thresholds))
+        BG_data[ph_sel], BG_data_e[ph_sel] = bg.fit_varying_min_delta_ph(
+                dx, min_ph_delay_list, bg_fit_fun=bg.exp_fit, ph_sel=ph_sel)
+
+        # Compute the best Th and BG estimate for all ch and periods
+        for ich in range(dx.nch):
+            for period in range(dx.nperiods):
+                b = BG_data_e[ph_sel][ich, period, :]
+                i_best_th = b[-np.isnan(b)].argmin()
+                best_th.loc[(ich, str(ph_sel)), period] = \
+                        min_ph_delay_list[i_best_th]
+                best_bg.loc[(ich, str(ph_sel)), period] = \
+                        BG_data[ph_sel][ich, period, i_best_th]
+    if return_all:
+        return best_th, best_bg, BG_data, BG_data_e
+    else:
+        return best_th, best_bg
 
 
 def burst_data(dx, ich=0, include_bg=False, include_ph_index=False):
