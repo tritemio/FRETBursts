@@ -178,7 +178,8 @@ def fit_varying_min_delta_ph(d, min_delta_ph_list, bg_fit_fun=exp_fit,
                             bg_fit_fun(ph, tail_min_us=min_delta_ph,
                                        clk_p=d.clk_p, **kwargs)
                 except AssertionError:
-                    break # Skip remaining Tail_min
+                    # There are not enough delays with current threshold
+                    break   # Skip remaining values in min_delta_ph_list
     return BG, BG_err
 
 
