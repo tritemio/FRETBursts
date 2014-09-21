@@ -724,8 +724,15 @@ class Data(DataContainer):
                     'max_rate', 'sbr']
 
     # List of photon selections on which the background is computed
-    ph_streams = [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem'),
-                  Ph_sel(Aex='Dem'), Ph_sel(Aex='Aem')]
+    _ph_streams = [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem'),
+                   Ph_sel(Aex='Dem'), Ph_sel(Aex='Aem')]
+
+    @property
+    def ph_streams(self):
+        if self.ALEX:
+            return self._ph_streams
+        else:
+            return [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
 
     def __init__(self, **kwargs):
         # Default values
@@ -1162,9 +1169,6 @@ class Data(DataContainer):
         """
         Th_us = {}
         for ph_sel in self.ph_streams:
-            if not self.ALEX and (ph_sel== Ph_sel(Aex='Dem') or
-                                  ph_sel== Ph_sel(Aex='Aem')):
-                continue
             th_us = np.zeros(self.nch)
             for ich, ph in enumerate(self.iter_ph_times(ph_sel=ph_sel)):
                 if ph.size > 0:
@@ -1182,12 +1186,9 @@ class Data(DataContainer):
         are 1-D arrays of size nch.
         """
         n_streams = len(self.ph_streams)
-        assert n_streams == 5
 
         if np.size(tail_min_us) == 1:
             tail_min_us = np.repeat(tail_min_us, n_streams)
-        elif np.size(tail_min_us) == 3:
-            tail_min_us = np.hstack((tail_min_us, 1, 1))
         elif np.size(tail_min_us) == n_streams:
             tail_min_us = np.asarray(tail_min_us)
         elif np.size(tail_min_us) != n_streams:
