@@ -245,8 +245,8 @@ def _get_bg_erlang(d, ich=0, m=10, ph_sel=Ph_sel('all'), period=0):
     """Return a frozen (scipy) erlang distrib. with rate equal to the bg rate.
     """
     bg_rate = d.bg_from(ph_sel=ph_sel)[ich][period]
-    bg_rate_kcps = bg_rate*1e-3
-    bg_dist = erlang(a=m, scale=1./bg_rate_kcps)
+    #bg_rate_kcps = bg_rate*1e-3
+    bg_dist = erlang(a=m, scale=1./bg_rate)
     return bg_dist
 
 def histogram_mdelays(d, ich=0, m=10, period=None, ph_sel=Ph_sel('all'),
@@ -275,13 +275,11 @@ def histogram_mdelays(d, ich=0, m=10, period=None, ph_sel=Ph_sel('all'),
         ph = d.get_ph_times_period(period=period, ich=ich, ph_sel=ph_sel)
 
     ph_mdelays = np.diff(ph[::m])*d.clk_p
-    print 'All delays', ph_mdelays.shape, ph.shape
     if bursts:
         if period is not None:
             print "WARNING: the burst-ph histogram is built from all periods"
         ph_in_bursts = d.ph_in_bursts(ich=ich, ph_sel=ph_sel)
         phb_mdelays = np.diff(ph_in_bursts[::m])*d.clk_p
-        print 'Bursts delays', phb_mdelays.shape, ph_in_bursts.shape
 
     # Compute the histogram
     hist_kwargs = dict(bins=bins, density=False)
