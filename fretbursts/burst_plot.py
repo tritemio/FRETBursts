@@ -72,8 +72,13 @@ plt.rcParams.update(params)
 ##
 # Globals
 #
-_ph_sel_color_dict = {Ph_sel('all'): 'k', Ph_sel(Dex='Dem'): 'g',
-                      Ph_sel(Dex='Aem'): 'r', Ph_sel(Aex='Aem'): 'm',
+blue = '#0055d4'
+green = '#2ca02c'
+red = "#e74c3c" # '#E41A1C'
+purple = "#9b59b6"
+
+_ph_sel_color_dict = {Ph_sel('all'): blue, Ph_sel(Dex='Dem'): green,
+                      Ph_sel(Dex='Aem'): red, Ph_sel(Aex='Aem'): purple,
                       Ph_sel(Aex='Dem'): 'c', }
 _ph_sel_label_dict = {Ph_sel('all'): 'All-ph', Ph_sel(Dex='Dem'): 'DexDem',
                       Ph_sel(Dex='Aem'): 'DexAem', Ph_sel(Aex='Aem'): 'AexAem',
@@ -707,7 +712,6 @@ def hist_burst_data(d, i=0, data_name='E', ax=None, binw=0.03, bins=None,
     d.E_fitter.fit_histogram(). To show the KDE peaks position, they must be
     computed first with d.E_fitter.find_kde_max().
     """
-    red = '#E41A1C'
     assert data_name in d
     fitter_name = data_name + '_fitter'
 
