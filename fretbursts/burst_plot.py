@@ -1056,6 +1056,12 @@ def hist_bg(d, i=0, period=0, bin_width=1e-4, bins=None, tmax=0.01,
     if yscale == 'log' or xscale == 'log':
         _plot_status['hist_bg'] = {'autoscale': False}
 
+def hist_multiphdelays(d, i=0, m=10, bin_width=1e-3, dt_max=10e-3, bins=None,
+                       bursts=True, plot_style={}):
+    counts, x = bext.histogram_mdelays(d, ich=i, m=m, bin_width=bin_width,
+                                          dt_max=dt_max, bins=bins,
+                                          bursts=bursts)
+    plot(x, counts)
 
 def hist_ph_delays(d, i=0, time_min_s=0, time_max_s=30, bin_width_us=10,
         mask=None, yscale='log', hfit_bin_ms=1, efit_tail_min_us=1000,
@@ -1095,8 +1101,8 @@ def hist_mdelays(d, i=0, m=10, bins_s=(0, 10, 0.02), bp=0, no_bg_fit=True,
         for _ind in range(len(ax.lines)): ax.lines.pop()
 
     results = bext.calc_mdelays_hist(
-                        d=d, ich=i, m=m, bp=bp, bins_s=bins_s, ph_sel=ph_sel,
-                        bursts=True, bg_fit=bg_fit, bg_F=bg_F)
+                        d=d, ich=i, m=m, period=bp, bins_s=bins_s,
+                        ph_sel=ph_sel, bursts=True, bg_fit=bg_fit, bg_F=bg_F)
     bin_x, histog_y = results[:2]
     bg_dist = results[2]
     rate_ch_kcps = 1./bg_dist.kwds['scale']  # extract the rate
