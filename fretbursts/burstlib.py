@@ -1110,8 +1110,23 @@ class Data(DataContainer):
         return np.r_[[mb.shape[0] for mb in self.mburst]]
 
     def ph_select(self):
-        """Return masks of ph inside bursts."""
-        self.ph_in_burst = mch_ph_select(self.ph_times_m, self.mburst)
+        """Return masks of ph inside bursts for all the channels."""
+        return mch_ph_select(self.ph_times_m, self.mburst)
+
+    def ph_in_bursts(self, ich=0, ph_sel=Ph_sel('all')):
+        """Return photons inside bursts.
+
+        Returns
+            Array photon timestamps in channel `ich` and photon
+            selection `ph_sel` that are inside bursts.
+        """
+        ph_all = self.get_ph_times(ich=ich)
+        bursts_mask = ph_select(ph_all, self.mburst[ich])
+        if ph_sel == Ph_sel('all'):
+            return ph_all[bursts_mask]
+        else:
+            ph_sel_mask = self.get_ph_mask(ich=ich, ph_sel=ph_sel)
+            return ph_all[ph_sel_mask*bursts_mask]
 
     def calc_max_rate(self, m, ph_sel=Ph_sel('all')):
         """Compute the max m-photon rate reached in each burst.
