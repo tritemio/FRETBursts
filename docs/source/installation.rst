@@ -158,7 +158,7 @@ To run the FRETBursts notebooks,
 `download <https://github.com/tritemio/FRETBursts_notebooks/archive/master.zip>`__
 and decompress the ZIP-ball in a folder and launch an IPython Notebook server
 **inside that folder**. For more details see
-[IPython Notebook Startup Folder](http://fretbursts.readthedocs.org/installation.html#ipython-notebook-startup-folder) on FRETBursts documentation.
+:ref:`_ipython_notebook_startup`.
 
 On the first run, the tutorial notebooks will automatically download
 some public datasets of smFRET measurements that are provided for testing
