@@ -5,145 +5,223 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-The module `burtlib_ext.py` contains extensions to `burstslib.py`. It can be
-though as a simple plugin system for FRETBursts.
+The module `burtlib_ext.py` (usually imported as `bext`) contains extensions
+to `burstslib.py`. It can be though as a simple plugin system for FRETBursts.
 
 Functions here defined operate on :class:`fretbursts.burstlib.Data()` objects
 extending the functionality beyond the core functions and methods defined in
-`burstlib`.
+`burstlib`. This modularization allows to implement new functions without
+overloading the :class:`fretbursts.burstlib.Data` with an high number
+of non-core methods.
+
+The type of functions here implemented are quite diverse. A short summary
+follows.
+
+* :func:`bursts_fitter` and :func:`fit_bursts_kde_peak` help to build and
+  fit histograms and KDEs for E or S.
+
+* :func:`burst_search_and_gate` performs the AND-gate burst search taking
+  intersection of the bursts detected in two photons streams.
+
+* :func:`calc_mdelays_hist` computes the histogram of the m-delays
+  distribution of photon intervals.
+
+* :func:`burst_data_period_mean` computes a mean of any "burst data"
+  for each background period.
+
+* :func:`join_data` joins different measuremets to create a single
+  "virtual" measurement from a series of measurements.
+
+Finally a few functions deal with burst timestamps:
+
+* :func:`get_burst_photons` returns a list of timestamps for each burst.
+* :func:`ph_burst_stats` compute any statistics (for example mean or median)
+  on the timestamps of each burst.
+* :func:`asymmetry` returns a burst "asymmetry index" based on the difference
+  between Donor and Acceptor timestamps.
+
 """
 from __future__ import division
 
 import numpy as np
 from scipy.stats import erlang
 from scipy.optimize import leastsq
+import pandas as pd
 
 from ph_sel import Ph_sel
-import select_bursts
-import burstlib as bl
 import burstsearch.burstsearchlib as bslib
+import background as bg
 from utils.misc import pprint
 
+import burstlib
 import fret_fit
-from fit.weighted_kde import gaussian_kde_w
+import mfit
 
 
-def fit_E_kde_peak(dx, E_range=(-0.1, 1.1), bandwidth=0.03, E_ax=None,
-                   weights='size', return_pdf=False):
-    """Fit E by finding the KDE maximum on all the channels.
+def calc_bg_brute(dx, min_ph_delay_list=None, return_all=False):
+    """Compute background for all the ch, ph_sel and periods.
+
+    This function performs a brute-force search of the min ph delay
+    threshold. The best threshold is the one the minimizes the error
+    function. The best background fit is the rate fitted using the
+    best threshold.
 
     Parameters
-        dx (Data): `Data` object containing the FRET data
-        E_range (tuple of floats): min-max range where to search for the peak.
-            Used to select a single peak in a multi-peaks distribution.
-        bandwidth (float): bandwidth for the Kernel Densisty Estimation
-        E_ax (array or None): FRET efficiency axis (i.e. x-axis) used to
-            evaluate the Kernel Density
-        weights (string or None): kind of burst weights.
-            See :func:`fretbursts.fret_fit.get_weights`.
-        return_pdf (bool): if True returns also the (x, y) values of the
-            PDF computed by the KDE. Default False.
+        min_ph_delay_list (sequence): sequence of values used for the
+            brute-force search. Background and error will be computed
+            for each value in `min_ph_delay_list`.
+        return_all (bool): if True return all the fitted backgrounds and
+            error functions. Default False.
 
     Returns
-        An array of E values (one per ch) and, if return_pdf is True,
-        the array of E values (size M) and the array of PDF (size nch x M).
+        Two arrays with best threshold (us) and best background. If
+        `return_all = True` also returns the dictionaries containing all the
+        fitted backgrounds and errors.
     """
-    if E_ax is None:
-        E_ax = np.arange(-0.2, 1.2, 0.0002)
-
-    E_fit_mch = np.zeros(dx.nch)
-    if return_pdf:
-        E_pdf_mch = np.zeros((dx.nch, E_ax.size))
-
-    for ich in range(dx.nch):
-
-        res = fit_E_kde_peak_single_ch(dx, ich=ich,
-                              E_range=E_range, bandwidth=bandwidth, E_ax=E_ax,
-                              weights=weights, return_pdf=return_pdf)
-
-        if return_pdf:
-            E_fit_mch[ich] = res[0]
-            E_pdf_mch[ich] = res[2]
-        else:
-             E_fit_mch[ich] = res
-
-    if return_pdf:
-        return E_fit_mch, E_ax, E_pdf_mch
+    if min_ph_delay_list is None:
+        min_ph_delay_list = np.arange(100, 8500, 100)
     else:
-        return E_fit_mch
+        min_ph_delay_list = np.asfarray(min_ph_delay_list)
 
-def fit_E_kde_peak_single_ch(dx, ich=0, E_range=(-0.1, 1.1), bandwidth=0.03,
-                   E_ax=None, weights='size', return_pdf=False):
-    """Fit E by finding the KDE maximum on channel `ich`.
+    ph_sel_labels = [str(p) for p in dx.ph_streams]
 
-    Parameters
-        dx (Data): `Data` object containing the FRET data
-        ich (int): channel number for multi-spot data. Default 0.
-        E_range (tuple of floats): min-max range where to search for the peak.
-            Used to select a single peak in a multi-peaks distribution.
-        bandwidth (float): bandwidth for the Kernel Densisty Estimation
-        E_ax (array or None): FRET efficiency axis (i.e. x-axis) used to
-            evaluate the Kernel Density
-        weights (string or None): kind of burst weights.
-            See :func:`fretbursts.fret_fit.get_weights`.
-        return_pdf (bool): if True returns also the (x, y) values of the
-            PDF computed by the KDE. Default False.
+    BG_data, BG_data_e = {}, {}
 
-    Returns
-        Fitted E value and (optionally) the KDE of the PDF.
-    """
-    E_ax, E_pdf = compute_E_kde(dx, ich=ich, bandwidth=bandwidth,
-                                E_ax=E_ax, weights=weights)
-    E_fit = find_max(E_ax, E_pdf, xmin=E_range[0], xmax=E_range[1])
+    index = pd.MultiIndex.from_product([range(dx.nch), ph_sel_labels],
+                                       names=['CH', 'ph_sel'])
+    best_th = pd.DataFrame(index=index, columns=np.arange(dx.nperiods))
+    best_th.columns.name = 'period'
+    best_th.sortlevel(inplace=True)
+    best_bg = best_th.copy()
 
-    if return_pdf:
-        return E_fit, E_ax, E_pdf
+    for ph_sel in dx.ph_streams:
+        # Compute BG and error for all ch, periods and thresholds
+        # Shape: (nch, nperiods, len(thresholds))
+        BG_data[ph_sel], BG_data_e[ph_sel] = bg.fit_varying_min_delta_ph(
+                dx, min_ph_delay_list, bg_fit_fun=bg.exp_fit, ph_sel=ph_sel)
+
+        # Compute the best Th and BG estimate for all ch and periods
+        for ich in range(dx.nch):
+            for period in range(dx.nperiods):
+                b = BG_data_e[ph_sel][ich, period, :]
+                i_best_th = b[-np.isnan(b)].argmin()
+                best_th.loc[(ich, str(ph_sel)), period] = \
+                        min_ph_delay_list[i_best_th]
+                best_bg.loc[(ich, str(ph_sel)), period] = \
+                        BG_data[ph_sel][ich, period, i_best_th]
+    if return_all:
+        return best_th, best_bg, BG_data, BG_data_e, min_ph_delay_list
     else:
-        return E_fit
+        return best_th, best_bg
 
-def find_max(x, y, xmin=None, xmax=None):
-    """Find peak position of a curve (x, y) between `xmin` and `xmax`.
+
+def burst_data(dx, ich=0, include_bg=False, include_ph_index=False):
+    """Return a pandas Dataframe (one row per bursts) with all the burst data.
     """
-    if xmin is None:
-        xmin = x.min()
-    if xmax is None:
-        xmax = x.max()
+    if dx.ALEX:
+        nd, na, naa, bg_d, bg_a, bg_aa, wid = dx.expand(ich=ich, alex_naa=True,
+                                                        width=True)
+        nt = nd + na + naa + dx.nda[ich]
+    else:
+        nd, na, bg_d, bg_a, wid = dx.expand(ich=ich, width=True)
+        nt = nd + na
 
-    mask = np.where((x >= xmin)*(x <= xmax))
-    return x[mask][y[mask].argmax()]
+    size_raw = burstlib.b_size(dx.mburst[ich])
+    t_start = burstlib.b_start(dx.mburst[ich])*dx.clk_p
+    t_end = burstlib.b_end(dx.mburst[ich])*dx.clk_p
+    i_start = burstlib.b_istart(dx.mburst[ich])
+    i_end = burstlib.b_iend(dx.mburst[ich])
+    asym = asymmetry(dx, dropnan=False)
 
-def compute_E_kde(dx, ich=0, bandwidth=0.03, E_ax=None, weights='size',
-                  gamma=1., E_range=None):
-    """Compute the KDE for E values in `dx`, channel `ich`.
+    data_dict = dict(size_raw=size_raw, nt=nt, width_ms=wid*1e3,
+                     t_start=t_start, t_end=t_end, asymmetry=asym)
+
+    if include_ph_index:
+        data_dict.update(i_start=i_start, i_end=i_end)
+
+    if include_bg:
+        data_dict.update(bg_d=bg_d, bg_a=bg_a)
+        if dx.ALEX:
+            data_dict.update(bg_aa=bg_aa)
+
+    burst_fields = dx.burst_fields[:]
+    burst_fields.remove('mburst')
+    for field in burst_fields:
+        if field in dx:
+            data_dict[field] = dx[field][ich]
+
+    return pd.DataFrame.from_dict(data_dict)
+
+
+def fit_bursts_kde_peak(dx, burst_data='E', bandwidth=0.03, weights=None,
+                        gamma=1, add_naa=False, x_range=(-0.1, 1.1),
+                        x_ax=None, save_fitter=True):
+    """Fit burst data (typ. E or S) by finding the KDE max on all the channels.
 
     Parameters
         dx (Data): `Data` object containing the FRET data
-        ich (int): channel number for multi-spot data. Default 0.
+        burst_data (string): name of burst-data attribute (i.e 'E' or 'S').
         bandwidth (float): bandwidth for the Kernel Densisty Estimation
-        E_ax (array or None): FRET efficiency axis (i.e. x-axis) used to
-            evaluate the Kernel Density
-        weights (string or None): kind of burst weights.
+        weights (string or None): kind of burst-size weights.
             See :func:`fretbursts.fret_fit.get_weights`.
-        E_range (None or tuple): if not None, the KDE is computed on the
-            bursts between min/max E values in `E_range`.
+        gamma (float): gamma factor passed to `get_weights()`.
+        add_naa (bool): if True adds `naa` to the burst size.
+        save_fitter (bool): if True save the `MultiFitter` object in the
+            `dx` object with name: burst_data + '_fitter'.
+        x_range (tuple of floats): min-max range where to search for the peak.
+            Used to select a single peak in a multi-peaks distribution.
+        x_ax (array or None): x-axis used to evaluate the Kernel Density
 
     Returns
-        Arrays of E (x-axis) and KDE PDF (y-axis)
+        An array of max peak positions (one per ch). If the number of
+        channels is 1 returns a scalar.
     """
+    if x_ax is None:
+        x_ax = np.arange(-0.2, 1.2, 0.0002)
 
-    if E_ax is None:
-        E_ax = np.arange(-0.2, 1.2, 0.0002)
+    fitter = bursts_fitter(dx, burst_data=burst_data, save_fitter=save_fitter,
+                           weights=weights, gamma=gamma, add_naa=add_naa)
+    fitter.calc_kde(bandwidth=bandwidth)
+    fitter.find_kde_max(x_ax, xmin=x_range[0], xmax=x_range[1])
+    KDE_max_mch = fitter.kde_max_pos
+    if dx.nch == 1:
+        KDE_max_mch = KDE_max_mch[0]
+    return KDE_max_mch
 
-    if E_range is not None:
-        dx = bl.Sel(dx, select_bursts.E, E1=E_range[0], E2=E_range[1])
+def bursts_fitter(dx, burst_data='E', save_fitter=True,
+                  weights=None, gamma=1, add_naa=False):
+    """Create a mfit.MultiFitter object (for E or S) add it to `dx`.
 
-    w = fret_fit.get_weights(dx.nd[ich], dx.na[ich], weights=weights,
-                             gamma=gamma)
-    kde = gaussian_kde_w(dx.E[ich], bw_method=bandwidth, weights=w)
-    E_pdf = kde.evaluate(E_ax)
+    A MultiFitter object allows to fit multi-channel data with the same
+    model.
 
-    return E_ax, E_pdf
+    Parameters
+        dx (Data): `Data` object containing the FRET data
+        save_fitter (bool): if True save the `MultiFitter` object in the
+            `dx` object with name: burst_data + '_fitter'.
+        burst_data (string): name of burst-data attribute (i.e 'E' or 'S').
+        weights (string or None): kind of burst-size weights.
+            See :func:`fretbursts.fret_fit.get_weights`.
+        gamma (float): gamma factor passed to `get_weights()`.
+        add_naa (bool): if True adds `naa` to the burst size.
 
+    Returns
+        The `mfit.MultiFitter` object with the specified burst-size weights.
+    """
+    assert burst_data in dx
+    fitter = mfit.MultiFitter(dx[burst_data])
+    if weights is not None:
+        weight_kwargs = dict(weights=weights, gamma=gamma, nd=dx.nd, na=dx.na)
+        if add_naa:
+            weight_kwargs.update(naa = dx.naa)
+        fitter.set_weights_func(weight_func = fret_fit.get_weights,
+                                weight_kwargs = dict(weights=weights,
+                                                     gamma=gamma,
+                                                     nd=dx.nd, na=dx.na))
+    if save_fitter:
+        dx.add(**{burst_data + '_fitter': fitter,
+                  'burst_weights': (weights, float(gamma), add_naa)})
+    return fitter
 
 def _get_bg_distrib_erlang(d, ich=0, m=10, ph_sel=Ph_sel('all'), bp=(0, -1)):
     """Return a frozen (scipy) erlang distrib. with rate equal to the bg rate.
@@ -162,6 +240,61 @@ def _get_bg_distrib_erlang(d, ich=0, m=10, ph_sel=Ph_sel('all'), bp=(0, -1)):
     rate_ch_kcps = bg_ph[periods].mean()/1e3   # bg rate in kcps
     bg_dist = erlang(a=m, scale=1./rate_ch_kcps)
     return bg_dist
+
+def _get_bg_erlang(d, ich=0, m=10, ph_sel=Ph_sel('all'), period=0):
+    """Return a frozen (scipy) erlang distrib. with rate equal to the bg rate.
+    """
+    bg_rate = d.bg_from(ph_sel=ph_sel)[ich][period]
+    #bg_rate_kcps = bg_rate*1e-3
+    bg_dist = erlang(a=m, scale=1./bg_rate)
+    return bg_dist
+
+def histogram_mdelays(d, ich=0, m=10, period=None, ph_sel=Ph_sel('all'),
+                      bin_width=1e-3, dt_max= 10e-3, bins=None, bursts=False,
+                      pdf=True):
+    """Compute histogram of m-photons delays (or waiting times).
+
+    Arguments
+        dx (Data object): contains the burst data to process.
+        ich (int): the channel number. Default 0.
+        m (int): number of photons used to compute each delay.
+        period (int): index of the period to use.
+        ph_sel (Ph_sel object): photon selection to use.
+
+    Returns
+        Two arrays for the histogram counts and the bins centers. If `bursts`
+        is True the counts arrays contains a second row that is the histogram
+        for only the photons inside bursts.
+    """
+    if bins is None:
+        bins = np.arange(0, dt_max, bin_width)
+
+    if period is None:
+        ph = d.get_ph_times(ich=ich, ph_sel=ph_sel)
+    else:
+        ph = d.get_ph_times_period(period=period, ich=ich, ph_sel=ph_sel)
+
+    ph_mdelays = np.diff(ph[::m])*d.clk_p
+    if bursts:
+        if period is not None:
+            print "WARNING: the burst-ph histogram is built from all periods"
+        ph_in_bursts = d.ph_in_bursts(ich=ich, ph_sel=ph_sel)
+        phb_mdelays = np.diff(ph_in_bursts[::m])*d.clk_p
+
+    # Compute the histogram
+    hist_kwargs = dict(bins=bins, density=False)
+    counts_tot, _ = np.histogram(ph_mdelays, **hist_kwargs)
+    bin_center = bins[:-1] + 0.5*(bins[1] - bins[0])
+    pdf_tot = counts_tot / (counts_tot.sum()*bin_width)
+    histograms_y = pdf_tot if pdf else counts_tot
+    if bursts:
+        counts_bursts, _ = np.histogram(phb_mdelays, **hist_kwargs)
+        pdf_bursts_normalized = counts_bursts / (counts_tot.sum()*bin_width)
+        if pdf:
+            histograms_y = np.vstack([pdf_tot, pdf_bursts_normalized])
+        else:
+            histograms_y = np.vstack([counts_tot, counts_bursts])
+    return histograms_y, bin_center
 
 def calc_mdelays_hist(d, ich=0, m=10, bp=(0, -1), bins_s=(0, 10, 0.02),
                       ph_sel=Ph_sel('all'), bursts=False, bg_fit=True,
@@ -411,3 +544,80 @@ def burst_search_and_gate(dx, F=6, m=10, ph_sel1=Ph_sel(Dex='DAem'),
 
     return dx_and
 
+
+##
+#  Burst asymmetry
+#
+
+def get_burst_photons(d, ich=0, ph_sel=Ph_sel('all')):
+    """Return a list of arrays of photon timestamps in each burst.
+
+    Arguments:
+        d (Data): Data() object
+        ich (int): channel index
+        ph_sel (Ph_sel): photon selection. It allows to select timestamps
+            from a specific photon selection. Example ph_sel=Ph_sel(Dex='Dem').
+            See :class:`fretbursts.ph_sel.Ph_sel` for details.
+
+    Returns:
+        A list of arrays of photon timestamps (one array per burst).
+    """
+    bursts = d.mburst[ich]
+    i_start, i_end = burstlib.b_istart(bursts), burstlib.b_iend(bursts)
+
+    ph_times = d.get_ph_times(ich)
+    burst_slices = [slice(i1, i2 + 1) for i1, i2 in zip(i_start, i_end)]
+    burst_photons = [ph_times[slice_i] for slice_i in burst_slices]
+
+    if ph_sel != Ph_sel('all'):
+        ph_times_mask = d.get_ph_mask(ich, ph_sel=ph_sel)
+        photon_masks = [ph_times_mask[slice_i] for slice_i in burst_slices]
+        burst_photons = [ph[mask] for ph, mask in zip(burst_photons,
+                                                      photon_masks)]
+    return burst_photons
+
+def ph_burst_stats(d, ich=0, func=np.mean, ph_sel=Ph_sel('all')):
+    """Applies function `func` to the timestamps of each burst.
+
+    Arguments:
+        d (Data): Data() object
+        ich (int): channel index
+        func (function): a function that take an array of burst-timestamps
+            and return a scalar. Default `numpy.mean`.
+        ph_sel (Ph_sel): photon selection. It allows to select timestamps
+            from a specific photon selection. Default Ph_sel('all').
+            See :class:`fretbursts.ph_sel.Ph_sel` for details.
+
+    Returns:
+        An array containing per-burst timestamp statistics.
+    """
+    burst_photons = get_burst_photons(d, ich, ph_sel=ph_sel)
+    stats = [func(times) for times in burst_photons]
+    return np.array(stats)
+
+def asymmetry(dx, ich=0, func=np.mean, dropnan=True):
+    """Compute an asymmetry index for each burst in channel `ich`.
+
+    It computes each burst the difference func({t_D}) - func({t_A})
+    where `func` is a function (default `mean`) that computes some statistics
+    on the timestamp and {t_D} and {t_A} are the sets of D or A timestamps
+    in a bursts (during D excitation).
+
+    Arguments:
+        d (Data): Data() object
+        ich (int): channel index
+        func (function): the function to be used to extract D and A photon
+            statistics in each bursts.
+
+    Returns:
+        An arrays of photon timestamps (one array per burst).
+    """
+    stats_d = ph_burst_stats(dx, ich=ich, func=func, ph_sel=Ph_sel(Dex='Dem'))
+    stats_a = ph_burst_stats(dx, ich=ich, func=func, ph_sel=Ph_sel(Dex='Aem'))
+
+    #b_size = d.burst_sizes(ich, add_naa=False)
+    #b_width = burstlib.b_width(d.mburst[ich])
+    burst_asym = (stats_d - stats_a)*dx.clk_p*1e3
+    if dropnan:
+        burst_asym = burst_asym[-np.isnan(burst_asym)]
+    return burst_asym

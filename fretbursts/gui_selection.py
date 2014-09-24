@@ -12,11 +12,12 @@ Used by `hist2d_alex() and other functions in `burst_plot.py.
 import numpy as np
 from matplotlib.patches import Rectangle, Ellipse
 from utils.misc import pprint
-from burstsearch.burstsearchlib import b_start, b_end
+from burstsearch.burstsearchlib import b_start, b_end, b_width
+import burstlib_ext as bext
 
 
 class GuiSelection(object):
-    """Abstract class for range selection.
+    """Abstract class for range selection in a matplotlib axis.
 
     Methods on_press_draw(), on_motion_draw() and on_release_print() must
     be overloaded by children classes.
@@ -30,6 +31,7 @@ class GuiSelection(object):
                                                 self.on_press)
         if self.debug:
             pprint('Figure: ' + str(fig) + '\nAxis: ' + str(ax) + '\n')
+
     def on_press(self, event):
         if event.inaxes != self.ax: return
         self.pressed = True
@@ -73,7 +75,7 @@ class GuiSelection(object):
 
 
 class xspanSelection(GuiSelection):
-    """Select an x range on the figure"""
+    """Interactive selection of an x range on the axis"""
     def on_press_draw(self):
         if 'r' in self.__dict__:
             self.r.set_width(0)
@@ -97,7 +99,10 @@ class xspanSelection(GuiSelection):
 
 
 class rectSelection(GuiSelection):
-    """Select a rectangular region on the figure (for hist2d_alex())"""
+    """Interactive selection of a rectangular region on the axis.
+
+    Used by hist2d_alex().
+    """
     def on_press_draw(self):
         if 'r' in self.__dict__:
             self.r.set_height(0)
@@ -146,18 +151,30 @@ class MultiAxPointSelection(object):
         self.fig = fig
         self.d = d
         self.debug = debug
+        self._asymmetry_dict = {}
         self.id_press = fig.canvas.mpl_connect('button_press_event',
                                                 self.on_press)
+
     def on_press(self, event):
         if self.debug:
-            print 'PRESS button=%d, x=%d, y=%d, xdata=%f, ydata=%f' % (
-                event.button, event.x, event.y, event.xdata, event.ydata)
+            pprint('PRESS button=%d, x=%d, y=%d, xdata=%f, ydata=%f\n' % (
+                event.button, event.x, event.y, event.xdata, event.ydata))
+
         iax = [i for i, ax in enumerate(self.ax_list) if ax == event.inaxes]
-        if len(iax) == 0: return
+        if len(iax) == 0:
+            if self.debug:
+                pprint('NO axis found. event.inaxes "%s".\n' % event.inaxes)
+                pprint('self.ax_list: ' + str(self.ax_list))
+            return
 
         self.ich = iax[0]
         self.xp, self.yp = event.xdata, event.ydata
         self.on_press_print()
+
+    def asymmetry(self, ich):
+        if ich not in self._asymmetry_dict:
+            self._asymmetry_dict[ich] = bext.asymmetry(self.d, ich)
+        return self._asymmetry_dict[ich]
 
     def on_press_print(self):
         if self.debug:
@@ -168,10 +185,20 @@ class MultiAxPointSelection(object):
         if mask.any():
             burst_index = np.where(mask)[0][0]
             ts = b_start(mburst)[burst_index]*self.d.clk_p
-            #skew = bleaching1(self.d, self.ich, burst_index, use_median=True,
-            #                  normalize=True)
-            pprint("Burst [%d-CH%d]: t = %d us   nt = %5.1f   E = %4.2f \n" % \
-                    (burst_index, self.ich+1, ts*1e6,
-                     self.d.nt[self.ich][burst_index],
-                     self.d.E[self.ich][burst_index],))
-                                      #skew))
+            width = b_width(mburst)[burst_index]*self.d.clk_p
+            asym = self.asymmetry(self.ich)[burst_index]
+            msg = "Burst [%d-CH%d]: " % (burst_index, self.ich+1)
+            msg += "t = %7.2f ms" % (ts*1e3)
+            msg += "   width=%4.2f ms" % (width*1e3)
+            msg += "   size=(T%3d, D%3d, A%3d" % \
+                (self.d.nt[self.ich][burst_index],
+                 self.d.nd[self.ich][burst_index],
+                 self.d.na[self.ich][burst_index])
+            if self.d.ALEX:
+                msg += ", AA%3d" % self.d.naa[self.ich][burst_index]
+            msg += ")   E=%4.2f" % self.d.E[self.ich][burst_index]
+            if self.d.ALEX:
+                msg += "   S=%4.2f" % self.d.E[self.ich][burst_index]
+            msg += "   Asym(D-A)=%5.2f ms" % asym
+            pprint(msg + '\n')
+

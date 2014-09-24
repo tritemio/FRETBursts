@@ -142,12 +142,57 @@ def exp_hist_fit(ph, tail_min_us, binw=50e-6, clk_p=12.5e-9,
 ##
 # Fit background as function of th
 #
+def fit_varying_min_delta_ph(d, min_delta_ph_list, bg_fit_fun=exp_fit,
+                             ph_sel=Ph_sel('all'), **kwargs):
+    """
+    Fit the background as a function of the min photon interval threshold.
+
+    The background is fitted for all the channels, all the periods and all the
+    values in `min_ph_iterval_list`.
+
+    Parameters
+        d (Data object): the Data object containing the timestamps. You need to
+            call d.calc_bg() before calling this function in order to create
+            the background periods.
+        min_delta_ph_list (list or array): list of minimum photon separation
+            values above which photons are considered background. Unit: us.
+        bg_fit_fun (function): function used to fit the background.
+        ph_sel (Ph_sel object): photon selection on which the background is
+            computed. See :class:`fretbursts.ph_sel.Ph_sel` for details.
+
+    Returns
+        Two arrays for background rate and fit-error of shape
+        (nch, nperiods, len(min_delta_ph_list)).
+    """
+
+    BG = np.zeros((d.nch, d.nperiods, np.size(min_delta_ph_list)))
+    BG_err = np.zeros_like(BG)
+    BG[:], BG_err[:] = None, None
+
+    for ich in range(d.nch):
+        for period, ph in enumerate(
+                              d.iter_ph_times_period(ich=ich, ph_sel=ph_sel)):
+            for i_min, min_delta_ph in enumerate(min_delta_ph_list):
+                try:
+                    BG[ich, period, i_min], BG_err[ich, period, i_min] = \
+                            bg_fit_fun(ph, tail_min_us=min_delta_ph,
+                                       clk_p=d.clk_p, **kwargs)
+                except AssertionError:
+                    # There are not enough delays with current threshold
+                    break   # Skip remaining values in min_delta_ph_list
+    return BG, BG_err
+
+
 def fit_var_tail_us(d, Tail_min_us_list, t_max_s,
                        bg_fit_fun=exp_fit, ph_sel=Ph_sel('all'), **kwargs):
     """
-    Fit 'all', DD or AD bg on all CH for all the values in `Tail_min_us_list`.
+    Fit BG of a ph_sel on all CH for all the values in `Tail_min_us_list`.
 
     The BG is fitted from the first `t_max_s` seconds of the measurement.
+
+    Returns
+        Two arrays for background rate and fit-error of shape
+        (nch, len(min_delta_ph_list)).
     """
     assert ph_sel in [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
     BG = np.zeros((d.nch, np.size(Tail_min_us_list)))
@@ -176,6 +221,7 @@ def fit_var_tail_us(d, Tail_min_us_list, t_max_s,
             except:
                 break # Skip remaining Tail_min
     return BG, BG_err
+
 
 ##
 # Other functions

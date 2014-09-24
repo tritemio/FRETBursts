@@ -49,3 +49,11 @@ class Ph_sel(namedtuple('Ph_sel', ['Dex', 'Aex'])):
                              "'DAem', 'Dem' or 'Aem' (or None)." %\
                              str((Dex, Aex)))
         return super(Ph_sel, cls).__new__(cls, Dex, Aex)
+
+    def __str__(self):
+        labels = {Ph_sel('all'): 'all',
+                  Ph_sel(Dex='Dem'): 'DexDem', Ph_sel(Dex='Aem'): 'DexAem',
+                  Ph_sel(Aex='Aem'): 'AexAem', Ph_sel(Aex='Dem'): 'AexDem',
+                  Ph_sel(Dex='DAem'): 'Dex', Ph_sel(Aex='DAem'): 'Aex',
+                  Ph_sel(Dex='DAem', Aex='Aem'): 'DexDAem_AexAem'}
+        return labels.get(self, repr(self))

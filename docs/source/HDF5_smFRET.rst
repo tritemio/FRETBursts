@@ -1,3 +1,5 @@
+.. _hdf5-format:
+
 HDF5-based smFRET file format
 =============================
 

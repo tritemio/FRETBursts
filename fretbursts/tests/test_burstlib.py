@@ -15,6 +15,7 @@ import numpy as np
 from fretbursts import loader
 import fretbursts.background as bg
 import fretbursts.burstlib as bl
+import fretbursts.burstlib_ext as bext
 from fretbursts.ph_sel import Ph_sel
 
 # data subdir in the notebook folder
@@ -80,7 +81,17 @@ def list_array_allclose(list1, list2):
     return np.all([np.allclose(arr1, arr2) for arr1, arr2 in zip(list1, list2)])
 
 def test_bg_calc(data):
+    """Smoke test bg_calc() and test deletion of bg fields.
+    """
     data.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
+    data.calc_bg(bg.exp_fit, time_s=30, tail_min_us='auto', F_bg=1.7)
+    assert 'bg_auto_th_us0' in data
+    assert 'bg_auto_F_bg' in data
+    assert 'bg_th_us_user' not in data
+    data.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
+    assert 'bg_auto_th_us0' not in data
+    assert 'bg_auto_F_bg' not in data
+    assert 'bg_th_us_user' in data
     data.calc_bg(bg.exp_fit, time_s=30, tail_min_us='auto', F_bg=1.7)
 
 def test_bg_from(data):
@@ -170,6 +181,27 @@ def test_iter_ph_times(data):
         assert list_array_equal(d.iter_ph_times(),
                                 d.iter_ph_times(Ph_sel(Dex='DAem')))
 
+def test_get_ph_times_period(data):
+    for ich in range(data.nch):
+        data.get_ph_times_period(0, ich=ich)
+        data.get_ph_times_period(0, ich=ich, ph_sel=Ph_sel(Dex='Dem'))
+
+def test_iter_ph_times_period(data):
+    d = data
+    for ich in range(data.nch):
+        for period, ph_period in enumerate(d.iter_ph_times_period(ich=ich)):
+            istart, iend = d.Lim[ich][period]
+            assert (ph_period == d.ph_times_m[ich][istart : iend + 1]).all()
+
+        ph_sel = Ph_sel(Dex='Dem')
+        mask = d.get_ph_mask(ich=ich, ph_sel=ph_sel)
+        for period, ph_period in enumerate(d.iter_ph_times_period(ich=ich,
+                                                    ph_sel=ph_sel)):
+            istart, iend = d.Lim[ich][period]
+            ph_period_test = d.ph_times_m[ich][istart : iend + 1]
+            ph_period_test = ph_period_test[mask[istart : iend + 1]]
+            assert (ph_period == ph_period_test).all()
+
 def test_burst_search(data):
     data.burst_search_t(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Dem'))
     assert list_equal(data.bg_bs, data.bg_dd)
@@ -231,24 +263,56 @@ def test_burst_start_end_size(data):
         size2 = bl.b_iend(mb) - bl.b_istart(mb) + 1
         assert (size2 == bl.b_size(mb)).all()
 
+def test_burst_fuse(data):
+    """Test 2 independent implementations of fuse_bursts for consistency.
+    """
+    d = data
+    for mb in d.mburst:
+        new_mbursti = bl.fuse_bursts_iter(mb, ms=1)
+        new_mburstd = bl.fuse_bursts_direct(mb, ms=1)
+        assert (new_mbursti == new_mburstd).all()
+
 def test_burst_fuse_0ms(data):
     """Test that after fusing with ms=0 the sum of bursts sizes is that same
     as the number of ph in bursts (via burst selection).
     """
     d = data
-    if not hasattr(d, 'fuse'):
-        df = d.fuse_bursts(ms=0)
-        for ph, mb in zip(df.ph_times_m, df.mburst):
-            m = bl.ph_select(ph, mb)
-            assert m.sum() == bl.b_size(mb).sum()
 
-def test_get_burst_size(data):
-    """Test that get_burst_size() returns nd + na when gamma = 1.
+    df = d.fuse_bursts(ms=0)
+    for ph, mb in zip(df.ph_times_m, df.mburst):
+        m = bl.ph_select(ph, mb)
+        assert m.sum() == bl.b_size(mb).sum()
+
+def test_burst_fuse_separation(data):
+    """Test that after fusing bursts the minimum separation is equal
+    to the threshold usied during fusing.
+    """
+    d = data
+    fuse_ms = 2
+    df = d.fuse_bursts(ms=fuse_ms)
+    for mb in df.mburst:
+        separation = bl.b_separation(mb)*df.clk_p
+        assert separation.min() >= fuse_ms*1e-3
+
+def test_burst_sizes(data):
+    """Test that Data.burst_sizes_ich() returns nd + na when gamma = 1.
     """
     d = data
     for ich, (nd, na) in enumerate(zip(d.nd, d.na)):
-        burst_size = bl.select_bursts.get_burst_size(d, ich)
+        burst_size = d.burst_sizes_ich(ich)
         assert (burst_size == nd + na).all()
+
+def test_calc_sbr(data):
+    """Smoke test Data.calc_sbr()"""
+    data.calc_sbr()
+
+def test_calc_max_rate(data):
+    """Smoke test Data.calc_max-rate()"""
+    data.calc_max_rate(m=10)
+
+def test_burst_data(data):
+    """Smoke test Data.calc_max-rate()"""
+    bext.burst_data(data, include_bg=True, include_ph_index=True)
 
 def test_expand(data):
     """Test method `expand()` for `Data()`."""
@@ -289,6 +353,31 @@ def test_burst_corrections(data):
         else:
             burst_size_raw2 = nd + na + bg_d + bg_a + lk*nd
             assert np.allclose(burst_size_raw, burst_size_raw2)
+
+def test_burst_search_consistency(data):
+    """Test consistency of burst data array
+    """
+    d = data
+    for mb, ph in zip(d.mburst, d.iter_ph_times()):
+        tot_size = bl.b_size(mb)
+        istart, istop = bl.b_istart(mb), bl.b_iend(mb)
+        assert np.all(tot_size == istop - istart + 1)
+        start, stop, width = bl.b_start(mb), bl.b_end(mb), bl.b_width(mb)
+        assert np.all(width == stop - start)
+    df = d.fuse_bursts(ms=0)
+    for mb, ph in zip(df.mburst, df.iter_ph_times()):
+        tot_size = bl.b_size(mb)
+        istart, istop = bl.b_istart(mb), bl.b_iend(mb)
+        assert np.all(tot_size == istop - istart + 1)
+        start, stop, width = bl.b_start(mb), bl.b_end(mb), bl.b_width(mb)
+        assert np.all(width == stop - start)
+    df = d.fuse_bursts(ms=1)
+    for mb, ph in zip(df.mburst, df.iter_ph_times()):
+        tot_size = bl.b_size(mb)
+        istart, istop = bl.b_istart(mb), bl.b_iend(mb)
+        assert np.all(tot_size <= istop - istart + 1)
+        start, stop, width = bl.b_start(mb), bl.b_end(mb), bl.b_width(mb)
+        assert np.all(width <= stop - start)
 
 def test_burst_size_da(data):
     """Test that nd + na with no corrections is equal to b_size(mburst).

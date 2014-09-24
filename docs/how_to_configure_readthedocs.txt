@@ -1,0 +1,8 @@
+The trick is to give the virtualenv in which you build your docs access to 
+the global site-packages directory -- see Advanced Settings > Use system 
+packages. RTD has numpy 1.8 and scipy installed system wide.
+
+As for testing, to ensure that you can build your docs from scratch in 
+a new virtualenv (each version of the docs gets its own virtualenv), try 
+deleting the build environment:
+http://read-the-docs.readthedocs.org/en/latest/builds.html#deleting-a-stale-or-broken-build-environment

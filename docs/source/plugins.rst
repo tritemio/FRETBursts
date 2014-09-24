@@ -1,5 +1,5 @@
-Plugins
-=======
+FRETBursts plugins
+==================
 
 .. automodule:: fretbursts.burstlib_ext
-   :members:
+    :members:

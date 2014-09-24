@@ -277,20 +277,116 @@ def find_burst(bursts, size, width_ms, clk_p=12.5e-9):
     th = 0.01e-3/clk_p # 800clk or 10us @ clk_p=12.5e-9s
     return np.where((b_size(bursts) == size)*(abs(b_width(bursts)-width) < th))
 
+def fuse_bursts_direct(mburst, ms=0, clk_p=12.5e-9, verbose=True):
+    """Fuse bursts separated by less than `ms` (milli-secs).
+
+    This function is a direct implementation using a single loop.
+    For a faster implementation see :func:`fuse_bursts_iter`.
+
+    Parameters:
+        bursts (2D array): Nx6 array of burst data, one row per burst
+            See `burstseach.burstseachlib.py` for details.
+        ms (float):
+            minimum waiting time between bursts (in millisec). Burst closer
+            than that will be fuse in asingle burst.
+        clk_p (float): clock period or timestamp units in seconds.
+        verbose (bool): if True print a summary of fused bursts.
+
+    Returns:
+        new_bursts (2D array): new array of burst data
+    """
+    max_delay_clk = (ms*1e-3)/clk_p
+
+    fused_bursts = []
+    fused_burst = None
+    for burst1, burst2 in zip(mburst[:-1], mburst[1:]):
+        if fused_burst is not None:
+            burst1c = fused_burst
+        else:
+            burst1c = burst1
+
+        separation = burst2[itstart] - burst1c[itend]
+        if separation <= max_delay_clk:
+            fb_tstart = burst1c[itstart]
+            fb_istart = burst1c[iistart]
+            fb_tend = burst2[itend]
+            fb_iend = burst2[iiend]
+            fb_width = burst1c[iwidth] + burst2[iwidth]
+            fb_num_ph = burst1c[inum_ph] + burst2[inum_ph]
+            if burst1c[iiend] >= burst2[iistart]:
+                n_overlap_ph = burst1c[iiend] - burst2[iistart] + 1
+                fb_num_ph -= n_overlap_ph
+                t_overlap = burst1c[itend] - burst2[itstart]
+                fb_width -= t_overlap
+            fused_burst = [fb_tstart, fb_width, fb_num_ph,
+                           fb_istart, fb_iend, fb_tend]
+        else:
+            if fused_burst is not None:
+                fused_bursts.append(fused_burst)
+                fused_burst = None
+            else:
+                fused_bursts.append(burst1c)
+
+    # Append the last bursts (either a fused one or isolated)
+    if fused_burst is not None:
+        fused_bursts.append(fused_burst)
+    else:
+        fused_bursts.append(burst2)
+
+    init_nburst = mburst.shape[0]
+    delta_b = init_nburst - len(fused_bursts)
+    pprint(" --> END Fused %d bursts (%.1f%%)\n\n" %\
+            (delta_b, 100.*delta_b/init_nburst), mute=-verbose)
+    return np.array(fused_bursts)
+
+def fuse_bursts_iter(bursts, ms=0, clk_p=12.5e-9, verbose=True):
+    """Fuse bursts separated by less than `ms` (milli-secs).
+
+    This function calls iteratively :func:`b_fuse` until there are no more
+    bursts to fuse. See also :func:`fuse_bursts_direct`.
+
+    Parameters:
+        bursts (2D array): Nx6 array of burst data, one row per burst
+            See `burstseach.burstseachlib.py` for details.
+        ms (float):
+            minimum waiting time between bursts (in millisec). Burst closer
+            than that will be fused in a single burst.
+        clk_p (float): clock period or timestamp units in seconds.
+        verbose (bool): if True print a summary of fused bursts.
+
+    Returns:
+        new_bursts (2D array): new array of burst data
+    """
+
+    z = 0
+    init_nburst = bursts.shape[0]
+    new_nburst, nburst = 0, 1  # starting condition
+    while (new_nburst < nburst):
+        z += 1
+        nburst = bursts.shape[0]
+        bursts = b_fuse(bursts, ms=ms, clk_p=clk_p)
+        new_nburst = bursts.shape[0]
+    delta_b = init_nburst-nburst
+    pprint(" --> END Fused %d bursts (%.1f%%, %d iter)\n\n" %\
+            (delta_b, 100.*delta_b/init_nburst, z), mute=-verbose)
+    return bursts
+
 def b_fuse(mburst, ms=0, clk_p=12.5e-9):
     """Fuse bursts separated by less than `ms` (milli-secs).
 
-    Note:
-        This function will fuse only 2 consecutive bursts. If there are groups
-        of 3 or more consecutive bursts all closer that `ms` the function
-        must be run several times to fuse all them together.
+    This is a low-level function that only fuses 2 consecutive bursts
+    separated by less than `ms` millisec. If there are 3 or consecutive
+    bursts separated by less than `ms` only the first 2 are fused.
+    See :func:`fuse_bursts_iter` or :func:`fuse_bursts_direct` for
+    higher level functions.
 
     Parameters:
         mburst (2D array): Nx6 array of burst data, one row per burst
             See `burstseach.burstseachlib.py` for details.
         ms (float):
             minimum waiting time between bursts (in millisec). Burst closer
-            than that will be fuse in asingle burst.
+            than that will be fused in a single burst.
+        clk_p (float): clock period or timestamp units in seconds.
 
     Returns:
         new_mburst (2D array): new array of burst data
@@ -343,12 +439,9 @@ def b_fuse(mburst, ms=0, clk_p=12.5e-9):
 
     new_burst = np.vstack([fused_burst1, mburst[-both_burst, :]])
     reorder = new_burst[:, itstart].argsort()
-    #pprint(" - Fused %4d of %5d bursts (%.1f%%).\n" %\
-    #        (first_burst.sum(), mburst.shape[0],
-    #         100.*first_burst.sum()/mburst.shape[0]))
     return new_burst[reorder, :]
 
-def mch_fuse_bursts(MBurst, ms=0, clk_p=12.5e-9):
+def mch_fuse_bursts(MBurst, ms=0, clk_p=12.5e-9, verbose=True):
     """Multi-ch version of `fuse_bursts`. `MBurst` is a list of arrays.
     """
     mburst = [b.copy() for b in MBurst] # safety copy
@@ -356,20 +449,11 @@ def mch_fuse_bursts(MBurst, ms=0, clk_p=12.5e-9):
     ch = 0
     for mb in mburst:
         ch += 1
-        print " - - - - - CHANNEL %2d - - - - " % ch
-        if mb.size == 0: continue
-        z = 0
-        init_nburst = mb.shape[0]
-        new_nburst, nburst = 0, 1  # starting condition
-        while (new_nburst < nburst):
-            z += 1
-            nburst = mb.shape[0]
-            mb = b_fuse(mb, ms=ms, clk_p=clk_p)
-            new_nburst = mb.shape[0]
-        new_mburst.append(mb)
-        delta_b = init_nburst-nburst
-        pprint(" --> [CH %d] END Fused %d bursts (%.1f%%, %d iter)\n\n" %\
-                (ch, delta_b, 100.*delta_b/init_nburst, z))
+        pprint(" - - - - - CHANNEL %2d - - - - \n" % ch, -verbose)
+        if mb.size == 0:
+            continue
+        new_bursts = fuse_bursts_iter(mb, ms=ms, clk_p=clk_p, verbose=verbose)
+        new_mburst.append(new_bursts)
     return new_mburst
 
 def stat_burst(d, ich=0, fun=np.mean):
@@ -640,8 +724,15 @@ class Data(DataContainer):
                     'max_rate', 'sbr']
 
     # List of photon selections on which the background is computed
-    ph_streams = [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem'),
-                  Ph_sel(Aex='Dem'), Ph_sel(Aex='Aem')]
+    _ph_streams = [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem'),
+                   Ph_sel(Aex='Dem'), Ph_sel(Aex='Aem')]
+
+    @property
+    def ph_streams(self):
+        if self.ALEX:
+            return self._ph_streams
+        else:
+            return [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
 
     def __init__(self, **kwargs):
         # Default values
@@ -822,6 +913,31 @@ class Data(DataContainer):
         else:
             return self.get_A_em(ich)
 
+    def iter_ph_times_period(self, ich=0, ph_sel=Ph_sel('all')):
+        """Iterate through arrays of ph timestamps in each background period.
+        """
+        mask = self.get_ph_mask(ich=ich, ph_sel=ph_sel)
+        for period in range(self.nperiods):
+            yield self.get_ph_times_period(period, ich=ich, mask=mask)
+
+    def get_ph_times_period(self, period, ich=0, ph_sel=Ph_sel('all'),
+                            mask=None):
+        """Return the array of ph_times in `period`, `ich` and `ph_sel`.
+        """
+        istart, iend = self.Lim[ich][period]
+        period_slice = slice(istart, iend + 1)
+
+        ph_times = self.get_ph_times(ich=ich)
+        if mask is None:
+            mask = self.get_ph_mask(ich=ich, ph_sel=ph_sel)
+
+        if type(mask) is slice and mask == slice(None):
+            ph_times_period = ph_times[period_slice]
+        else:
+            ph_times_period = ph_times[period_slice][mask[period_slice]]
+        return ph_times_period
+
+
     def slice_ph(self, time_s1=0, time_s2=None, s='slice'):
         """Return a new Data object with ph in [`time_s1`,`time_s2`] (seconds)
         """
@@ -849,6 +965,29 @@ class Data(DataContainer):
             ph_i -= t1_clk
         new_d.s.append(s)
         return new_d
+
+    def burst_sizes_ich(self, ich=0, gamma=1., gamma1=None, add_naa=False):
+        """Return gamma corrected burst sizes for channel `ich`.
+
+        The gamma corrected size is computed as::
+
+            1) nd + na/gamma  (so th1 is the min. burst size for donly bursts)
+            2) nd*gamma1 + na (so th1 is the min. burst size for high FRET
+            bursts)
+
+        If `gamma1` is not None, the definition (2) is used.
+        If `d.ALEX` and `add_naa` are True, `naa` is added to the burst size.
+
+        Returns
+            Array of burst sizes for channel `ich`.
+        """
+        if gamma1 is not None:
+            burst_size = 1.*self.nd[ich]*gamma1 + self.na[ich]
+        else:
+            burst_size = self.nd[ich] + 1.*self.na[ich]/gamma
+        if self.ALEX and add_naa:
+            burst_size += self.naa[ich]
+        return burst_size
 
     def bursts_slice(self, N1=0, N2=-1):
         """Return new Data object with bursts between `N1` and `N2`
@@ -971,8 +1110,23 @@ class Data(DataContainer):
         return np.r_[[mb.shape[0] for mb in self.mburst]]
 
     def ph_select(self):
-        """Return masks of ph inside bursts."""
-        self.ph_in_burst = mch_ph_select(self.ph_times_m, self.mburst)
+        """Return masks of ph inside bursts for all the channels."""
+        return mch_ph_select(self.ph_times_m, self.mburst)
+
+    def ph_in_bursts(self, ich=0, ph_sel=Ph_sel('all')):
+        """Return photons inside bursts.
+
+        Returns
+            Array photon timestamps in channel `ich` and photon
+            selection `ph_sel` that are inside bursts.
+        """
+        ph_all = self.get_ph_times(ich=ich)
+        bursts_mask = ph_select(ph_all, self.mburst[ich])
+        if ph_sel == Ph_sel('all'):
+            return ph_all[bursts_mask]
+        else:
+            ph_sel_mask = self.get_ph_mask(ich=ich, ph_sel=ph_sel)
+            return ph_all[ph_sel_mask*bursts_mask]
 
     def calc_max_rate(self, m, ph_sel=Ph_sel('all')):
         """Compute the max m-photon rate reached in each burst.
@@ -1030,9 +1184,6 @@ class Data(DataContainer):
         """
         Th_us = {}
         for ph_sel in self.ph_streams:
-            if not self.ALEX and (ph_sel== Ph_sel(Aex='Dem') or
-                                  ph_sel== Ph_sel(Aex='Aem')):
-                continue
             th_us = np.zeros(self.nch)
             for ich, ph in enumerate(self.iter_ph_times(ph_sel=ph_sel)):
                 if ph.size > 0:
@@ -1050,12 +1201,9 @@ class Data(DataContainer):
         are 1-D arrays of size nch.
         """
         n_streams = len(self.ph_streams)
-        assert n_streams == 5
 
         if np.size(tail_min_us) == 1:
             tail_min_us = np.repeat(tail_min_us, n_streams)
-        elif np.size(tail_min_us) == 3:
-            tail_min_us = np.hstack((tail_min_us, 1, 1))
         elif np.size(tail_min_us) == n_streams:
             tail_min_us = np.asarray(tail_min_us)
         elif np.size(tail_min_us) != n_streams:
@@ -1077,9 +1225,7 @@ class Data(DataContainer):
         to avoid having old stale attributes of a previous background fit.
         """
         # Attributes specific of manual or 'auto' bg fit
-        field_list = ['bg_auto_th_us0', 'bg_auto_F_bg', 'bg_th_us_all',
-                      'bg_th_us_DD', 'bg_th_us_AD',
-                      'bg_th_us_DA', 'bg_th_us_AA']
+        field_list = ['bg_auto_th_us0', 'bg_auto_F_bg', 'bg_th_us_user']
         for field in field_list:
             if field in self:
                 self.delete(field)
@@ -1777,7 +1923,7 @@ class Data(DataContainer):
                 sbr.append([])
                 continue  # if no bursts skip this ch
             nd, na, bg_d, bg_a = self.expand(ich)
-            nt = select_bursts.get_burst_size(self, ich, gamma=gamma)
+            nt = self.burst_sizes_ich(ich=ich, gamma=gamma)
 
             signal = {Ph_sel('all'): nt,
                       Ph_sel(Dex='Dem'): nd, Ph_sel(Dex='Aem'): na}
@@ -1825,6 +1971,9 @@ class Data(DataContainer):
         if self.ALEX:
             self.calculate_stoich()
             self.calc_alex_hist()
+        for fitter in ['E_fitter', 'S_fitter']:
+            if fitter in self:
+                self.delete(fitter)
 
     def calculate_fret_eff(self):
         """Compute FRET efficiency (`E`) for each burst."""
@@ -1883,9 +2032,12 @@ class Data(DataContainer):
 
     def name(self):
         """Return short filename (last subfolder + fname with no extension)"""
-        basename = os.path.splitext(os.path.basename(self.fname))[0]
+        name = basename = os.path.splitext(os.path.basename(self.fname))[0]
         last_dir = os.path.basename(os.path.dirname(self.fname))
-        return '_'.join([last_dir, basename])
+        if last_dir is not '':
+            name = '_'.join([last_dir, basename])
+        return name
+
 
     def Name(self, add=""):
         """Return short filename + status information."""

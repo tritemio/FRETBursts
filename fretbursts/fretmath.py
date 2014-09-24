@@ -1,8 +1,16 @@
+# encoding: utf-8
+#
+# FRETBursts - A single-molecule FRET burst analysis toolkit.
+#
+# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+#
 """
-This module contains functions to compute corrected FRET efficiency from
-the proximity ratio and vice-versa.
+The `fretmath` module contains functions to compute corrected FRET efficiency
+from the proximity ratio and vice-versa.
 
-For derivation see notebook: "FRET corrections algebra.ipynb"
+For derivation see notebook: "Algebra of FRET corrections.ipynb"
+(`link <http://nbviewer.ipython.org/github/tritemio/notebooks/blob/master/Algebra_of_FRET_corrections.ipynb>`__).
+
 """
 
 from __future__ import division
@@ -16,7 +24,7 @@ def correct_E_gamma_leak_dir(Eraw, gamma=1, leakage=0, dir_ex_t=0):
 
     For the inverse function see :func:`uncorrect_E_gamma_leak_dir`.
 
-    Paramaters:
+    Arguments:
         Eraw (float or array): proximity ratio (only background correction,
             no gamma, leakage or direct excitation)
         gamma (float): gamma factor
@@ -39,7 +47,7 @@ def uncorrect_E_gamma_leak_dir(E, gamma=1, leakage=0, dir_ex_t=0):
 
     This function is the inverse of :func:`correct_E_gamma_leak_dir`.
 
-    Paramaters:
+    Arguments:
         E (float or array): corrected FRET efficiency
         gamma (float): gamma factor
         leakage (float): leakage coefficient
