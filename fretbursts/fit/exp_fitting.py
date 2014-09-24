@@ -50,7 +50,7 @@ def get_residuals(s, tau_fit, offset=0.5):
     x, y = get_ecdf(s, offset=offset)
     ye = expon.cdf(x, scale=tau_fit)
     residuals = y - ye
-    return residuals
+    return x, residuals
 
 def expon_fit(s, s_min=0, offset=0.5):
     """Fit sample `s` to an exponential distribution using the ML estimator.
@@ -71,11 +71,10 @@ def expon_fit(s, s_min=0, offset=0.5):
     assert s.size > 10
 
     # Maximum likelihood estimator of the waiting-time
-    Tau = s.mean()
+    Lambda = 1./s.mean()
 
-    # Standard deviation of the residuals
-    residuals = get_residuals(s, tau_fit=Tau, offset=offset)
-    return 1./Tau, residuals, s.size
+    x_residuals, residuals = get_residuals(s, tau_fit=1./Lambda, offset=offset)
+    return Lambda, residuals, x_residuals, s.size
 
 def expon_fit_cdf(s, s_min=0, offset=0.5):
     """Fit of an exponential model to the empirical CDF of `s`.
@@ -100,8 +99,8 @@ def expon_fit_cdf(s, s_min=0, offset=0.5):
     L = linregress(ecdf[0], decr_line)
     Lambda = -L[0]
 
-    residuals = get_residuals(s, tau_fit=1./Lambda, offset=offset)
-    return Lambda, residuals, s.size
+    x_residuals, residuals = get_residuals(s, tau_fit=1./Lambda, offset=offset)
+    return Lambda, residuals, x_residuals, s.size
 
 
 def expon_fit_hist(s, bins, s_min=0, weights=None, offset=0.5):
@@ -145,6 +144,6 @@ def expon_fit_hist(s, bins, s_min=0, weights=None, offset=0.5):
     res = leastsq(err_fun, x0=1./(s.mean()), args=(x, y, w))
     Lambda = res[0]
 
-    residuals = get_residuals(s, tau_fit=1./Lambda, offset=offset)
-    return Lambda, residuals, s.size
+    x_residuals, residuals = get_residuals(s, tau_fit=1./Lambda, offset=offset)
+    return Lambda, residuals, x_residuals, s.size
 

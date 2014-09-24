@@ -37,27 +37,53 @@ def raw_fit(ph, clk_p=12.5e-9, residuals=False, tail_min_us=None):
         return Lambda, 0
 
 
+def _compute_error(residuals, x_residuals, error_metrics):
+    assert error_metrics in ['KS', 'CM']
+    if error_metrics == 'KS':
+        error = np.abs(residuals).max()*100
+    else:
+        error = np.trapz(residuals**2, x=x_residuals)
+    return error
+
 def _exp_fit_generic(ph, fit_fun, tail_min_us=None, tail_min_p=0.1,
-                     clk_p=12.5e-9):
+                     clk_p=12.5e-9, error_metrics='KS'):
     """Computes BG rates on timestamp delays above a min. value.
 
     Compute a background rate, selecting waiting-times (delays) larger than a
     minimum threshold.
 
     You need to pass the specific fitting function as `fit_fun`.
+
+    Arguments:
+        ph (array): timestamps from which estimete the background.
+        fit_fun (function): function to use for background fitting.
+        tail_min_us (float): minimum photon separation threshold in us for
+            photons to be considered as background.
+        tail_min_p (int): min threshold in percentace. ONly used when
+            `tail_min_us` is None. Deprecated.
+        clk_p (float): unit of timestamps in `ph` (seconds).
+        error_metrics (string): Valid values are 'KS' or 'CM'.
+            'KS' (Kolmogorov-Smirnov statistics) computes the error as the
+            max of deviation of the empirical CDF from the fitted CDF.
+            'CM' (Crames-von Mises) uses the L^2 distance.
+
+    Returns:
+        Estimated background rate in cps and a quality of fit index
+        the lower the better according to the chosen metric.
     """
     dph = np.diff(ph)
     if tail_min_us is None:
         tail_min = dph.max()*tail_min_p
     else:
         tail_min = tail_min_us*1e-6/clk_p
-    Lambda, residuals, s_size = fit_fun(dph, s_min=tail_min)
+    Lambda, residuals, x_residuals, s_size = fit_fun(dph, s_min=tail_min)
     Lambda /= clk_p
     #print s_size,
-    return Lambda, np.abs(residuals).max()*100
+    error = _compute_error(residuals, x_residuals, error_metrics)
+    return Lambda, error
 
 
-def exp_fit(ph, tail_min_us=None, clk_p=12.5e-9):
+def exp_fit(ph, tail_min_us=None, clk_p=12.5e-9, error_metrics='KS'):
     """Return a background rate using the MLE of mean waiting-times.
 
     Compute the background rate, selecting waiting-times (delays) larger
@@ -70,6 +96,10 @@ def exp_fit(ph, tail_min_us=None, clk_p=12.5e-9):
         ph (array): timestamps array from which to extract the background
         tail_min_us (float): minimum waiting-time in micro-secs
         clk_p (float): clock period for timestamps in `ph`
+        error_metrics (string): Valid values are 'KS' or 'CM'.
+            'KS' (Kolmogorov-Smirnov statistics) computes the error as the
+            max of deviation of the empirical CDF from the fitted CDF.
+            'CM' (Crames-von Mises) uses the L^2 distance.
 
     Returns:
         Estimated background rate in cps.
@@ -78,9 +108,10 @@ def exp_fit(ph, tail_min_us=None, clk_p=12.5e-9):
         :func:`exp_cdf_fit`, :func:`exp_hist_fit`
     """
     return _exp_fit_generic(ph, fit_fun=exp_fitting.expon_fit,
-                            tail_min_us=tail_min_us, clk_p=clk_p)
+                            tail_min_us=tail_min_us, clk_p=clk_p,
+                            error_metrics=error_metrics)
 
-def exp_cdf_fit(ph, tail_min_us=None, clk_p=12.5e-9):
+def exp_cdf_fit(ph, tail_min_us=None, clk_p=12.5e-9, error_metrics='KS'):
     """Return a background rate fitting the empirical CDF of waiting-times.
 
     Compute the background rate, selecting waiting-times (delays) larger
@@ -93,6 +124,10 @@ def exp_cdf_fit(ph, tail_min_us=None, clk_p=12.5e-9):
         ph (array): timestamps array from which to extract the background
         tail_min_us (float): minimum waiting-time in micro-secs
         clk_p (float): clock period for timestamps in `ph`
+        error_metrics (string): Valid values are 'KS' or 'CM'.
+            'KS' (Kolmogorov-Smirnov statistics) computes the error as the
+            max of deviation of the empirical CDF from the fitted CDF.
+            'CM' (Crames-von Mises) uses the L^2 distance.
 
     Returns:
         Estimated background rate in cps.
@@ -101,11 +136,12 @@ def exp_cdf_fit(ph, tail_min_us=None, clk_p=12.5e-9):
         :func:`exp_fit`, :func:`exp_hist_fit`
     """
     return _exp_fit_generic(ph, fit_fun=exp_fitting.expon_fit_cdf,
-                            tail_min_us=tail_min_us, clk_p=clk_p)
+                            tail_min_us=tail_min_us, clk_p=clk_p,
+                            error_metrics=error_metrics)
 
 
 def exp_hist_fit(ph, tail_min_us, binw=50e-6, clk_p=12.5e-9,
-                  weights='hist_counts'):
+                  weights='hist_counts', error_metrics='KS'):
     """Compute background rate with WLS histogram fit of waiting-times.
 
     Compute the background rate, selecting waiting-times (delays) larger
@@ -122,6 +158,10 @@ def exp_hist_fit(ph, tail_min_us, binw=50e-6, clk_p=12.5e-9,
         weights (None or string): if None no weights is applied.
             if is 'hist_counts', each bin has a weight equal to its counts
             if is 'inv_hist_counts', the weight is the inverse of the counts.
+        error_metrics (string): Valid values are 'KS' or 'CM'.
+            'KS' (Kolmogorov-Smirnov statistics) computes the error as the
+            max of deviation of the empirical CDF from the fitted CDF.
+            'CM' (Crames-von Mises) uses the L^2 distance.
 
     Returns:
         Estimated background rate in cps.
@@ -134,10 +174,15 @@ def exp_hist_fit(ph, tail_min_us, binw=50e-6, clk_p=12.5e-9,
     tail_min = tail_min_us*1e-6/clk_p
     binw_clk = binw/clk_p
     bins = np.arange(0, dph.max() - tail_min + 1, binw_clk)
-    Lambda, residuals, s_size = exp_fitting.expon_fit_hist(dph,
-                                bins=bins, s_min=tail_min, weights=weights)
+
+    res = exp_fitting.expon_fit_hist(dph, bins=bins, s_min=tail_min,
+                                     weights=weights,
+                                     error_metrics=error_metrics)
+
+    Lambda, residuals, x_residuals, s_size = res
+    error = _compute_error(residuals, x_residuals, error_metrics)
     Lambda /= clk_p
-    return Lambda, np.abs(residuals).max()*100
+    return Lambda, error
 
 ##
 # Fit background as function of th

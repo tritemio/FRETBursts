@@ -1245,7 +1245,8 @@ class Data(DataContainer):
                 nperiods -= 1
         return int(nperiods)
 
-    def calc_bg(self, fun, time_s=60, tail_min_us=500, F_bg=2):
+    def calc_bg(self, fun, time_s=60, tail_min_us=500, F_bg=2,
+                error_metrics='KS'):
         """Compute time-dependent background rates for all the channels.
 
         Compute background rates for donor, acceptor and both detectors.
@@ -1269,6 +1270,8 @@ class Data(DataContainer):
             F_bg (float): when `tail_min_us` is 'auto', is the factor by which
                 the initial background estimation if multiplied to compute the
                 threshold.
+            error_metrics (string): Specifies the error metric to use.
+                See :func:`fretbursts.background.exp_fit` for more details.
 
         The background estimation functions are defined in the module
         `background` (conventionally imported as `bg`).
@@ -1292,7 +1295,7 @@ class Data(DataContainer):
             bg_auto_th = False
             Th_us = self._get_bg_th_arrays(tail_min_us)
 
-        kwargs = dict(clk_p=self.clk_p)
+        kwargs = dict(clk_p=self.clk_p, error_metrics=error_metrics)
         nperiods = self._get_num_periods(time_s)
         bg_time_clk = time_s/self.clk_p
 

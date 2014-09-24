@@ -58,7 +58,8 @@ import fret_fit
 import mfit
 
 
-def calc_bg_brute(dx, min_ph_delay_list=None, return_all=False):
+def calc_bg_brute(dx, min_ph_delay_list=None, return_all=False,
+                  error_metrics='KS'):
     """Compute background for all the ch, ph_sel and periods.
 
     This function performs a brute-force search of the min ph delay
@@ -72,6 +73,8 @@ def calc_bg_brute(dx, min_ph_delay_list=None, return_all=False):
             for each value in `min_ph_delay_list`.
         return_all (bool): if True return all the fitted backgrounds and
             error functions. Default False.
+        error_metrics (string): Specifies the error metric to use.
+            See :func:`fretbursts.background.exp_fit` for more details.
 
     Returns
         Two arrays with best threshold (us) and best background. If
@@ -98,7 +101,8 @@ def calc_bg_brute(dx, min_ph_delay_list=None, return_all=False):
         # Compute BG and error for all ch, periods and thresholds
         # Shape: (nch, nperiods, len(thresholds))
         BG_data[ph_sel], BG_data_e[ph_sel] = bg.fit_varying_min_delta_ph(
-                dx, min_ph_delay_list, bg_fit_fun=bg.exp_fit, ph_sel=ph_sel)
+                dx, min_ph_delay_list, bg_fit_fun=bg.exp_fit, ph_sel=ph_sel,
+                error_metrics=error_metrics)
 
         # Compute the best Th and BG estimate for all ch and periods
         for ich in range(dx.nch):
