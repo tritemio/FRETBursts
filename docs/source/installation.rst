@@ -131,7 +131,7 @@ find in the notebooks folder.
 To run the FRETBursts Installation notebook:
 
 - On windows, click on "Launch IPython Notebook Server Here.bat" (inside the
-  notebooks folder)and then click on "FRETBursts Installation".
+  notebooks folder) and then click on "FRETBursts Installation".
 
 - On the other platforms::
 
@@ -158,7 +158,7 @@ To run the FRETBursts notebooks,
 `download <https://github.com/tritemio/FRETBursts_notebooks/archive/master.zip>`__
 and decompress the ZIP-ball in a folder and launch an IPython Notebook server
 **inside that folder**. For more details see
-:ref:`_ipython_notebook_startup`.
+:ref:`ipython_notebook_startup`.
 
 On the first run, the tutorial notebooks will automatically download
 some public datasets of smFRET measurements that are provided for testing
