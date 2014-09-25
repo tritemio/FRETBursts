@@ -1445,7 +1445,7 @@ def dplot_1ch(d, func, pgrid=True, ax=None,
     s = d.name()
     if 'rate_m' in d: s += (' BG=%.1fk' % (d.rate_m[0]*1e-3))
     if 'T' in d: s += (u', T=%dμs' % (d.T[0]*1e6))
-    if 'mburst' in d: s += (', #bu=%d' %  d.num_bursts()[0])
+    if 'mburst' in d: s += (', #bu=%d' %  d.num_bursts[0])
     if not nosuptitle: ax.set_title(s, fontsize=12)
     ax.grid(pgrid)
     plt.sca(ax)

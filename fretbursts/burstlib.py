@@ -1035,7 +1035,7 @@ class Data(DataContainer):
         burst_start = b_start(mburst)
         sort_index = burst_start.argsort()
 
-        ich_burst = [i*np.ones(nb) for i, nb in enumerate(self.num_bursts())]
+        ich_burst = [i*np.ones(nb) for i, nb in enumerate(self.num_bursts)]
         dc.add(ich_burst=np.hstack(ich_burst)[sort_index])
 
         for name in self.burst_fields:
@@ -1118,8 +1118,8 @@ class Data(DataContainer):
             raise ValueError("No timestamps or bursts found.")
 
     def num_bu(self):
-        """Shortcut for :meth:`num_bursts`."""
-        return self.num_bursts()
+        """Old shortcut for `num_bursts`."""
+        return self.num_bursts
 
     @property
     def num_bursts(self):
