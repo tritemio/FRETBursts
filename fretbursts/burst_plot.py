@@ -191,7 +191,7 @@ def plot_alternation_hist_nsalex(d):
 ##
 #  Timetrace plots
 #
-def _plot_bursts(d, i, t_max_clk, pmax=1e3, pmin=0):
+def _plot_bursts(d, i, t_max_clk, pmax=1e3, pmin=0, color="#999999"):
     """Highlights bursts in a timetrace plot."""
     b = d.mburst[i]
     if np.size(b) == 0: return
@@ -206,7 +206,8 @@ def _plot_bursts(d, i, t_max_clk, pmax=1e3, pmin=0):
         r = Rectangle(xy=(s,pmin), height=pmax-pmin, width=w)
         r.set_clip_box(ax.bbox); r.set_zorder(0)
         R.append(r)
-    ax.add_artist(PatchCollection(R, lw=0, color="#999999"))
+    print color
+    ax.add_artist(PatchCollection(R, lw=0, color=color))
     pprint("[DONE]\n")
 
 def _plot_rate_th(d, i, F, ph_sel, invert=False, scale=1,
@@ -255,7 +256,8 @@ def timetrace_single(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
                      ph_sel=Ph_sel('all'), invert=False, bursts=False,
                      burst_picker=True, scroll=False, cache_bins=True,
                      plot_style={}, show_rate_th=True, F=None,
-                     rate_th_style={}, set_ax_limits=True):
+                     rate_th_style={}, set_ax_limits=True,
+                     burst_color='#BBBBBB'):
     """Plot the timetrace (histogram) of timestamps for a photon selection.
 
     See :func:`timetrace` to plot multiple photon selections (i.e.
@@ -313,7 +315,8 @@ def timetrace_single(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
     # Plot bursts
     if bursts:
         t_max_clk = int(tmax/d.clk_p)
-        _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500)
+        print burst_color
+        _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500, color=burst_color)
 
     # Plot timetrace
     plot_style_ = dict(linestyle='-', linewidth=1.2, marker=None)
@@ -350,6 +353,7 @@ def timetrace(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
               bursts=False, burst_picker=True, scroll=False,
               show_rate_th=True, F=None, rate_th_style={'label': None},
               show_aa=True, legend=False, set_ax_limits=True,
+              burst_color='#BBBBBB',
               #dd_plot_style={}, ad_plot_style={}, aa_plot_style={}
               ):
     """Plot the timetraces (histogram) of photon timestamps.
@@ -357,7 +361,7 @@ def timetrace(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
     # Plot bursts
     if bursts:
         t_max_clk = int(tmax/d.clk_p)
-        _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500)
+        _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500, color=burst_color)
 
     # Plot multiple timetraces
     ph_sel_list = [Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
@@ -386,7 +390,7 @@ def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
                      ph_sel=Ph_sel('all'), invert=False, bursts=False,
                      burst_picker=True, scroll=False, plot_style={},
                      show_rate_th=True,  F=None, rate_th_style={},
-                     set_ax_limits=True):
+                     set_ax_limits=True, burst_color='#BBBBBB'):
     """Plot the ratetrace of timestamps for a photon selection.
 
     See :func:`ratetrace` to plot multiple photon selections (i.e.
@@ -401,7 +405,7 @@ def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
     # Plot bursts
     if bursts:
         t_max_clk = int(tmax/d.clk_p)
-        _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500)
+        _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500, color=burst_color)
 
     # Compute ratetrace
     tmin_clk, tmax_clk = tmin/d.clk_p, tmax/d.clk_p
@@ -453,13 +457,13 @@ def ratetrace(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
               show_rate_th=True, F=None, rate_th_style={'label': None},
               show_aa=True, legend=False, set_ax_limits=True,
               #dd_plot_style={}, ad_plot_style={}, aa_plot_style={}
-              ):
+              burst_color='#BBBBBB'):
     """Plot the ratetraces of photon timestamps.
     """
     # Plot bursts
     if bursts:
         t_max_clk = int(tmax/d.clk_p)
-        _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500)
+        _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500, color=burst_color)
 
     # Plot multiple timetraces
     ph_sel_list = [Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
