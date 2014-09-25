@@ -74,7 +74,7 @@ def _store_bg_data(store, base_name, min_ph_delays_us, best_bg, best_th,
         store[name] = pd.Panel(BG_data_e[ph_sel])
     store.close()
 
-def _load_bg_data(store, base_name, ph_streams):
+def _load_bg_data(store, base_name, ph_streams, metric):
     if not base_name.endswith('/'):
         base_name = base_name + '/'
     min_ph_delays = store[base_name + 'min_ph_delays_us']
@@ -82,10 +82,12 @@ def _load_bg_data(store, base_name, ph_streams):
     best_th = store[base_name + 'best_th']
     BG_data = {}
     for ph_sel in ph_streams:
-        BG_data[ph_sel] = store[base_name + str(ph_sel)]
+        name = base_name + str(ph_sel) + '_' + metric
+        BG_data[ph_sel] = store[name]
     BG_data_e = {}
     for ph_sel in ph_streams:
-        BG_data_e[ph_sel] = store[base_name + str(ph_sel) + '_err']
+        name = base_name + str(ph_sel) + '_err_' + metric
+        BG_data_e[ph_sel] = store[name]
     return best_th, best_bg, BG_data, BG_data_e, min_ph_delays
 
 def calc_bg_brute_cache(dx, min_ph_delay_list=None, return_all=False,
@@ -105,7 +107,8 @@ def calc_bg_brute_cache(dx, min_ph_delay_list=None, return_all=False,
             name = base_name + str(Ph_sel('all')) + '_' + error_metrics
             if name in store and not force_recompute:
                 print ' - Loading BG from cache'
-                res = _load_bg_data(store, base_name, dx.ph_streams)
+                res = _load_bg_data(store, base_name, dx.ph_streams,
+                                    error_metrics)
                 loaded = True
     if not loaded:
         print ' - Computing BG'
