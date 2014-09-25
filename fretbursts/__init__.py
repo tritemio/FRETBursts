@@ -24,7 +24,7 @@
 
 from __future__ import print_function
 
-__version__ = '0.4.dev'
+__version__ = '0.4rc1'
 
 
 ## Citation information
