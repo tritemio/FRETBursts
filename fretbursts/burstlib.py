@@ -1121,9 +1121,10 @@ class Data(DataContainer):
         """Shortcut for :meth:`num_bursts`."""
         return self.num_bursts()
 
+    @property
     def num_bursts(self):
         """Return an array with the number of bursts in each channel."""
-        return np.r_[[mb.shape[0] for mb in self.mburst]]
+        return np.array([mb.shape[0] for mb in self.mburst])
 
     def ph_select(self):
         """Return masks of ph inside bursts for all the channels."""
