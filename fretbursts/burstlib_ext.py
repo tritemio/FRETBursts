@@ -47,6 +47,7 @@ import numpy as np
 from scipy.stats import erlang
 from scipy.optimize import leastsq
 import pandas as pd
+import tables
 
 from ph_sel import Ph_sel
 import burstsearch.burstsearchlib as bslib
@@ -58,51 +59,83 @@ import fret_fit
 import mfit
 
 
-
 def _store_bg_data(store, base_name, min_ph_delays_us, best_bg, best_th,
                    BG_data, BG_data_e):
     if not base_name.endswith('/'):
         base_name = base_name + '/'
-    store[base_name + 'min_ph_delays_us'] = pd.Series(min_ph_delays_us)
+    store_name = store.filename
+    group_name = '/' + base_name[:-1]
+    store.create_carray(group_name, 'min_ph_delays_us', obj=min_ph_delays_us,
+                        createparents=True)
+    for ph_sel, values in BG_data.items():
+        store.create_carray(group_name, str(ph_sel), obj=values)
+    for ph_sel, values in BG_data_e.items():
+        store.create_carray(group_name, str(ph_sel) + '_err', obj=values)
+    store.close()
+    store = pd.HDFStore(store_name)
     store[base_name + 'best_bg'] = best_bg
     store[base_name + 'best_th'] = best_th
-    for ph_sel, values in BG_data.items():
-        name = base_name + str(ph_sel)
-        store[name] = pd.Panel(BG_data[ph_sel])
-    for ph_sel, values in BG_data_e.items():
-        name = base_name + str(ph_sel) + '_err'
-        store[name] = pd.Panel(BG_data_e[ph_sel])
     store.close()
 
 def _load_bg_data(store, base_name, ph_streams):
     if not base_name.endswith('/'):
         base_name = base_name + '/'
-    min_ph_delays = store[base_name + 'min_ph_delays_us']
-    best_bg = store[base_name + 'best_bg']
-    best_th = store[base_name + 'best_th']
+    store_name = store.filename
+    group_name = '/' + base_name[:-1]
+    min_ph_delays = store.get_node(group_name, 'min_ph_delays_us')[:]
     BG_data = {}
     for ph_sel in ph_streams:
-        name = base_name + str(ph_sel)
-        BG_data[ph_sel] = store[name]
+        BG_data[ph_sel] = store.get_node(group_name, str(ph_sel))[:]
     BG_data_e = {}
     for ph_sel in ph_streams:
-        name = base_name + str(ph_sel) + '_err'
-        BG_data_e[ph_sel] = store[name]
+        BG_data_e[ph_sel] = store.get_node(group_name, str(ph_sel) + '_err')[:]
+    store.close()
+    store = pd.HDFStore(store_name)
+    best_bg = store[base_name + 'best_bg']
+    best_th = store[base_name + 'best_th']
+    store.close()
     return best_th, best_bg, BG_data, BG_data_e, min_ph_delays
 
 def calc_bg_brute_cache(dx, min_ph_delay_list=None, return_all=False,
                         error_metrics='KS', force_recompute=False):
+    """Compute background for all the ch, ph_sel and periods caching results.
+
+    This function performs a brute-force search of the min ph delay
+    threshold. The best threshold is the one the minimizes the error
+    function. The best background fit is the rate fitted using the
+    best threshold.
+
+    Results are cached to disk and loaded trasparentlty when needed.
+    The cache file is an HDF5 file named `dx.fname[:-5] + '_BKG.hdf5'`.
+
+    Arguments:
+        min_ph_delay_list (sequence): sequence of values used for the
+            brute-force search. Background and error will be computed
+            for each value in `min_ph_delay_list`.
+        return_all (bool): if True return all the fitted backgrounds and
+            error functions. Default False.
+        error_metrics (string): Specifies the error metric to use.
+            See :func:`fretbursts.background.exp_fit` for more details.
+        force_recompute (bool): if True, recompute results even if a cache
+            is found.
+
+    Returns:
+        Two arrays with best threshold (us) and best background. If
+        `return_all = True` also returns the dictionaries containing all the
+        fitted backgrounds and errors.
+    """
     if min_ph_delay_list is None:
         min_ph_delay_list = np.arange(100, 8500, 100)
     else:
         min_ph_delay_list = np.asfarray(min_ph_delay_list)
 
-    base_name = '%s_%ds_%s/' % (dx.bg_fun_name, dx.bg_time_s, error_metrics)
-    bg_name = dx.fname[:-5] + '_BKG.hdf5'
-    store = pd.HDFStore(bg_name, complevel=5, complib='zlib')
+    base_name = 'bg_%s_%ds_%s/' % (dx.bg_fun_name, dx.bg_time_s, error_metrics)
+    store_fname = dx.fname[:-5] + '_BKG.hdf5'
+    comp_filter = tables.Filters(complevel=6, complib='zlib')
+    store = tables.open_file(store_fname, mode='a', filters=comp_filter)
     loaded = False
-    if base_name + 'min_ph_delays_us' in store:
-        Th = store[base_name + 'min_ph_delays_us']
+    if '/' + base_name + 'min_ph_delays_us' in store:
+        Th = store.get_node('/', base_name + 'min_ph_delays_us').read()
         if np.all(Th == min_ph_delay_list) and not force_recompute:
             print ' - Loading BG from cache'
             res = _load_bg_data(store, base_name, dx.ph_streams)
@@ -114,7 +147,7 @@ def calc_bg_brute_cache(dx, min_ph_delay_list=None, return_all=False,
         best_th, best_bg, BG_data, BG_data_e, min_ph_delays = res
         _store_bg_data(store, base_name, min_ph_delays, best_bg, best_th,
                        BG_data, BG_data_e)
-    store.close()
+
     if return_all:
         return res
     else:
