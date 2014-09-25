@@ -877,7 +877,7 @@ def hist2d_alex(d, i=0, vmin=2, vmax=0, bin_step=None, S_max_norm=0.8,
                 interp='bicubic', cmap='hot', under_color='white',
                 over_color='white', scatter=True, scatter_ms=3,
                 scatter_color='orange', scatter_alpha=0.2, gui_sel=False,
-                ax=None, cbar_ax=None):
+                ax=None, cbar_ax=None, grid_color='#D0D0D0'):
     """Plot 2-D E-S ALEX histogram with a scatterplot overlay.
     """
     if ax is None:
@@ -907,7 +907,7 @@ def hist2d_alex(d, i=0, vmin=2, vmax=0, bin_step=None, S_max_norm=0.8,
         cbar_ax.colorbar(im)
     ax.set_xlim(-0.2, 1.2); ax.set_ylim(-0.2, 1.2)
     ax.set_xlabel('E');     ax.set_ylabel('S')
-    ax.grid(color='gray')
+    ax.grid(color=grid_color)
     if gui_sel:
         # the selection object must be saved (otherwise will be destroyed)
         hist2d_alex.gui_sel = gs.rectSelection(gcf(), gca())
