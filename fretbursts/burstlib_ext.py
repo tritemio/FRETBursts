@@ -58,6 +58,68 @@ import fret_fit
 import mfit
 
 
+
+def _store_bg_data(store, base_name, min_ph_delays_us, best_bg, best_th,
+                   BG_data, BG_data_e, metric='KS'):
+    if not base_name.endswith('/'):
+        base_name = base_name + '/'
+    store[base_name + 'min_ph_delays_us'] = pd.Series(min_ph_delays_us)
+    store[base_name + 'best_bg'] = best_bg
+    store[base_name + 'best_th'] = best_th
+    for ph_sel, values in BG_data.items():
+        name = base_name + str(ph_sel) + '_' + metric
+        store[name] = pd.Panel(BG_data[ph_sel])
+    for ph_sel, values in BG_data_e.items():
+        name = base_name + str(ph_sel) + '_err_' + metric
+        store[name] = pd.Panel(BG_data_e[ph_sel])
+    store.close()
+
+def _load_bg_data(store, base_name, ph_streams):
+    if not base_name.endswith('/'):
+        base_name = base_name + '/'
+    min_ph_delays = store[base_name + 'min_ph_delays_us']
+    best_bg = store[base_name + 'best_bg']
+    best_th = store[base_name + 'best_th']
+    BG_data = {}
+    for ph_sel in ph_streams:
+        BG_data[ph_sel] = store[base_name + str(ph_sel)]
+    BG_data_e = {}
+    for ph_sel in ph_streams:
+        BG_data_e[ph_sel] = store[base_name + str(ph_sel) + '_err']
+    return best_th, best_bg, BG_data, BG_data_e, min_ph_delays
+
+def calc_bg_brute_cache(dx, min_ph_delay_list=None, return_all=False,
+                        error_metrics='KS', force_recompute=False):
+    if min_ph_delay_list is None:
+        min_ph_delay_list = np.arange(100, 8500, 100)
+    else:
+        min_ph_delay_list = np.asfarray(min_ph_delay_list)
+
+    base_name = '%s_%ds/' % (dx.bg_fun_name, dx.bg_time_s)
+    bg_name = dx.fname[:-5] + '_BKG.hdf5'
+    store = pd.HDFStore(bg_name)
+    loaded = False
+    if base_name + 'min_ph_delays_us' in store:
+        Th = store[base_name + 'min_ph_delays_us']
+        if np.all(Th == min_ph_delay_list):
+            name = base_name + str(Ph_sel('all')) + '_' + error_metrics
+            if name in store and not force_recompute:
+                print ' - Loading BG from cache'
+                res = _load_bg_data(store, base_name, dx.ph_streams)
+                loaded = True
+    if not loaded:
+        print ' - Computing BG'
+        res = calc_bg_brute(dx, min_ph_delay_list=min_ph_delay_list,
+                            return_all=True, error_metrics=error_metrics)
+        best_th, best_bg, BG_data, BG_data_e, min_ph_delays = res
+        _store_bg_data(store, base_name, min_ph_delays, best_bg, best_th,
+                       BG_data, BG_data_e, metric=error_metrics)
+    store.close()
+    if return_all:
+        return res
+    else:
+        return res[:-3]
+
 def calc_bg_brute(dx, min_ph_delay_list=None, return_all=False,
                   error_metrics='KS'):
     """Compute background for all the ch, ph_sel and periods.
