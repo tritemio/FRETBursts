@@ -1715,7 +1715,7 @@ class Data(DataContainer):
                  bg_corrected=False, leakage_corrected=False,
                  dir_ex_corrected=False, dithering=False)
 
-    def fuse_bursts(self, ms=0, process=True):
+    def fuse_bursts(self, ms=0, process=True, mute=False):
         """Return a new :class:`Data` object with nearby bursts fused together.
 
         Arguments:
@@ -1724,6 +1724,7 @@ class Data(DataContainer):
                 bursts are fused.
             process (bool): if True (default), reprocess the burst data in
                 the new object applying corrections and computing FRET.
+            mute (bool): if True suppress any printed output.
 
         """
         if ms < 0: return self
@@ -1736,10 +1737,10 @@ class Data(DataContainer):
         new_d.add(mburst=mburst, fuse=ms)
         if 'bg' in new_d: new_d._calc_burst_period()
         if process:
-            pprint(" - Counting D and A ph and calculating FRET ... \n")
+            pprint(" - Counting D and A ph and calculating FRET ... \n", mute)
             new_d.calc_fret(count_ph=True, corrections=True,
-                            dither=self.dithering)
-            pprint("   [DONE Counting D/A and FRET]\n")
+                            dither=self.dithering, mute=mute)
+            pprint("   [DONE Counting D/A and FRET]\n", mute)
         return new_d
 
     ##
