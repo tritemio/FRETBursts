@@ -99,7 +99,7 @@ def calc_bg_brute_cache(dx, min_ph_delay_list=None, return_all=False,
 
     base_name = '%s_%ds_%s/' % (dx.bg_fun_name, dx.bg_time_s, error_metrics)
     bg_name = dx.fname[:-5] + '_BKG.hdf5'
-    store = pd.HDFStore(bg_name)
+    store = pd.HDFStore(bg_name, complevel=5, complib='zlib')
     loaded = False
     if base_name + 'min_ph_delays_us' in store:
         Th = store[base_name + 'min_ph_delays_us']
@@ -113,7 +113,7 @@ def calc_bg_brute_cache(dx, min_ph_delay_list=None, return_all=False,
                             return_all=True, error_metrics=error_metrics)
         best_th, best_bg, BG_data, BG_data_e, min_ph_delays = res
         _store_bg_data(store, base_name, min_ph_delays, best_bg, best_th,
-                       BG_data, BG_data_e, metric=error_metrics)
+                       BG_data, BG_data_e)
     store.close()
     if return_all:
         return res
