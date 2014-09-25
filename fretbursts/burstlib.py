@@ -17,6 +17,7 @@ For usage example see the IPython Notebooks in sub-folder "notebooks".
 """
 
 import os
+import hashlib
 import numpy as np
 import copy
 from numpy import zeros, size, r_
@@ -762,6 +763,21 @@ class Data(DataContainer):
                 # Set the attribute: new_d.k = new_d[k]
                 setattr(new_d, field, new_d[field])
         return new_d
+
+    def ph_times_hash(self, hash_name='md5', hexdigest=True):
+        """Return an hash for the timestamps arrays.
+        """
+        m = hashlib.new(hash_name)
+        for ph in self.iter_ph_times():
+            if type(ph) is np.ndarray:
+                m.update(ph.data)
+            else:
+                # TODO Handle ph_times in PyTables files
+                raise NotImplementedError
+        if hexdigest:
+            return m.hexdigest()
+        else:
+            return m
 
     def iter_ph_masks(self, ph_sel=Ph_sel('all')):
         """Iterator returning masks for `ph_sel` photons.
