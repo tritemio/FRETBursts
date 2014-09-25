@@ -746,10 +746,10 @@ class Data(DataContainer):
     ##
     # Infrastructure methods
     #
-    def copy(self):
+    def copy(self, mute=False):
         """Copy data in a new object. All arrays copied except for ph_times_m
         """
-        print 'Deep copy executed.'
+        pprint('Deep copy executed.\n', mute)
         new_d = Data(**self) # this make a shallow copy (like a pointer)
 
         ## Deep copy (not just reference) or array data
@@ -1398,7 +1398,7 @@ class Data(DataContainer):
                  bg_th_us=Th_us, bg_auto_th=bg_auto_th)
         pprint("[DONE]\n")
 
-    def recompute_bg_lim_ph_p(self, ph_sel=Ph_sel(Dex='Dem')):
+    def recompute_bg_lim_ph_p(self, ph_sel=Ph_sel(Dex='Dem'), mute=False):
         """Recompute self.Lim and selp.Ph_p relative to ph selection `ph_sel`
         `ph_sel` is a Ph_sel object selecting the timestamps in which self.Lim
         and self.Ph_p are being computed.
@@ -1406,7 +1406,7 @@ class Data(DataContainer):
         if self.bg_ph_sel == ph_sel: return
 
         pprint(" - Recomputing background limits for %s ... " % \
-                str(ph_sel))
+                str(ph_sel), mute)
         bg_time_clk = self.bg_time_s/self.clk_p
         Lim, Ph_p = [], []
         for ph_ch, lim in zip(self.iter_ph_times(ph_sel), self.Lim):
@@ -1419,7 +1419,7 @@ class Data(DataContainer):
             Lim.append(lim)
             Ph_p.append(ph_p)
         self.add(Lim=Lim, Ph_p=Ph_p, bg_ph_sel=ph_sel)
-        pprint("[DONE]\n")
+        pprint("[DONE]\n", mute)
 
     ##
     # Burst analysis methods
@@ -1522,7 +1522,7 @@ class Data(DataContainer):
         self.add(mburst=mburst, min_rate_cps=Min_rate_cps, T=T_clk*self.clk_p)
 
     def _burst_search_TT(self, m, L, ph_sel=Ph_sel('all'), verbose=True,
-                         pure_python=False):
+                         pure_python=False, mute=False):
         """Compute burst search with params `m`, `L` on ph selection `ph_sel`
 
         Requires the list of arrays `self.TT` with the max time-thresholds in
@@ -1530,7 +1530,7 @@ class Data(DataContainer):
         """
         bsearch = _get_bsearch_func(pure_python=pure_python)
 
-        self.recompute_bg_lim_ph_p(ph_sel=ph_sel)
+        self.recompute_bg_lim_ph_p(ph_sel=ph_sel, mute=mute)
         MBurst = []
         label = ''
         for ich, (ph, T) in enumerate(zip(self.iter_ph_times(ph_sel),
@@ -1555,14 +1555,14 @@ class Data(DataContainer):
             # Convert the burst data to be relative to ph_times_m.
             # Convert both Lim/Ph_p and mburst, as they are both needed
             # to compute `.bp`.
-            self.recompute_bg_lim_ph_p(ph_sel=Ph_sel('all'))
-            self._fix_mburst_from(ph_sel=ph_sel)
+            self.recompute_bg_lim_ph_p(ph_sel=Ph_sel('all'), mute=mute)
+            self._fix_mburst_from(ph_sel=ph_sel, mute=mute)
 
-    def _fix_mburst_from(self, ph_sel):
+    def _fix_mburst_from(self, ph_sel, mute=False):
         """Convert burst data from any ph_sel to 'all' timestamps selection.
         """
         assert type(ph_sel) is Ph_sel and ph_sel != Ph_sel('all')
-        pprint(' - Fixing  burst data to refer to ph_times_m ... ')
+        pprint(' - Fixing  burst data to refer to ph_times_m ... ', mute)
         old_MBurst = [mb.copy() for mb in self.mburst]
 
         # Note that mburst is modified in-place
@@ -1578,7 +1578,7 @@ class Data(DataContainer):
             assert (mb[:, iistart] >= old_mb[:, iistart]).all()
             assert (mb[:, iiend] >= old_mb[:, iiend]).all()
             assert (mb[:, inum_ph] >= old_mb[:, inum_ph]).all()
-        pprint('[DONE]\n')
+        pprint('[DONE]\n', mute)
 
     def burst_search_t(self, L=10, m=10, P=None, F=6., min_rate_cps=None,
             nofret=False, max_rate=False, dither=False, ph_sel=Ph_sel('all'),
@@ -1636,7 +1636,7 @@ class Data(DataContainer):
             self._calc_T(m=m, P=P, F=F, ph_sel=ph_sel)
             # Use TT and compute mburst
             self._burst_search_TT(L=L, m=m, ph_sel=ph_sel, verbose=verbose,
-                                  pure_python=pure_python)
+                                  pure_python=pure_python, mute=mute)
         pprint("[DONE]\n", mute)
 
         pprint(" - Calculating burst periods ...", mute)
