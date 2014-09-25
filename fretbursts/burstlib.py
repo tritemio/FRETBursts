@@ -1126,6 +1126,28 @@ class Data(DataContainer):
         """Return an array with the number of bursts in each channel."""
         return np.array([mb.shape[0] for mb in self.mburst])
 
+    ## Single-spot shortcuts
+    def __getattr__(self, field):
+        """Single-channel shortcuts for per-channel fields.
+
+        Appending a '_' to a burst fields avoids specifiying the channel.
+        For example use d.nd_ instead if d.nd[0].
+        """
+        if not field.endswith('_'):
+            raise AttributeError("Data object has no attribute '%s'" % field)
+        name = field[:-1]
+        try:
+            value = self.__getitem__(name)
+        except KeyError:
+            raise AttributeError("Data object has no attribute '%s'" % name)
+        else:
+            # Support lists, tuples and object with arrays interface
+            # (i.e. numpy arrays or pandas objects).
+            if type(value) in [list, tuple] or hasattr(value, '__array__'):
+                if len(value) == self.nch:
+                    return value[0]
+            raise ValueError('Name "%s" is not a per-channel field.' % name)
+
     def ph_select(self):
         """Return masks of ph inside bursts for all the channels."""
         return mch_ph_select(self.ph_times_m, self.mburst)
