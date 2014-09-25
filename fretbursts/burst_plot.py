@@ -1008,10 +1008,9 @@ def hist_bg_single(d, i=0, period=0, bin_width=1e-4, bins=None, tmax=0.01,
             tau_th = d.bg_th_us[ph_sel][i]*1e-6
 
         i_tau_th = np.searchsorted(t_ax, tau_th)
-        tau_th_sampled = t_ax[i_tau_th]
-        counts_th = counts[i_tau_th]
-        exp_th = np.exp(- tau_th_sampled * bg_rate)
-        y_fit = (counts_th/exp_th)*np.exp(- t_ax * bg_rate)
+        counts_integral = counts[i_tau_th:].sum()
+        y_fit = np.exp(- t_ax * bg_rate)
+        y_fit *= counts_integral/y_fit[i_tau_th:].sum()
 
         # Plot
         fit_style_ = dict(plot_style_)
