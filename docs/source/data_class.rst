@@ -117,6 +117,8 @@ arrays of timestamps or burst data.
 
     .. automethod:: iter_ph_masks
 
+    .. automethod:: iter_bursts_ph
+
     .. automethod:: expand
 
     .. automethod:: copy
