@@ -982,7 +982,7 @@ class Data(DataContainer):
         new_d.s.append(s)
         return new_d
 
-    def burst_sizes_ich(self, ich=0, gamma=1., gamma1=None, add_naa=False):
+    def get_burst_sizes(self, ich=0, gamma=1., gamma1=None, add_naa=False):
         """Return gamma corrected burst sizes for channel `ich`.
 
         The gamma corrected size is computed as::
@@ -1004,6 +1004,20 @@ class Data(DataContainer):
         if self.ALEX and add_naa:
             burst_size += self.naa[ich]
         return burst_size
+
+    def burst_sizes(self, gamma=1., gamma1=None, add_naa=False):
+        """Return gamma corrected burst sizes for each channel.
+
+        Compute burst sizes by calling :meth:`get_burst_sizes` for each
+        channel. See :meth:`get_burst_sizes` for argument description.
+
+        Returns
+            List of arrays of burst sizes, one array per channel.
+        """
+        kwargs = dict(gamma=gamma, gamma1=gamma1, add_naa=add_naa)
+        bsize_list = [self.get_burst_size(ich, **kwargs) for ich in
+                                                            range(self.nch)]
+        return np.array(bsize_list)
 
     def iter_bursts_ph(self, ich=0):
         """Iterate over (start, stop) indexes to slice photons for each burst.
