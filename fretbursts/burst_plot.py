@@ -156,7 +156,7 @@ def plot_alternation_hist(d, bins=100, **kwargs):
     d_em_t = (det_t == d_ch)
     kwargs.update(bins=bins, alpha=0.2)
     hist(ph_times_t[d_em_t] % period, color='g', label='D', **kwargs)
-    hist(ph_times_t[-d_em_t] % period, color='r', label='A', **kwargs)
+    hist(ph_times_t[~d_em_t] % period, color='r', label='A', **kwargs)
 
     if d.D_ON[0] < d.D_ON[1]:
         plt.axvspan(d.D_ON[0], d.D_ON[1], color='g', alpha=0.1)
@@ -559,7 +559,7 @@ def time_ph(d, i=0, num_ph=1e4, ph_istart=0):
     """
     b = d.mburst[i]
     SLICE = slice(ph_istart, ph_istart+num_ph)
-    ph_d = d.ph_times_m[i][SLICE][-d.A_em[i][SLICE]]
+    ph_d = d.ph_times_m[i][SLICE][~d.A_em[i][SLICE]]
     ph_a = d.ph_times_m[i][SLICE][d.A_em[i][SLICE]]
 
     BSLICE = (bl.b_end(b) < ph_a[-1])

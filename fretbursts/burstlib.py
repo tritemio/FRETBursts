@@ -393,7 +393,7 @@ def b_fuse(mburst, ms=0, clk_p=12.5e-9):
     first_burst = np.hstack([delays, (False,)])
     second_burst = np.hstack([(False,), delays])
     # Maintain just the 1st in case there were more than 2 consecutive bursts
-    first_burst -= (second_burst*first_burst)
+    first_burst ^= (second_burst*first_burst)
     second_burst = np.hstack([(False,), first_burst[:-1]])
     both_burst = first_burst + second_burst
 
@@ -433,7 +433,7 @@ def b_fuse(mburst, ms=0, clk_p=12.5e-9):
     fused_burst1[:, iiend] = b_iend(fused_burst2)
     fused_burst1[:, itend] = b_end(fused_burst2)
 
-    new_burst = np.vstack([fused_burst1, mburst[-both_burst, :]])
+    new_burst = np.vstack([fused_burst1, mburst[~both_burst, :]])
     reorder = new_burst[:, itstart].argsort()
     return new_burst[reorder, :]
 
