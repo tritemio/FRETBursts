@@ -234,17 +234,12 @@ def bursts_ph_list(ph_data, bursts, mask=None):
     """
     return [ph for ph in iter_bursts_ph(ph_data, bursts, mask=mask)]
 
-def ph_select(ph_data, bursts):
-    """Return bool mask to select all ph inside any burst."""
+def ph_in_bursts(ph_data, bursts):
+    """Return bool mask to select all "ph-data" inside any burst."""
     mask = zeros(ph_data.size, dtype=bool)
     for istart, iend in iter_bursts_start_stop(bursts):
         mask[istart:iend] = True
     return mask
-
-def mch_ph_select(ph_data_list, bursts_list):
-    """Multi-ch version of ph_select."""
-    mmask = [ph_select(ph, b) for ph, b in zip(ph_data_list, bursts_list)]
-    return mmask
 
 def b_rate_max(ph_data, bursts, m, mask=None):
     """Returns the max m-photons rate reached inside each burst.
@@ -1181,11 +1176,11 @@ class Data(DataContainer):
         else:
             raise ValueError("No timestamps or bursts found.")
 
-    def ph_select(self):
+    def ph_in_bursts(self, ph_sel=Ph_sel('all')):
         """Return masks of ph inside bursts for all the channels."""
-        return mch_ph_select(self.ph_times_m, self.mburst)
+        return [self.ph_in_bursts_ich(ich) for ich in range(self.nch)]
 
-    def ph_in_bursts(self, ich=0, ph_sel=Ph_sel('all')):
+    def ph_in_bursts_ich(self, ich=0, ph_sel=Ph_sel('all')):
         """Return photons inside bursts.
 
         Returns
@@ -1193,7 +1188,7 @@ class Data(DataContainer):
             selection `ph_sel` that are inside bursts.
         """
         ph_all = self.get_ph_times(ich=ich)
-        bursts_mask = ph_select(ph_all, self.mburst[ich])
+        bursts_mask = ph_in_bursts(ph_all, self.mburst[ich])
         if ph_sel == Ph_sel('all'):
             return ph_all[bursts_mask]
         else:
