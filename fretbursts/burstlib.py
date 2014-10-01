@@ -270,36 +270,6 @@ def b_rate_max(ph_data, bursts, m, mask=None):
     return np.asfarray(burst_rates)
 
 
-def b_ph_times1(b, ph_times, pad=0):
-    """Returns a slice of ph_times inside one burst."""
-    return ph_times[b[iistart]-pad:b[iiend]+pad+1]
-def b_ph_times_v(bursts, ph_times, pad=0):
-    """Returns a list of arrays containing ph_times inside each burst."""
-    PH = [ph_times[b[iistart]-pad:b[iiend]+pad+1] for b in bursts]
-    return PH
-
-def b_irange(bursts, b_index, pad=0):
-    """Returns range of indices of ph_times inside one burst"""
-    pad = np.array(pad).astype(bursts.dtype) # to avoid unwanted conversions
-    _i_start = bursts[b_index, iistart]
-    _i_end = bursts[b_index, iiend]
-    return np.arange(_i_start-pad, _i_end+pad+1)
-
-def b_ph_times(bursts, b_index, ph_times, pad=0):
-    """Returns ph_times inside one burst, with "pad" ph before and after."""
-    return ph_times[b_irange(bursts, b_index, pad=pad)]
-
-def b_rates_inside(ph, b, bi, m=3, pad=0):
-    """Returns all the m-ph-rates of burst #bi."""
-    return ph_rate(m, b_ph_times(b, bi, ph, pad=pad))
-
-
-def find_burst(bursts, size, width_ms, clk_p=12.5e-9):
-    """Find b_index of burst(s) of given size AND width."""
-    width = (width_ms*1e-3)/clk_p
-    th = 0.01e-3/clk_p # 800clk or 10us @ clk_p=12.5e-9s
-    return np.where((b_size(bursts) == size)*(abs(b_width(bursts)-width) < th))
-
 def fuse_bursts_direct(mburst, ms=0, clk_p=12.5e-9, verbose=True):
     """Fuse bursts separated by less than `ms` (milli-secs).
 
