@@ -982,7 +982,7 @@ class Data(DataContainer):
         new_d.s.append(s)
         return new_d
 
-    def get_burst_sizes(self, ich=0, gamma=1., gamma1=None, add_naa=False):
+    def burst_sizes_ich(self, ich=0, gamma=1., gamma1=None, add_naa=False):
         """Return gamma corrected burst sizes for channel `ich`.
 
         The gamma corrected size is computed as::
@@ -1006,10 +1006,10 @@ class Data(DataContainer):
         return burst_size
 
     def burst_sizes(self, gamma=1., gamma1=None, add_naa=False):
-        """Return gamma corrected burst sizes for each channel.
+        """Return gamma corrected burst sizes for all the channel.
 
-        Compute burst sizes by calling :meth:`get_burst_sizes` for each
-        channel. See :meth:`get_burst_sizes` for argument description.
+        Compute burst sizes by calling :meth:`burst_sizes_ich` for each
+        channel. See :meth:`burst_sizes_ich` for argument description.
 
         Returns
             List of arrays of burst sizes, one array per channel.
