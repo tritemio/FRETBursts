@@ -266,8 +266,8 @@ def b_rate_max(ph_data, bursts, m, mask=None):
             burst_rates.append(None)
         else:
             burst_rates.append(ph_rate(m=m, ph=burst_ph).max())
-    # np.asfarray converts None to nan
-    return np.asfarray(burst_rates)
+
+    return np.asfarray(burst_rates)  # NOTE: np.asfarray converts None to nan
 
 
 def fuse_bursts_direct(mburst, ms=0, clk_p=12.5e-9, verbose=True):
