@@ -228,7 +228,7 @@ def test_b_functions(data):
         assert (bl.b_size(mb) == mb[:, inum_ph]).all()
 
         rate = 1.*mb[:, inum_ph]/mb[:, iwidth]
-        assert (bl.b_rate(mb) == rate).all()
+        assert (bl.b_ph_rate(mb) == rate).all()
 
         separation = mb[1:, itstart] - mb[:-1, itend]
         assert (bl.b_separation(mb) == separation).all()
@@ -280,7 +280,7 @@ def test_burst_fuse_0ms(data):
 
     df = d.fuse_bursts(ms=0)
     for ph, mb in zip(df.ph_times_m, df.mburst):
-        m = bl.ph_select(ph, mb)
+        m = bl.ph_in_bursts(ph, mb)
         assert m.sum() == bl.b_size(mb).sum()
 
 def test_burst_fuse_separation(data):
