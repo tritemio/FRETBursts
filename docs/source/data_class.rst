@@ -91,7 +91,8 @@ Fitting methods
 -------------------
 
 Some fitting methods for burst data. Note that E and S histogram fitting
-with generic models is now handled with the new fitting framework.
+with generic models is now handled with the new
+:ref:`fitting framework <fit-section>`.
 
 .. class:: Data
 
