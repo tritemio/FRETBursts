@@ -74,8 +74,8 @@ def b_size(b):
     """Number of ph in the burst"""
     return b[:, inum_ph]
 
-def b_rate(b):
-    """Mean rate of ph in burst"""
+def b_ph_rate(b):
+    """Photon rate in burst (tot size/duration)"""
     return 1.*b_size(b)/b_width(b)
 
 def b_separation(b):

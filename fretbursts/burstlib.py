@@ -37,7 +37,7 @@ from burstsearch.burstsearchlib import (
         bsearch,
         # Burst data functions
         b_start, b_end, b_width, b_istart, b_iend, b_size,
-        b_rate, b_separation,
+        b_ph_rate, b_separation,
         # Photon counting function,
         mch_count_ph_in_bursts
         )
