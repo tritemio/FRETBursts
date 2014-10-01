@@ -2000,10 +2000,10 @@ class Data(DataContainer):
                 See :class:`fretbursts.ph_sel.Ph_sel` for details.
         """
         if ph_sel == Ph_sel('all'):
-            Max_Rate = [b_rate_max(ph_data=ph, m=m, mburst=mb)
+            Max_Rate = [b_rate_max(ph_data=ph, m=m, bursts=mb)
                     for ph, mb in zip(self.iter_ph_times(), self.mburst)]
         else:
-            Max_Rate = [b_rate_max(ph_data=ph, m=m, mburst=mb, mask=mask)
+            Max_Rate = [b_rate_max(ph_data=ph, m=m, bursts=mb, mask=mask)
                     for ph, mask, mb in zip(self.iter_ph_times(),
                                             self.iter_ph_masks(ph_sel=ph_sel),
                                             self.mburst)]
