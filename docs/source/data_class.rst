@@ -21,10 +21,32 @@ A description of the :class:`Data` class and its main attributes.
 .. autoclass:: Data
 
 
+Basic info methods
+------------------
+
+List of :class:`Data` methods that output basic information.
+
+.. class:: Data
+
+    .. automethod:: time_max
+
+    .. autoattribute:: num_bursts
+
+    .. automethod:: burst_sizes
+
+    .. automethod:: burst_sizes_ich
+
+    .. automethod:: status
+
+    .. automethod:: name
+
+    .. automethod:: Name
+
+
 Analysis methods
 ----------------
 
-List of :class:`Data` methods used to perform different analysis.
+Methods for background estimation, burst search and burst-data calculations.
 
 .. class:: Data
 
@@ -38,31 +60,13 @@ List of :class:`Data` methods used to perform different analysis.
 
     .. automethod:: fuse_bursts
 
+    .. automethod:: calc_sbr
 
-Basic info methods
-------------------
-
-List of :class:`Data` methods that output basic information.
-
-.. class:: Data
-
-    .. automethod:: time_max
-
-    .. automethod:: num_bursts
-
-    .. automethod:: burst_sizes
-
-    .. automethod:: burst_sizes_ich
-
-    .. automethod:: status
-
-    .. automethod:: name
-
-    .. automethod:: Name
+    .. automethod:: calc_max_rate
 
 
-Burst corrections methods
--------------------------
+Burst correction methods
+------------------------
 
 List of :class:`Data` methods used to apply burst corrections.
 
@@ -81,16 +85,13 @@ List of :class:`Data` methods used to apply burst corrections.
     .. automethod:: dither
 
 
-Other burst methods
+Fitting methods
 -------------------
 
-List of :class:`Data` methods not falling in previous categories.
+Some fitting methods for burst data. Note that E and S histogram fitting
+with generic models is now handled with the new fitting framework.
 
 .. class:: Data
-
-    .. automethod:: calc_sbr
-
-    .. automethod:: calc_max_rate
 
     .. automethod:: fit_E_generic
 
@@ -103,10 +104,10 @@ List of :class:`Data` methods not falling in previous categories.
     .. automethod:: fit_E_two_gauss_EM
 
 
-Utility methods
----------------
+Data access methods
+-------------------
 
-List of :class:`Data` methods used to get (or iterate over) the different
+These methods are used to access (or iterate over) the different
 arrays of timestamps or burst data.
 
 .. class:: Data

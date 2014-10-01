@@ -728,13 +728,6 @@ class Data(DataContainer):
     _ph_streams = [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem'),
                    Ph_sel(Aex='Dem'), Ph_sel(Aex='Aem')]
 
-    @property
-    def ph_streams(self):
-        if self.ALEX:
-            return self._ph_streams
-        else:
-            return [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
-
     def __init__(self, **kwargs):
         # Default values
         init_kw = dict(ALEX=False, leakage=0., gamma=1., chi_ch=1., dir_ex=0.,
@@ -743,9 +736,36 @@ class Data(DataContainer):
         init_kw.update(**kwargs)
         DataContainer.__init__(self, **init_kw)
 
-    ##
-    # Infrastructure methods
-    #
+    @property
+    def ph_streams(self):
+        if self.ALEX:
+            return self._ph_streams
+        else:
+            return [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
+
+    ## Single-spot shortcuts
+    def __getattr__(self, field):
+        """Single-channel shortcuts for per-channel fields.
+
+        Appending a '_' to a per-channel field avoids specifiying the channel.
+        For example use d.nd_ instead if d.nd[0].
+        """
+        if not field.endswith('_'):
+            raise AttributeError("Data object has no attribute '%s'" % field)
+        name = field[:-1]
+        try:
+            value = self.__getitem__(name)
+        except KeyError:
+            raise AttributeError("Data object has no attribute '%s'" % name)
+        else:
+            # Support lists, tuples and object with arrays interface
+            # (i.e. numpy arrays or pandas objects).
+            if type(value) in [list, tuple] or hasattr(value, '__array__'):
+                if len(value) == self.nch:
+                    return value[0]
+            raise ValueError('Name "%s" is not a per-channel field.' % name)
+
+
     def copy(self, mute=False):
         """Copy data in a new object. All arrays copied except for ph_times_m
         """
@@ -764,6 +784,9 @@ class Data(DataContainer):
                 setattr(new_d, field, new_d[field])
         return new_d
 
+    ##
+    # Methods for photon timestamps (ph_times_m) access
+    #
     def ph_times_hash(self, hash_name='md5', hexdigest=True):
         """Return an hash for the timestamps arrays.
         """
@@ -954,33 +977,17 @@ class Data(DataContainer):
         return ph_times_period
 
 
-    def slice_ph(self, time_s1=0, time_s2=None, s='slice'):
-        """Return a new Data object with ph in [`time_s1`,`time_s2`] (seconds)
-        """
-        if time_s2 is None: time_s2 = self.time_max()
-        if time_s2 >= self.time_max() and time_s1 <= 0:
-                return self.copy()
+    ##
+    # Methods and properties for burst-data access
+    #
+    def num_bu(self):
+        """Old shortcut for `num_bursts`."""
+        return self.num_bursts
 
-        t1_clk, t2_clk = time_s1/self.clk_p, time_s2/self.clk_p
-        assert np.array([t1_clk < ph.max() for ph in self.ph_times_m]).all()
-
-        masks = [(ph >= t1_clk)*(ph <= t2_clk) for ph in self.iter_ph_times()]
-
-        new_d = Data(**self)
-        for name in self.ph_fields:
-            if name in self:
-                #if name == 'A_em':
-                #    raise ValueError
-                new_d[name] = [a[mask] for a, mask in zip(self[name], masks)]
-                setattr(new_d, name, new_d[name])
-        new_d.delete_burst_data()
-
-        # Shift timestamps to start from 0 to avoid problems with BG calc
-        for ich in range(self.nch):
-            ph_i = new_d.get_ph_times(ich)
-            ph_i -= t1_clk
-        new_d.s.append(s)
-        return new_d
+    @property
+    def num_bursts(self):
+        """An array with the number of bursts in each channel."""
+        return np.array([mb.shape[0] for mb in self.mburst])
 
     def burst_sizes_ich(self, ich=0, gamma=1., gamma1=None, add_naa=False):
         """Return gamma corrected burst sizes for channel `ich`.
@@ -1043,6 +1050,43 @@ class Data(DataContainer):
             d.add(naa=[aa[n1:n2] for aa, n1, n2 in zip(d.naa, N1, N2)])
         d.calc_fret() # recalc fret efficiency
         return d
+
+    def delete_burst_data(self):
+        """Erase all the burst data"""
+        for k in self.burst_fields + ['fuse', 'lsb']:
+            if k in self:
+                self.delete(k)
+
+    ##
+    # Methods for high-level data transformation
+    #
+    def slice_ph(self, time_s1=0, time_s2=None, s='slice'):
+        """Return a new Data object with ph in [`time_s1`,`time_s2`] (seconds)
+        """
+        if time_s2 is None: time_s2 = self.time_max()
+        if time_s2 >= self.time_max() and time_s1 <= 0:
+                return self.copy()
+
+        t1_clk, t2_clk = time_s1/self.clk_p, time_s2/self.clk_p
+        assert np.array([t1_clk < ph.max() for ph in self.ph_times_m]).all()
+
+        masks = [(ph >= t1_clk)*(ph <= t2_clk) for ph in self.iter_ph_times()]
+
+        new_d = Data(**self)
+        for name in self.ph_fields:
+            if name in self:
+                #if name == 'A_em':
+                #    raise ValueError
+                new_d[name] = [a[mask] for a, mask in zip(self[name], masks)]
+                setattr(new_d, name, new_d[name])
+        new_d.delete_burst_data()
+
+        # Shift timestamps to start from 0 to avoid problems with BG calc
+        for ich in range(self.nch):
+            ph_i = new_d.get_ph_times(ich)
+            ph_i -= t1_clk
+        new_d.s.append(s)
+        return new_d
 
     def collapse(self, update_gamma=True):
         """Returns an object with 1-ch data joining the multi-ch data.
@@ -1139,37 +1183,6 @@ class Data(DataContainer):
         else:
             raise ValueError("No timestamps or bursts found.")
 
-    def num_bu(self):
-        """Old shortcut for `num_bursts`."""
-        return self.num_bursts
-
-    @property
-    def num_bursts(self):
-        """Return an array with the number of bursts in each channel."""
-        return np.array([mb.shape[0] for mb in self.mburst])
-
-    ## Single-spot shortcuts
-    def __getattr__(self, field):
-        """Single-channel shortcuts for per-channel fields.
-
-        Appending a '_' to a burst fields avoids specifiying the channel.
-        For example use d.nd_ instead if d.nd[0].
-        """
-        if not field.endswith('_'):
-            raise AttributeError("Data object has no attribute '%s'" % field)
-        name = field[:-1]
-        try:
-            value = self.__getitem__(name)
-        except KeyError:
-            raise AttributeError("Data object has no attribute '%s'" % name)
-        else:
-            # Support lists, tuples and object with arrays interface
-            # (i.e. numpy arrays or pandas objects).
-            if type(value) in [list, tuple] or hasattr(value, '__array__'):
-                if len(value) == self.nch:
-                    return value[0]
-            raise ValueError('Name "%s" is not a per-channel field.' % name)
-
     def ph_select(self):
         """Return masks of ph inside bursts for all the channels."""
         return mch_ph_select(self.ph_times_m, self.mburst)
@@ -1189,32 +1202,7 @@ class Data(DataContainer):
             ph_sel_mask = self.get_ph_mask(ich=ich, ph_sel=ph_sel)
             return ph_all[ph_sel_mask*bursts_mask]
 
-    def calc_max_rate(self, m, ph_sel=Ph_sel('all')):
-        """Compute the max m-photon rate reached in each burst.
 
-        Arguments:
-            m (int): number of timestamps to use to compute the rate
-            ph_sel (Ph_sel object): object defining the photon selection.
-                See :class:`fretbursts.ph_sel.Ph_sel` for details.
-        """
-        if ph_sel == Ph_sel('all'):
-            Max_Rate = [b_rate_max(ph=ph, m=m, mburst=mb)
-                    for ph, mb in zip(self.iter_ph_times(), self.mburst)]
-        else:
-            Max_Rate = [b_rate_max(ph=ph, m=m, mburst=mb, mask=mask)
-                    for ph, mask, mb in zip(self.iter_ph_times(),
-                                            self.iter_ph_masks(ph_sel=ph_sel),
-                                            self.mburst)]
-
-        Max_Rate = [mr/self.clk_p - bg[bp] for bp, bg, mr in
-                    zip(self.bp, self.bg_from(ph_sel), Max_Rate)]
-        self.add(max_rate=Max_Rate)
-
-    def delete_burst_data(self):
-        """Erase all the burst data"""
-        for k in self.burst_fields + ['fuse', 'lsb']:
-            if k in self:
-                self.delete(k)
     ##
     # Background analysis methods
     #
@@ -1760,6 +1748,7 @@ class Data(DataContainer):
                  bg_corrected=False, leakage_corrected=False,
                  dir_ex_corrected=False, dithering=False)
 
+
     def fuse_bursts(self, ms=0, process=True, mute=False):
         """Return a new :class:`Data` object with nearby bursts fused together.
 
@@ -1967,6 +1956,9 @@ class Data(DataContainer):
         Lk *= self.chi_ch
         return Lk
 
+    ##
+    # Methods to compute burst quatitites: FRET, S, SBR, max_rate, etc ...
+    #
     def calc_sbr(self, ph_sel=Ph_sel('all'), gamma=1.):
         """Return Signal-to-Background Ratio (SBR) for each burst.
 
@@ -2000,9 +1992,29 @@ class Data(DataContainer):
         self.add(sbr=sbr)
         return sbr
 
-    ##
-    # FRET and stoichiometry methods
-    #
+
+    def calc_max_rate(self, m, ph_sel=Ph_sel('all')):
+        """Compute the max m-photon rate reached in each burst.
+
+        Arguments:
+            m (int): number of timestamps to use to compute the rate
+            ph_sel (Ph_sel object): object defining the photon selection.
+                See :class:`fretbursts.ph_sel.Ph_sel` for details.
+        """
+        if ph_sel == Ph_sel('all'):
+            Max_Rate = [b_rate_max(ph=ph, m=m, mburst=mb)
+                    for ph, mb in zip(self.iter_ph_times(), self.mburst)]
+        else:
+            Max_Rate = [b_rate_max(ph=ph, m=m, mburst=mb, mask=mask)
+                    for ph, mask, mb in zip(self.iter_ph_times(),
+                                            self.iter_ph_masks(ph_sel=ph_sel),
+                                            self.mburst)]
+
+        Max_Rate = [mr/self.clk_p - bg[bp] for bp, bg, mr in
+                    zip(self.bp, self.bg_from(ph_sel), Max_Rate)]
+        self.add(max_rate=Max_Rate)
+
+
     def calc_fret(self, count_ph=False, corrections=True, dither=False,
                   mute=False, pure_python=False):
         """Compute FRET (and stoichiometry if ALEX) for each burst.
@@ -2066,7 +2078,7 @@ class Data(DataContainer):
                  E_ax=E_ax, S_ax=S_ax)
 
     ##
-    # Information methods
+    # Methods for measurement info
     #
     def status(self, add="", noname=False):
         """Return a string with burst search, corrections and selection info.
@@ -2102,7 +2114,6 @@ class Data(DataContainer):
         if last_dir is not '':
             name = '_'.join([last_dir, basename])
         return name
-
 
     def Name(self, add=""):
         """Return short filename + status information."""
@@ -2345,5 +2356,4 @@ class Data(DataContainer):
             assert (-np.isnan(E_var[i])).all() # check there is NO NaN
         self.add(E_var=E_var, E_var_bu=E_var_bu, E_var_ph=E_var_ph)
         return E_var
-
 
