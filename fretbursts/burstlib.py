@@ -202,32 +202,51 @@ def ph_rate(m, ph):
     return 1.*m/(ph[m-1:] - ph[:ph.size-m+1])   # rate
 
 def ph_rate_t(m, ph):
-    """Return the mean time for each rate compute by `ph_rate`."""
+    """Return the mean time for each rate computed by `ph_rate`."""
     return 0.5*(ph[m-1:] + ph[:ph.size-m+1])  # time for rate
 
-def ph_select(ph, mburst):
-    """Return bool mask to select all ph inside any burst"""
-    mask = zeros(ph.size, dtype=bool)
-    iBurstStart, iBurstEnd = b_istart(mburst), b_iend(mburst)
-    for istart, iend in zip(iBurstStart, iBurstEnd):
-        mask[istart:iend+1] = True
+##
+# Per-burst quatitites from ph-data arrays (timestamps, lifetime, etc..)
+#
+def iter_bursts_start_stop(bursts):
+    """Iterate over (start, stop) indexes to slice photons for each burst.
+    """
+    arr_istart = b_istart(bursts)
+    arr_iend = b_iend(bursts) + 1
+    for istart, iend in zip(arr_istart, arr_iend):
+        yield istart, iend
+
+def iter_bursts_ph(ph_data, bursts, mask=None):
+    """Iterate over (start, stop) indexes to slice photons for each burst.
+    """
+    for start, stop in iter_bursts_start_stop(bursts):
+        if mask is None:
+            yield ph_data[start:stop]
+        else:
+            yield ph_data[start:stop][mask[start:stop]]
+
+def bursts_ph_list(ph_data, bursts, mask=None):
+    """Returna list of ph-data for each burst.
+
+    ph_data can be either the timestamp array on which the burst search
+    ahs been performed or any other array with same size (boolean array,
+    nanotimes, etc...)
+    """
+    return [ph for ph in iter_bursts_ph(ph_data, bursts, mask=mask)]
+
+def ph_select(ph_data, bursts):
+    """Return bool mask to select all ph inside any burst."""
+    mask = zeros(ph_data.size, dtype=bool)
+    for istart, iend in iter_bursts_start_stop(bursts):
+        mask[istart:iend] = True
     return mask
 
-def mch_ph_select(PH, MBurst):
+def mch_ph_select(ph_data_list, bursts_list):
     """Multi-ch version of ph_select."""
-    Mask = [ph_select(ph, mb) for ph, mb in zip(PH, MBurst)]
-    return Mask
+    mmask = [ph_select(ph, b) for ph, b in zip(ph_data_list, bursts_list)]
+    return mmask
 
-
-def b_ph_times1(b, ph_times, pad=0):
-    """Returns a slice of ph_times inside one burst."""
-    return ph_times[b[iistart]-pad:b[iiend]+pad+1]
-def b_ph_times_v(bursts, ph_times, pad=0):
-    """Returns a list of arrays containing ph_times inside each burst."""
-    PH = [ph_times[b[iistart]-pad:b[iiend]+pad+1] for b in bursts]
-    return PH
-
-def b_rate_max(ph, m, mburst, mask=None):
+def b_rate_max(ph_data, bursts, m, mask=None):
     """Returns the max m-photons rate reached inside each burst.
 
     Arguments
@@ -241,20 +260,23 @@ def b_rate_max(ph, m, mburst, mask=None):
     Return
         Array of max photon rate reached inside each burst.
     """
-    PHB = []
-    for burst in mburst:
-        burst_slice = slice(burst[iistart], burst[iiend] + 1)
-        burst_ph = ph[burst_slice]
-        if mask is not None:
-            burst_ph = burst_ph[mask[burst_slice]]
-            if burst_ph.size < m:
-                PHB.append(None)
-                continue
-        PHB.append(burst_ph)
-    rates_max = np.array(
-        [ph_rate(m=m, ph=phb).max() if phb is not None else 0 for phb in PHB]
-        )
-    return rates_max
+    burst_rates = []
+    for burst_ph in iter_bursts_ph(ph_data, bursts, mask=mask):
+        if burst_ph.size < m:
+            burst_rates.append(None)
+        else:
+            burst_rates.append(ph_rate(m=m, ph=burst_ph).max())
+    # np.asfarray converts None to nan
+    return np.asfarray(burst_rates)
+
+
+def b_ph_times1(b, ph_times, pad=0):
+    """Returns a slice of ph_times inside one burst."""
+    return ph_times[b[iistart]-pad:b[iiend]+pad+1]
+def b_ph_times_v(bursts, ph_times, pad=0):
+    """Returns a list of arrays containing ph_times inside each burst."""
+    PH = [ph_times[b[iistart]-pad:b[iiend]+pad+1] for b in bursts]
+    return PH
 
 def b_irange(bursts, b_index, pad=0):
     """Returns range of indices of ph_times inside one burst"""
@@ -2008,10 +2030,10 @@ class Data(DataContainer):
                 See :class:`fretbursts.ph_sel.Ph_sel` for details.
         """
         if ph_sel == Ph_sel('all'):
-            Max_Rate = [b_rate_max(ph=ph, m=m, mburst=mb)
+            Max_Rate = [b_rate_max(ph_data=ph, m=m, mburst=mb)
                     for ph, mb in zip(self.iter_ph_times(), self.mburst)]
         else:
-            Max_Rate = [b_rate_max(ph=ph, m=m, mburst=mb, mask=mask)
+            Max_Rate = [b_rate_max(ph_data=ph, m=m, mburst=mb, mask=mask)
                     for ph, mask, mb in zip(self.iter_ph_times(),
                                             self.iter_ph_masks(ph_sel=ph_sel),
                                             self.mburst)]
