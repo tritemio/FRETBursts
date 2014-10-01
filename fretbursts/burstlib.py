@@ -989,6 +989,12 @@ class Data(DataContainer):
         """An array with the number of bursts in each channel."""
         return np.array([mb.shape[0] for mb in self.mburst])
 
+    @property
+    def burst_widths(self):
+        """Arrays of burst duration (s). One array per channel.
+        """
+        return [b_width(mb)*self.clk_p for mb in self.mburst]
+
     def burst_sizes_ich(self, ich=0, gamma=1., gamma1=None, add_naa=False):
         """Return gamma corrected burst sizes for channel `ich`.
 

@@ -36,6 +36,8 @@ List of :class:`Data` methods that output basic information.
 
     .. automethod:: burst_sizes_ich
 
+    .. autoattribute:: burst_widths
+
     .. automethod:: status
 
     .. automethod:: name
