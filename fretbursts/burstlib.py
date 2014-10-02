@@ -1021,10 +1021,8 @@ class Data(DataContainer):
     def iter_bursts_ph(self, ich=0):
         """Iterate over (start, stop) indexes to slice photons for each burst.
         """
-        arr_istart = b_istart(self.mburst[ich])
-        arr_iend = b_iend(self.mburst[ich]) + 1
-        for istart, iend in zip(arr_istart, arr_iend):
-            yield istart, iend
+        for istart, istop in iter_bursts_start_stop(self.mburst[ich]):
+            yield istart, istop
 
     def bursts_slice(self, N1=0, N2=-1):
         """Return new Data object with bursts between `N1` and `N2`
