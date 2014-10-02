@@ -290,7 +290,7 @@ def test_burst_ph_data_functions(data):
 
         bistart = bl.b_istart(bursts)
         biend = bl.b_iend(bursts)
-        bursts_mask = bl.ph_in_bursts_mask(ph, bursts)
+        bursts_mask = bl.ph_in_bursts_mask(ph.size, bursts)
         for i, (start, stop) in enumerate(bl.iter_bursts_start_stop(bursts)):
             assert bursts_mask[start:stop].all()
             if start > 0:
@@ -307,7 +307,7 @@ def test_ph_in_bursts(data):
     for ich in range(d.nch):
         ph_in_bursts = d.ph_in_bursts_ich(ich)
         ph_in_bursts_dd = d.ph_in_bursts_ich(ich, ph_sel=Ph_sel(Dex='Dem'))
-        assert ph_in_bursts_dd.size < ph_in_bursts
+        assert ph_in_bursts_dd.size < ph_in_bursts.size
 
 def test_burst_fuse(data):
     """Test 2 independent implementations of fuse_bursts for consistency.
@@ -326,7 +326,7 @@ def test_burst_fuse_0ms(data):
 
     df = d.fuse_bursts(ms=0)
     for ph, mb in zip(df.ph_times_m, df.mburst):
-        m = bl.ph_in_bursts(ph, mb)
+        m = bl.ph_in_bursts_mask(ph.size, mb)
         assert m.sum() == bl.b_size(mb).sum()
 
 def test_burst_fuse_separation(data):
