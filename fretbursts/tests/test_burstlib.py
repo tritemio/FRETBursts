@@ -290,7 +290,7 @@ def test_burst_ph_data_functions(data):
 
         bistart = bl.b_istart(bursts)
         biend = bl.b_iend(bursts)
-        bursts_mask = bl.ph_in_bursts(ph, bursts)
+        bursts_mask = bl.ph_in_bursts_mask(ph, bursts)
         for i, (start, stop) in enumerate(bl.iter_bursts_start_stop(bursts)):
             assert bursts_mask[start:stop].all()
             if start > 0:
@@ -299,6 +299,15 @@ def test_burst_ph_data_functions(data):
             if stop < ph.size:
                 if i < bistart.size-1 and bistart[i+1] > biend[i] + 1:
                     assert not bursts_mask[stop]
+
+def test_ph_in_bursts(data):
+    """Tests the ph_in_bursts methd.
+    """
+    d = data
+    for ich in range(d.nch):
+        ph_in_bursts = d.ph_in_bursts_ich(ich)
+        ph_in_bursts_dd = d.ph_in_bursts_ich(ich, ph_sel=Ph_sel(Dex='Dem'))
+        assert ph_in_bursts_dd.size < ph_in_bursts
 
 def test_burst_fuse(data):
     """Test 2 independent implementations of fuse_bursts for consistency.
