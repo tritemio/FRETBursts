@@ -824,6 +824,7 @@ class Data(DataContainer):
             ph_sel (Ph_sel object): object defining the photon selection.
                 See :class:`fretbursts.ph_sel.Ph_sel` for details.
         """
+        assert type(ich) == int
         ph_sel = self._check_ph_sel(ph_sel)
 
         # This is the only case in which Aex='DAem' for non-ALEX data is OK
