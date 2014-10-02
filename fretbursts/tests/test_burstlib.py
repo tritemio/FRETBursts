@@ -300,8 +300,8 @@ def test_burst_ph_data_functions(data):
                 if i < bistart.size-1 and bistart[i+1] > biend[i] + 1:
                     assert not bursts_mask[stop]
 
-def test_ph_in_bursts(data):
-    """Tests the ph_in_bursts methd.
+def test_ph_in_bursts_ich(data):
+    """Tests the ph_in_bursts_ich method.
     """
     d = data
     for ich in range(d.nch):
@@ -325,9 +325,9 @@ def test_burst_fuse_0ms(data):
     d = data
 
     df = d.fuse_bursts(ms=0)
-    for ph, mb in zip(df.ph_times_m, df.mburst):
-        m = bl.ph_in_bursts_mask(ph.size, mb)
-        assert m.sum() == bl.b_size(mb).sum()
+    for ich, bursts in enumerate(df.mburst):
+        mask = bl.ph_in_bursts_mask(df.ph_data_sizes[ich], bursts)
+        assert mask.sum() == bl.b_size(bursts).sum()
 
 def test_burst_fuse_separation(data):
     """Test that after fusing bursts the minimum separation is equal
