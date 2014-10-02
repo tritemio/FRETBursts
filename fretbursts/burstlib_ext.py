@@ -59,6 +59,30 @@ import fret_fit
 import mfit
 
 
+def calc_mean_lifetime(dx, t1=0, t2=np.inf, ph_sel=Ph_sel('all')):
+    """Compute the mean lifetime in each burst.
+
+    Arguments:
+        t1, t2 (floats): min and max value (in TCSPC bin units) for the
+            nanotime to be included in the mean
+        ph_sel (Ph_sel object): object defining the photon selection.
+            See :class:`fretbursts.ph_sel.Ph_sel` for details.
+
+    Returns:
+        List of arrays of per-burst mean lifetime. One array per channel.
+    """
+    mean_lifetimes = []
+
+    for bursts, mask, nanot in zip(dx.mburst, dx.nanotime,
+                                  dx.iter_ph_masks(ph_sel)):
+        # Select photons in ph_sel AND with nanotime in [t1, t2]
+        mask *= (nanot > t1)*(nanot < t2)
+        mean_lifetimes.append(
+            burstlib.burst_ph_stats(nanot, bursts, mask, func=np.mean))
+
+    return mean_lifetimes
+
+
 def _store_bg_data(store, base_name, min_ph_delays_us, best_bg, best_th,
                    BG_data, BG_data_e):
     if not base_name.endswith('/'):
