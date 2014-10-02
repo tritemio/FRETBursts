@@ -114,12 +114,14 @@ def hdf5(fname):
         if not d.ALEX:
             mapping = {'timestamps': 'ph_times_m', 'detectors': 'A_em',
                        'nanotimes': 'nanotimes', 'particles': 'particles'}
+            ich = 0  # Created a 1-element list for each field
         else:
             mapping = {'timestamps': 'ph_times_t', 'detectors': 'det_t',
                        'nanotimes': 'nanotimes_t', 'particles': 'particles_t'}
+            ich = None  # don't warp the arrays in a list
         for name, dest_name in mapping.items():
             if name in ph_group:
-                loader.load_data(ph_group, name, dest_name=dest_name, ich=0)
+                loader.load_data(ph_group, name, dest_name=dest_name, ich=ich)
 
         if 'detectors_specs' in ph_group:
             det_specs = ph_group.detectors_specs

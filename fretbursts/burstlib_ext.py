@@ -404,7 +404,7 @@ def histogram_mdelays(d, ich=0, m=10, period=None, ph_sel=Ph_sel('all'),
     if bursts:
         if period is not None:
             print "WARNING: the burst-ph histogram is built from all periods"
-        ph_in_bursts = d.ph_in_bursts(ich=ich, ph_sel=ph_sel)
+        ph_in_bursts = d.ph_in_bursts_ich(ich=ich, ph_sel=ph_sel)
         phb_mdelays = np.diff(ph_in_bursts[::m])*d.clk_p
 
     # Compute the histogram
