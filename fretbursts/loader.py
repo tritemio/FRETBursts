@@ -210,6 +210,10 @@ def hdf5_legacy(fname):
         params['A_em'] = PyTablesList(data_file,
                                       group_name='acceptor_emission',
                                       load_array=True)
+        if params['nch'] == 1:
+            # probably a 1-spot non-ALEX simulation
+            params['ph_times_m'] = [params['ph_times_m'][0]]
+            params['A_em'] = [params['A_em'][0]]
     elif params['nch'] == 1:
         # Single-spot ALEX
         ph_times_t = data_file.root.timestamps_t.read()
