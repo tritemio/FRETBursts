@@ -35,8 +35,6 @@ _fields_meta = dict(
                          'emission period of us-ALEX measurements'),
     alex_period_acceptor = ('Start and stop values identifying the acceptor '
                             'emission period of us-ALEX measurements'),
-    nanotimes_unit = 'TCSPC time bin duration in seconds.',
-
     # Photon-data
     photon_data = ('Group containing arrays of photon-data (one element per '
                    'photon)'),
@@ -52,7 +50,7 @@ _fields_meta = dict(
     polariz_perp = 'Detectors for polarization perpendicular to excitation',
 
     nanotimes_specs =  'Group for nanotime-specific data.',
-    tcspc_bin = 'TCSPC time bin duration in seconds.',
+    tcspc_bin = 'TCSPC time bin duration in seconds (nanotimes unit).',
     tcspc_nbins = 'Number of TCSPC bins.',
     tcspc_range = 'TCSPC full-scale range in seconds.',
 )

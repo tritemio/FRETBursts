@@ -98,9 +98,6 @@ def hdf5(fname):
         loader.load_data('/', 'alex_period_donor')
         loader.load_data('/', 'alex_period_acceptor')
 
-    if d.lifetime:
-        loader.load_data('/', 'nanotime_unit')
-
     if _is_basic_layout(data_file):
         ph_group = data_file.root.photon_data
 
