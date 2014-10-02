@@ -157,15 +157,18 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None):
         # Single-spot: using "basic layout"
         ph_group = writer.add_group('/', 'photon_data')
 
-        for field in ['timestamps', 'detectors']:
-            writer.add_carray(ph_group, field)
-
-        # If present save detector_specs
-        if 'det_donor_accept' in d:
+        if d.ALEX:
+            for field in ['timestamps', 'detectors']:
+                writer.add_carray(ph_group, field)
             donor, accept = d.det_donor_accept
-            det_group = writer.add_group(ph_group, 'detectors_specs')
-            writer.add_array(det_group, 'donor', obj=donor)
-            writer.add_array(det_group, 'acceptor', obj=accept)
+        else:
+            writer.add_carray(ph_group, 'timestamps', obj=d.ph_times_m[0])
+            writer.add_carray(ph_group, 'detectors', obj=d.A_em[0])
+            donor, accept = 0, 1
+
+        det_group = writer.add_group(ph_group, 'detectors_specs')
+        writer.add_array(det_group, 'donor', obj=donor)
+        writer.add_array(det_group, 'acceptor', obj=accept)
 
         # If present save nanotime data
         if d.lifetime:
@@ -175,7 +178,7 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None):
                 writer.add(nt_group, spec, obj=d.nanotime_params[spec])
 
         if 'par' in d:
-            writer.add_carray(ph_group, 'particles')
+            writer.add_carray(ph_group, 'particles', obj=d.par[0])
 
     else:
         # Multi-spot: using "multi-spot layout"

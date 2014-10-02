@@ -111,11 +111,15 @@ def hdf5(fname):
 
     if d.nch == 1:
         # load single-spot data from "basic layout"
-        loader.load_data(ph_group, 'timestamps')
-
-        for ph_data in ['detectors', 'nanotimes', 'particles']:
-            if ph_data in ph_group:
-                loader.load_data(ph_group, ph_data)
+        if not d.ALEX:
+            mapping = {'timestamps': 'ph_times_m', 'detectors': 'A_em',
+                       'nanotimes': 'nanotimes', 'particles': 'particles'}
+        else:
+            mapping = {'timestamps': 'ph_times_t', 'detectors': 'det_t',
+                       'nanotimes': 'nanotimes_t', 'particles': 'particles_t'}
+        for name, dest_name in mapping.items():
+            if name in ph_group:
+                loader.load_data(ph_group, name, dest_name=dest_name, ich=0)
 
         if 'detectors_specs' in ph_group:
             det_specs = ph_group.detectors_specs
