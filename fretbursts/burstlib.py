@@ -242,7 +242,7 @@ def burst_ph_stats(ph_data, bursts, mask, func=np.mean):
         stats.append(func(burst_ph))
     return np.asfarray(stats)
 
-def ph_in_bursts(ph_data_size, bursts):
+def ph_in_bursts_mask(ph_data_size, bursts):
     """Return bool mask to select all "ph-data" inside any burst."""
     mask = zeros(ph_data_size, dtype=bool)
     for start, stop in iter_bursts_start_stop(bursts):
@@ -1181,7 +1181,8 @@ class Data(DataContainer):
             Boolean array for photons in channel `ich` and photon
             selection `ph_sel` that are inside any burst.
         """
-        bursts_mask = ph_in_bursts(self.ph_data_sizes[ich], self.mburst[ich])
+        bursts_mask = ph_in_bursts_mask(self.ph_data_sizes[ich],
+                                        self.mburst[ich])
         if ph_sel == Ph_sel('all'):
             return bursts_mask
         else:
