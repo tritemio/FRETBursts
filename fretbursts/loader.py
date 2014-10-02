@@ -130,16 +130,16 @@ def hdf5(fname):
 
         if 'nanotimes_specs' in ph_group:
             nanot_specs = ph_group.nanotimes_specs
-            nanotime_params = {}
+            nanotimes_params = {}
             for name in ['tcspc_bin', 'tcspc_nbins', 'tcspc_range']:
                 value = nanot_specs._f_get_child(name).read()
-                nanotime_params.update(**{name: value})
+                nanotimes_params.update(**{name: value})
             for name in ['tau_accept_only', 'tau_donor_only',
                          'tau_fret_trans']:
                 if name in nanot_specs:
                     value = nanot_specs._f_get_child(name).read()
-                    nanotime_params.update(**{name: value})
-            d.add(nanotime_params=nanotime_params)
+                    nanotimes_params.update(**{name: value})
+            d.add(nanotimes_params=nanotimes_params)
 
     else:
         # Load multi-spot data from multi-spot layout
@@ -232,15 +232,15 @@ def hdf5_legacy(fname):
         d.add(par=par)
 
     if '/nanotime' in data_file:
-        nanotime = data_file.get_node('/nanotime').read()
-        d.add(nanotime=nanotime)
+        nanotimes = data_file.get_node('/nanotime').read()
+        d.add(nanotimes=nanotimes)
 
     if '/nanotime_params' in data_file:
-        nanotime_params = dict()
+        nanotimes_params = dict()
         nanot_group = data_file.get_node('/nanotime_params')
         for node in nanot_group._f_list_nodes():
-            nanotime_params[node.name] = node.read()
-        d.add(nanotime_params=nanotime_params)
+            nanotimes_params[node.name] = node.read()
+        d.add(nanotimes_params=nanotimes_params)
 
     d.add(data_file=data_file)
     return d
@@ -502,16 +502,16 @@ def nsalex(fname, leakage=0, gamma=1.):
     Now `d` is ready for futher processing such as background estimation,
     burst search, etc...
     """
-    ph_times_t, det_t, nanotime = load_spc(fname)
+    ph_times_t, det_t, nanotimes = load_spc(fname)
 
     DONOR_ON = (10, 1500)
     ACCEPT_ON = (2000, 3500)
-    nanotime_fsr = 4095
+    nanotimes_nbins = 4095
 
     dx = Data(fname=fname, clk_p=50e-9, nch=1, ALEX=True, nsALEX=True,
               D_ON=DONOR_ON, A_ON=ACCEPT_ON,
-              nanotime_fsr=nanotime_fsr,
-              ph_times_t=ph_times_t, det_t=det_t, nanotime_t=nanotime,
+              nanotimes_nbins=nanotimes_nbins,
+              ph_times_t=ph_times_t, det_t=det_t, nanotimes_t=nanotimes,
               det_donor_accept=(4, 6),
               )
     return dx
@@ -546,16 +546,16 @@ def nsalex_apply_period(d, delete_ph_t=True):
     da_ch_mask_t = d_ch_mask_t + a_ch_mask_t
 
     # Masks for excitation periods
-    d_ex_mask_t = (d.nanotime_t > d.D_ON[0]) * (d.nanotime_t < d.D_ON[1])
-    a_ex_mask_t = (d.nanotime_t > d.A_ON[0]) * (d.nanotime_t < d.A_ON[1])
+    d_ex_mask_t = (d.nanotimes_t > d.D_ON[0]) * (d.nanotimes_t < d.D_ON[1])
+    a_ex_mask_t = (d.nanotimes_t > d.A_ON[0]) * (d.nanotimes_t < d.A_ON[1])
     ex_mask_t = d_ex_mask_t + a_ex_mask_t  # Select only ph during Dex or Aex
 
     # Total mask: D+A photons, and only during the excitation periods
     mask = da_ch_mask_t * ex_mask_t  # logical AND
 
-    # Apply selection to timestamps and nanotime
+    # Apply selection to timestamps and nanotimes
     ph_times = d.ph_times_t[mask]
-    nanotime = d.nanotime_t[mask]
+    nanotimes = d.nanotimes_t[mask]
 
     # Apply selection to the emission masks
     d_em = d_ch_mask_t[mask]
@@ -569,11 +569,11 @@ def nsalex_apply_period(d, delete_ph_t=True):
     assert (d_ex + a_ex).all()
     assert not (d_ex * a_ex).any()
 
-    d.add(ph_times_m=[ph_times], nanotime=nanotime,
+    d.add(ph_times_m=[ph_times], nanotimes=nanotimes,
           D_em=[d_em], A_em=[a_em], D_ex=[d_ex], A_ex=[a_ex],)
 
     if delete_ph_t:
         d.delete('ph_times_t')
         d.delete('det_t')
-        d.delete('nanotime_t')
+        d.delete('nanotimes_t')
 

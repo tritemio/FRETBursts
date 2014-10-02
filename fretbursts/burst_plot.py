@@ -173,11 +173,11 @@ def plot_alternation_hist(d, bins=100, **kwargs):
     legend(loc='best')
 
 def plot_alternation_hist_nsalex(d):
-    nanotime_d = d.nanotime_t[d.det_t == d.det_donor_accept[0]]
-    nanotime_a = d.nanotime_t[d.det_t == d.det_donor_accept[1]]
-    hist(nanotime_d, bins=np.arange(4096), histtype='step', lw=1.2,
+    nanotimes_d = d.nanotimes_t[d.det_t == d.det_donor_accept[0]]
+    nanotimes_a = d.nanotimes_t[d.det_t == d.det_donor_accept[1]]
+    hist(nanotimes_d, bins=np.arange(4096), histtype='step', lw=1.2,
          alpha=0.5, color='g', label='Donor')
-    hist(nanotime_a, bins=np.arange(4096), histtype='step', lw=1.2,
+    hist(nanotimes_a, bins=np.arange(4096), histtype='step', lw=1.2,
          alpha=0.5, color='r', label='Acceptor')
     plt.yscale('log')
     plt.axvspan(d.D_ON[0], d.D_ON[1], color='g', alpha=0.1)

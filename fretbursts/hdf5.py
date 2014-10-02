@@ -126,7 +126,7 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None):
     """
     comp_filter = tables.Filters(**compression)
     if 'lifetime' not in d:
-        d.add(lifetime='nanotime' in d)
+        d.add(lifetime='nanotimes' in d)
 
     if h5_fname is None:
         basename, extension = os.path.splitext(d.fname)
@@ -172,10 +172,10 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None):
 
         # If present save nanotime data
         if d.lifetime:
-            writer.add_carray(ph_group, 'nanotime')
-            nt_group = writer.add_group(ph_group, 'nanotime_specs')
+            writer.add_carray(ph_group, 'nanotimes')
+            nt_group = writer.add_group(ph_group, 'nanotimes_specs')
             for spec in ['tcspc_bin', 'tcspc_nbins', 'tcspc_range']:
-                writer.add(nt_group, spec, obj=d.nanotime_params[spec])
+                writer.add_array(nt_group, spec, obj=d.nanotimes_params[spec])
 
         if 'par' in d:
             writer.add_carray(ph_group, 'particles', obj=d.par[0])
