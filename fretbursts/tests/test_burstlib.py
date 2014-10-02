@@ -23,9 +23,9 @@ DATASETS_DIR = u'notebooks/data/'
 
 
 def load_dataset_1ch():
-    fn = "0023uLRpitc_NTP_20dT_0.5GndCl.sm"
+    fn = "0023uLRpitc_NTP_20dT_0.5GndCl.hdf5"
     fname = DATASETS_DIR + fn
-    d = loader.usalex(fname=fname, leakage=0.11, gamma=1.)
+    d = loader.hdf5(fname=fname)
     d.add(det_donor_accept=(0, 1), alex_period=4000,
           D_ON=(2850, 580), A_ON=(900, 2580))
     loader.usalex_apply_period(d)
