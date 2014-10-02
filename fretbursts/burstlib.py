@@ -242,9 +242,9 @@ def burst_ph_stats(ph_data, bursts, mask, func=np.mean):
         stats.append(func(burst_ph))
     return np.asfarray(stats)
 
-def ph_in_bursts(ph_data, bursts):
+def ph_in_bursts(ph_data_size, bursts):
     """Return bool mask to select all "ph-data" inside any burst."""
-    mask = zeros(ph_data.size, dtype=bool)
+    mask = zeros(ph_data_size, dtype=bool)
     for start, stop in iter_bursts_start_stop(bursts):
         mask[start:stop] = True
     return mask
@@ -777,6 +777,16 @@ class Data(DataContainer):
         else:
             return m
 
+    @property
+    def ph_data_sizes(self):
+        """Array of total number of photons (ph-data) for each channel.
+        """
+        if not hasattr(self, '_ph_data_sizes'):
+            # This works both for numpy arrays and pytables list of arrays
+            self._ph_data_sizes = np.array([ph.shape[0] for ph in
+                                                            self.ph_times_m])
+        return self._ph_data_sizes
+
     def iter_ph_masks(self, ph_sel=Ph_sel('all')):
         """Iterator returning masks for `ph_sel` photons.
 
@@ -961,12 +971,12 @@ class Data(DataContainer):
 
     @property
     def num_bursts(self):
-        """An array with the number of bursts in each channel."""
+        """Array of number of bursts in each channel."""
         return np.array([mb.shape[0] for mb in self.mburst])
 
     @property
     def burst_widths(self):
-        """Arrays of burst duration (s). One array per channel.
+        """List of arrays of burst duration in seconds. One array per channel.
         """
         return [b_width(mb)*self.clk_p for mb in self.mburst]
 
@@ -1164,25 +1174,30 @@ class Data(DataContainer):
         else:
             raise ValueError("No timestamps or bursts found.")
 
-    def ph_in_bursts(self, ph_sel=Ph_sel('all')):
-        """Return masks of ph inside bursts for all the channels."""
-        return [self.ph_in_bursts_ich(ich) for ich in range(self.nch)]
-
-    def ph_in_bursts_ich(self, ich=0, ph_sel=Ph_sel('all')):
-        """Return photons inside bursts.
+    def ph_in_bursts_mask_ich(self, ich=0, ph_sel=Ph_sel('all')):
+        """Return mask of all photons inside bursts for channel `ich`.
 
         Returns
-            Array photon timestamps in channel `ich` and photon
-            selection `ph_sel` that are inside bursts.
+            Boolean array for photons in channel `ich` and photon
+            selection `ph_sel` that are inside any burst.
         """
-        ph_all = self.get_ph_times(ich=ich)
-        bursts_mask = ph_in_bursts(ph_all, self.mburst[ich])
+        bursts_mask = ph_in_bursts(self.ph_data_sizes[ich], self.mburst[ich])
         if ph_sel == Ph_sel('all'):
-            return ph_all[bursts_mask]
+            return bursts_mask
         else:
             ph_sel_mask = self.get_ph_mask(ich=ich, ph_sel=ph_sel)
-            return ph_all[ph_sel_mask*bursts_mask]
+            return ph_sel_mask*bursts_mask
 
+    def ph_in_bursts_ich(self, ich=0, ph_sel=Ph_sel('all')):
+        """Return timestamps of photons inside bursts for channel `ich`.
+
+        Returns
+            Array of photon timestamps in channel `ich` and photon
+            selection `ph_sel` that are inside any burst.
+        """
+        ph_all = self.get_ph_times(ich=ich)
+        bursts_mask = self.ph_in_bursts_mask_ich(ich, ph_sel)
+        return ph_all[bursts_mask]
 
     ##
     # Background analysis methods

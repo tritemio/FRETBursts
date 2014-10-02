@@ -30,6 +30,8 @@ List of :class:`Data` methods that output basic information.
 
     .. automethod:: time_max
 
+    .. autoattribute:: ph_data_sizes
+
     .. autoattribute:: num_bursts
 
     .. automethod:: burst_sizes
@@ -37,6 +39,10 @@ List of :class:`Data` methods that output basic information.
     .. automethod:: burst_sizes_ich
 
     .. autoattribute:: burst_widths
+
+    .. automethod:: ph_in_bursts_ich
+
+    .. automethod:: ph_in_bursts_mask_ich
 
     .. automethod:: status
 
