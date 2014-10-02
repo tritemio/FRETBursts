@@ -72,6 +72,11 @@ hdf5_data_map.update(
             )
 
 class H5Writer():
+    """Helper class for writing fields of a Data() object in HDF5.
+
+    It uses the global mapping and meta-data dictionaries defined above
+    to retrive the field content and the description from the field name.
+    """
 
     def __init__(self, h5file, data, comp_filter):
         self.h5file = h5file
@@ -101,7 +106,6 @@ class H5Writer():
                                         title=_fields_meta[metakey])
 
 
-
 def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None):
     """
     Saves the `Data` object `d` in the HDF5-Ph-Data format.
@@ -127,6 +131,9 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None):
     if h5_fname is None:
         basename, extension = os.path.splitext(d.fname)
         h5_fname = basename + '.hdf5'
+        if d.fname == h5_fname:
+            h5_fname = basename + '_new_copy.hdf5'
+
     data_file = tables.open_file(h5_fname, mode = "w",
                                  title = "Confocal smFRET data")
     writer = H5Writer(data_file, d, comp_filter)
