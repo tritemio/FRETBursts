@@ -213,8 +213,8 @@ def iter_bursts_start_stop(bursts):
     """
     arr_istart = b_istart(bursts)
     arr_iend = b_iend(bursts) + 1
-    for istart, iend in zip(arr_istart, arr_iend):
-        yield istart, iend
+    for istart, istop in zip(arr_istart, arr_iend):
+        yield istart, istop
 
 def iter_bursts_ph(ph_data, bursts, mask=None):
     """Iterate over (start, stop) indexes to slice photons for each burst.
@@ -229,16 +229,24 @@ def bursts_ph_list(ph_data, bursts, mask=None):
     """Returna list of ph-data for each burst.
 
     ph_data can be either the timestamp array on which the burst search
-    ahs been performed or any other array with same size (boolean array,
+    has been performed or any other array with same size (boolean array,
     nanotimes, etc...)
     """
     return [ph for ph in iter_bursts_ph(ph_data, bursts, mask=mask)]
 
+def burst_ph_stats(ph_data, bursts, mask, func=np.mean):
+    """Compute a function `func` for "ph-data" of each burst.
+    """
+    stats = []
+    for burst_ph in iter_bursts_ph(ph_data, bursts, mask=mask):
+        stats.append(func(burst_ph))
+    return np.asfarray(stats)
+
 def ph_in_bursts(ph_data, bursts):
     """Return bool mask to select all "ph-data" inside any burst."""
     mask = zeros(ph_data.size, dtype=bool)
-    for istart, iend in iter_bursts_start_stop(bursts):
-        mask[istart:iend] = True
+    for start, stop in iter_bursts_start_stop(bursts):
+        mask[start:stop] = True
     return mask
 
 def b_rate_max(ph_data, bursts, m, mask=None):
@@ -443,26 +451,6 @@ def mch_fuse_bursts(MBurst, ms=0, clk_p=12.5e-9, verbose=True):
         new_bursts = fuse_bursts_iter(mb, ms=ms, clk_p=clk_p, verbose=verbose)
         new_mburst.append(new_bursts)
     return new_mburst
-
-def stat_burst(d, ich=0, fun=np.mean):
-    """Compute a per-ch statistics (`fun`) for bursts.
-    """
-    tstart, width, num_ph, istart = 0, 1, 2, 3
-    statg, statr = zeros(d.mburst[ich].shape[0]), zeros(d.mburst[ich].shape[0])
-    statt = zeros(d.mburst[ich].shape[0])
-    for i, b in enumerate(d.mburst[ich]):
-        burst_slice = slice(b[istart], b[istart]+b[num_ph])
-        # Arrival times of (all) ph in burst b
-        ph = d.ph_times_m[ich][burst_slice]
-        # Select only one color ch if requested
-        r_mask = d.A_em[ich][burst_slice]
-        g_mask = -r_mask
-        #if r_mask.sum() == 0 or g_mask.sum() == 0:
-        #    pprint("WARNING: Zero-size bursts.\n")
-        statg[i] = fun(ph[g_mask].astype(float))
-        statr[i] = fun(ph[r_mask].astype(float))
-        statt[i] = fun(ph.astype(float))
-    return statg, statr, statt
 
 def burst_stats(mburst, clk_p=12.5*1e9):
     """Compute average duration, size and burst-delay for bursts in mburst.

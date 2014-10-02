@@ -235,7 +235,6 @@ def test_b_functions(data):
 
         assert (bl.b_end(mb) > bl.b_start(mb)).all()
 
-
 def test_b_end_b_iend(data):
     """Test coherence between b_end() and b_iend()"""
     d = data
@@ -262,6 +261,44 @@ def test_burst_start_end_size(data):
         assert (size == mb[:, bl.inum_ph]).all()
         size2 = bl.b_iend(mb) - bl.b_istart(mb) + 1
         assert (size2 == bl.b_size(mb)).all()
+
+def test_burst_ph_data_functions(data):
+    """Tests the functions that operate on per-burst "ph-data".
+    """
+    d = data
+    for bursts, ph, mask in zip(d.mburst, d.iter_ph_times(),
+                                d.iter_ph_masks(Ph_sel(Dex='Dem'))):
+        bstart = bl.b_start(bursts)
+        bend = bl.b_end(bursts)
+
+        for i, (start, stop) in enumerate(bl.iter_bursts_start_stop(bursts)):
+            assert ph[start] == bstart[i]
+            assert ph[stop-1] == bend[i]
+
+        for i, burst_ph in enumerate(bl.iter_bursts_ph(ph, bursts)):
+            assert burst_ph[0] == bstart[i]
+            assert burst_ph[-1] == bend[i]
+
+        for i, burst_ph in enumerate(bl.iter_bursts_ph(ph, bursts, mask=mask)):
+            if burst_ph.size > 0:
+                assert burst_ph[0] >= bstart[i]
+                assert burst_ph[-1] <= bend[i]
+
+        stats = bl.burst_ph_stats(ph, bursts, mask=mask)
+        assert (stats[~np.isnan(stats)] >= bstart[~np.isnan(stats)]).all()
+        assert (stats[~np.isnan(stats)] <= bend[~np.isnan(stats)]).all()
+
+        bistart = bl.b_istart(bursts)
+        biend = bl.b_iend(bursts)
+        bursts_mask = bl.ph_in_bursts(ph, bursts)
+        for i, (start, stop) in enumerate(bl.iter_bursts_start_stop(bursts)):
+            assert bursts_mask[start:stop].all()
+            if start > 0:
+                if i > 0 and biend[i-1] < bistart[i] - 1:
+                    assert not bursts_mask[start - 1]
+            if stop < ph.size:
+                if i < bistart.size-1 and bistart[i+1] > biend[i] + 1:
+                    assert not bursts_mask[stop]
 
 def test_burst_fuse(data):
     """Test 2 independent implementations of fuse_bursts for consistency.
