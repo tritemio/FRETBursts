@@ -206,7 +206,6 @@ def _plot_bursts(d, i, t_max_clk, pmax=1e3, pmin=0, color="#999999"):
         r = Rectangle(xy=(s,pmin), height=pmax-pmin, width=w)
         r.set_clip_box(ax.bbox); r.set_zorder(0)
         R.append(r)
-    print color
     ax.add_artist(PatchCollection(R, lw=0, color=color))
     pprint("[DONE]\n")
 
