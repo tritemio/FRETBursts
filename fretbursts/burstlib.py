@@ -217,7 +217,7 @@ def iter_bursts_start_stop(bursts):
         yield istart, istop
 
 def iter_bursts_ph(ph_data, bursts, mask=None):
-    """Iterate over (start, stop) indexes to slice photons for each burst.
+    """Iterate over arrays of photon-data for each burst.
     """
     for start, stop in iter_bursts_start_stop(bursts):
         if mask is None:
