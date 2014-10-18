@@ -88,7 +88,7 @@ _ph_sel_label_dict = {Ph_sel('all'): 'All-ph', Ph_sel(Dex='Dem'): 'DexDem',
 _plot_status = {}
 
 # Global store for GUI handlers
-gui_status = {}
+gui_status = {'first_plot_in_figure': True}
 
 
 ##
