@@ -414,8 +414,9 @@ def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
     if iph2 - iph1 > max_num_ph:
         iph2 = iph1 + max_num_ph
         tmax = ph_times[iph2]*d.clk_p
-        warnings.warn(('Reached max number of photons, tmax reduced to %d s.',
-                      '\nFor a wider time range increase `max_num_ph`'),
+        warnings.warn(('Max number of photons reached in ratetrace_single().'
+                       '\n    tmax is reduced to %ds. To plot a wider '
+                       'time range increase `max_num_ph`.') % tmax,
                       UserWarning)
     ph_times = ph_times[iph1:iph2]
     rates = 1e-3*bl.ph_rate(m, ph_times)/d.clk_p
