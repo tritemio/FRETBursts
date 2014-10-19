@@ -38,6 +38,7 @@ To obtain the burst size (number of photons) for the 10-th to 20-th burst::
 
 """
 
+from __future__ import division
 import numpy as np
 from fretbursts.utils.misc import pprint
 
@@ -49,38 +50,38 @@ from fretbursts.utils.misc import pprint
 # Define name for the 6 column indexes in the Nx6 array containing the bursts
 itstart, iwidth, inum_ph, iistart, iiend, itend = 0, 1, 2, 3, 4, 5
 
-# Quick functions for burst data
-def b_start(b):
+# Quick functions for burst data (burst array)
+def b_start(bursts):
     """Time of 1st ph in burst"""
-    return b[:, itstart]
+    return bursts[:, itstart]
 
-def b_end(b):
+def b_end(bursts):
     """Time of last ph in burst"""
-    return b[:, itend]
+    return bursts[:, itend]
 
-def b_width(b):
+def b_width(bursts):
     """Burst width in clk cycles"""
-    return b[:, iwidth]
+    return bursts[:, iwidth]
 
-def b_istart(b):
+def b_istart(bursts):
     """Index of 1st ph in burst"""
-    return b[:, iistart]
+    return bursts[:, iistart]
 
-def b_iend(b):
+def b_iend(bursts):
     """Index of last ph in burst"""
-    return b[:, iiend]
+    return bursts[:, iiend]
 
-def b_size(b):
+def b_size(bursts):
     """Number of ph in the burst"""
-    return b[:, inum_ph]
+    return bursts[:, inum_ph]
 
-def b_ph_rate(b):
+def b_ph_rate(bursts):
     """Photon rate in burst (tot size/duration)"""
-    return 1.*b_size(b)/b_width(b)
+    return b_size(bursts) / b_width(bursts)
 
-def b_separation(b):
+def b_separation(bursts):
     """Separation between nearby bursts"""
-    return b_start(b)[1:] - b_end(b)[:-1]
+    return b_start(bursts)[1:] - b_end(bursts)[:-1]
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  LOW-LEVEL BURST SEARCH FUNCTIONS
@@ -114,7 +115,7 @@ def bsearch_py(t, L, m, T, label='Burst search', verbose=True):
     if verbose: pprint('Python search (v): %s\n' % label)
     bursts = []
     in_burst = False
-    above_min_rate = (t[m-1:]-t[:t.size-m+1])<=T
+    above_min_rate = (t[m-1:] - t[:t.size-m+1]) <= T
     for i in xrange(t.size-m+1):
         if above_min_rate[i]:
             if not in_burst:
@@ -126,7 +127,7 @@ def bsearch_py(t, L, m, T, label='Burst search', verbose=True):
             # Note however that the number of ph in a burst is (i_end-i_start),
             # not (i_end-1)-i_start as may erroneously appears at first glace.
             in_burst = False
-            i_end = i+m-1
+            i_end = i + m - 1
             if i_end - i_start >= L:
                 burst_start, burst_end = t[i_start], t[i_end-1]
                 bursts.append([burst_start, burst_end-burst_start,
@@ -158,11 +159,10 @@ def count_ph_in_bursts_py(bursts, mask):
         A list of 1D arrays, each containing the number of photons in the
         photon selection mask.
     """
-    assert (itstart, iwidth, inum_ph, iistart, iiend, itend) == (0,1,2,3,4,5)
     num_ph = np.zeros(bursts.shape[0], dtype=np.int16)
-    for i,b in enumerate(bursts):
-        # Counts photons between start and end of current burst b
-        num_ph[i] = mask[b[iistart]:b[iiend]+1].sum()
+    for i, burst in enumerate(bursts):
+        # Counts photons between start and end of current `burst`
+        num_ph[i] = mask[ burst[iistart] : burst[iiend]+1 ].sum()
     return num_ph
 
 def mch_count_ph_in_bursts_py(Mburst, Mask):
@@ -182,13 +182,12 @@ def mch_count_ph_in_bursts_py(Mburst, Mask):
         A list of 1D arrays, each containing the number of photons in the
         photon selection mask.
     """
-    assert (itstart, iwidth, inum_ph, iistart, iiend, itend) == (0,1,2,3,4,5)
     Num_ph = []
     for bursts, mask in zip(Mburst, Mask):
         num_ph = np.zeros(bursts.shape[0], dtype=np.int16)
-        for i,b in enumerate(bursts):
-            # Counts photons between start and end of current burst b
-            num_ph[i] = mask[b[iistart]:b[iiend]+1].sum()
+        for i, burst in enumerate(bursts):
+            # Counts photons between start and end of current `burst`
+            num_ph[i] = mask[ burst[iistart] : burst[iiend]+1 ].sum()
             #count_ph_in_bursts(bursts, mask).astype(float)
         Num_ph.append(num_ph.astype(float))
     return Num_ph
@@ -217,7 +216,7 @@ except ImportError:
 ##
 #  Additional functions processing burst data
 
-def burst_and(mburst_d, mburst_a):
+def burst_and(bursts_d, bursts_a):
     """From 2 burst arrays return bursts defined as intersection (AND rule).
 
     The two input burst-arrays come from 2 different burst searches.
@@ -228,20 +227,20 @@ def burst_and(mburst_d, mburst_a):
     by :func:`bsearch_py`.
 
     Arguments:
-        mburst_d (array): burst-array 1
-        mburst_a (array): burst array 2. The number of burst in each of the
+        bursts_d (array): burst-array 1
+        bursts_a (array): burst array 2. The number of burst in each of the
             input array can be different.
 
     Returns:
         Burst-array representing the intersection (AND) of overlapping bursts.
     """
-    bstart_d, bend_d = b_start(mburst_d), b_end(mburst_d)
-    bstart_a, bend_a = b_start(mburst_a), b_end(mburst_a)
+    bstart_d, bend_d = b_start(bursts_d), b_end(bursts_d)
+    bstart_a, bend_a = b_start(bursts_a), b_end(bursts_a)
 
     bursts = []
     burst0 = np.zeros(6, dtype=np.int64)
     i_d, i_a = 0, 0
-    while i_d < mburst_d.shape[0] and i_a < mburst_a.shape[0]:
+    while i_d < bursts_d.shape[0] and i_a < bursts_a.shape[0]:
         # Skip any disjoint burst
         if bend_a[i_a] < bstart_d[i_d]:
             i_a += 1
@@ -252,22 +251,22 @@ def burst_and(mburst_d, mburst_a):
 
         # Assign start and stop according the AND rule
         if bstart_a[i_a] < bstart_d[i_d] < bend_a[i_a]:
-            start_mb = mburst_d[i_d]
+            start_burst = bursts_d[i_d]
         elif bstart_d[i_d] < bstart_a[i_a] < bend_d[i_d]:
-            start_mb = mburst_a[i_a]
+            start_burst = bursts_a[i_a]
 
         if bend_d[i_d] < bend_a[i_a]:
-            end_mb = mburst_d[i_d]
+            end_burst = bursts_d[i_d]
             i_d += 1
         else:
-            end_mb = mburst_a[i_a]
+            end_burst = bursts_a[i_a]
             i_a += 1
 
         burst = burst0.copy()
-        burst[itstart] = start_mb[itstart]
-        burst[iistart] = start_mb[iistart]
-        burst[itend] = end_mb[itend]
-        burst[iiend] = end_mb[iiend]
+        burst[itstart] = start_burst[itstart]
+        burst[iistart] = start_burst[iistart]
+        burst[itend] = end_burst[itend]
+        burst[iiend] = end_burst[iiend]
 
         # Compute new width and size
         burst[iwidth] = burst[itend] - burst[itstart]
