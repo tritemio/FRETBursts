@@ -20,8 +20,8 @@ cdef pprint(s):
     sys.stdout.write(s)
     sys.stdout.flush()
 
-def bsearch_c(np.ndarray[np.int64_t, ndim=1] t, L, m, T, label='burst search',
-              verbose=True):
+def bsearch_c(np.int64_t[:] t, np.int16_t L, np.int16_t m, np.float64_t T,
+              label='burst search', verbose=True):
     """Sliding window burst search. Cython implementation (fastest version).
 
     Finds bursts in the array `t` (int64). A burst starts when the photon rate
@@ -32,10 +32,10 @@ def bsearch_c(np.ndarray[np.int64_t, ndim=1] t, L, m, T, label='burst search',
 
     Arguments:
         t (array, int64): 1D array of timestamps on which to perform the search
-        L (int): minimum number of photons in a bursts. Bursts with size
+        L (int16): minimum number of photons in a bursts. Bursts with size
             (or counts) < L are discarded.
-        m (int): number of consecutive photons used to compute the rate.
-        T (float): max time separation of `m` photons to be inside a burst
+        m (int16): number of consecutive photons used to compute the rate.
+        T (float64): max time separation of `m` photons to be inside a burst
         label (string): a label printed when the function is called
         verbose (bool): if False, the function does not print anything.
 
@@ -47,22 +47,20 @@ def bsearch_c(np.ndarray[np.int64_t, ndim=1] t, L, m, T, label='burst search',
         `b_*` (i.e. :func:`b_start`, :func:`b_size`, :func:`b_width`, etc...).
     """
     cdef int i, i_start, i_end
-    cdef np.int64_t burst_start, burst_end
-    assert t.dtype == np.int64
-    #cdef char in_burst
-    #assert t.dtype == DTYPE
+    cdef np.int64_t burst_start, burst_end, t1, t2
+    cdef np.int8_t[:] above_min_rate = np.empty(t.size - m + 1, dtype='int8')
+    cdef np.int8_t in_burst = False
+
     if verbose: pprint('C Burst search: %s\n' % label)
     bursts = []
-    in_burst = False
-    cdef np.ndarray[np.int8_t, ndim=1] above_min_rate
-    above_min_rate = np.int8(((t[m-1:]-t[:t.size-m+1])<=T))
+
     for i in xrange(t.size-m+1):
-        if above_min_rate[i]:
+        if (t[i+m-1] - t[i]) <= T:
             if not in_burst:
                 i_start = i
-                in_burst = True
+                in_burst = 1
         elif in_burst:
-            in_burst = False
+            in_burst = 0
             i_end = i+m-1
             if i_end - i_start >= L:
                 burst_start, burst_end = t[i_start], t[i_end-1]
