@@ -135,12 +135,28 @@ def dir_ex_uncorrect_E(E, dir_ex_t):
         E = np.asarray(E)
     return (E + dir_ex_t) / (dir_ex_t + 1)
 
-def correct_S(Sr, nd, na, naa, gamma, d_exAA, Lk):
+def correct_S(Sraw, nd, naa, gamma, d_exAA, Lk):
     """Correct S values for gamma, leakage and direct excitation.
+
+    Arguments:
+        Sraw (scalar or array): uncorrected ("raw") S after background
+            correction, but no gamma, leakage or direct excitation.
+        nd (scalar or array): donor counts during donor excitation
+            (background corrected).
+        naa (scalar or array): acceptor counts during acceptor excitation
+            (background corrected)
+        gamma (float): gamma factor
+        leakage (float): leakage coefficient
+        dir_exAA (float): coefficient expressing the direct excitation as
+            function of the acceptor counts during acceptor excitation:
+            n_dir = dir_exAA * naa.
+
+    Returns
+        Corrected S (stoichiometry), same size as `Sraw`.
     """
     x = nd - gamma*nd + d_exAA*naa
-    y = Lk*Sr*nd - Lk*nd
-    return (Sr*naa + x*(Sr - 1) + y)/(naa + x*(Sr - 1) + y)
+    y = Lk*Sraw*nd - Lk*nd
+    return (Sraw*naa + x*(Sraw - 1) + y)/(naa + x*(Sraw - 1) + y)
 
 
 def test_fretmath():
