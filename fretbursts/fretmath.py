@@ -8,8 +8,8 @@
 The `fretmath` module contains functions to compute corrected FRET efficiency
 from the proximity ratio and vice-versa.
 
-For derivation see notebook: "Algebra of FRET corrections.ipynb"
-(`link <http://nbviewer.ipython.org/github/tritemio/notebooks/blob/master/Algebra_of_FRET_corrections.ipynb>`__).
+For derivation see notebook: "Derivation of FRET and S correction formulas.ipynb"
+(`link <http://nbviewer.ipython.org/github/tritemio/notebooks/blob/master/Derivation%20of%20FRET%20and%20S%20correction%20formulas.ipynb>`__).
 
 """
 
@@ -135,6 +135,12 @@ def dir_ex_uncorrect_E(E, dir_ex_t):
         E = np.asarray(E)
     return (E + dir_ex_t) / (dir_ex_t + 1)
 
+def correct_S(Sr, nd, na, naa, gamma, d_exAA, Lk):
+    """Correct S values for gamma, leakage and direct excitation.
+    """
+    x = nd - gamma*nd + d_exAA*naa
+    y = Lk*Sr*nd - Lk*nd
+    return (Sr*naa + x*(Sr - 1) + y)/(naa + x*(Sr - 1) + y)
 
 
 def test_fretmath():
