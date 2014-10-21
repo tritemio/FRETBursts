@@ -6,6 +6,10 @@ FRETBursts
 Project description
 -------------------
 
+<div style="float: right; margin-left: 30px;">
+<img title="FRETBurst generated ALEX histogram"style="float: right; margin-left: 30px;" src="http://i.imgur.com/My7rWc2.png" align=right height = 340 />
+</div>
+
 **[FRETBursts](https://github.com/tritemio/FRETBursts)** is a
 software toolkit for burst analysis of confocal
 [single-molecule FRET](http://en.wikipedia.org/wiki/Single-molecule_FRET)
