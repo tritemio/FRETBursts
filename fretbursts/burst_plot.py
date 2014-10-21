@@ -768,14 +768,16 @@ def hist_burst_data(d, i=0, data_name='E', ax=None, binw=0.03, bins=None,
         else:
             ax.plot(fitter.hist_axis, hist_vals, **hist_plot_style_)
 
-    if show_model:
-        model_plot_style_ = dict(color='k', alpha=0.8, label='Model')
-        model_plot_style_.update(**_normalize_kwargs(model_plot_style,
-                                                     kind='line2d'))
+    if show_model or show_kde:
         if pdf:
             scale = 1
         else:
             scale = fitter.hist_bin_width * d.num_bursts[i]
+
+    if show_model:
+        model_plot_style_ = dict(color='k', alpha=0.8, label='Model')
+        model_plot_style_.update(**_normalize_kwargs(model_plot_style,
+                                                     kind='line2d'))
         fit_res = fitter.fit_res[i]
         x = fitter.x_axis
         y = scale*fit_res.model.eval(x=x, **fit_res.values)
@@ -798,7 +800,7 @@ def hist_burst_data(d, i=0, data_name='E', ax=None, binw=0.03, bins=None,
                                label='KDE')
         kde_plot_style_.update(**_normalize_kwargs(kde_plot_style,
                                                    kind='line2d'))
-        y = fitter.kde[i](x)
+        y = scale*fitter.kde[i](x)
         xx, yy = (y, x) if vertical else (x, y)
         ax.plot(xx, yy, **kde_plot_style_)
     if show_kde_peak:
