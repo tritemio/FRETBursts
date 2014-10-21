@@ -700,7 +700,7 @@ def hist_size_all(d, i=0, **kwargs):
         hist_size(d, i, which=which, **kwargs)
 
 def hist_burst_data(d, i=0, data_name='E', ax=None, binw=0.03, bins=None,
-            pdf=False, hist_style='bar',
+            vertical=False, pdf=False, hist_style='bar',
             weights=None, gamma=1., add_naa=False,            # weights args
             show_fit_stats=False, show_fit_value=False, fit_from='kde',
             show_kde=False, bandwidth=0.03, show_kde_peak=False,  # kde args
@@ -721,6 +721,13 @@ def hist_burst_data(d, i=0, data_name='E', ax=None, binw=0.03, bins=None,
 
     if ax is None:
         ax = gca()
+    pline = ax.axhline if vertical else ax.axvline
+    bar = ax.barh if vertical else ax.bar
+    xlabel, ylabel = ax.set_xlabel, ax.set_ylabel
+    xlim, ylim = ax.set_xlim, ax.set_ylim
+    if vertical:
+        xlabel, ylabel = ylabel, xlabel
+        xlim, ylim = ylim, xlim
     weights_tuple = (weights, float(gamma), add_naa)
     if not hasattr(d, fitter_name) or d.burst_weights != weights_tuple:
         if hasattr(d, fitter_name):
@@ -735,14 +742,14 @@ def hist_burst_data(d, i=0, data_name='E', ax=None, binw=0.03, bins=None,
     fitter = d[fitter_name]
     fitter.histogram(bin_width=binw, bins=bins, verbose=verbose)
     if pdf:
-        ax.set_ylabel('PDF')
+        ylabel('PDF')
         hist_vals = fitter.hist_pdf[i]
     else:
-        ax.set_ylabel('# Bursts')
+        ylabel('# Bursts')
         hist_vals = fitter.hist_counts[i]
-    ax.set_xlabel(data_name)
+    xlabel(data_name)
     if data_name in ['E', 'S']:
-        ax.set_xlim(-0.19, 1.19)
+        xlim(-0.19, 1.19)
 
     hist_bar_style_ = dict(facecolor='#80b3ff', edgecolor='#5f8dd3',
                            linewidth=1.5, alpha=0.7, label='E Histogram')
@@ -753,10 +760,13 @@ def hist_burst_data(d, i=0, data_name='E', ax=None, binw=0.03, bins=None,
     hist_plot_style_.update(**_normalize_kwargs(hist_plot_style,
                                                 kind='line2d'))
     if hist_style == 'bar':
-        ax.bar(left = fitter.hist_bins[:-1], height=hist_vals,
-                width = fitter.hist_bin_width, **hist_bar_style_)
+        bar(fitter.hist_bins[:-1], hist_vals, fitter.hist_bin_width,
+            **hist_bar_style_)
     else:
-        ax.plot(fitter.hist_axis, hist_vals, **hist_plot_style_)
+        if vertical:
+            ax.plot(hist_vals, fitter.hist_axis, **hist_plot_style_)
+        else:
+            ax.plot(fitter.hist_axis, hist_vals, **hist_plot_style_)
 
     if show_model:
         model_plot_style_ = dict(color='k', alpha=0.8, label='Model')
@@ -768,18 +778,19 @@ def hist_burst_data(d, i=0, data_name='E', ax=None, binw=0.03, bins=None,
             scale = fitter.hist_bin_width * d.num_bursts[i]
         fit_res = fitter.fit_res[i]
         x = fitter.x_axis
-        ax.plot(x, scale*fit_res.model.eval(x=x, **fit_res.values),
-                 **model_plot_style_)
+        y = scale*fit_res.model.eval(x=x, **fit_res.values)
+        xx, yy = (y, x) if vertical else (x, y)
+        ax.plot(xx, yy, **model_plot_style_)
         if  fit_res.model.components is not None:
             for component in fit_res.model.components:
                 model_plot_style_.update(ls = '--', label='Model component')
-                ax.plot(x, scale*component.eval(x=x, **fit_res.values),
-                         **model_plot_style_)
+                y = scale*component.eval(x=x, **fit_res.values)
+                xx, yy = (y, x) if vertical else (x, y)
+                ax.plot(xx, yy, **model_plot_style_)
         if show_model_peaks:
             for param in fitter.params:
                 if param.endswith('center'):
-                    ax.axvline(fitter.params[param][i], ls='--',
-                                color=red)
+                    pline(fitter.params[param][i], ls='--', color=red)
     if show_kde:
         x = fitter.x_axis
         fitter.calc_kde(bandwidth=bandwidth)
@@ -787,9 +798,11 @@ def hist_burst_data(d, i=0, data_name='E', ax=None, binw=0.03, bins=None,
                                label='KDE')
         kde_plot_style_.update(**_normalize_kwargs(kde_plot_style,
                                                    kind='line2d'))
-        ax.plot(x, fitter.kde[i](x), **kde_plot_style_)
+        y = fitter.kde[i](x)
+        xx, yy = (y, x) if vertical else (x, y)
+        ax.plot(xx, yy, **kde_plot_style_)
     if show_kde_peak:
-        ax.axvline(fitter.kde_max_pos[i], ls='--', color='orange')
+        pline(fitter.kde_max_pos[i], ls='--', color='orange')
 
     if show_fit_value or show_fit_stats:
         if fit_from == 'kde':
