@@ -762,14 +762,18 @@ def hist_burst_data(d, i=0, data_name='E', ax=None, binw=0.03, bins=None,
         model_plot_style_ = dict(color='k', alpha=0.8, label='Model')
         model_plot_style_.update(**_normalize_kwargs(model_plot_style,
                                                      kind='line2d'))
+        if pdf:
+            scale = 1
+        else:
+            scale = fitter.hist_bin_width * d.num_bursts[i]
         fit_res = fitter.fit_res[i]
         x = fitter.x_axis
-        ax.plot(x, fit_res.model.eval(x=x, **fit_res.values),
+        ax.plot(x, scale*fit_res.model.eval(x=x, **fit_res.values),
                  **model_plot_style_)
         if  fit_res.model.components is not None:
             for component in fit_res.model.components:
                 model_plot_style_.update(ls = '--', label='Model component')
-                ax.plot(x, component.eval(x=x, **fit_res.values),
+                ax.plot(x, scale*component.eval(x=x, **fit_res.values),
                          **model_plot_style_)
         if show_model_peaks:
             for param in fitter.params:
