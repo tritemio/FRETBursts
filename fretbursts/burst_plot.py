@@ -782,7 +782,7 @@ def hist_burst_data(d, i=0, data_name='E', ax=None, binw=0.03, bins=None,
                                 color=red)
     if show_kde:
         x = fitter.x_axis
-        d.E_fitter.calc_kde(bandwidth=bandwidth)
+        fitter.calc_kde(bandwidth=bandwidth)
         kde_plot_style_ = dict(linewidth=1.5, color='k', alpha=0.8,
                                label='KDE')
         kde_plot_style_.update(**_normalize_kwargs(kde_plot_style,
@@ -793,10 +793,10 @@ def hist_burst_data(d, i=0, data_name='E', ax=None, binw=0.03, bins=None,
 
     if show_fit_value or show_fit_stats:
         if fit_from == 'kde':
-            fit_arr = d.E_fitter.kde_max_pos
+            fit_arr = fitter.kde_max_pos
         else:
-            assert fit_from in d.E_fitter.params
-            fit_arr = d.E_fitter.params[fit_from]
+            assert fit_from in fitter.params
+            fit_arr = fitter.params[fit_from]
 
         if i == 0:
             if show_fit_stats:
