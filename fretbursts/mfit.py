@@ -297,12 +297,12 @@ class FitterBase(object):
 
     def _set_hist_data(self, hist_counts, bins):
         self.hist_bins = bins
-        self.hist_bin_width = (bins[1] - bins[0])
-        self.hist_axis = bins[:-1] + 0.5*self.hist_bin_width
+        self.hist_binwidth = (bins[1] - bins[0])
+        self.hist_axis = bins[:-1] + 0.5*self.hist_binwidth
         self.hist_counts = np.array(hist_counts)
         self.hist_pdf = np.array(hist_counts, dtype=np.float)
         self.hist_pdf /= self.hist_counts.sum(1)[:, np.newaxis]
-        self.hist_pdf /= self.hist_bin_width
+        self.hist_pdf /= self.hist_binwidth
         self._hist_computed = True
 
     @property
@@ -338,18 +338,18 @@ class MultiFitter(FitterBase):
         self._hist_computed = False
         self._kde_computed = False
 
-    def histogram(self, bin_width=0.03, bins=None, verbose=False, **kwargs):
+    def histogram(self, binwidth=0.03, bins=None, verbose=False, **kwargs):
         """Compute the histogram of the data for each channel.
 
-        If `bins` is None, `bin_width` determines the bins array (saved in
-        `self.hist_bins`). If `bins` is not None, `bin_width` is ignored and
-        `self.hist_bin_width` is computed from `self.hist_bins`.
+        If `bins` is None, `binwidth` determines the bins array (saved in
+        `self.hist_bins`). If `bins` is not None, `binwidth` is ignored and
+        `self.hist_binwidth` is computed from `self.hist_bins`.
 
-        All the kwargs (except for bin_width) are passed to `numpy.histogram`.
+        All the kwargs (except for binwidth) are passed to `numpy.histogram`.
         """
         ## Check if the same histogram is alredy computed
         if self._hist_computed:
-            if bins is None and self.hist_bin_width == bin_width:
+            if bins is None and self.hist_binwidth == binwidth:
                 return
             elif bins is not None and np.array_equal(self.hist_bins, bins):
                 return
@@ -357,7 +357,7 @@ class MultiFitter(FitterBase):
         if verbose:
             print " - Computing histogram."
         if bins is None:
-            bins = np.r_[-0.2 : 1.2 : bin_width]
+            bins = np.r_[-0.2 : 1.2 : binwidth]
         kwargs.update(bins=bins, density=False)
         hist_counts = []
         for data, weights in zip(self.data_list, self.weights):

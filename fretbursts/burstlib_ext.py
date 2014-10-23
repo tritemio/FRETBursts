@@ -376,7 +376,7 @@ def _get_bg_erlang(d, ich=0, m=10, ph_sel=Ph_sel('all'), period=0):
     return bg_dist
 
 def histogram_mdelays(d, ich=0, m=10, period=None, ph_sel=Ph_sel('all'),
-                      bin_width=1e-3, dt_max= 10e-3, bins=None, bursts=False,
+                      binwidth=1e-3, dt_max= 10e-3, bins=None, bursts=False,
                       pdf=True):
     """Compute histogram of m-photons delays (or waiting times).
 
@@ -393,7 +393,7 @@ def histogram_mdelays(d, ich=0, m=10, period=None, ph_sel=Ph_sel('all'),
         for only the photons inside bursts.
     """
     if bins is None:
-        bins = np.arange(0, dt_max, bin_width)
+        bins = np.arange(0, dt_max, binwidth)
 
     if period is None:
         ph = d.get_ph_times(ich=ich, ph_sel=ph_sel)
@@ -411,11 +411,11 @@ def histogram_mdelays(d, ich=0, m=10, period=None, ph_sel=Ph_sel('all'),
     hist_kwargs = dict(bins=bins, density=False)
     counts_tot, _ = np.histogram(ph_mdelays, **hist_kwargs)
     bin_center = bins[:-1] + 0.5*(bins[1] - bins[0])
-    pdf_tot = counts_tot / (counts_tot.sum()*bin_width)
+    pdf_tot = counts_tot / (counts_tot.sum()*binwidth)
     histograms_y = pdf_tot if pdf else counts_tot
     if bursts:
         counts_bursts, _ = np.histogram(phb_mdelays, **hist_kwargs)
-        pdf_bursts_normalized = counts_bursts / (counts_tot.sum()*bin_width)
+        pdf_bursts_normalized = counts_bursts / (counts_tot.sum()*binwidth)
         if pdf:
             histograms_y = np.vstack([pdf_tot, pdf_bursts_normalized])
         else:

@@ -251,7 +251,7 @@ def _gui_timetrace_scroll(fig):
         gui_status['scroll_gui'] = ScrollingToolQT(fig)
 
 
-def timetrace_single(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
+def timetrace_single(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
                      ph_sel=Ph_sel('all'), invert=False, bursts=False,
                      burst_picker=True, scroll=False, cache_bins=True,
                      plot_style={}, show_rate_th=True, F=None,
@@ -267,25 +267,25 @@ def timetrace_single(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
 
     def _get_cache():
         return (timetrace_single.bins, timetrace_single.x,
-                timetrace_single.bin_width,
+                timetrace_single.binwidth,
                 timetrace_single.tmin, timetrace_single.tmax)
 
-    def _set_cache(bins, x, bin_width, tmin, tmax):
-        cache = dict(bins=bins, x=x, bin_width=bin_width, tmin=tmin, tmax=tmax)
+    def _set_cache(bins, x, binwidth, tmin, tmax):
+        cache = dict(bins=bins, x=x, binwidth=binwidth, tmin=tmin, tmax=tmax)
         for name, value in cache.items():
             setattr(timetrace_single, name, value)
 
     def _del_cache():
-        names = ['bins', 'x', 'bin_width', 'tmin', 'tmax']
+        names = ['bins', 'x', 'binwidth', 'tmin', 'tmax']
         for name in names:
             delattr(timetrace_single, name)
 
     def _has_cache():
         return hasattr(timetrace_single, 'bins')
 
-    def _has_cache_for(bin_width, tmin, tmax):
+    def _has_cache_for(binwidth, tmin, tmax):
         if _has_cache():
-            return (bin_width, tmin, tmax) == _get_cache()[2:]
+            return (binwidth, tmin, tmax) == _get_cache()[2:]
         return False
 
     # If cache_bins is False delete any previously saved attribute
@@ -293,17 +293,17 @@ def timetrace_single(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
         _del_cache()
 
     tmin_clk, tmax_clk = tmin/d.clk_p, tmax/d.clk_p
-    bin_width_clk = bin_width/d.clk_p
+    binwidth_clk = binwidth/d.clk_p
 
     # If bins is not passed try to use the
     if bins is None:
-        if cache_bins and _has_cache_for(bin_width, tmin, tmax):
+        if cache_bins and _has_cache_for(binwidth, tmin, tmax):
             bins, x = timetrace_single.bins, timetrace_single.x
         else:
-            bins = np.arange(tmin_clk, tmax_clk + 1, bin_width_clk)
-            x = bins[:-1]*d.clk_p + 0.5*bin_width
+            bins = np.arange(tmin_clk, tmax_clk + 1, binwidth_clk)
+            x = bins[:-1]*d.clk_p + 0.5*binwidth
             if cache_bins:
-                _set_cache(bins, x, bin_width, tmin, tmax)
+                _set_cache(bins, x, binwidth, tmin, tmax)
 
     # Compute histogram
     ph_times = d.get_ph_times(i, ph_sel=ph_sel)
@@ -330,7 +330,7 @@ def timetrace_single(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
     # Plot burst-search rate-threshold
     if show_rate_th and 'bg' in d:
         _plot_rate_th(d, i, F=F, ph_sel=ph_sel, invert=invert,
-                      scale=bin_width, plot_style_=plot_style_,
+                      scale=binwidth, plot_style_=plot_style_,
                       rate_th_style=rate_th_style)
 
     xlabel('Time (s)'); ylabel('# ph')
@@ -348,7 +348,7 @@ def timetrace_single(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
         _plot_status['timetrace_single'] = {'autoscale': False}
 
 
-def timetrace(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
+def timetrace(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
               bursts=False, burst_picker=True, scroll=False,
               show_rate_th=True, F=None, rate_th_style={'label': None},
               show_aa=True, legend=False, set_ax_limits=True,
@@ -375,7 +375,7 @@ def timetrace(d, i=0, bin_width=1e-3, bins=None, tmin=0, tmax=200,
 
     for ix, (ph_sel, invert) in enumerate(zip(ph_sel_list, invert_list)):
         if not bl.mask_empty(d.get_ph_mask(i, ph_sel=ph_sel)):
-            timetrace_single(d, i, bin_width=bin_width, bins=bins, tmin=tmin,
+            timetrace_single(d, i, binwidth=binwidth, bins=bins, tmin=tmin,
                     tmax=tmax, ph_sel=ph_sel, invert=invert, bursts=False,
                     burst_picker=burst_picker_list[ix],
                     scroll=scroll_list[ix], cache_bins=True,
@@ -699,7 +699,7 @@ def hist_size_all(d, i=0, **kwargs):
     for which in fields:
         hist_size(d, i, which=which, **kwargs)
 
-def hist_burst_data(d, i=0, data_name='E', ax=None, binw=0.03, bins=None,
+def hist_burst_data(d, i=0, data_name='E', ax=None, binwidth=0.03, bins=None,
             vertical=False, pdf=False, hist_style='bar',
             weights=None, gamma=1., add_naa=False,            # weights args
             show_fit_stats=False, show_fit_value=False, fit_from='kde',
@@ -709,7 +709,7 @@ def hist_burst_data(d, i=0, data_name='E', ax=None, binw=0.03, bins=None,
             kde_plot_style={}, verbose=False):
     """Plot burst_data histogram and KDE.
 
-    When `bins` is not None it overrides `binw (bin width).
+    When `bins` is not None it overrides `binwidth`.
 
     Histograms and KDE can be plotted on any Data variable after burst search.
     To show a model, a model must be fitted first by calling
@@ -740,7 +740,7 @@ def hist_burst_data(d, i=0, data_name='E', ax=None, binw=0.03, bins=None,
                            gamma=gamma, add_naa=add_naa)
 
     fitter = d[fitter_name]
-    fitter.histogram(bin_width=binw, bins=bins, verbose=verbose)
+    fitter.histogram(binwidth=binwidth, bins=bins, verbose=verbose)
     if pdf:
         ylabel('PDF')
         hist_vals = fitter.hist_pdf[i]
@@ -760,7 +760,7 @@ def hist_burst_data(d, i=0, data_name='E', ax=None, binw=0.03, bins=None,
     hist_plot_style_.update(**_normalize_kwargs(hist_plot_style,
                                                 kind='line2d'))
     if hist_style == 'bar':
-        bar(fitter.hist_bins[:-1], hist_vals, fitter.hist_bin_width,
+        bar(fitter.hist_bins[:-1], hist_vals, fitter.hist_binwidth,
             **hist_bar_style_)
     else:
         if vertical:
@@ -772,7 +772,7 @@ def hist_burst_data(d, i=0, data_name='E', ax=None, binw=0.03, bins=None,
         if pdf:
             scale = 1
         else:
-            scale = fitter.hist_bin_width * d.num_bursts[i]
+            scale = fitter.hist_binwidth * d.num_bursts[i]
 
     if show_model:
         model_plot_style_ = dict(color='k', alpha=0.8, label='Model')
@@ -820,24 +820,25 @@ def hist_burst_data(d, i=0, data_name='E', ax=None, binw=0.03, bins=None,
         if show_fit_value:
             _plot_fit_text_ch(fit_arr, i, ax=ax)
 
-def hist_fret(d, i=0, ax=None, binw=0.03, bins=None, pdf=True, hist_style='bar',
-              weights=None, gamma=1., add_naa=False,            # weights args
-              show_fit_stats=False, show_fit_value=False, fit_from='kde',
-              show_kde=False, bandwidth=0.03, show_kde_peak=False,  # kde args
-              show_model=False, show_model_peaks=True,
-              hist_bar_style={}, hist_plot_style={}, model_plot_style={},
-              kde_plot_style={}, verbose=False):
+def hist_fret(d, i=0, ax=None, binwidth=0.03, bins=None, pdf=True,
+            hist_style='bar',
+            weights=None, gamma=1., add_naa=False,            # weights args
+            show_fit_stats=False, show_fit_value=False, fit_from='kde',
+            show_kde=False, bandwidth=0.03, show_kde_peak=False,  # kde args
+            show_model=False, show_model_peaks=True,
+            hist_bar_style={}, hist_plot_style={}, model_plot_style={},
+            kde_plot_style={}, verbose=False):
     """Plot FRET histogram and KDE.
 
-    When `bins` is not None it overrides `binw (bin width).
+    When `bins` is not None it overrides `binwidth`.
 
     Histograms and KDE can be plotted on any Data variable after burst search.
     To show a model, a model must be fitted first by calling
     d.E_fitter.fit_histogram(). To show the KDE peaks position, they must be
     computed first with d.E_fitter.find_kde_max().
     """
-    hist_burst_data(d, i, data_name='E', ax=ax, binw=binw, bins=bins, pdf=pdf,
-            weights=weights, gamma=gamma, add_naa=add_naa,     # weights args
+    hist_burst_data(d, i, data_name='E', ax=ax, binwidth=binwidth, bins=bins,
+            pdf=pdf, weights=weights, gamma=gamma, add_naa=add_naa,
             hist_style=hist_style, show_fit_stats=show_fit_stats,
             show_fit_value=show_fit_value, fit_from=fit_from,
             show_kde=show_kde, bandwidth=bandwidth,
@@ -847,24 +848,25 @@ def hist_fret(d, i=0, ax=None, binw=0.03, bins=None, pdf=True, hist_style='bar',
             model_plot_style=model_plot_style, kde_plot_style=kde_plot_style,
             verbose=verbose)
 
-def hist_S(d, i=0, ax=None, binw=0.03, bins=None, pdf=True, hist_style='bar',
-              weights=None, gamma=1., add_naa=False,            # weights args
-              show_fit_stats=False, show_fit_value=False, fit_from='kde',
-              show_kde=False, bandwidth=0.03, show_kde_peak=False,  # kde args
-              show_model=False, show_model_peaks=True,
-              hist_bar_style={}, hist_plot_style={}, model_plot_style={},
-              kde_plot_style={}, verbose=False):
+def hist_S(d, i=0, ax=None, binwidth=0.03, bins=None, pdf=True,
+           hist_style='bar',
+           weights=None, gamma=1., add_naa=False,                # weights args
+           show_fit_stats=False, show_fit_value=False, fit_from='kde',
+           show_kde=False, bandwidth=0.03, show_kde_peak=False,  # kde args
+           show_model=False, show_model_peaks=True,
+           hist_bar_style={}, hist_plot_style={}, model_plot_style={},
+           kde_plot_style={}, verbose=False):
     """Plot S histogram and KDE.
 
-    When `bins` is not None it overrides `binw (bin width).
+    When `bins` is not None it overrides `binwidth`.
 
     Histograms and KDE can be plotted on any Data variable after burst search.
     To show a model, a model must be fitted first by calling
-    d.E_fitter.fit_histogram(). To show the KDE peaks position, they must be
-    computed first with d.E_fitter.find_kde_max().
+    d.S_fitter.fit_histogram(). To show the KDE peaks position, they must be
+    computed first with d.S_fitter.find_kde_max().
     """
-    hist_burst_data(d, i, data_name='S', ax=ax, binw=binw, bins=bins, pdf=pdf,
-            weights=weights, gamma=gamma, add_naa=add_naa,     # weights args
+    hist_burst_data(d, i, data_name='S', ax=ax, binwidth=binwidth, bins=bins,
+            pdf=pdf, weights=weights, gamma=gamma, add_naa=add_naa,
             hist_style=hist_style, show_fit_stats=show_fit_stats,
             show_fit_value=show_fit_value, fit_from=fit_from,
             show_kde=show_kde, bandwidth=bandwidth,
@@ -990,7 +992,7 @@ def hist_sbr(d, ich=0, **hist_kwargs):
     xlabel('SBR'); ylabel('# Bursts')
 
 
-def hist_bg_single(d, i=0, period=0, bin_width=1e-4, bins=None, tmax=0.01,
+def hist_bg_single(d, i=0, period=0, binwidth=1e-4, bins=None, tmax=0.01,
                    ph_sel=Ph_sel('all'), show_fit=True, yscale='log',
                    manual_rate=None, manual_tau_th=500,
                    xscale='linear', plot_style={}, fit_style={}):
@@ -1001,8 +1003,8 @@ def hist_bg_single(d, i=0, period=0, bin_width=1e-4, bins=None, tmax=0.01,
 
     # If bins is not passed try to use the
     if bins is None:
-        bins = np.arange(0, tmax + bin_width, bin_width)
-        t_ax = bins[:-1] + 0.5*bin_width
+        bins = np.arange(0, tmax + binwidth, binwidth)
+        t_ax = bins[:-1] + 0.5*binwidth
 
     # Compute histograms
     ph_times_period = d.get_ph_times_period(ich=i, period=period,
@@ -1050,13 +1052,13 @@ def hist_bg_single(d, i=0, period=0, bin_width=1e-4, bins=None, tmax=0.01,
         _plot_status['hist_bg_single'] = {'autoscale': False}
     if xscale == 'log':
         gca().set_xscale(yscale)
-        plt.xlim(0.5*bin_width)
+        plt.xlim(0.5*binwidth)
         _plot_status['hist_bg_single'] = {'autoscale': False}
 
     xlabel(u'Ph delay time (ms)'); ylabel("# Ph")
 
 
-def hist_bg(d, i=0, period=0, bin_width=1e-4, bins=None, tmax=0.01,
+def hist_bg(d, i=0, period=0, binwidth=1e-4, bins=None, tmax=0.01,
             show_da=False, show_fit=True, yscale='log', xscale='linear',
             plot_style={}, fit_style={}, legend=True):
     """Plot histogram of photon interval for different photon streams.
@@ -1072,7 +1074,7 @@ def hist_bg(d, i=0, period=0, bin_width=1e-4, bins=None, tmax=0.01,
 
     for ix, ph_sel in enumerate(ph_sel_list):
         if not bl.mask_empty(d.get_ph_mask(i, ph_sel=ph_sel)):
-            hist_bg_single(d, i=i, period=period, bin_width=bin_width,
+            hist_bg_single(d, i=i, period=period, binwidth=binwidth,
                            bins=bins, tmax=tmax, ph_sel=ph_sel,
                            show_fit=show_fit, yscale=yscale, xscale=xscale,
                            plot_style=plot_style, fit_style=fit_style)
@@ -1082,9 +1084,9 @@ def hist_bg(d, i=0, period=0, bin_width=1e-4, bins=None, tmax=0.01,
     if yscale == 'log' or xscale == 'log':
         _plot_status['hist_bg'] = {'autoscale': False}
 
-def hist_multiphdelays(d, i=0, m=10, bin_width=1e-3, dt_max=10e-3, bins=None,
+def hist_multiphdelays(d, i=0, m=10, binwidth=1e-3, dt_max=10e-3, bins=None,
                        bursts=True, plot_style={}):
-    counts, x = bext.histogram_mdelays(d, ich=i, m=m, bin_width=bin_width,
+    counts, x = bext.histogram_mdelays(d, ich=i, m=m, binwidth=binwidth,
                                           dt_max=dt_max, bins=bins,
                                           bursts=bursts)
     plot(x, counts)
@@ -1224,9 +1226,9 @@ def hist_burst_delays(d, i=0, tmax_seconds=0.5, bins=100, **kwargs):
     xlabel('Delays between bursts (s)'); ylabel('# bursts')
 
 ## Burst internal "symmetry"
-def hist_asymmetry(d, i=0, bin_max=2, binw=0.1, stat_func=np.median):
+def hist_asymmetry(d, i=0, bin_max=2, binwidth=0.1, stat_func=np.median):
     burst_asym = bext.asymmetry(d, ich=i, func=stat_func)
-    bins_pos = np.arange(0, bin_max+binw, binw)
+    bins_pos = np.arange(0, bin_max+binwidth, binwidth)
     bins = np.hstack([-bins_pos[1:][::-1], bins_pos])
     izero = (bins.size - 1)/2.
     assert izero == np.where(np.abs(bins) < 1e-8)[0]
@@ -1236,8 +1238,8 @@ def hist_asymmetry(d, i=0, bin_max=2, binw=0.1, stat_func=np.median):
     asym_counts_pos = counts[izero:] - counts[:izero][::-1]
     asym_counts = np.hstack([asym_counts_neg, asym_counts_pos])
 
-    plt.bar(bins[:-1], width=binw, height=counts, fc='b', alpha=0.5)
-    plt.bar(bins[:-1], width=binw, height=asym_counts, fc='r', alpha=0.5)
+    plt.bar(bins[:-1], width=binwidth, height=counts, fc='b', alpha=0.5)
+    plt.bar(bins[:-1], width=binwidth, height=asym_counts, fc='r', alpha=0.5)
     plt.grid(True)
     plt.xlabel('Time (ms)')
     plt.ylabel('# Bursts')
