@@ -315,7 +315,8 @@ def fit_bursts_kde_peak(dx, burst_data='E', bandwidth=0.03, weights=None,
     return KDE_max_mch
 
 def bursts_fitter(dx, burst_data='E', save_fitter=True,
-                  weights=None, gamma=1, add_naa=False):
+                  weights=None, gamma=1, add_naa=False,
+                  binwidth=None, bandwidth=None, model=None):
     """Create a mfit.MultiFitter object (for E or S) add it to `dx`.
 
     A MultiFitter object allows to fit multi-channel data with the same
@@ -330,6 +331,12 @@ def bursts_fitter(dx, burst_data='E', save_fitter=True,
             See :func:`fretbursts.fret_fit.get_weights`.
         gamma (float): gamma factor passed to `get_weights()`.
         add_naa (bool): if True adds `naa` to the burst size.
+        binwidth (float or None): bin width used to compute the histogram.
+            If None the histogram is not computed.
+        bandwidth (float or None): bandwidth used to compute the KDE
+            If None the KDE is not computed.
+        model (lmfit.Model object or None): lmfit Model used for histogram
+            fitting. If None the histogram is not fitted.
 
     Returns
         The `mfit.MultiFitter` object with the specified burst-size weights.
@@ -344,6 +351,12 @@ def bursts_fitter(dx, burst_data='E', save_fitter=True,
                                 weight_kwargs = dict(weights=weights,
                                                      gamma=gamma,
                                                      nd=dx.nd, na=dx.na))
+    if bandwidth is not None:
+        fitter.calc_kde(bandwidth)
+    if binwidth is not None:
+        fitter.histogram(binwidth=binwidth)
+        if model is not None:
+            fitter.fit_histogram(model=model)
     if save_fitter:
         dx.add(**{burst_data + '_fitter': fitter,
                   'burst_weights': (weights, float(gamma), add_naa)})
