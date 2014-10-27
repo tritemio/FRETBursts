@@ -316,7 +316,7 @@ def fit_bursts_kde_peak(dx, burst_data='E', bandwidth=0.03, weights=None,
 
 def bursts_fitter(dx, burst_data='E', save_fitter=True,
                   weights=None, gamma=1, add_naa=False,
-                  binwidth=None, bandwidth=None, model=None):
+                  binwidth=None, bandwidth=None, model=None, verbose=False):
     """Create a mfit.MultiFitter object (for E or S) add it to `dx`.
 
     A MultiFitter object allows to fit multi-channel data with the same
@@ -337,6 +337,7 @@ def bursts_fitter(dx, burst_data='E', save_fitter=True,
             If None the KDE is not computed.
         model (lmfit.Model object or None): lmfit Model used for histogram
             fitting. If None the histogram is not fitted.
+        verbose (bool): if False avoids printing any output.
 
     Returns
         The `mfit.MultiFitter` object with the specified burst-size weights.
@@ -356,7 +357,7 @@ def bursts_fitter(dx, burst_data='E', save_fitter=True,
     if binwidth is not None:
         fitter.histogram(binwidth=binwidth)
         if model is not None:
-            fitter.fit_histogram(model=model)
+            fitter.fit_histogram(model=model, verbose=verbose)
     if save_fitter:
         dx.add(**{burst_data + '_fitter': fitter,
                   'burst_weights': (weights, float(gamma), add_naa)})
