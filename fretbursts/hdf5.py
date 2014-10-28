@@ -131,8 +131,10 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None):
     if h5_fname is None:
         basename, extension = os.path.splitext(d.fname)
         h5_fname = basename + '.hdf5'
-        if d.fname == h5_fname:
-            h5_fname = basename + '_new_copy.hdf5'
+
+    if os.path.exists(h5_fname):
+        basename, extension = os.path.splitext(h5_fname)
+        h5_fname = basename + '_new_copy.hdf5'
 
     data_file = tables.open_file(h5_fname, mode = "w",
                                  title = "Confocal smFRET data")
