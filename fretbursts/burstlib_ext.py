@@ -77,7 +77,7 @@ def calc_mean_lifetime(dx, t1=0, t2=np.inf, ph_sel=Ph_sel('all')):
                                    dx.iter_ph_masks(ph_sel)):
         selection = (nanot > t1)*(nanot < t2)
         # Select photons in ph_sel AND with nanotime in [t1, t2]
-        if mask != slice(None):
+        if hasattr(mask, '__array__'):
             selection *= mask
         mean_lifetimes.append(
             burstlib.burst_ph_stats(nanot, bursts, mask=selection,
