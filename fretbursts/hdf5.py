@@ -185,7 +185,10 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
 
         # If present save nanotime data
         if d.lifetime:
-            writer.add_carray(ph_group, 'nanotimes')
+            if d.ALEX:
+                writer.add_carray(ph_group, 'nanotimes', obj=d.nanotimes_t)
+            else:
+                writer.add_carray(ph_group, 'nanotimes')
             nt_group = writer.add_group(ph_group, 'nanotimes_specs')
 
             # Mandatory specs
