@@ -14,6 +14,8 @@ also provided.
 import os
 import tables
 
+from utils.misc import pprint
+
 
 # Metadata for the HDF5 root node
 _format_meta = dict(
@@ -111,7 +113,8 @@ class H5Writer():
                                         title=_fields_meta[metakey])
 
 
-def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None):
+def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
+          verbose=True):
     """
     Saves the `Data` object `d` in the HDF5-Ph-Data format.
 
@@ -125,6 +128,7 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None):
         h5_fname (string or None): if not None, contains the file name
             to be used for the HDF5 file. If None, the file name is generated
             from `d.fname`, by replacing the original extension with '.hdf5'.
+        verbose (bool): if True prints the name of the saved file.
 
     For description and specs of the HDF5-Ph-Data format see:
     https://github.com/tritemio/FRETBursts/wiki/HDF5-Ph-Data-format-0.2-Draft
@@ -142,6 +146,7 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None):
         basename, extension = os.path.splitext(h5_fname)
         h5_fname = basename + '_new_copy.hdf5'
 
+    pprint('Saving: %s' % h5_fname, not verbose)
     data_file = tables.open_file(h5_fname, mode = "w",
                                  title = "Confocal smFRET data")
     writer = H5Writer(data_file, d, comp_filter)
