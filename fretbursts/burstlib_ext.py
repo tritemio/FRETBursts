@@ -81,7 +81,7 @@ def calc_mean_lifetime(dx, t1=0, t2=np.inf, ph_sel=Ph_sel('all')):
             selection *= mask
         mean_lifetimes.append(
             burstlib.burst_ph_stats(nanot, bursts, mask=selection,
-                                    func=np.mean))
+                                    func=np.mean) - t1)
 
     return mean_lifetimes
 
