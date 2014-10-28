@@ -181,12 +181,19 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None):
         if d.lifetime:
             writer.add_carray(ph_group, 'nanotimes')
             nt_group = writer.add_group(ph_group, 'nanotimes_specs')
-            nanotimes_specs = ['tcspc_bin', 'tcspc_nbins', 'tcspc_range',
-                               'tau_accept_only', 'tau_donor_only',
-                               'tau_fret_donor', 'tau_fret_trans']
+
+            # Mandatory specs
+            nanotimes_specs = ['tcspc_bin', 'tcspc_nbins', 'tcspc_range']
             for spec in nanotimes_specs:
                 writer.add_array(nt_group, spec, obj=d.nanotimes_params[spec])
 
+            # Optional specs
+            nanotimes_specs = ['tau_accept_only', 'tau_donor_only',
+                               'tau_fret_donor', 'tau_fret_trans']
+            for spec in nanotimes_specs:
+                if spec in d.nanotimes_params:
+                    writer.add_array(nt_group, spec,
+                                     obj=d.nanotimes_params[spec])
 
         if 'par' in d:
             writer.add_carray(ph_group, 'particles', obj=d.par[0])
