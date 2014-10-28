@@ -510,7 +510,7 @@ def nsalex(fname, leakage=0, gamma=1.):
     ACCEPT_ON = (2000, 3500)
     nanotimes_nbins = 4095
 
-    dx = Data(fname=fname, clk_p=50e-9, nch=1, ALEX=True, nsALEX=True,
+    dx = Data(fname=fname, clk_p=50e-9, nch=1, ALEX=True, lifetime=True,
               D_ON=DONOR_ON, A_ON=ACCEPT_ON,
               nanotimes_nbins=nanotimes_nbins,
               ph_times_t=ph_times_t, det_t=det_t, nanotimes_t=nanotimes,

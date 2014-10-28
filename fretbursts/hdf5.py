@@ -131,7 +131,8 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None):
     """
     comp_filter = tables.Filters(**compression)
     if 'lifetime' not in d:
-        d.add(lifetime='nanotimes' in d)
+        # Test on different fields for ALEX and non-ALEX
+        d.add(lifetime = ('nanotimes_t' in d) or ('nanotimes' in d))
 
     if h5_fname is None:
         basename, extension = os.path.splitext(d.fname)
