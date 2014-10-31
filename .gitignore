@@ -23,3 +23,4 @@ notebooks/dev/docs/docs_html
 notebooks/data
 *.lnk
 notebooks/dev/tests/*evaluated.ipynb
+.idea/

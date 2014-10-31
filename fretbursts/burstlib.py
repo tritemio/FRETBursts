@@ -2145,7 +2145,8 @@ class Data(DataContainer):
         fit_res, fit_model_F = zeros((self.nch, 2)), zeros(self.nch)
         for ich, (nd, na, E, mask) in enumerate(
                                         zip(self.nd, self.na, self.E, Mask)):
-            w = fret_fit.get_weights(nd[mask], na[mask], weights, gamma)
+            w = fret_fit.get_weights(nd[mask], na[mask],
+                                     weights=weights, gamma=gamma)
             # Compute weighted mean
             fit_res[ich, 0] = np.dot(w, E[mask])/w.sum()
             # Compute weighted variance
@@ -2214,7 +2215,7 @@ class Data(DataContainer):
         """
         fit_res = zeros((self.nch, 5))
         for ich, (nd, na, E) in enumerate(zip(self.nd, self.na, self.E)):
-            w = fret_fit.get_weights(nd, na, weights, gamma)
+            w = fret_fit.get_weights(nd, na, weights=weights, gamma=gamma)
             fit_res[ich, :] = fit_func(E, weights=w, **kwargs)
         self.add(fit_E_res=fit_res, fit_E_name=fit_func.__name__,
                 E_fit=fit_res[:,2], fit_E_curve=True,
@@ -2271,7 +2272,8 @@ class Data(DataContainer):
                 if weights is None:
                     w = None
                 else:
-                    w = fret_fit.get_weights(nd[mask], na[mask], weights, gamma)
+                    w = fret_fit.get_weights(nd[mask], na[mask],
+                                             weights=weights, gamma=gamma)
                 fit_res[ich, :] = fit_fun(E[mask], weights=w, **fit_kwargs)
             else:
                 # Non-histogram fits (PDF/CDF) do not support weights
@@ -2331,7 +2333,7 @@ class Data(DataContainer):
         for i, (Ech, nt, mask) in enumerate(zip(E_sel, self.nt, Mask)):
             nt_s = nt[mask]
             nd_s, na_s = self.nd[i][mask], self.na[i][mask]
-            w = fret_fit.get_weights(nd_s, na_s, weights)
+            w = fret_fit.get_weights(nd_s, na_s, weights=weights)
             info_ph = nt_s.sum()
             info_bu = nt_s.size
 

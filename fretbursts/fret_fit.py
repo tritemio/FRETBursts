@@ -208,7 +208,7 @@ def get_weights(nd, na, weights, naa=0, gamma=1.):
 
 def fit_E_slope(nd, na, weights=None, gamma=1.):
     """Fit E with a least-squares fitting of slope on (nd,na) plane."""
-    weights = get_weights(nd, na, weights, gamma)
+    weights = get_weights(nd, na, weights=weights, gamma=gamma)
     #err_fun = lambda k, x, y, w: (y - k*x)*w
     err_fun = lambda k, x, y, w: w*get_dist_euclid(nd=x, na=y, slope=k)
     res = leastsq(err_fun, x0=1, args=(nd, na, weights))
@@ -217,7 +217,7 @@ def fit_E_slope(nd, na, weights=None, gamma=1.):
 
 def fit_E_E_size(nd, na, weights=None, gamma=1., gamma_correct=False):
     """Fit the E with least-square minimization of errors on burst E values."""
-    weights = get_weights(nd, na, weights, gamma)
+    weights = get_weights(nd, na, weights=weights, gamma=gamma)
     if gamma_correct:
         err_fun = lambda E_fit, d, a, w: (E_fit - 1.*a/(gamma*d+a))*w
     else:
@@ -227,7 +227,7 @@ def fit_E_E_size(nd, na, weights=None, gamma=1., gamma_correct=False):
 
 def fit_E_m(nd, na, weights=None, gamma=1., gamma_correct=False):
     """Fit the E with a weighted mean of burst E values."""
-    weights = get_weights(nd, na, weights, gamma)
+    weights = get_weights(nd, na, weights=weights, gamma=gamma)
     if gamma_correct:
         E = na/(na + gamma*nd)
     else:
