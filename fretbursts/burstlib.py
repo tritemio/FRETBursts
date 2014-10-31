@@ -702,6 +702,12 @@ class Data(DataContainer):
     # List of photon selections on which the background is computed
     _ph_streams = [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem'),
                    Ph_sel(Aex='Dem'), Ph_sel(Aex='Aem')]
+    @property
+    def ph_streams(self):
+        if self.ALEX:
+            return self._ph_streams
+        else:
+            return [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
 
     def __init__(self, **kwargs):
         # Default values
@@ -710,13 +716,6 @@ class Data(DataContainer):
         # Override with user data
         init_kw.update(**kwargs)
         DataContainer.__init__(self, **init_kw)
-
-    @property
-    def ph_streams(self):
-        if self.ALEX:
-            return self._ph_streams
-        else:
-            return [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
 
     ## Single-spot shortcuts
     def __getattr__(self, field):
