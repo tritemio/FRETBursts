@@ -23,6 +23,9 @@ for confocal smFRET analysis.
 FRETBursts is opensource and contributions are welcome.
 The authors are committed to promptly fix bugs whenever discovered.
 
+Together with FRETBursts we promote the open file format 
+[HDF5-Ph-Data](https://github.com/tritemio/FRETBursts/wiki/HDF5-Ph-Data-format-0.2-Draft).
+
 Issues can be reported and discussed on the
 [issue tracker](https://github.com/tritemio/FRETBursts/issues?state=open).
 Fixes or enhancements can be sent with a [github pull request](https://help.github.com/articles/creating-a-pull-request).
@@ -48,7 +51,7 @@ gamma-factor
   Defining a new burst selection
 criterium requires only a couple of lines of code.
 - [fit routines](http://fretbursts.readthedocs.org/fit.html) for FRET efficiency
-  ([1 and 2-gaussians histogram fit](http://fretbursts.readthedocs.org/data_class.html#fretbursts.burstlib.Data.fit_E_generic),
+  ([multi-model histogram fit](http://fretbursts.readthedocs.org/fit.html#fitting-e-or-s-histograms),
   [MLE Poisson models](http://fretbursts.readthedocs.org/data_class.html#fretbursts.burstlib.Data.fit_E_ML_poiss),
   [weighted least squares models](http://fretbursts.readthedocs.org/data_class.html#fretbursts.burstlib.Data.fit_E_m),
   [weighted expectation maximization](http://fretbursts.readthedocs.org/data_class.html#fretbursts.burstlib.Data.fit_E_two_gauss_EM),
