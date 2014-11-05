@@ -50,7 +50,7 @@ composing simpler models (by using `+` operator).
 
 A convenience function :func:`fretbursts.burstlib_ext.burst_fitter` can be
 used to create a `MultiFitter` object to fit either E or S. As an example
-let suppose haveing a measurement loaded in the variable `d`. To create a
+let suppose having a measurement loaded in the variable `d`. To create a
 fitter object and compute the FRET histogram we execute::
 
     bext.burst_fitter(d) # Creates d.E_fitter
