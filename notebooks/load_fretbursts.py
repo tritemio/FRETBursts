@@ -18,6 +18,7 @@ from IPython.display import display, Math, clear_output
 enable_qt_gui = not (len(sys.argv) > 1 and '--nogui' in sys.argv[1:])
 enable_mpl = not (len(sys.argv) > 1 and '--nompl' in sys.argv[1:])
 load_mpl_style = not (len(sys.argv) > 1 and '--nostyle' in sys.argv[1:])
+load_from_source = len(sys.argv) > 1 and '--source' in sys.argv[1:]
 
 ## Enable inline plots and QT windows.
 # Workaround for open-file dialog in IPython Notebook
@@ -33,6 +34,8 @@ if not 'NOTEBOOK_DIR' in globals():
     NOTEBOOK_DIR = os.path.abspath('.')
 
 try:
+    if load_from_source:
+        raise ImportError
     ## Try to import FRETBursts
     import fretbursts as fb
     system_install = True

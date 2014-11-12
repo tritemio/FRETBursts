@@ -28,7 +28,7 @@ from __future__ import print_function
 ## Citation information
 _CITATION = ('   FRETBursts - An opensource single-molecule FRET burst '
              'analysis toolkit.\n   A. Ingargiola 2014. '
-             'https://github.com/tritemio/FRETBursts.')
+             'https://github.com/tritemio/FRETBursts')
 
 _INFO_CITATION = (' You are running FRETBursts, a software for smFRET analysis. '
                   '\n\n If you use this software in a publication, please '
