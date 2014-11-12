@@ -1,40 +1,27 @@
-
 from setuptools import setup
+import versioneer
 
-import codecs
-import os
-import re
 
-here = os.path.abspath(os.path.dirname(__file__))
-
-# Read the version number from a source file.
-# Why read it, and not import?
-# see https://groups.google.com/d/topic/pypa-dev/0PkjVpcxTzQ/discussion
-def find_version(*file_paths):
-    # Open in Latin-1 so that we avoid encoding errors.
-    # Use codecs.open for Python 2 compatibility
-    with codecs.open(os.path.join(here, *file_paths), 'r', 'latin1') as f:
-        version_file = f.read()
-
-    # The version line must have the form
-    # __version__ = 'ver'
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
-                              version_file, re.M)
-    if version_match:
-        return version_match.group(1)
-    raise RuntimeError("Unable to find version string.")
+project_name = 'fretbursts'
+versioneer.VCS = 'git'
+versioneer.versionfile_source = project_name + '/_version.py'
+versioneer.versionfile_build = project_name + '/_version.py'
+versioneer.tag_prefix = '' # tags are like 1.2.0
+versioneer.parentdir_prefix = project_name + '-' 
 
 # Try to use pandoc to convert markdown to rst
 try:
     from pypandoc import convert
     read_md = lambda f: convert(f, to='rst', format='markdown')
 except ImportError:
-    print("warning: pypandoc module not found, could not convert Markdown to RST")
+    print("warning: pypandoc module not found, could not convert "
+          "Markdown to RST")
     read_md = lambda f: open(f, 'r').read()
 
 
 setup(name = 'fretbursts',
-      version = find_version('fretbursts', '__init__.py'),
+      version=versioneer.get_version(),
+      cmdclass=versioneer.get_cmdclass(),
       author='Antonino Ingargiola',
       author_email='tritemio@gmail.com',
       url          = 'http://github.com/tritemio/FRETBursts/',

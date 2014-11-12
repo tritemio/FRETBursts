@@ -24,8 +24,6 @@
 
 from __future__ import print_function
 
-__version__ = '0.4rc1'
-
 
 ## Citation information
 _CITATION = ('   FRETBursts - An opensource single-molecule FRET burst '
@@ -158,3 +156,7 @@ if has_matplotlib and has_pandas and has_lmfit:
 from .utils.gui import gui_fname
 
 from .utils.misc import download_file
+
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions
