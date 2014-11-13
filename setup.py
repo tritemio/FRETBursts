@@ -6,12 +6,12 @@ try:
     from Cython.Distutils import build_ext
 except ImportError:
     # cython is not installed, use the .c file
-    has_cython = True
+    has_cython = False
     ext_modules = [Extension("burstsearchlib_c",
                               ["fretbursts/burstsearch/burstsearchlib_c.c"])]
 else:
     # cython is installed, use .pyx file
-    has_cython = False
+    has_cython = True
     ext_modules = [Extension("burstsearchlib_c",
                              ["fretbursts/burstsearch/burstsearchlib_c.pyx"])]
 
