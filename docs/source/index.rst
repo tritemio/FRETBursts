@@ -6,6 +6,8 @@
 Welcome to FRETBursts's documentation!
 ======================================
 
+*Version:* |version|
+
 FRETBursts is an open-source toolkit for analysis of single-molecule
 FRET data acquired by single and multi-spot confocal systems.
 
