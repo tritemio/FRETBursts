@@ -59,7 +59,7 @@ release = version
 
 import subprocess
 print 'Version: ', version
-print subprocess.check_output(['git', 'status'])
+print subprocess.check_output(['git', 'diff'])
 
 
 if not on_rtd:
