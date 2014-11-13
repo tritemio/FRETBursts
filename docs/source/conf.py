@@ -55,11 +55,11 @@ except ImportError:
 sys.path.insert(0, os.path.abspath('../..'))
 import fretbursts
 version = fretbursts._version.git_versions_from_vcs('', '../..')['version']
+if on_rtd:
+    # RTD modifies conf.py so the git repo becomes dirty
+    # We strip the '-dirty' that would generate a wrong verion string
+    version.replace('-dirty', '')
 release = version
-
-import subprocess
-print 'Version: ', version
-print subprocess.check_output(['git', 'diff'])
 
 
 if not on_rtd:
