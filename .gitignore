@@ -24,3 +24,6 @@ notebooks/data
 *.lnk
 notebooks/dev/tests/*evaluated.ipynb
 .idea/
+MANIFEST
+*.egg
+*.zip
