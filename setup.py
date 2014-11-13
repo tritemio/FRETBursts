@@ -1,11 +1,17 @@
 from setuptools import setup
 from setuptools.extension import Extension
-from Cython.Distutils import build_ext
 import numpy as np
 import versioneer
-
-ext_modules = [Extension("burstsearchlib_c",
-                         ["fretbursts/burstsearch/burstsearchlib_c.pyx"])]
+try:
+    from Cython.Distutils import build_ext
+except ImportError:
+    # cython is not installed, use the .c file
+    ext_modules = [Extension("burstsearchlib_c",
+                              ["fretbursts/burstsearch/burstsearchlib_c.c"])]
+else:
+    # cython is installed, use .pyx file
+    ext_modules = [Extension("burstsearchlib_c",
+                             ["fretbursts/burstsearch/burstsearchlib_c.pyx"])]
 
 project_name = 'fretbursts'
 versioneer.VCS = 'git'
