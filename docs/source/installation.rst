@@ -22,10 +22,14 @@ To install the last stable release type::
 
 To install the latest version from GitHub, clone the repository and type::
 
+    pip install git+git://github.com/tritemio/FRETBursts.git
+
+Alternatively you can clone FRETBursts and run::
+
     python setup.py build
     python setup.py install
 
-This will install FRETBursts and with the optimized C extensions.
+The optimized C extensions are installed in both cases.
 
 Quick: Source installation
 --------------------------
