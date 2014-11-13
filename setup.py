@@ -14,14 +14,20 @@ versioneer.versionfile_build = project_name + '/_version.py'
 versioneer.tag_prefix = '' # tags are like 1.2.0
 versioneer.parentdir_prefix = project_name + '-'
 
-# Try to use pandoc to convert markdown to rst
-try:
-    from pypandoc import convert
-    read_md = lambda f: convert(f, to='rst', format='markdown')
-except ImportError:
-    print("warning: pypandoc module not found, could not convert "
-          "Markdown to RST")
-    read_md = lambda f: open(f, 'r').read()
+long_description = """
+FRETBursts
+==========
+
+**FRETBursts** is a software toolkit for burst analysis of confocal 
+single-molecule FRET (smFRET) measurements. It can analyze both single-spot
+and multi-spot smFRET data with or without alternating laser excitation (ALEX).
+
+Quick links: 
+
+- `FRETBursts Homepage <https://github.com/tritemio/FRETBursts>`_
+- `Reference documentation <http://fretbursts.readthedocs.org/index.html>`_
+- `FRETBursts tutorials <https://github.com/tritemio/FRETBursts_notebooks>`_
+"""
 
 cmdclass = versioneer.get_cmdclass()
 cmdclass.update(build_ext=build_ext)
@@ -37,8 +43,9 @@ setup(name = project_name,
       download_url = 'http://github.com/tritemio/FRETBursts/',
       requires = ('numpy', 'scipy', 'matplotlib', 'ipython'),
       license = 'GPLv2',
-      description = "Burst analysis toolkit for single and multi-spot smFRET data.",
-      long_description = read_md('README.md'),
+      description = ("Burst analysis toolkit for single and multi-spot "
+                     "smFRET data."),
+      long_description = long_description,
       platforms = ('Windows', 'Linux', 'Mac OS X'),
       classifiers=['Intended Audience :: Science/Research',
                    'Operating System :: OS Independent',
