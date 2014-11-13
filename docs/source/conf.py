@@ -57,6 +57,11 @@ import fretbursts
 version = fretbursts._version.git_versions_from_vcs('', '../..')['version']
 release = version
 
+import subprocess
+print 'Version: ', version
+print subprocess.check_output(['git', 'status'])
+
+
 if not on_rtd:
     #import sphinx_rtd_theme
     html_theme = 'sphinx_rtd_theme'
