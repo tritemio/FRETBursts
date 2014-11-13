@@ -1,8 +1,5 @@
 burstsearch/build/
-burstsearch/c_burstsearch.c
-
 docs/source/_themes/
-
 *ipynb_checkpoints*
 
 *build/
@@ -27,3 +24,4 @@ notebooks/dev/tests/*evaluated.ipynb
 MANIFEST
 *.egg
 *.zip
+docs_html/

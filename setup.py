@@ -2,44 +2,50 @@ from setuptools import setup
 from setuptools.extension import Extension
 import numpy as np
 import versioneer
-try:
-    from Cython.Distutils import build_ext
-except ImportError:
-    # cython is not installed, use the .c file
-    has_cython = False
-    ext_modules = [Extension("burstsearchlib_c",
-                              ["fretbursts/burstsearch/burstsearchlib_c.c"])]
-else:
-    # cython is installed, use .pyx file
-    has_cython = True
-    ext_modules = [Extension("burstsearchlib_c",
-                             ["fretbursts/burstsearch/burstsearchlib_c.pyx"])]
 
+## Metadata
 project_name = 'fretbursts'
-versioneer.VCS = 'git'
-versioneer.versionfile_source = project_name + '/_version.py'
-versioneer.versionfile_build = project_name + '/_version.py'
-versioneer.tag_prefix = '' # tags are like 1.2.0
-versioneer.parentdir_prefix = project_name + '-'
-
 long_description = """
 FRETBursts
 ==========
 
-**FRETBursts** is a software toolkit for burst analysis of confocal 
+**FRETBursts** is a software toolkit for burst analysis of confocal
 single-molecule FRET (smFRET) measurements. It can analyze both single-spot
 and multi-spot smFRET data with or without alternating laser excitation (ALEX).
 
-Quick links: 
+Quick links:
 
 - `FRETBursts Homepage <https://github.com/tritemio/FRETBursts>`_
 - `Reference documentation <http://fretbursts.readthedocs.org/index.html>`_
 - `FRETBursts tutorials <https://github.com/tritemio/FRETBursts_notebooks>`_
 """
 
+## Configure versioneer
+versioneer.VCS = 'git'
+versioneer.versionfile_source = project_name + '/_version.py'
+versioneer.versionfile_build = project_name + '/_version.py'
+versioneer.tag_prefix = '' # tags are like 1.2.0
+versioneer.parentdir_prefix = project_name + '-'
+
+## Configuration to build Cython extensions
+try:
+    from Cython.Distutils import build_ext
+except ImportError:
+    # cython is not installed: do not build extensions
+    has_cython = False
+    ext_modules = []
+else:
+    # cython is installed: register the extensions to be built
+    has_cython = True
+    ext_modules = [Extension("burstsearchlib_c",
+                             [project_name + \
+                             "/burstsearch/burstsearchlib_c.pyx"])]
+
+## Configure setup.py commands
 cmdclass = versioneer.get_cmdclass()
 if has_cython:
     cmdclass.update(build_ext=build_ext)
+
 
 setup(name = project_name,
       version = versioneer.get_version(),
@@ -50,7 +56,7 @@ setup(name = project_name,
       author_email = 'tritemio@gmail.com',
       url          = 'http://github.com/tritemio/FRETBursts/',
       download_url = 'http://github.com/tritemio/FRETBursts/',
-      requires = ('numpy', 'scipy', 'matplotlib', 'ipython'),
+      install_requires = ['numpy', 'scipy', 'matplotlib', 'ipython'],
       license = 'GPLv2',
       description = ("Burst analysis toolkit for single and multi-spot "
                      "smFRET data."),

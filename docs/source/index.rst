@@ -6,9 +6,11 @@
 Welcome to FRETBursts's documentation!
 ======================================
 
-*Version:* |version|
+:Author: Antonino Ingargiola
+:Contact: tritemio@gmail.com
+:Version: |version|
 
-FRETBursts is an open-source toolkit for analysis of single-molecule
+FRETBursts is an open-source (GPLv2) toolkit for analysis of single-molecule
 FRET data acquired by single and multi-spot confocal systems.
 
 For more general info you may want to vist
