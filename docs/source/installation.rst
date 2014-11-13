@@ -3,12 +3,43 @@ Installation
 
 .. contents ::
 
-FRETBursts is distributed as source code.
-The installation consists in installing a scientific python
-distribution, downloading FRETBursts sources, and running the Installation
-notebook.
+FRETBursts can be installed as a standard python package or can be executed
+from the source folder.
+
+In either cases installing a scientific python is needed.
+
+.. warning ::
+
+    Currently most of the tutorials and examples assume that FRETBursts is
+    executed from the source folder (aka **source installation**).
+
+Quick: Package installation
+---------------------------
+
+To install the last stable release type::
+
+    pip install fretbursts
+
+To install the latest version from GitHub, clone the repository and type::
+
+    python setup.py build
+    python setup.py install
+
+This will install FRETBursts and with the optimized C extensions.
+
+Quick: Source installation
+--------------------------
+
+To perfom a "source installation", i.e. executing FRETBursts from the source
+folder download the code from GitHub, and execute the ipython notebook
+`FRETBursts Installation`.
+
+You also need to make copy of `load_fretbursts.py` that is used in ipython
+notebooks to load FRETBursts.
 
 
+Source installation description (long)
+======================================
 
 Windows Quick Installation steps
 ---------------------------------
@@ -126,7 +157,6 @@ Strictly speaking FRETBursts is not installed as it runs from the folder
 where you download it. However some optional dependencies and a configuration
 file is created by running the "FRETBursts Installation" notebook that you
 find in the notebooks folder.
-
 
 To run the FRETBursts Installation notebook:
 
