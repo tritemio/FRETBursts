@@ -29,5 +29,6 @@ As a first step always do:
 
 * [Python Packaging User Guide](https://python-packaging-user-guide.readthedocs.org/en/latest/)
 * [Building and Distributing Packages with Setuptools](https://pythonhosted.org/setuptools/setuptools.html)
-
+* [PIP User Guide](http://pip.readthedocs.org/en/latest/user_guide.html)
+* [setup.py vs requirements.txt](https://caremad.io/blog/setup-vs-requirement/)
 
