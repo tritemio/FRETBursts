@@ -1,4 +1,4 @@
-# Notes on building FREBursts package
+# Developers note on package building
 
 ## Sources cleanup
 
