@@ -721,7 +721,7 @@ class Data(DataContainer):
     def __getattr__(self, field):
         """Single-channel shortcuts for per-channel fields.
 
-        Appending a '_' to a per-channel field avoids specifiying the channel.
+        Appending a '_' to a per-channel field avoids specifying the channel.
         For example use d.nd_ instead if d.nd[0].
         """
         if not field.endswith('_'):
@@ -1952,7 +1952,7 @@ class Data(DataContainer):
         return Lk
 
     ##
-    # Methods to compute burst quatitites: FRET, S, SBR, max_rate, etc ...
+    # Methods to compute burst quantities: FRET, S, SBR, max_rate, etc ...
     #
     def calc_sbr(self, ph_sel=Ph_sel('all'), gamma=1.):
         """Return Signal-to-Background Ratio (SBR) for each burst.
@@ -2054,7 +2054,7 @@ class Data(DataContainer):
         self.add(E=E)
 
     def calculate_stoich(self):
-        """Compute "stochiometry" (the `S` parameter) for each burst."""
+        """Compute "stoichiometry" (the `S` parameter) for each burst."""
         G = self.get_gamma_array()
         S = [1.0*(g*d+a)/(g*d+a+aa) for d, a, aa, g in
                 zip(self.nd, self.na, self.naa, G)]
