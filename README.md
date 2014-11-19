@@ -1,6 +1,8 @@
 FRETBursts
 ==========
 
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.12784.png)](http://dx.doi.org/10.5281/zenodo.12784)
+
 > *Quick links: [Reference documentation](http://fretbursts.readthedocs.org/index.html), [FRETBursts tutorials](https://github.com/tritemio/FRETBursts_notebooks)*
 
 Project description
@@ -23,7 +25,7 @@ for confocal smFRET analysis.
 FRETBursts is opensource and contributions are welcome.
 The authors are committed to promptly fix bugs whenever discovered.
 
-Together with FRETBursts we promote the open file format 
+Together with FRETBursts we promote the open file format
 [HDF5-Ph-Data](https://github.com/tritemio/FRETBursts/wiki/HDF5-Ph-Data-format-0.2-Draft).
 
 Issues can be reported and discussed on the

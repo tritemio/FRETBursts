@@ -18,8 +18,8 @@ install:
 before_script:
     - mkdir notebooks/data
     - cd notebooks/data
-    - wget -N -nc http://files.figshare.com/1643813/0023uLRpitc_NTP_20dT_0.5GndCl.hdf5
-    - wget -N -nc http://files.figshare.com/1643814/12d_New_30p_320mW_steer_3.hdf5
+    - wget -N http://files.figshare.com/1643813/0023uLRpitc_NTP_20dT_0.5GndCl.hdf5
+    - wget -N http://files.figshare.com/1643814/12d_New_30p_320mW_steer_3.hdf5
     - cd ../..
 
 script:
