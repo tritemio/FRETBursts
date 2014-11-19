@@ -13,7 +13,7 @@ install:
     - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy pandas matplotlib pytables
     - pip install lmfit
     - python setup.py build
-    - python setup install
+    - python setup.py install
 
 before_script:
     - mkdir notebooks/data
