@@ -25,3 +25,4 @@ MANIFEST
 *.egg
 *.zip
 docs_html/
+.coverage
