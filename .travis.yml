@@ -10,11 +10,12 @@ before_install:
     - export PATH=/home/travis/miniconda3/bin:$PATH
 
 install:
-    - conda install --yes pip python=$TRAVIS_PYTHON_VERSION numpy scipy pandas pytest matplotlib pytables pyqt lmfit
+    - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy pandas matplotlib pytables
+    - pip install lmfit
     - python setup.py build
     - rm -rf build
 
-after_install:
+before_script:
     - mkdir notebooks/data
     - cd notebooks/data
     - wget -N -nc http://files.figshare.com/1643813/0023uLRpitc_NTP_20dT_0.5GndCl.hdf5
