@@ -18,8 +18,8 @@ import fretbursts.burstlib as bl
 import fretbursts.burstlib_ext as bext
 from fretbursts.ph_sel import Ph_sel
 
-# data subdir in the notebook folder, assumes current dir is the tests folder
-DATASETS_DIR = u'../../notebooks/data/'
+# data subdir in the notebook folder
+DATASETS_DIR = u'notebooks/data/'
 
 
 def load_dataset_1ch():
