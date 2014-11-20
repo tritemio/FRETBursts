@@ -14,6 +14,7 @@ install:
     - pip install lmfit
     - python setup.py build
     - python setup.py install
+    - rm -rf build
 
 before_script:
     - mkdir notebooks/data
