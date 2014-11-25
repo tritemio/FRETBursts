@@ -46,7 +46,10 @@ A set of predefined models is provided to handle common cases.
 While sensible defaults are applied the user can control
 every detail of the fit by setting initial values, parameter bounds
 (min, max), algebraic constrains and so on. New models can be created by
-composing simpler models (by using `+` operator).
+composing simpler models (by using `+` operator). See the lmfit documentation
+for more info on how to define
+`models <http://lmfit.github.io/lmfit-py/model.html>`_
+and `composite models <http://lmfit.github.io/lmfit-py/model.html#creating-composite-models>`_.
 
 A convenience function :func:`fretbursts.burstlib_ext.burst_fitter` can be
 used to create a `MultiFitter` object to fit either E or S. As an example
