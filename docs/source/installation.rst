@@ -6,7 +6,7 @@ Installation
 FRETBursts can be installed as a standard python package or can be executed
 from the source folder.
 
-In either cases installing a scientific python is needed.
+In both cases, installing a scientific python distribution is needed.
 
 .. warning ::
 
@@ -20,11 +20,11 @@ To install the last stable release type::
 
     pip install fretbursts
 
-To install the latest version from GitHub, clone the repository and type::
+To install the latest version from GitHub, type::
 
     pip install git+git://github.com/tritemio/FRETBursts.git
 
-Alternatively you can clone FRETBursts and run::
+Alternatively you can clone FRETBursts git repository and run::
 
     python setup.py build
     python setup.py install
@@ -34,12 +34,12 @@ The optimized C extensions are installed in both cases.
 Quick: Source installation
 --------------------------
 
-To perfom a "source installation", i.e. executing FRETBursts from the source
-folder download the code from GitHub, and execute the ipython notebook
+To perform a "source installation", i.e. executing FRETBursts from the source
+folder, download the code from GitHub, and execute the ipython notebook
 `FRETBursts Installation`.
 
-You also need to make copy of `load_fretbursts.py` that is used in ipython
-notebooks to load FRETBursts.
+You also need to copy the `load_fretbursts.py` script into your ipython
+notebooks folder.
 
 
 Source installation description (long)
@@ -49,7 +49,7 @@ Windows Quick Installation steps
 ---------------------------------
 
 If you are not familiar with Python and Git and you are using MS Windows
-follows these steps:
+follow these steps:
 
 1. Install `Continuum Anaconda <https://store.continuum.io/cshop/anaconda/>`__
 (a scientific python distribution).
@@ -63,7 +63,7 @@ follows these steps:
 
 5. A new browser windows will open. Click on `FRETBursts Installation`
 and run the notebook. Follow the instruction there to run the
-tutorials notebooks.
+tutorial notebooks.
 
 For more info and customizations continue reading.
 
@@ -93,7 +93,7 @@ If you prefer a manual installation, FRETBursts dependencies are:
 - Matplotlib (1.3.x or greater) with QT4 backend (either PyQT4 or PySide).
 - IPython 1.x (2.x recommended)
 - PyTables 3.x (optional). To load/save the :ref:`HDF5 Ph-Data <hdf5-format>`.
-- lmfit: (version 0.8rc3 or higher) for poweful and user-friendly fitting
+- lmfit: (version 0.8 or higher) for powerful and user-friendly fitting
 - Pandas (optional) currently used only by the fitting framework
 - a modern browser (Chrome suggested)
 
@@ -133,7 +133,7 @@ graphical interface.
 Downloading FRETBursts
 ----------------------
 
-You can download a simple ZIP-ball containing FRETBursts by clickind on
+You can download a simple ZIP-ball containing FRETBursts by clicking on
 **Download ZIP** on
 `FRETBursts Homepage <https://github.com/tritemio/FRETBursts>`__ on GitHub.
 
@@ -258,4 +258,5 @@ On **Mac OSX** you should install the LLVM compiler included in Xcode.
 *See also:*
 
 * :doc:`cython`
+
 
