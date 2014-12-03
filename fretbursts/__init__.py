@@ -49,7 +49,7 @@ try:
 except ImportError:
     has_pandas = False
     warnings.warn((' - Cannot import pandas. Some functionality will not be '
-                   'avalable.'))
+                   'available.'))
 else:
     has_pandas = True
 
@@ -58,7 +58,7 @@ try:
 except ImportError:
     has_matplotlib = False
     warnings.warn((' - Cannot import matplotlib. Plotting will not be '
-                   'avalable.'))
+                   'available.'))
 else:
     has_matplotlib = True
 
@@ -67,7 +67,7 @@ try:
 except ImportError:
     has_lmfit = False
     warnings.warn((' - Cannot import lmfit. Some fitting functionalities '
-                   ' will not be avalable.'))
+                   ' will not be available.'))
 else:
     has_lmfit = True
 
@@ -138,7 +138,7 @@ if has_matplotlib and has_pandas and has_lmfit:
             # Standalone plots as a function of ch
             mch_plot_bg, plot_alternation_hist,
 
-            # Plots types used for 1ch of multi-ch plots through `dplot`
+            # Single-ch plots used in multi-ch plots through `dplot`
             timetrace, timetrace_single, ratetrace, ratetrace_single,
             timetrace_fret, timetrace_bg,
             hist_width, hist_size, hist_size_all, hist_fret, hist_burst_data,
