@@ -5,7 +5,7 @@
 #
 """
 Routines to compute the background from an array of timestamps. This module
-is imported as `bg` by `burstlib.py`.
+is normally imported as `bg` when fretbursts is imported.
 
 The important functions are :func:`exp_fit` and :func:`exp_cdf_fit` that
 provide two (fast) algorithms to estimate the background without binning.
