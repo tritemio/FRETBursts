@@ -42,10 +42,6 @@ from matplotlib.pyplot import (plot, hist, xlabel, ylabel, grid, title, legend,
                                gca, gcf)
 from matplotlib.patches import Rectangle, Ellipse
 from matplotlib.collections import PatchCollection
-#from matplotlib.collections import PathCollection
-#from matplotlib.path import Path
-#import matplotlib.patches as patches
-#from matplotlib.lines import Line2D
 
 # Local imports
 from ph_sel import Ph_sel
@@ -56,11 +52,6 @@ from utils.misc import clk_to_s, pprint
 from scroll_gui import ScrollingToolQT
 import gui_selection as gs
 
-
-#ip = get_ipython()
-#ip.magic("run -i scroll_gui.py")
-#ip.magic("run -i gui_selection.py")
-#ip.magic("run -i style.py")
 
 params = {
         'font.size': 12,
@@ -84,7 +75,7 @@ _ph_sel_label_dict = {Ph_sel('all'): 'All-ph', Ph_sel(Dex='Dem'): 'DexDem',
                       Ph_sel(Dex='Aem'): 'DexAem', Ph_sel(Aex='Aem'): 'AexAem',
                       Ph_sel(Aex='Dem'): 'AexDem'}
 
-# Global store for plot statuses
+# Global store for plot status
 _plot_status = {}
 
 # Global store for GUI handlers
@@ -1001,10 +992,13 @@ def hist_bg_single(d, i=0, period=0, binwidth=1e-4, bins=None, tmax=0.01,
     Optionally plots the fitted background.
     """
 
-    # If bins is not passed try to use the
+    # If `bins` is not passed or is a scalar create the `bins` array
     if bins is None:
         bins = np.arange(0, tmax + binwidth, binwidth)
-        t_ax = bins[:-1] + 0.5*binwidth
+    elif np.size(bins) == 1:
+        warnings.warn('`bins` is a scalar, `tmax` will be ignored.')
+        bins = np.arange(0, bins*binwidth, binwidth)
+    t_ax = bins[:-1] + 0.5*binwidth
 
     # Compute histograms
     ph_times_period = d.get_ph_times_period(ich=i, period=period,
