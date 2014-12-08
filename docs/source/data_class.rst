@@ -136,16 +136,3 @@ arrays of timestamps or burst data.
     .. automethod:: copy
 
     .. automethod:: slice_ph
-
-
-Photon selection
-----------------
-
-.. module:: fretbursts.ph_sel
-
-The class :class:`Ph_sel` is used to specify which sub-set of
-photons/timestamps are "selected" (i.e. all-photons, Donor-excitation-period
-photons, etc...).
-
-.. autoclass:: Ph_sel
-

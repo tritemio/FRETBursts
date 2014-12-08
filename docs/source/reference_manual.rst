@@ -8,6 +8,7 @@ Contents:
 
     loader
     data_class
+    ph_sel
     burst_selection
     background
     burstsearch

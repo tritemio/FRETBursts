@@ -4,7 +4,49 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-A class to describe the photon selection.
+In this module we define the class :class:`Ph_sel` is used to specify a
+"selection" of a sub-set of photons/timestamps  (i.e. all-photons,
+Donor-excitation-period photons, etc...).
+
+A photon selection is one of the base *photon streams* or a combination of
+them. Base *photon streams* are photon from the donor (or acceptor) emission
+channel detected during the donor (or acceptor) excitation period. For
+non-ALEX data there is only the donor excitation period.
+
+The following table shows base *photon streams* for smFRET data (non-ALEX):
+
+=================   =====================
+Photon selection    Syntax
+=================   =====================
+D-emission          `Ph_sel(Dex='Dem')`
+A-emission          `Ph_sel(Dex='Aem')`
+=================   =====================
+
+and for ALEX data:
+
+==============================   =====================
+Photon selection                 Syntax
+==============================   =====================
+D-emission during D-excitation   `Ph_sel(Dex='Dem')`
+A-emission during D-excitation   `Ph_sel(Dex='Aem')`
+D-emission during A-excitation   `Ph_sel(Aex='Dem')`
+A-emission during A-excitation   `Ph_sel(Aex='Aem')`
+==============================   =====================
+
+Additionally, all the photons can be selected with `Ph_sel('all')` (that is a
+shortcut for  `Ph_sel(Dex='DAem', Aex='DAem')`.
+
+Examples:
+
+    - `Ph_sel(Dex='DAem', Aex='DAem')` or `Ph_sel('all')` select all photons.
+    - `Ph_sel(Dex='DAem')` selects only donor and acceptor photons
+      emitted during donor excitation. These are all the photons for
+      non-ALEX data.
+    - `Ph_sel(Dex='Aem', Aex='Aem')` selects all the photons detected from
+      the acceptor-emission channel.
+
+The documentation for the :class:`Ph_sel` class follows.
+
 """
 
 from collections import namedtuple
@@ -21,21 +63,16 @@ from collections import namedtuple
 class Ph_sel(namedtuple('Ph_sel', ['Dex', 'Aex'])):
     """Class that describes a selection of photons.
 
-    This class takes two arguments 'Dex' and 'Aex'.
-    Valid values for the arguments are 'DAem', 'Dem', 'Aem' or None. These
-    values select, respectively, donor+acceptor, donor-only, acceptor-only
-    or no photons during an excitation period (Dex or Aex).
+    This class takes two arguments `Dex` and `Aex`.
+    Valid values for the arguments are the strings 'DAem', 'Dem', 'Aem' or
+    `None`. These values select, respectively, donor+acceptor, donor-only,
+    acceptor-only or no photons during an excitation period (`Dex` or `Aex`).
 
     The class must be called with at least one keyword argument or using
     the string 'all' as the only argument. Calling `Ph_sel('all')` is
     equivalent to `Ph_sel(Dex='DAem', Aex='DAem')`.
     Not specifying a keyword argument is equivalent to setting it to None.
 
-    Example:
-        `Ph_sel(Dex='DAem', Aex='DAem')` or `Ph_sel('all')` select all photons.
-        `Ph_sel(Dex='DAem')` selects only donor and acceptor photons
-        emitted during donor excitation.
-        `Ph_sel(Dex='Aem', Aex='Aem')` selects all the acceptor photons.
     """
     valid_values = ('DAem', 'Dem', 'Aem', None)
     def __new__(cls, Dex=None, Aex=None):
