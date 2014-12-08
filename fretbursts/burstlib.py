@@ -614,7 +614,7 @@ class Data(DataContainer):
         Ph_p (list): each element in this list is a list of timestamps pairs
             for **first** and **last** photon of each period.
         bg_ph_sel (Ph_sel object): photon selection used by Lim and Ph_p.
-            See :class:`fretbursts.ph_sel.Ph_sel` for details.
+            See :mod:`fretbursts.ph_sel` for details.
 
     Other attributes (per-ch mean of `bg`, `bg_dd`, `bg_ad` and `bg_aa`)::
 
@@ -630,7 +630,7 @@ class Data(DataContainer):
 
     Attributes:
         ph_sel (Ph_sel object): photon selection used for burst search.
-            See :class:`fretbursts.ph_sel.Ph_sel` for details.
+            See :mod:`fretbursts.ph_sel` for details.
         m (int): number of consecutive timestamps used to compute the
             local rate during burst search
         L (int): min. number of photons for a burst to be identified and saved
@@ -794,7 +794,7 @@ class Data(DataContainer):
 
         Arguments:
             ph_sel (Ph_sel object): object defining the photon selection.
-                See :class:`fretbursts.ph_sel.Ph_sel` for details.
+                See :mod:`fretbursts.ph_sel` for details.
         """
         for ich in xrange(self.nch):
             yield self.get_ph_mask(ich, ph_sel=ph_sel)
@@ -824,7 +824,7 @@ class Data(DataContainer):
 
         Arguments:
             ph_sel (Ph_sel object): object defining the photon selection.
-                See :class:`fretbursts.ph_sel.Ph_sel` for details.
+                See :mod:`fretbursts.ph_sel` for details.
         """
         assert type(ich) == int
         ph_sel = self._check_ph_sel(ph_sel)
@@ -872,7 +872,7 @@ class Data(DataContainer):
 
         Arguments:
             ph_sel (Ph_sel object): object defining the photon selection.
-                See :class:`fretbursts.ph_sel.Ph_sel` for details.
+                See :mod:`fretbursts.ph_sel` for details.
         """
         for ich in xrange(self.nch):
             yield self.get_ph_times(ich, ph_sel=ph_sel)
@@ -885,7 +885,7 @@ class Data(DataContainer):
 
         Arguments:
             ph_sel (Ph_sel object): object defining the photon selection.
-                See :class:`fretbursts.ph_sel.Ph_sel` for details.
+                See :mod:`fretbursts.ph_sel` for details.
         """
         ph = self.ph_times_m[ich]
 
@@ -1640,7 +1640,7 @@ class Data(DataContainer):
                 If non-scalar, contains one rate per each channel.
             ph_sel (Ph_sel object): object defining the photon selection
                 used for burst search. Default: all photons.
-                See :class:`fretbursts.ph_sel.Ph_sel` for details.
+                See :mod:`fretbursts.ph_sel` for details.
             pure_python (bool): if True, uses the pure python functions even
                 when the optimized Cython functions are available.
 
@@ -1965,7 +1965,7 @@ class Data(DataContainer):
                 for which to compute the sbr. Changes the photons used for
                 burst size and the corresponding background rate. Valid values
                 here are Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem').
-                See :class:`fretbursts.ph_sel.Ph_sel` for details.
+                See :mod:`fretbursts.ph_sel` for details.
             gamma (float): gamma value used to compute corrected burst size
                 in the case `ph_sel` is Ph_sel('all'). Ignored otherwise.
         Returns:
@@ -1997,7 +1997,7 @@ class Data(DataContainer):
         Arguments:
             m (int): number of timestamps to use to compute the rate
             ph_sel (Ph_sel object): object defining the photon selection.
-                See :class:`fretbursts.ph_sel.Ph_sel` for details.
+                See :mod:`fretbursts.ph_sel` for details.
         """
         if ph_sel == Ph_sel('all'):
             Max_Rate = [b_rate_max(ph_data=ph, m=m, bursts=mb)

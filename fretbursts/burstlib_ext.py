@@ -66,7 +66,7 @@ def calc_mean_lifetime(dx, t1=0, t2=np.inf, ph_sel=Ph_sel('all')):
         t1, t2 (floats): min and max value (in TCSPC bin units) for the
             nanotime to be included in the mean
         ph_sel (Ph_sel object): object defining the photon selection.
-            See :class:`fretbursts.ph_sel.Ph_sel` for details.
+            See :mod:`fretbursts.ph_sel` for details.
 
     Returns:
         List of arrays of per-burst mean lifetime. One array per channel.
@@ -697,7 +697,7 @@ def get_burst_photons(d, ich=0, ph_sel=Ph_sel('all')):
         ich (int): channel index
         ph_sel (Ph_sel): photon selection. It allows to select timestamps
             from a specific photon selection. Example ph_sel=Ph_sel(Dex='Dem').
-            See :class:`fretbursts.ph_sel.Ph_sel` for details.
+            See :mod:`fretbursts.ph_sel` for details.
 
     Returns:
         A list of arrays of photon timestamps (one array per burst).
@@ -726,7 +726,7 @@ def ph_burst_stats(d, ich=0, func=np.mean, ph_sel=Ph_sel('all')):
             and return a scalar. Default `numpy.mean`.
         ph_sel (Ph_sel): photon selection. It allows to select timestamps
             from a specific photon selection. Default Ph_sel('all').
-            See :class:`fretbursts.ph_sel.Ph_sel` for details.
+            See :mod:`fretbursts.ph_sel` for details.
 
     Returns:
         An array containing per-burst timestamp statistics.
