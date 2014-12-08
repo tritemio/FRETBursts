@@ -4,7 +4,7 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-In this module we define the class :class:`Ph_sel` is used to specify a
+In this module we define the class :class:`Ph_sel` used to specify a
 "selection" of a sub-set of photons/timestamps  (i.e. all-photons,
 Donor-excitation-period photons, etc...).
 
