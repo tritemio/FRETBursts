@@ -86,15 +86,15 @@ HDF5 in FRETBursts
 ------------------
 
 FRETBursts allows saving and loading smFRET data from and to
-an HDF5-based file format called **HDF5-Ph-Data**.
+an HDF5-based file format called **Photon-HDF5**.
 
-The **HDF5-Ph-Data** is basically a pre-defined layout to be used with
+The **Photon-HDF5** is a pre-defined layout to be used with
 smFRET and other data involving time-series of photon-data.
 
-A description of the HDF5-Ph-Data format and its specifications can be found in
-`HDF5-Ph-Data format 0.2 Draft <https://github.com/tritemio/FRETBursts/wiki/HDF5-Ph-Data-format-0.2-Draft>`_.
+A description of the Photon-HDF5 format and its specifications can be found in
+`Photon-HDF5 format 0.2 (draft) <http://photon-hdf5.readthedocs.org/>`_.
 
-For documentation on using the HDF5-Ph-Data format in *FRETBursts* see:
+For documentation on using the Photon-HDF5 format in *FRETBursts* see:
 
 .. toctree::
     :maxdepth: 1

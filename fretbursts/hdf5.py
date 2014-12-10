@@ -5,7 +5,7 @@
 #
 """
 This module contains a function to store :class:`fretbursts.burstlib.Data`
-objects to disk in **HDF5-smFRET** format.
+objects to disk in **Photon-HDF5** format.
 
 Utility functions to print the HDF5 file structure and data-attributes are
 also provided.
@@ -19,20 +19,28 @@ from utils.misc import pprint
 
 # Metadata for the HDF5 root node
 _format_meta = dict(
-    format_name = 'HDF5-Ph-Data',
+    format_name = 'Photon-HDF5',
     format_title = 'HDF5-based format for time-series of photon data.',
-    format_version = '0.2'
+    format_version = '0.2',
+    format_url = 'http://photon-hdf5.readthedocs.org/',
     )
 
 # Metadata for different fields (arrays) in the HDF5 format
 _fields_meta = dict(
     # Global data
     timestamps_unit = 'Time in seconds of 1-unit increment in timestamps.',
-    num_spots = 'Number of excitation or detection spots',
-    alex = 'If True the file contains ALternated EXcitation data.',
-    lifetime = 'If True the data contains nanotimes from TCSPC hardware',
+    num_spots = 'Number of excitation or detection spots.',
+    alex = 'If True (or 1) the file contains ALternated EXcitation data.',
+    lifetime = ('If True (or 1) the data contains nanotimes from TCSPC '
+                'hardware'),
     alex_period = ('The duration of the excitation alternation using '
                    'the same units as the timestamps.'),
+    num_spectral_ch = ('number of different spectral bands in the detection '
+                       'channels (i.e. 2 for 2-colors smFRET).'),
+    num_polariz_ch = ('number of different polarization in the detection '
+                      'channels. The value is 1 if no polarization selection '
+                      'is performed and 2 if two orthogonal polarizations '
+                      'are recorded.'),
     alex_period_donor = ('Start and stop values identifying the donor '
                          'emission period of us-ALEX measurements'),
     alex_period_acceptor = ('Start and stop values identifying the acceptor '
@@ -48,8 +56,12 @@ _fields_meta = dict(
     detectors_specs = 'Group for detector-specific data.',
     donor = 'Detectors for the donor spectral range',
     acceptor = 'Detectors for the acceptor spectral range',
-    polariz_paral = 'Detectors for polarization parallel to excitation',
-    polariz_perp = 'Detectors for polarization perpendicular to excitation',
+    polarization1 = ('Detectors ID for the "polarization1". By default is '
+                     'the polarization parallel to the excitation, '
+                     'unless specified differently in the "/setup_specs".'),
+    polarization2 = ('Detectors ID for the "polarization2". By default is '
+                     'the polarization perpendicular to the excitation, '
+                     'unless specified differently in the "/setup_specs".'),
 
     nanotimes_specs =  'Group for nanotime-specific data.',
     tcspc_bin = 'TCSPC time bin duration in seconds (nanotimes unit).',
@@ -58,8 +70,19 @@ _fields_meta = dict(
     tau_accept_only = 'Intrinsic Acceptor lifetime (seconds).',
     tau_donor_only = 'Intrinsic Donor lifetime (seconds).',
     tau_fret_donor = 'Donor lifetime in presence of Acceptor (seconds).',
-    tau_fret_trans = ('FRET energy transfer lifetime (seconds). Inverse of '
-                      'the rate of D*A -> DA*.'),
+    inverse_fret_rate = ('FRET energy transfer lifetime (seconds). Inverse of '
+                         'the rate of D*A -> DA*.'),
+    ## Setup group
+    excitation_wavelengths = ('Array of excitation wavelengths in S.I. units '
+                              '(meters).'),
+    excitation_powers = ('Array of excitation powers (in the same order as '
+                         'excitation_wavelengths). Units: Watts.'),
+    excitation_polarizations = ('Polarization angle (in degrees), one for '
+                                'each laser.'),
+    detection_polarization1 = ('Polarization angle (in degrees) for '
+                               '"polarization1".'),
+    detection_polarization2 = ('Polarization angle (in degrees) for '
+                               '"polarization2".'),
 )
 
 hdf5_data_map = {key: key for key in _fields_meta.keys()}
@@ -77,6 +100,10 @@ hdf5_data_map.update(
             alex_period_donor = 'D_ON',
             alex_period_acceptor = 'A_ON',
             )
+
+mandatory_root_fields = ['timestamps_unit', 'num_spots', 'alex', 'lifetime',
+                         'num_spectral_ch', 'num_polariz_ch']
+
 
 class H5Writer():
     """Helper class for writing fields of a Data() object in HDF5.
@@ -138,6 +165,12 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
         # Test on different fields for ALEX and non-ALEX
         d.add(lifetime = ('nanotimes_t' in d) or ('nanotimes' in d))
 
+    # Add default values for missing mandatory fields
+    if 'num_spectral_ch' not in d:
+        d.add(num_spectral_ch = 2)
+    if 'num_polariz_ch' not in d:
+        d.add(num_polariz_ch = 1)
+
     if h5_fname is None:
         basename, extension = os.path.splitext(d.fname)
         h5_fname = basename + '.hdf5'
@@ -156,8 +189,7 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
         data_file.root._f_setattr(name, value)
 
     ## Save the mandatory parameters
-    mandatory_fields = ['timestamps_unit', 'num_spots', 'alex', 'lifetime']
-    for field in mandatory_fields:
+    for field in mandatory_root_fields:
         writer.add_array('/', field)
 
     if d.ALEX:
@@ -176,7 +208,8 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
             donor, accept = d.det_donor_accept
         else:
             writer.add_carray(ph_group, 'timestamps', obj=d.ph_times_m[0])
-            writer.add_carray(ph_group, 'detectors', obj=d.A_em[0])
+            writer.add_carray(ph_group, 'detectors',
+                              obj=d.A_em[0].view(dtype='uint8'))
             donor, accept = 0, 1
 
         det_group = writer.add_group(ph_group, 'detectors_specs')
@@ -198,7 +231,7 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
 
             # Optional specs
             nanotimes_specs = ['tau_accept_only', 'tau_donor_only',
-                               'tau_fret_donor', 'tau_fret_trans']
+                               'tau_fret_donor', 'inverse_fret_rate']
             for spec in nanotimes_specs:
                 if spec in d.nanotimes_params:
                     writer.add_array(nt_group, spec,
@@ -219,7 +252,8 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
             # save the detector (there is only one detector per channel).
             a_em = d.A_em[ich]
             if type(a_em) is not slice:
-                writer.add_carray(ch_group, 'detectors', obj=a_em)
+                writer.add_carray(ch_group, 'detectors',
+                                  obj=a_em.view(dtype='uint8'))
                 # Detector specs
                 det_group = writer.add_group(ch_group, 'detectors_specs')
                 writer.add_array(det_group, 'donor', obj=False)
