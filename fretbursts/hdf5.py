@@ -13,77 +13,80 @@ also provided.
 
 import os
 import tables
+from collections import OrderedDict
 
 from utils.misc import pprint
 
 
 # Metadata for the HDF5 root node
-_format_meta = dict(
-    format_name = 'Photon-HDF5',
-    format_title = 'HDF5-based format for time-series of photon data.',
-    format_version = '0.2',
-    format_url = 'http://photon-hdf5.readthedocs.org/',
-    )
+_format_meta = OrderedDict([
+    ('format_name', 'Photon-HDF5'),
+    ('format_title', 'HDF5-based format for time-series of photon data.'),
+    ('format_version', '0.2'),
+    ('format_url', 'http://photon-hdf5.readthedocs.org/'),
+    ])
 
 # Metadata for different fields (arrays) in the HDF5 format
-_fields_meta = dict(
-    # Global data
-    timestamps_unit = 'Time in seconds of 1-unit increment in timestamps.',
-    num_spots = 'Number of excitation or detection spots.',
-    alex = 'If True (or 1) the file contains ALternated EXcitation data.',
-    lifetime = ('If True (or 1) the data contains nanotimes from TCSPC '
-                'hardware'),
-    alex_period = ('The duration of the excitation alternation using '
-                   'the same units as the timestamps.'),
-    num_spectral_ch = ('number of different spectral bands in the detection '
-                       'channels (i.e. 2 for 2-colors smFRET).'),
-    num_polariz_ch = ('number of different polarization in the detection '
-                      'channels. The value is 1 if no polarization selection '
-                      'is performed and 2 if two orthogonal polarizations '
-                      'are recorded.'),
-    alex_period_donor = ('Start and stop values identifying the donor '
-                         'emission period.'),
-    alex_period_acceptor = ('Start and stop values identifying the acceptor '
-                            'emission period.'),
+_fields_meta = OrderedDict([
+    # Root parameters
+    ('num_spots', 'Number of excitation or detection spots.'),
+    ('num_spectral_ch', ('Number of different spectral bands in the detection '
+                        'channels (i.e. 2 for 2-colors smFRET).')),
+    ('num_polariz_ch', ('Number of different polarization in the detection '
+                       'channels. The value is 1 if no polarization selection '
+                       'is performed and 2 if two orthogonal polarizations '
+                       'are recorded.')),
+    ('lifetime', ('If True (or 1) the data contains nanotimes from TCSPC '
+                 'hardware')),
+    ('alex', 'If True (or 1) the file contains ALternated EXcitation data.'),
+    ('alex_period', ('The duration of the excitation alternation using '
+                    'the same units as the timestamps.')),
+    ('alex_period_donor', ('Start and stop values identifying the donor '
+                          'emission period.')),
+    ('alex_period_acceptor', ('Start and stop values identifying the acceptor '
+                             'emission period.')),
+    ('timestamps_unit', 'Time in seconds of 1-unit increment in timestamps.'),
+
     # Photon-data
-    photon_data = ('Group containing arrays of photon-data (one element per '
-                   'photon)'),
-    timestamps = 'Array of photon timestamps',
-    detectors = 'Array of detector numbers for each timestamp',
-    nanotimes = 'TCSPC photon arrival time (nanotimes)',
-    particles = 'Particle label (integer) for each timestamp.',
+    ('photon_data', ('Group containing arrays of photon-data (one element per '
+                    'photon)')),
+    ('timestamps', 'Array of photon timestamps'),
 
-    detectors_specs = 'Group for detector-specific data.',
-    donor = 'Detectors for the donor spectral range',
-    acceptor = 'Detectors for the acceptor spectral range',
-    polarization1 = ('Detectors ID for the "polarization1". By default is '
-                     'the polarization parallel to the excitation, '
-                     'unless specified differently in the "/setup_specs".'),
-    polarization2 = ('Detectors ID for the "polarization2". By default is '
+    ('detectors', 'Array of detector numbers for each timestamp'),
+    ('detectors_specs', 'Group for detector-specific data.'),
+    ('donor', 'Detectors for the donor spectral range'),
+    ('acceptor', 'Detectors for the acceptor spectral range'),
+    ('polarization1', ('Detectors ID for the "polarization1". By default is '
+                      'the polarization parallel to the excitation, '
+                      'unless specified differently in the "/setup_specs".')),
+    ('polarization2', ('Detectors ID for the "polarization2". By default is '
                      'the polarization perpendicular to the excitation, '
-                     'unless specified differently in the "/setup_specs".'),
+                     'unless specified differently in the "/setup_specs".')),
 
-    nanotimes_specs =  'Group for nanotime-specific data.',
-    tcspc_bin = 'TCSPC time bin duration in seconds (nanotimes unit).',
-    tcspc_nbins = 'Number of TCSPC bins.',
-    tcspc_range = 'TCSPC full-scale range in seconds.',
-    tau_accept_only = 'Intrinsic Acceptor lifetime (seconds).',
-    tau_donor_only = 'Intrinsic Donor lifetime (seconds).',
-    tau_fret_donor = 'Donor lifetime in presence of Acceptor (seconds).',
-    inverse_fret_rate = ('FRET energy transfer lifetime (seconds). Inverse of '
-                         'the rate of D*A -> DA*.'),
+    ('nanotimes', 'TCSPC photon arrival time (nanotimes)'),
+    ('nanotimes_specs', 'Group for nanotime-specific data.'),
+    ('tcspc_bin', 'TCSPC time bin duration in seconds (nanotimes unit).'),
+    ('tcspc_nbins', 'Number of TCSPC bins.'),
+    ('tcspc_range', 'TCSPC full-scale range in seconds.'),
+    ('tau_accept_only', 'Intrinsic Acceptor lifetime (seconds).'),
+    ('tau_donor_only', 'Intrinsic Donor lifetime (seconds).'),
+    ('tau_fret_donor', 'Donor lifetime in presence of Acceptor (seconds).'),
+    ('inverse_fret_rate', ('FRET energy transfer lifetime (seconds). Inverse '
+                          'of the rate of D*A -> DA*.')),
+
+    ('particles', 'Particle label (integer) for each timestamp.'),
+
     ## Setup group
-    excitation_wavelengths = ('Array of excitation wavelengths in S.I. units '
-                              '(meters).'),
-    excitation_powers = ('Array of excitation powers (in the same order as '
-                         'excitation_wavelengths). Units: Watts.'),
-    excitation_polarizations = ('Polarization angle (in degrees), one for '
-                                'each laser.'),
-    detection_polarization1 = ('Polarization angle (in degrees) for '
-                               '"polarization1".'),
-    detection_polarization2 = ('Polarization angle (in degrees) for '
-                               '"polarization2".'),
-)
+    ('excitation_wavelengths', 'Array of excitation wavelengths (meters).'),
+    ('excitation_powers', ('Array of excitation powers (in the same order as '
+                          'excitation_wavelengths). Units: Watts.')),
+    ('excitation_polarizations', ('Polarization angle (in degrees), one for '
+                                 'each laser.')),
+    ('detection_polarization1', ('Polarization angle (in degrees) for '
+                                '"polarization1".')),
+    ('detection_polarization2', ('Polarization angle (in degrees) for '
+                                '"polarization2".')),
+    ])
 
 hdf5_data_map = {key: key for key in _fields_meta.keys()}
 hdf5_data_map.update(
