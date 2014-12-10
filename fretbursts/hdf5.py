@@ -42,9 +42,9 @@ _fields_meta = dict(
                       'is performed and 2 if two orthogonal polarizations '
                       'are recorded.'),
     alex_period_donor = ('Start and stop values identifying the donor '
-                         'emission period of us-ALEX measurements'),
+                         'emission period.'),
     alex_period_acceptor = ('Start and stop values identifying the acceptor '
-                            'emission period of us-ALEX measurements'),
+                            'emission period.'),
     # Photon-data
     photon_data = ('Group containing arrays of photon-data (one element per '
                    'photon)'),
