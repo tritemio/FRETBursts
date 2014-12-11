@@ -24,15 +24,18 @@
 
 from __future__ import print_function
 
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions
 
 ## Citation information
 _CITATION = ('   FRETBursts - An opensource single-molecule FRET burst '
              'analysis toolkit.\n   A. Ingargiola 2014. '
              'https://github.com/tritemio/FRETBursts')
 
-_INFO_CITATION = (' You are running FRETBursts, a software for smFRET analysis. '
-                  '\n\n If you use this software in a publication, please '
-                  'cite it as:\n\n') + _CITATION + '\n'
+_INFO_CITATION = (' You are running FRETBursts (version {}).\n'
+                  '\n If you use this software in a publication, please '
+                  'cite it as:\n\n{}\n').format(__version__, _CITATION)
 
 def citation(bar=True):
     if bar:
@@ -156,7 +159,3 @@ if has_matplotlib and has_pandas and has_lmfit:
 from .utils.gui import gui_fname
 
 from .utils.misc import download_file
-
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
