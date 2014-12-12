@@ -8,7 +8,7 @@ HDF5-based smFRET file format
 We developed an HDF5-based format called **Photon-HDF5** for smFRET
 and other measurements involving series of photon timestamps.
 The specifications of the Photon-HDF5 format can be found in
-`Photon-HDF5 format 0.2 (draft) <http://photon-hdf5.readthedocs.org/>`_.
+`Photon-HDF5 format <http://photon-hdf5.readthedocs.org/>`_.
 
 For a general overview on the importance of a standard file format
 for smFRET see also :ref:`hdf5-advantages`.

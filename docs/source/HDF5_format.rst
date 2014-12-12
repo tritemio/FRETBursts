@@ -92,7 +92,7 @@ The **Photon-HDF5** is a pre-defined layout to be used with
 smFRET and other data involving time-series of photon-data.
 
 A description of the Photon-HDF5 format and its specifications can be found in
-`Photon-HDF5 format 0.2 (draft) <http://photon-hdf5.readthedocs.org/>`_.
+`Photon-HDF5 format <http://photon-hdf5.readthedocs.org/>`_.
 
 For documentation on using the Photon-HDF5 format in *FRETBursts* see:
 
