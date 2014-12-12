@@ -23,6 +23,16 @@ As a first step always do:
 **Windows installer (GUI)**
 
     python setup.py bdist_wininst
+    
+## Upload to PyPI
+
+Once `.pypirc` is configured, run:
+    
+    twine upload dist/fretbursts-X.X.zip -ppassword
+    
+## Zenodo
+
+To disable/enable the DOI creation for a release, login on Zenodo and enable/disable the repository in the GitHub section.
 
 
 # References
