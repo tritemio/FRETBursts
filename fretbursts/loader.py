@@ -133,7 +133,7 @@ def hdf5(fname):
                 value = nanot_specs._f_get_child(name).read()
                 nanotimes_params.update(**{name: value})
             for name in ['tau_accept_only', 'tau_donor_only',
-                         'tau_fret_donor', 'tau_fret_trans']:
+                         'tau_fret_donor', 'inverse_fret_rate']:
                 if name in nanot_specs:
                     value = nanot_specs._f_get_child(name).read()
                     nanotimes_params.update(**{name: value})
