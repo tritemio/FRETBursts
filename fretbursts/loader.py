@@ -118,6 +118,8 @@ def hdf5(fname):
         for name, dest_name in mapping.items():
             if name in ph_group:
                 loader.load_data(ph_group, name, dest_name=dest_name, ich=ich)
+                if dest_name == 'A_em':
+                    d.add(A_em=[d.A_em[0].view(dtype=bool)])
 
         if 'detectors_specs' in ph_group:
             det_specs = ph_group.detectors_specs
