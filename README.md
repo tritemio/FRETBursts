@@ -27,7 +27,7 @@ FRETBursts is opensource and contributions are welcome.
 The authors are committed to promptly fix bugs whenever discovered.
 
 Together with FRETBursts we promote the open file format
-[HDF5-Ph-Data](https://github.com/tritemio/FRETBursts/wiki/HDF5-Ph-Data-format-0.2-Draft).
+[Photon-HDF5](http://photon-hdf5.readthedocs.org/).
 
 Issues can be reported and discussed on the
 [issue tracker](https://github.com/tritemio/FRETBursts/issues?state=open).
