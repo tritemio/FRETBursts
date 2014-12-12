@@ -8,10 +8,6 @@ from the source folder.
 
 In both cases, installing a scientific python distribution is needed.
 
-.. warning ::
-
-    Currently most of the tutorials and examples assume that FRETBursts is
-    executed from the source folder (aka **source installation**).
 
 Quick: Package installation
 ---------------------------
@@ -31,6 +27,19 @@ Alternatively you can clone FRETBursts git repository and run::
 
 The optimized C extensions are installed in both cases.
 
+After installation, FRETBurst can be imported with::
+
+    from fretbursts import *
+
+this will also import numpy (as `np`) and matplolib.pyplot (as `plt`).
+Alternatively you can import FRETBursts in its own namespace with::
+
+    import fretbursts as fb
+
+For more info on running FRETBursts refer to the
+`tutorials <https://github.com/tritemio/FRETBursts_notebooks>`_.
+
+
 Quick: Source installation
 --------------------------
 
@@ -38,8 +47,16 @@ To perform a "source installation", i.e. executing FRETBursts from the source
 folder, download the code from GitHub, and execute the ipython notebook
 `FRETBursts Installation`.
 
-You also need to copy the `load_fretbursts.py` script into your ipython
-notebooks folder.
+In the case of source installation, instead of the normal import, we need to
+use a little helper script (`load_fretbursts.py`) that finds the sources and
+import FRETBursts.
+Once the script `load_fretbursts.py` is copied in your notebook
+folder you can load/import FRETBursts with::
+
+    %run load_fretbursts --nogui -- sources
+
+A copy of `load_fretbursts.py` can be found under `notebooks` in the
+source tree.
 
 
 Source installation description (long)

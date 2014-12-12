@@ -10,18 +10,20 @@ Welcome to FRETBursts's documentation!
 :Contact: tritemio@gmail.com
 :Version: |version|
 
-FRETBursts is an open-source (GPLv2) toolkit for analysis of single-molecule
-FRET data acquired by single and multi-spot confocal systems.
+FRETBursts is an open-source (GPLv2) python package for burst analysis of
+single-molecule FRET data from single and multi-spot confocal systems.
 
-For more general info you may want to vist
-`FRETBursts Homepage <http://tritemio.github.io/FRETBursts/>`_.
-The source code can be found in the
-`FRETBursts repository <https://github.com/tritemio/FRETBursts/>`_ on GitHub.
+For a general overview of FRETBursts features and its philosophy see
+this `README file <https://github.com/tritemio/FRETBursts#fretbursts>`_.
+
+The latest version can be always downloaded from
+`FRETBursts source repository <http://tritemio.github.io/FRETBursts/>`_
+on GitHub.
 A set of IPython Notebook tutorials can be found in the
 `FRETBursts_notebooks <https://github.com/tritemio/FRETBursts_notebooks/>`_ repository.
 
-In the following pages you can find installation instructions and the
-reference and API documentation.
+This documentation contains installation instructions and the
+reference API documentation.
 
 
 Table of contents
