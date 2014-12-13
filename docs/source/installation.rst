@@ -12,9 +12,12 @@ In both cases, installing a scientific python distribution is needed.
 Quick: Package installation
 ---------------------------
 
+If you are just starting with FRETBursts this is the preferred installation
+method.
+
 To install the last stable release type::
 
-    pip install fretbursts
+    pip install fretbursts==0.4rc4 --upgrade
 
 To install the latest version from GitHub, type::
 

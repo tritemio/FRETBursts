@@ -17,7 +17,7 @@ For a general overview of FRETBursts features and its philosophy see
 this `README file <https://github.com/tritemio/FRETBursts#fretbursts>`_.
 
 The latest version can be always downloaded from
-`FRETBursts source repository <http://tritemio.github.io/FRETBursts/>`_
+`FRETBursts source repository <https://github.com/tritemio/FRETBursts/>`_
 on GitHub.
 A set of IPython Notebook tutorials can be found in the
 `FRETBursts_notebooks <https://github.com/tritemio/FRETBursts_notebooks/>`_ repository.
