@@ -118,8 +118,6 @@ def hdf5(fname):
         for name, dest_name in mapping.items():
             if name in ph_group:
                 loader.load_data(ph_group, name, dest_name=dest_name, ich=ich)
-                if dest_name == 'A_em':
-                    d.add(A_em=[d.A_em[0].view(dtype=bool)])
 
         if 'detectors_specs' in ph_group:
             det_specs = ph_group.detectors_specs
@@ -127,6 +125,18 @@ def hdf5(fname):
                 donor = det_specs.donor.read()
                 accept = det_specs.acceptor.read()
                 d.add(det_donor_accept=(donor, accept))
+                if not d.ALEX:
+                    # We still have to convert A_em to a boolean mask
+                    # because until now it is just the detector list
+
+                    # Make sure there are at most 2 detectors
+                    assert len(np.unique(d.A_em[0])) <= 2
+                    if accept and not donor:
+                        # In this case we can convert without a copy
+                        d.add(A_em=[d.A_em[0].view(dtype=bool)])
+                    else:
+                        # Create the boolean mask
+                        d.add(A_em=[d.A_em[0] == accept])
 
         if 'nanotimes_specs' in ph_group:
             nanot_specs = ph_group.nanotimes_specs
