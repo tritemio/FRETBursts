@@ -121,18 +121,11 @@ rich text, math and graphics with (live) code. For more info please visit:
 
 ##Installation
 
-Briefly, the installation requires installing a scientific python
-distribution, downloading FRETBursts sources, and setting up a folder for the
-FRETBursts notebooks.
+Briefly, the installation requires installing a scientific python distribution 
+(like [Continuum Anaconda]()) 
+and then installing the `fretbursts` python package (`pip install fretbursts==0.4rc4`).
 
-The first time you execute FRETBursts, you need to
-run the [FRETBursts Installation.ipynb](http://nbviewer.ipython.org/github/tritemio/FRETBursts/blob/master/notebooks/FRETBursts Installation.ipynb)
-notebook that will write a configuration file
-containing FRETBursts's source folder.
-After that, FRETBursts is loaded running a small script (`load_fretbursts.py`) placed
-in the notebooks folder.
-
-A detailed description of the installation can be found in:
+A detailed description of different installation options can be found in:
 
 * [FRETBursts documentation: Getting started](http://fretbursts.readthedocs.org/en/latest/getting_started.html)
 
