@@ -1,5 +1,7 @@
-Compiling Cython code
-=====================
+.. _fretbursts_cython:
+
+FRETBursts Cython extensions
+============================
 
 `Cython <http://cython.org/>`_ is a tool that, among other things, allows
 to translate annotated python code into C code.
@@ -14,36 +16,9 @@ Therefore, although the compiled cython version is completely optional,
 it allows to gain significant execution speed in core functions that are
 potentially executed many times.
 
-To compile the cython functions, from FRETBursts
-source folder, execute::
+Usually the cython extensions are compiled during installation.
+To manually build the extensions type::
 
-    python setup.py build_ext --inplace
+    python setup.py build
 
-This command requires `cython <http://cython.org/>`_ and a standard
-C compiler.
-
-Installing a compiler (optional)
---------------------------------
-
-Linux
-~~~~~
-
-On **Linux** the preferred compiler is GCC, that is easily available for
-any distribution.
-
-Windows
-~~~~~~~
-
-On **Windows**, the MS Visual Studio v7 compiler is the preferred compiler.
-In principle, installing only MS Windows SDK v7.0 (GRMSDKX\_EN\_DVD.iso) should be sufficient.
-However, sometime it maybe necessary to install the full MS Visual Studio
-Express 2008 (VS2008ExpressWithSP1ENUX1504728.iso). Both downloads are free.
-
-After installation and a reboot, the cython version installed by python
-distributions like Anaconda should automatically find the compiler.
-
-Mac OSX
-~~~~~~~
-
-On **Mac OSX** the LLVM compiler included in Xcode should be installed
-(untested).
+from the FRETBursts source folder.
