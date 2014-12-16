@@ -115,7 +115,7 @@ If you prefer a manual installation, FRETBursts dependencies are:
 - Numpy/Scipy (any version from 2013 on)
 - Matplotlib (1.3.x or greater) with QT4 backend (either PyQT4 or PySide).
 - IPython 1.x (2.x recommended)
-- PyTables 3.x (optional). To load/save the :ref:`HDF5 Ph-Data <hdf5-format>`.
+- PyTables 3.x (optional). To load/save the :ref:`Photon-HDF5 <hdf5-format>`.
 - lmfit: (version 0.8 or higher) for powerful and user-friendly fitting
 - Pandas (optional) currently used only by the fitting framework
 - a modern browser (Chrome or Firefox suggested)
