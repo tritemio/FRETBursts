@@ -7,6 +7,7 @@
 Functions to check the version of a repository by querying git.
 """
 
+from __future__ import print_function
 import os
 from distutils.spawn import find_executable
 from subprocess import check_output, call
@@ -40,6 +41,26 @@ def find_git():
 GIT_PATH = find_git()
 
 
+def find_sources_dir():
+    """
+    Returns FRETBursts sources folder from `HOME/.fretbursts` or `./`
+    """
+    if os.name == 'posix':
+        # Linux or Mac
+        HOME = os.environ['HOME'] + '/'
+    elif os.name == 'nt':
+        # Windows
+        HOME = os.environ['HOMEPATH'] + '/'
+    else:
+        raise OSError ("Operating system not recognized (%s)." % os.name)
+
+    config_file_name = '.fretbursts'
+    FRETBURSTS_DIR = './'
+    with open(HOME + config_file_name) as f:
+        FRETBURSTS_DIR = f.read().strip()
+
+    return FRETBURSTS_DIR
+
 def git_path_valid(git_path=None):
     """
     Check whether the git executable is found.
@@ -53,20 +74,32 @@ def git_path_valid(git_path=None):
     except OSError:
         return False
 
+def call_git(git_path, *git_args):
+    """Call git with passed arguments from within FRETBursts source folder.
+
+    Returns the output printed by the git call.
+    """
+    if git_path is None:
+        git_path = GIT_PATH
+    fretbursts_dir = find_sources_dir()
+    curr_dir = os.path.abspath('./')
+    os.chdir(fretbursts_dir)
+    output = check_output([git_path] + list(git_args))
+    os.chdir(curr_dir)
+    return output
+
 def get_git_version(git_path=None):
     """
     Get the Git version.
     """
-    if git_path is None: git_path = GIT_PATH
-    git_version = check_output([git_path, "--version"]).split()[2]
+    git_version = call_git(git_path, "--version").split()[2]
     return git_version
 
 def get_status(git_path=None):
     """
     Returns a string listing all the uncommitted changes in the working dir.
     """
-    if git_path is None: git_path = GIT_PATH
-    output = check_output([git_path, "status", "--porcelain"])
+    output = call_git(git_path, "status", "--porcelain")
     return output
 
 def check_clean_status(git_path=None):
@@ -81,16 +114,14 @@ def get_last_commit_line(git_path=None):
     """
     Get one-line description of HEAD commit for repository in current dir.
     """
-    if git_path is None: git_path = GIT_PATH
-    output = check_output([git_path, "log", "--pretty=format:'%ad %h %s'",
-                           "--date=short", "-n1"])
+    output = call_git(git_path, "log", "--pretty=format:'%ad %h %s'",
+                      "--date=short", "-n1")
     return output.strip()[1:-1]
 
 def get_last_commit(git_path=None):
     """
     Get the HEAD commit SHA1 of repository in current dir.
     """
-    if git_path is None: git_path = GIT_PATH
     line = get_last_commit_line(git_path)
     revision_id = line.split()[1]
     return revision_id
@@ -99,8 +130,6 @@ def print_summary(string='Repository', git_path=None):
     """
     Print the last commit line and eventual uncommitted changes.
     """
-    if git_path is None: git_path = GIT_PATH
-
     # If git is available, check fretbursts version
     if not git_path_valid():
         print('\n%s revision unknown (git not found).' % string)
@@ -110,4 +139,3 @@ def print_summary(string='Repository', git_path=None):
         if not check_clean_status():
             print('\nWARNING -> Uncommitted changes:')
             print(get_status())
-

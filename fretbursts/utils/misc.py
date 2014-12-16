@@ -90,23 +90,3 @@ def download_file(url, save_dir='./'):
     mkdir_p(save_dir)
     urllib.urlretrieve(url, path, _report)
 
-
-def find_sources_dir():
-    """
-    Find FRETBursts sources folder as stored in the .fretbursts config file.
-    """
-    if os.name == 'posix':
-        # Linux or Mac
-        HOME = os.environ['HOME'] + '/'
-    elif os.name == 'nt':
-        # Windows
-        HOME = os.environ['HOMEPATH'] + '/'
-    else:
-        raise OSError ("Operating system not recognized (%s)." % os.name)
-
-    config_file_name = '.fretbursts'
-    FRETBURSTS_DIR = ''
-    with open(HOME + config_file_name) as f:
-        FRETBURSTS_DIR = f.read().strip()
-
-    return FRETBURSTS_DIR
