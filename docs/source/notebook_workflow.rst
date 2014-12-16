@@ -55,7 +55,6 @@ When running FRETBursts from a :ref:`package installation <package_install>`
 you can import ``fretbursts`` and print citation information with::
 
     from fretbursts import *
-    citation()
 
 This is the syntax used throughout the tutorials.
 
