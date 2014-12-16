@@ -55,6 +55,7 @@ class H5Loader():
         try:
             node = self.h5file.get_node(where, name)
         except tables.NoSuchNodeError:
+            self.h5file.close()
             raise (IOError, "Invalid file format: '%s' is missing." % name)
 
         if dest_name is None:
@@ -103,6 +104,7 @@ def hdf5(fname):
             assert 'nanotimes' in ph_group
             assert 'nanotimes_specs' in ph_group
         except AssertionError:
+            data_file.close()
             raise (IOError, ('The lifetime flag is True but the TCSPC '
                              'data is missing.'))
 
@@ -236,6 +238,7 @@ def hdf5_phdata(fname):
             assert 'nanotimes' in ph_group
             assert 'nanotimes_specs' in ph_group
         except AssertionError:
+            data_file.close()
             raise (IOError, ('The lifetime flag is True but the TCSPC '
                              'data is missing.'))
 
