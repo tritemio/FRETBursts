@@ -80,6 +80,7 @@ def hdf5(fname):
         raise IOError, 'File not found.'
     data_file = tables.open_file(fname, mode = "r")
     if not _is_valid_photon_hdf5(data_file):
+        data_file.close()
         raise (IOError, 'The file is not a valid Photon-HDF5 format.')
 
     d = Data(fname=fname)
@@ -208,6 +209,7 @@ def hdf5_phdata(fname):
         raise IOError, 'File not found.'
     data_file = tables.open_file(fname, mode = "r")
     if not _is_valid_hdf5_phdata(data_file):
+        data_file.close()
         raise (IOError, 'The file is not a valid HDF5-Ph-Data format.')
 
     # Default values for some parameters
