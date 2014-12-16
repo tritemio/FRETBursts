@@ -4,8 +4,7 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-This is the main library to import (or run) in order to load all the analysis
-functions.
+This module contains all the main FRETBursts analysis functions.
 
 `burstslib.py` defines the fundamental object `Data()` that contains both the
 experimental data (attributes) and the high-level analysis routines (methods).

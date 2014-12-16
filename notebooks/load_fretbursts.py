@@ -1,11 +1,18 @@
-#%%writefile load_fretbursts.py
+#
+# FRETBursts - A single-molecule FRET burst analysis toolkit.
+#
+# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+#
 """
-Helper script to load the FRETBursts from a IPython Notebook.
+`load_fretbursts.py` is a small helper script used to import FRETBursts
+in an ipython notebook when you want to load fretbursts from the sources
+folder (not from system installation).
 
-Run this file from a notebook as follows:
+The script is typically ran at the beginning of a notebook as::
 
-    %run load_fretbursts
+    %run load_fretbursts --nogui --source
 
+See also http://fretbursts.readthedocs.org/en/latest/files_description.html#load-fretbursts-py
 """
 
 import sys

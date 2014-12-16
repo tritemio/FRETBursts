@@ -4,34 +4,45 @@ Description of the files
 
 Here a brief list of the main FRETBursts files.
 
+
+.. _load_fretbursts:
+
 ``load_fretbursts.py``
 ----------------------
 
-This is a small script in the notebook folder that is run in an IPython
-Notebook to import **FRETBursts** (``run load_fretbursts``).
+`load_fretbursts.py <https://github.com/tritemio/FRETBursts/blob/master/notebooks/load_fretbursts.py>`_
+is a small script used to import **FRETBursts**
+in an ipython notebook when you want to load fretbursts from the sources
+folder (not from system installation).
 
-The script performs 3 basic operations:
+The script is typically ran at the beginning of a notebook as::
 
--  Find the FRETBursts source folder (either from an environment
-   variable or from a default value set in the script) and set two
-   variables (``NOTEBOOK_DIR`` and ``FRETBURSTS_DIR``) to easily switch
-   between the notebooks folder and the FRETBursts source folder.
+    %run load_fretbursts --nogui --source
 
--  Load **FRETBursts**.
+The script performs some basic operations:
+
+-  Find the **FRETBursts** source folder (from a configuration file written by
+   the installation notebook) and set two variables (``NOTEBOOK_DIR`` and
+   ``FRETBURSTS_DIR``) to easily switch between the notebooks folder and
+   the FRETBursts source folder.
+
+-  Import **FRETBursts**, matplotlib (as ``plt``)  and some ipython functions
+   (``display``, ``Math``, etc...)
 
 -  If `git <http://git-scm.com/>`__ is found, it displays the current
    **FRETBursts** revision (and eventual files modified since last
    revision)
 
-To quickly switch between the notebooks dir and the FRETBursts source
-dir, use::
+-  Enable inline plots (``%matplotlib inline``) and optionally enable the Qt
+   GUI integration (to be able to launch open-file dialogs for example).
 
-    %cd $NOTEBOOK_DIR
+The script options are:
 
-or::
-
-    %cd $FRETBURSTS_DIR`
-
+* ``--nogui`` do not load the Qt GUI
+* ``--nompl`` do not load matplotlib
+* ``--nostyle`` do not modify matplotlib default plot syle
+* ``--source`` load FRETBursts from the source folder even if a system
+  installation is found
 
 
 ``burstlib.py``

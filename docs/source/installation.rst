@@ -53,8 +53,8 @@ folder, download the code from GitHub, and execute the ipython notebook
 `FRETBursts Installation`.
 
 In the case of source installation, instead of the normal import, we need to
-use a little helper script (`load_fretbursts.py`) that finds the sources and
-import FRETBursts.
+use a little helper script (:ref:`load_fretbursts.py <load_fretbursts>`) that
+finds the sources and import FRETBursts.
 Once the script `load_fretbursts.py` is copied in your notebook
 folder you can load/import FRETBursts with::
 
@@ -167,7 +167,7 @@ To clone the FRETBursts from the command line type::
     git clone https://github.com/tritemio/FRETBursts.git
 
 When using SourceTree, click on *Clone/New* -> *Clone Repository* and paste
-the **`clone URL** <https://github.com/tritemio/FRETBursts.git>`_**
+the `clone URL <https://github.com/tritemio/FRETBursts.git>`_
 in *Source Path/URL*.
 
 
