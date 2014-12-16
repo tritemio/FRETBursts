@@ -159,3 +159,5 @@ if has_matplotlib and has_pandas and has_lmfit:
 from .utils.gui import gui_fname
 
 from .utils.misc import download_file
+
+citation()
