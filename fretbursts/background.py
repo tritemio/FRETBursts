@@ -15,11 +15,12 @@ These functions are not usually called directly but passed to
 See also :func:`exp_hist_fit` for background estimation using an histogram fit.
 """
 
+from __future__ import absolute_import
 import numpy as np
-from ph_sel import Ph_sel
-from utils.misc import pprint
-from fit import exp_fitting
-from fit.gaussian_fitting import gaussian_fit_hist
+from .ph_sel import Ph_sel
+from .utils.misc import pprint
+from .fit import exp_fitting
+from .fit.gaussian_fitting import gaussian_fit_hist
 
 
 def raw_fit(ph, clk_p=12.5e-9, residuals=False, tail_min_us=None):

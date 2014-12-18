@@ -26,7 +26,7 @@ The 1-ch plot functions names all start with the plot type (`timetrace`,
 
 """
 
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 import warnings
 
 # Numeric imports
@@ -44,13 +44,13 @@ from matplotlib.patches import Rectangle, Ellipse
 from matplotlib.collections import PatchCollection
 
 # Local imports
-from ph_sel import Ph_sel
-import burstlib as bl
-import burstlib_ext as bext
-import background as bg
-from utils.misc import clk_to_s, pprint
-from scroll_gui import ScrollingToolQT
-import gui_selection as gs
+from .ph_sel import Ph_sel
+from . import burstlib as bl
+from . import burstlib_ext as bext
+from . import background as bg
+from .utils.misc import clk_to_s, pprint
+from .scroll_gui import ScrollingToolQT
+from . import gui_selection as gs
 
 
 params = {

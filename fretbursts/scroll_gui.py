@@ -13,14 +13,14 @@ functions in `burst_plot.py.
 NOTE: Needs cleanups, comments and optimization (see examples in utils/ folder)
 """
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 import numpy as np
 try:
     from PyQt4 import QtGui, QtCore
 except ImportError:
     from PySide import QtGui, QtCore
 
-from utils.misc import pprint
+from .utils.misc import pprint
 
 
 class RangeToolQT(object):

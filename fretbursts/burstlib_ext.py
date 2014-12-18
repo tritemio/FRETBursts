@@ -41,7 +41,7 @@ Finally a few functions deal with burst timestamps:
   between Donor and Acceptor timestamps.
 
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 
 import numpy as np
 from scipy.stats import erlang
@@ -49,14 +49,14 @@ from scipy.optimize import leastsq
 import pandas as pd
 import tables
 
-from ph_sel import Ph_sel
-import burstsearch.burstsearchlib as bslib
-import background as bg
-from utils.misc import pprint
+from .ph_sel import Ph_sel
+from .burstsearch import burstsearchlib as bslib
+from . import background as bg
+from .utils.misc import pprint
 
-import burstlib
-import fret_fit
-import mfit
+from . import burstlib
+from . import fret_fit
+from . import mfit
 
 
 def calc_mean_lifetime(dx, t1=0, t2=np.inf, ph_sel=Ph_sel('all')):

@@ -16,12 +16,12 @@ specified selection criterium (`E` between 0.2 and 0.6 in this case).
 
 """
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 import numpy as np
 import scipy.stats as ss
 
-from burstsearch.burstsearchlib import b_start, b_width, b_end, b_separation
-from utils.misc import clk_to_s, deprecate
+from .burstsearch.burstsearchlib import b_start, b_width, b_end, b_separation
+from .utils.misc import clk_to_s, deprecate
 
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

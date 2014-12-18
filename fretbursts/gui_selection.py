@@ -9,11 +9,13 @@ GUI selection of a range in a matplotlib figure.
 Used by `hist2d_alex() and other functions in `burst_plot.py.
 """
 
+from __future__ import absolute_import
 import numpy as np
 from matplotlib.patches import Rectangle, Ellipse
-from utils.misc import pprint
-from burstsearch.burstsearchlib import b_start, b_end, b_width
-import burstlib_ext as bext
+
+from .utils.misc import pprint
+from .burstsearch.burstsearchlib import b_start, b_end, b_width
+from . import burstlib_ext as bext
 
 
 class GuiSelection(object):

@@ -22,7 +22,7 @@
 
 """
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from ._version import get_versions
 __version__ = get_versions()['version']
@@ -122,11 +122,11 @@ if has_matplotlib:
     from matplotlib.pyplot import plot, hist, grid, xlim, ylim, gca, gcf
 
 # Import plain module names
-import loader, hdf5, select_bursts, fretmath
+from . import loader, hdf5, select_bursts, fretmath
 
 # Import modules with custom names
-import background as bg
-import burstlib as bl
+from . import background as bg
+from . import burstlib as bl
 
 # Import objects
 from .burstlib import Data, Sel, Sel_mask, Sel_mask_apply
@@ -134,10 +134,10 @@ from .ph_sel import Ph_sel
 
 
 if has_matplotlib and has_pandas and has_lmfit:
-    import mfit
-    import burstlib_ext as bext
-    import burst_plot as bpl
-    from burst_plot import (
+    from . import mfit
+    from . import burstlib_ext as bext
+    from . import burst_plot as bpl
+    from .burst_plot import (
             # Standalone plots as a function of ch
             mch_plot_bg, plot_alternation_hist,
 

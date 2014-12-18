@@ -35,7 +35,7 @@ implemented but not thoroughly tested.
 The reference documentation for **all** the functions follows.
 """
 
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 
 import numpy as np
 import numpy.random as R
@@ -46,7 +46,7 @@ from scipy.optimize import leastsq, minimize
 import scipy.ndimage as ndi
 
 #from scipy.stats import gaussian_kde
-from weighted_kde import gaussian_kde_w  # this version supports weights
+from .weighted_kde import gaussian_kde_w  # this version supports weights
 
 
 def normpdf(x, mu=0, sigma=1.):

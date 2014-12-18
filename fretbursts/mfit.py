@@ -9,7 +9,7 @@ This model provides a class for fitting multi-channel data
 models used to fit E or S histograms.
 """
 
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 
 import numpy as np
 import pandas as pd
@@ -17,7 +17,7 @@ import lmfit
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import fretbursts.fit.gaussian_fitting as gf
+from .fit import gaussian_fitting as gf
 
 
 ## Utility functions

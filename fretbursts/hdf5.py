@@ -11,12 +11,12 @@ Utility functions to print the HDF5 file structure and data-attributes are
 also provided.
 """
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 import os
 import tables
 from collections import OrderedDict
 
-from utils.misc import pprint
+from .utils.misc import pprint
 
 
 # Metadata for the HDF5 root node

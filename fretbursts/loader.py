@@ -13,25 +13,25 @@ to return a `Data()` object. The low-level functions that perform the binary
 loading and preprocessing can be found in the `dataload` folder.
 """
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 import os
 import numpy as np
 import cPickle as pickle
 import tables
 
-from dataload.multi_ch_reader import load_data_ordered16
-from dataload.smreader import load_sm
-from dataload.spcreader import load_spc
-from dataload.manta_reader import (load_manta_timestamps,
+from .dataload.multi_ch_reader import load_data_ordered16
+from .dataload.smreader import load_sm
+from .dataload.spcreader import load_spc
+from .dataload.manta_reader import (load_manta_timestamps,
                                    load_xavier_manta_data,
                                    get_timestamps_detectors,
                                    #process_timestamps,
                                    process_store,
                                    load_manta_timestamps_pytables)
-from utils.misc import pprint, deprecate
-from burstlib import Data
-from dataload.pytables_array_list import PyTablesList
-from hdf5 import hdf5_data_map, mandatory_root_fields
+from .utils.misc import pprint, deprecate
+from .burstlib import Data
+from .dataload.pytables_array_list import PyTablesList
+from .hdf5 import hdf5_data_map, mandatory_root_fields
 
 
 def _is_valid_photon_hdf5(h5file):

@@ -15,7 +15,7 @@ Furthermore it loads all the remaining **FRETBursts** modules (except for
 For usage example see the IPython Notebooks in sub-folder "notebooks".
 """
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 import os
 import hashlib
 import numpy as np
@@ -23,15 +23,15 @@ import copy
 from numpy import zeros, size, r_
 import scipy.stats as SS
 
-from utils.misc import pprint, clk_to_s, deprecate
-from poisson_threshold import find_optimal_T_bga
-import fret_fit
-import bg_cache
-from ph_sel import Ph_sel
-from fretmath import gamma_correct_E, gamma_uncorrect_E
+from .utils.misc import pprint, clk_to_s, deprecate
+from .poisson_threshold import find_optimal_T_bga
+from . import fret_fit
+from . import bg_cache
+from .ph_sel import Ph_sel
+from .fretmath import gamma_correct_E, gamma_uncorrect_E
 
-from burstsearch import burstsearchlib as bslib
-from burstsearch.burstsearchlib import (
+from .burstsearch import burstsearchlib as bslib
+from .burstsearch.burstsearchlib import (
         itstart, iwidth, inum_ph, iistart, iiend, itend,
         # Burst search function
         bsearch,
@@ -42,10 +42,10 @@ from burstsearch.burstsearchlib import (
         mch_count_ph_in_bursts
         )
 
-import background as bg
-import select_bursts
-import fit
-from fit.gaussian_fitting import (gaussian_fit_hist,
+from . import background as bg
+from . import select_bursts
+from  . import fit
+from .fit.gaussian_fitting import (gaussian_fit_hist,
                                   gaussian_fit_cdf,
                                   two_gaussian_fit_hist,
                                   two_gaussian_fit_hist_min,

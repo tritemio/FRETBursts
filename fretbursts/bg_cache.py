@@ -11,9 +11,11 @@ The functions here assume to find an open pyTables file reference in
 the :class:`Data` attribute `.bg_data_file`.
 """
 
+from __future__ import  absolute_import
 import os
 import numpy as np
-from fretbursts.utils.misc import pprint
+
+from .utils.misc import pprint
 
 
 def remove_cache(dx):

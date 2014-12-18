@@ -9,10 +9,11 @@ This library contains routines to load and preprocess timestamp data.
 To run the burst search see burst.py
 """
 
+from __future__ import absolute_import
 import os
 import numpy as np
 
-from fretbursts.utils.misc import pprint
+from ..utils.misc import pprint
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  DATA LOADING

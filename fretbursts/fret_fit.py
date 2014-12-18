@@ -9,12 +9,12 @@ Functions to fit the FRET peak using different algorithms.
 This module provides a standard interface for different fitting techniques.
 """
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 import numpy as np
 from scipy.stats import binom, expon
 from scipy.optimize import minimize_scalar, leastsq
 
-import fit.gaussian_fitting as gf
+from .fit import gaussian_fitting as gf
 
 
 def sim_nd_na(E,N=1000, size_mean=100):
