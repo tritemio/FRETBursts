@@ -34,7 +34,8 @@ implemented but not thoroughly tested.
 
 The reference documentation for **all** the functions follows.
 """
-from __future__ import division
+
+from __future__ import division, print_function
 
 import numpy as np
 import numpy.random as R
@@ -175,7 +176,7 @@ def gaussian_fit_ml(s, mu_sigma_guess=[0.5, 1]):
     res = O.minimize(min_fun, [0, 0.5], method='powell',
                      options={'xtol': 1e-6, 'disp': True, 'maxiter': 1e9})
 
-    print res
+    print(res)
     mu, sigma = res['x']
     return mu, sigma
 
@@ -238,7 +239,7 @@ def two_gaussian_fit_curve(x, y, p0, return_all=False, verbose=False, **kwargs):
         p = res.x
 
     if verbose:
-        print res, '\n'
+        print(res, '\n')
     if return_all: return res
     return reorder_parameters(p)
 
@@ -360,9 +361,9 @@ def two_gaussian_fit_EM_b(s, p0=[0, 0.1, 0.6, 0.1, 0.5], weights=None,
         stop_iter = converged or (counter >= max_iter)
 
     if debug:
-        print "Iterations: ", counter
+        print("Iterations: ", counter)
     if not converged:
-        print "WARNING: Not converged, max iteration (%d) reached." % max_iter
+        print("WARNING: Not converged, max iteration (%d) reached." % max_iter)
     return reorder_parameters(p_new)
 
 def two_gaussian_fit_EM(s, p0=[0, 0.1, 0.6, 0.1, 0.5], max_iter=300, ptol=1e-4,
@@ -436,9 +437,9 @@ def two_gaussian_fit_EM(s, p0=[0, 0.1, 0.6, 0.1, 0.5], max_iter=300, ptol=1e-4,
         stop_iter = converged or (counter >= max_iter)
 
     if debug:
-        print "Iterations: ", counter
+        print("Iterations: ", counter)
     if not converged:
-        print "WARNING: Not converged, max iteration (%d) reached." % max_iter
+        print("WARNING: Not converged, max iteration (%d) reached." % max_iter)
     return reorder_parameters(p_new)
 
 def two_gaussian_fit_hist(s, bins=np.r_[-0.5:1.5:0.001], weights=None,
@@ -733,7 +734,7 @@ def gaussian2d_fit(sx, sy, guess=[0.5,1]):
     errfunc = lambda p, x, y: fitfunc(p, x) - y
     px,v = leastsq(errfunc, x0=guess, args=(ecdfx[0],ecdfx[1]))
     py,v = leastsq(errfunc, x0=guess, args=(ecdfy[0],ecdfy[1]))
-    print "2D Gaussian CDF fit", px, py
+    print("2D Gaussian CDF fit", px, py)
 
     mux, sigmax = px[0], px[1]
     muy, sigmay = py[0], py[1]
@@ -792,7 +793,7 @@ def two_gaussian2d_fit(sx, sy, guess=[0.5,1]):
 
     px,v = leastsq(errfunc, x0=guess, args=(ecdfx[0],ecdfx[1]))
     py,v = leastsq(errfunc, x0=guess, args=(ecdfy[0],ecdfy[1]))
-    print "2D Two-Gaussians CDF fit", px, py
+    print("2D Two-Gaussians CDF fit", px, py)
 
     mux1, sigmax1, mux2, sigmax2, alphax = px
     muy1, sigmay1, muy2, sigmay2, alphay = py
@@ -809,9 +810,9 @@ def test_gaussian_fit():
     mu1, sig1 = S.norm.fit(s)
     mu2, sig2 = gaussian_fit_ml(s)
 
-    print "ECDF ", mu, sig
-    print "ML         ", mu1, sig1
-    print "ML (manual)", mu2, sig2
+    print("ECDF ", mu, sig)
+    print("ML         ", mu1, sig1)
+    print("ML (manual)", mu2, sig2)
 
     H = np.histogram(s, bins=20, density=True)
     h = H[0]

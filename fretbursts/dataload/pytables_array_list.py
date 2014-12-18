@@ -16,6 +16,7 @@ Each list element is a reference to a pytable array. To read the array in
 memory use the slicing notation (like pytable_array[:]).
 """
 
+from __future__ import print_function
 import os
 import tables
 
@@ -90,7 +91,7 @@ class PyTablesList(list):
                                              filters=comp_filter)
         self.data_file.flush()
         super(PyTablesList, self).append(tarray)
-        #print self.prefix+str(self.size), ndarray
+        #print(self.prefix+str(self.size), ndarray)
         self.size += 1
         self.group._v_attrs.size = self.size
 

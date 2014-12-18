@@ -7,7 +7,7 @@
 Misc utility functions
 """
 
-from __future__ import division
+from __future__ import division, print_function
 import os
 import sys
 import numpy as np
@@ -69,17 +69,17 @@ def download_file(url, save_dir='./'):
     try:
         urllib2.urlopen(url)
     except urllib2.HTTPError:
-        print 'URL not found:', url
+        print('URL not found: ' + url)
         return
 
     ## Check if local path already exist
     fname = url.split('/')[-1]
-    print "URL:  %s" % url
-    print "File: %s\n " % fname
+    print('URL:  %s' % url)
+    print('File: %s\n ' % fname)
 
     path = '/'.join([os.path.abspath(save_dir), fname])
     if os.path.exists(path):
-        print 'File already on disk: %s \nDelete it to re-download.' % path
+        print('File already on disk: %s \nDelete it to re-download.' % path)
         return
 
     ## Donwload the file

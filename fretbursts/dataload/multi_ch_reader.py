@@ -183,8 +183,8 @@ if __name__ == '__main__':
     ph_mc, a_emc = unwind_uni_c(ph_times, det)      # 15% faster than plain
     ph_mo, a_emo = unwind_uni_o(ph_times, det)      # 15% faster than plain
 
-    print [(ph == phc).all() for ph, phc in zip(ph_m, ph_mc)]
-    print [(ae == aec).all() for ae, aec in zip(a_em, a_emc)]
+    print([(ph == phc).all() for ph, phc in zip(ph_m, ph_mc)])
+    print([(ae == aec).all() for ae, aec in zip(a_em, a_emc)])
 
     ## NOTE: write a compare function that takes into account same timestamps
     ##       in donor and acceptor ch.

@@ -16,6 +16,7 @@ specified selection criterium (`E` between 0.2 and 0.6 in this case).
 
 """
 
+from __future__ import print_function
 import numpy as np
 import scipy.stats as ss
 
@@ -254,7 +255,7 @@ def na_bg_p(d, ich=0, P=0.05, F=1.):
     accept_ch_bg_rate = d.rate_ad[ich]
     bursts_width = clk_to_s(b_width(d.mburst[ich]))
     max_num_bg_ph = ss.poisson(F*accept_ch_bg_rate*bursts_width).isf(P)
-    #print "Min num. ph = ", max_num_bg_ph
+    #print("Min num. ph = ",  max_num_bg_ph)
     bursts_mask = (d.na[ich] >= max_num_bg_ph)
     return bursts_mask
 
@@ -263,7 +264,7 @@ def nd_bg_p(d, ich=0, P=0.05, F=1.):
     donor_ch_bg_rate = d.rate_dd[ich]
     bursts_width = clk_to_s(b_width(d.mburst[ich]))
     max_num_bg_ph = ss.poisson(F*donor_ch_bg_rate*bursts_width).isf(P)
-    #print "Min num. ph = ", max_num_bg_ph
+    #print("Min num. ph = ", max_num_bg_ph)
     bursts_mask = (d.nd[ich] >= max_num_bg_ph)
     return bursts_mask
 
@@ -272,7 +273,7 @@ def naa_bg_p(d, ich=0, P=0.05, F=1.):
     A_em_ex_bg_rate = d.rate_aa[ich]
     bursts_width = clk_to_s(b_width(d.mburst[ich]))
     max_num_bg_ph = ss.poisson(F*A_em_ex_bg_rate*bursts_width).isf(P)
-    #print "Min num. ph = ", max_num_bg_ph
+    #print("Min num. ph = ", max_num_bg_ph)
     bursts_mask = (d.naa[ich] >= max_num_bg_ph)
     return bursts_mask
 
@@ -281,10 +282,10 @@ def nt_bg_p(d, ich=0, P=0.05, F=1.):
     bg_rate = d.rate_m[ich]
     bursts_width = clk_to_s(b_width(d.mburst[ich]))
     max_num_bg_ph = ss.poisson(F*bg_rate*bursts_width).isf(P)
-    #print "Min num. ph = ", max_num_bg_ph
-    #print "burst width (ms) = ", bursts_width*1e3
-    #print "Poisson rate = ", bg_rate*bursts_width
-    #print "rate = ", bg_rate
+    #print("Min num. ph = ", max_num_bg_ph)
+    #print("burst width (ms) = ", bursts_width*1e3)
+    #print("Poisson rate = ", bg_rate*bursts_width)
+    #print("rate = ", bg_rate)
     bursts_mask = (d.nt[ich] >= max_num_bg_ph)
     return bursts_mask
 

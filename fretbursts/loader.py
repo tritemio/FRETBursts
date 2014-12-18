@@ -13,6 +13,7 @@ to return a `Data()` object. The low-level functions that perform the binary
 loading and preprocessing can be found in the `dataload` folder.
 """
 
+from __future__ import print_function
 import os
 import numpy as np
 import cPickle as pickle
@@ -319,7 +320,7 @@ def hdf5_legacy(fname):
     data_file = tables.open_file(fname, mode = "r")
     file_format = ('smFRET_format_version', '0.1')
     if file_format[0] not in data_file.root._v_attrs:
-        print "WARNING: Attribute '%s' not found." % file_format[0]
+        print("WARNING: Attribute '%s' not found." % file_format[0])
     else:
         assert file_format[1] == data_file.root._v_attrs[file_format[0]]
 
@@ -425,10 +426,10 @@ def multispot48_simple(fname, leakage=0, gamma=1.,
     big_fifo_full = np.array([b.any() for b in big_fifo]).any()
     ch_fifo_full = np.array([b.any() for b in ch_fifo]).any()
     if big_fifo_full:
-        print 'WARNING: Big-FIFO full, flags saved in Data()'
+        print('WARNING: Big-FIFO full, flags saved in Data()')
         dx.add(big_fifo=big_fifo)
     if ch_fifo_full:
-        print 'WARNING: CH-FIFO full, flags saved in Data()'
+        print('WARNING: CH-FIFO full, flags saved in Data()')
         dx.add(ch_fifo=ch_fifo)
     return dx
 
@@ -479,10 +480,10 @@ def multispot48(fname, leakage=0, gamma=1., reprocess=False,
     big_fifo_full = np.array([b[:].any() for b in big_fifo]).any()
     ch_fifo_full = np.array([b[:].any() for b in ch_fifo]).any()
     if big_fifo_full:
-        print 'WARNING: Big-FIFO full, flags saved in Data()'
+        print('WARNING: Big-FIFO full, flags saved in Data()')
         dx.add(big_fifo=big_fifo)
     if ch_fifo_full:
-        print 'WARNING: CH-FIFO full, flags saved in Data()'
+        print('WARNING: CH-FIFO full, flags saved in Data()')
         dx.add(ch_fifo=ch_fifo)
     return dx
 
@@ -523,11 +524,11 @@ def usalex(fname, leakage=0, gamma=1., header=166, bytes_to_read=-1, BT=None):
     burst search, etc...
     """
     if BT is not None:
-        print 'WARNING: `BT` argument is deprecated, use `leakage` instead.'
+        print('WARNING: `BT` argument is deprecated, use `leakage` instead.')
         leakage = BT
-    print " - Loading '%s' ... " % fname
+    print(" - Loading '%s' ... " % fname)
     ph_times_t, det_t = load_sm(fname, header=header)
-    print " [DONE]\n"
+    print(" [DONE]\n")
 
     DONOR_ON = (2850, 580)
     ACCEPT_ON = (930, 2580)
@@ -599,7 +600,7 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
     assert d_em.sum() + a_em.sum() == ph_times.size
     assert (d_em * a_em).any() == False
     assert a_ex.size == a_em.size == d_ex.size == d_em.size == ph_times.size
-    print "#donor: %d  #acceptor: %d \n" % (d_em.sum(), a_em.sum())
+    print("#donor: %d  #acceptor: %d \n" % (d_em.sum(), a_em.sum()))
 
     d.add(ph_times_m=[ph_times],
           D_em=[d_em], A_em=[a_em], D_ex=[d_ex], A_ex=[a_ex],)

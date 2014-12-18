@@ -15,6 +15,7 @@ Furthermore it loads all the remaining **FRETBursts** modules (except for
 For usage example see the IPython Notebooks in sub-folder "notebooks".
 """
 
+from __future__ import print_function
 import os
 import hashlib
 import numpy as np
@@ -535,11 +536,11 @@ class DataContainer(dict):
             try:
                 self.pop(name)
             except KeyError:
-                print ' WARNING: Name %s not found (dict).' % name
+                print(' WARNING: Name %s not found (dict).' % name)
             try:
                 delattr(self, name)
             except AttributeError:
-                print ' WARNING: Name %s not found (attr).' % name
+                print(' WARNING: Name %s not found (attr).' % name)
 
 
 class Data(DataContainer):
@@ -809,7 +810,7 @@ class Data(DataContainer):
         # If Aex != None and not ALEX print a warning and set Aex to None
         not_ph_sel_all = ph_sel != Ph_sel('all')
         if not_ph_sel_all and (not self.ALEX) and (ph_sel.Aex is not None):
-            print 'WARNING: Use of acceptor excitation with non-ALEX data.'
+            print('WARNING: Use of acceptor excitation with non-ALEX data.')
             ph_sel = Ph_sel(Dex=ph_sel.Dex)
 
         return ph_sel
@@ -1518,7 +1519,8 @@ class Data(DataContainer):
             find_T = lambda m, Fi, Pi, bg: 1.*m/(bg*Fi) # NOTE: ignoring P_i
         else:
             if F != 1:
-                print "WARNING: BS prob. th. with modified BG rate (F=%.1f)"%F
+                print("WARNING: BS prob. th. with modified BG rate (F=%.1f)" \
+                      % F)
             find_T = lambda m, Fi, Pi, bg: find_optimal_T_bga(bg*Fi, m, 1-Pi)
         TT, T, rate_th = [], [], []
         bg_bs = self.bg_from(ph_sel)
@@ -1854,7 +1856,7 @@ class Data(DataContainer):
         See also notebook: Gamma corrections.
         """
         if 'E_fit' not in self:
-            print "ERROR: E_fit values not found. Call a `.fit_E_*` first."
+            print("ERROR: E_fit values not found. Call a `.fit_E_*` first.")
             return
         EE = self.E_fit.mean()  # Mean E value among the CH
         chi_ch = (1/EE - 1)/(1/self.E_fit - 1)
@@ -1901,8 +1903,8 @@ class Data(DataContainer):
     def update_bt(self, BT):
         """Deprecated. Use .update_leakage() instead.
         """
-        print 'WARNING: The method .update_bt() is deprecated. '
-        print 'Use .update_leakage() instead.'
+        print('WARNING: The method .update_bt() is deprecated. ')
+        print('Use .update_leakage() instead.')
         self.update_leakage(BT)
 
     def update_leakage(self, leakage):
@@ -2126,7 +2128,7 @@ class Data(DataContainer):
         if string:
             return s
         else:
-            print s
+            print(s)
 
     ##
     # FRET fitting methods

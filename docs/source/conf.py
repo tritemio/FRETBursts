@@ -21,33 +21,33 @@ if on_rtd:
     from readthedocs import *
     sys.path.pop(0)
 
-print "python exec:", sys.executable
-print "sys.path:", sys.path
+print("python exec: " + sys.executable)
+print("sys.path: " + sys.path)
 try:
     import numpy
-    print "numpy: %s, %s" % (numpy.__version__, numpy.__file__)
+    print("numpy: %s, %s" % (numpy.__version__, numpy.__file__))
 except ImportError:
-    print "no numpy"
+    print("no numpy")
 try:
     import scipy
-    print "scipy: %s, %s" % (scipy.__version__, scipy.__file__)
+    print("scipy: %s, %s" % (scipy.__version__, scipy.__file__))
 except ImportError:
-    print "no scipy"
+    print("no scipy")
 try:
     import matplotlib
-    print "matplotlib: %s, %s" % (matplotlib.__version__, matplotlib.__file__)
+    print("matplotlib: %s, %s" % (matplotlib.__version__, matplotlib.__file__))
 except ImportError:
-    print "no matplotlib"
+    print("no matplotlib")
 try:
     import pandas
-    print "pandas: %s, %s" % (pandas.__version__, pandas.__file__)
+    print("pandas: %s, %s" % (pandas.__version__, pandas.__file__))
 except ImportError:
-    print "no pandas"
+    print("no pandas")
 try:
     import lmfit
-    print "lmfit: %s, %s" % (lmfit.__version__, lmfit.__file__)
+    print("lmfit: %s, %s" % (lmfit.__version__, lmfit.__file__))
 except ImportError:
-    print "no lmfit"
+    print("no lmfit")
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the

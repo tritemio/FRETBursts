@@ -13,7 +13,7 @@ For derivation see notebook: "Derivation of FRET and S correction formulas.ipynb
 
 """
 
-from __future__ import division
+from __future__ import division, print_function
 import numpy as np
 
 ##
@@ -215,4 +215,4 @@ def test_fretmath():
 
 if __name__ == '__main__':
     test_fretmath()
-    print 'All tests passed.'
+    print('All tests passed.')

@@ -100,7 +100,7 @@ def bg_load_hdf5(dx, group_name):
     """Load background data from a HDF5 file."""
     assert 'bg_data_file' in dx
     if group_name not in dx.bg_data_file:
-        print 'Group "%s" not found in the HDF5 file.' % group_name
+        pprint('Group "%s" not found in the HDF5 file.' % group_name)
         return
 
     ## Load the bg data
@@ -147,7 +147,7 @@ def _get_bg_groupname(dx, time_s=None):
         A string for the background group name.
     """
     if time_s is None and 'bg' not in dx:
-        print 'You need to compute the background or provide time_s.'
+        pprint('You need to compute the background or provide time_s.')
         return
     time_slice = time_s if time_s is not None else dx.bg_time_s
     return '/background/time_%ds' % time_slice

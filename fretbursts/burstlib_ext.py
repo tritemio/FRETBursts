@@ -41,7 +41,7 @@ Finally a few functions deal with burst timestamps:
   between Donor and Acceptor timestamps.
 
 """
-from __future__ import division
+from __future__ import division, print_function
 
 import numpy as np
 from scipy.stats import erlang
@@ -164,11 +164,11 @@ def calc_bg_brute_cache(dx, min_ph_delay_list=None, return_all=False,
     if '/' + base_name + 'min_ph_delays_us' in store:
         Th = store.get_node('/', base_name + 'min_ph_delays_us').read()
         if np.all(Th == min_ph_delay_list) and not force_recompute:
-            print ' - Loading BG from cache'
+            print(' - Loading BG from cache')
             res = _load_bg_data(store, base_name, dx.ph_streams)
             loaded = True
     if not loaded:
-        print ' - Computing BG'
+        print(' - Computing BG')
         res = calc_bg_brute(dx, min_ph_delay_list=min_ph_delay_list,
                             return_all=True, error_metrics=error_metrics)
         best_th, best_bg, BG_data, BG_data_e, min_ph_delays = res
@@ -417,7 +417,7 @@ def histogram_mdelays(d, ich=0, m=10, period=None, ph_sel=Ph_sel('all'),
     ph_mdelays = np.diff(ph[::m])*d.clk_p
     if bursts:
         if period is not None:
-            print "WARNING: the burst-ph histogram is built from all periods"
+            print("WARNING: the burst-ph histogram is built from all periods")
         ph_in_bursts = d.ph_in_bursts_ich(ich=ich, ph_sel=ph_sel)
         phb_mdelays = np.diff(ph_in_bursts[::m])*d.clk_p
 
@@ -513,7 +513,7 @@ def calc_mdelays_hist(d, ich=0, m=10, bp=(0, -1), bins_s=(0, 10, 0.02),
                                                         scale=1./rate_kcps)
         err_func = lambda p, x, y: fit_func(x, p[0], p[1]) - y
         p, flag = leastsq(err_func, x0=[0.9, 3.], args=(_x,_y))
-        print p, flag
+        print(p, flag)
         a, rate_kcps = p
         results.extend([a, rate_kcps])
 

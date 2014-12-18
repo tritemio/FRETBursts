@@ -26,7 +26,7 @@ The 1-ch plot functions names all start with the plot type (`timetrace`,
 
 """
 
-from __future__ import division
+from __future__ import division, print_function
 import warnings
 
 # Numeric imports
@@ -305,7 +305,7 @@ def timetrace_single(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
     # Plot bursts
     if bursts:
         t_max_clk = int(tmax/d.clk_p)
-        print burst_color
+        print(burst_color)
         _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500, color=burst_color)
 
     # Plot timetrace
@@ -607,7 +607,7 @@ def _fitted_E_plot(d, i=0, F=1, no_E=False, ax=None, show_model=True,
             ax2.fill_between(x, scale*y, lw=lw, alpha=alpha, edgecolor=color,
                              facecolor=fillcolor, zorder=10)
         if verbose:
-            print 'Fit Integral:', np.trapz(scale*y, x)
+            print('Fit Integral:', np.trapz(scale*y, x))
 
     ax2.axvline(d.E_fit[i], lw=3, color='r', ls='--', alpha=0.6)
     xtext = 0.6 if d.E_fit[i] < 0.6 else 0.2
@@ -722,11 +722,11 @@ def hist_burst_data(d, i=0, data_name='E', ax=None, binwidth=0.03, bins=None,
     weights_tuple = (weights, float(gamma), add_naa)
     if not hasattr(d, fitter_name) or d.burst_weights != weights_tuple:
         if hasattr(d, fitter_name):
-            print ' - Overwriting the old %s object with the new weights.' %\
-                    fitter_name
+            print(' - Overwriting the old %s object with the new weights.' %\
+                    fitter_name)
             if verbose:
-                print '   Old weights:', d.burst_weights
-                print '   New weights:', weights_tuple
+                print('   Old weights:', d.burst_weights)
+                print('   New weights:', weights_tuple)
         bext.bursts_fitter(d, burst_data=data_name, weights=weights,
                            gamma=gamma, add_naa=add_naa)
 
@@ -969,7 +969,7 @@ def get_ES_range():
     sel = None
     if hasattr(hist2d_alex.gui_sel, 'selection'):
         sel = hist2d_alex.gui_sel.selection
-        print 'E1={E1:.3}, E2={E2:.3}, S1={S1:.3}, S2={S2:.3}'.format(**sel)
+        print('E1={E1:.3}, E2={E2:.3}, S1={S1:.3}, S2={S2:.3}'.format(**sel))
     return sel
 
 def hist_sbr(d, ich=0, **hist_kwargs):
@@ -1138,7 +1138,7 @@ def hist_mdelays(d, i=0, m=10, bins_s=(0, 10, 0.02), bp=0, no_bg_fit=True,
     binw = bins_s[2]
     com = np.sum(bin_x*mdelays_hist_y)*binw
     com_b = np.sum(bin_x*mdelays_b_hist_y)*binw
-    #print com, com_b
+    #print(com, com_b)
 
     # Compute a spline smoothing of the PDF
     mdelays_spline = UnivariateSpline(bin_x, mdelays_hist_y, s=s*com)
@@ -1242,7 +1242,7 @@ def hist_asymmetry(d, i=0, bin_max=2, binwidth=0.1, stat_func=np.median):
                 frameon=False, loc='best')
     skew_abs = asym_counts_neg.sum()
     skew_rel = 100.*skew_abs/counts.sum()
-    print 'Skew: %d bursts, (%.1f %%)' % (skew_abs, skew_rel)
+    print('Skew: %d bursts, (%.1f %%)' % (skew_abs, skew_rel))
 
 ##
 #  Scatter plots

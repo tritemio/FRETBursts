@@ -38,7 +38,7 @@ To obtain the burst size (number of photons) for the 10-th to 20-th burst::
 
 """
 
-from __future__ import division
+from __future__ import division, print_function
 import numpy as np
 from fretbursts.utils.misc import pprint
 
@@ -200,18 +200,18 @@ def mch_count_ph_in_bursts_py(Mburst, Mask):
 try:
     from burstsearchlib_c import bsearch_c
     bsearch = bsearch_c
-    print " - Optimized (cython) burst search loaded."
+    print(" - Optimized (cython) burst search loaded.")
 except ImportError:
     bsearch = bsearch_py
-    print " - Fallback to pure python burst search."
+    print(" - Fallback to pure python burst search.")
 
 try:
     from burstsearchlib_c import mch_count_ph_in_bursts_c
     mch_count_ph_in_bursts = mch_count_ph_in_bursts_c
-    print " - Optimized (cython) photon counting loaded."
+    print(" - Optimized (cython) photon counting loaded.")
 except ImportError:
     mch_count_ph_in_bursts = mch_count_ph_in_bursts_py
-    print " - Fallback to pure python photon counting."
+    print(" - Fallback to pure python photon counting.")
 
 ##
 #  Additional functions processing burst data

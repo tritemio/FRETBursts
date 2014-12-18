@@ -9,7 +9,7 @@ This model provides a class for fitting multi-channel data
 models used to fit E or S histograms.
 """
 
-from __future__ import division
+from __future__ import division, print_function
 
 import numpy as np
 import pandas as pd
@@ -355,7 +355,7 @@ class MultiFitter(FitterBase):
                 return
 
         if verbose:
-            print " - Computing histogram."
+            print(" - Computing histogram.")
         if bins is None:
             bins = np.r_[-0.2 : 1.2 : binwidth]
         kwargs.update(bins=bins, density=False)

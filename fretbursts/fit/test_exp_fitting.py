@@ -2,6 +2,7 @@
 Unittest for exp_fitting.py
 """
 
+from __future__ import print_function
 import pytest
 
 import numpy as np
@@ -26,16 +27,16 @@ def test_expon_fit(sample):
     lambda_fit, resid, x_resid, size = expon_fit(sample, s_min=sample_min)
     tau_fit = 1./lambda_fit
     relative_error = np.abs(tau_fit-sample_tau)/sample_tau
-    print '\n [expon_fit] Fit (tau): %.2f  - Relative error: %.2f %%' % \
-            (tau_fit, relative_error*100)
+    print('\n [expon_fit] Fit (tau): %.2f  - Relative error: %.2f %%' % \
+            (tau_fit, relative_error*100))
     assert relative_error < max_relative_error
 
 def test_expon_fit_cdf(sample):
     lambda_fit, resid, x_resid, size = expon_fit_cdf(sample, s_min=sample_min)
     tau_fit = 1./lambda_fit
     relative_error = np.abs(tau_fit-sample_tau)/sample_tau
-    print '\n [expon_fit_cdf] Fit (tau): %.2f  - Relative error: %.2f %%' % \
-            (tau_fit, relative_error*100)
+    print('\n [expon_fit_cdf] Fit (tau): %.2f  - Relative error: %.2f %%' % \
+            (tau_fit, relative_error*100))
     assert relative_error < max_relative_error
 
 def test_expon_fit_hist(sample):
@@ -44,8 +45,8 @@ def test_expon_fit_hist(sample):
     lambda_fit, resid, x_resid, size = expon_fit_hist(sample, s_min=sample_min, bins=bins)
     tau_fit = 1./lambda_fit
     relative_error = np.abs(tau_fit-sample_tau)/sample_tau
-    print '\n [expon_fit_hist] Fit (tau): %.2f  - Relative error: %.2f %%' % \
-            (tau_fit, relative_error*100)
+    print('\n [expon_fit_hist] Fit (tau): %.2f  - Relative error: %.2f %%' % \
+            (tau_fit, relative_error*100))
     assert relative_error < max_relative_error
 
 def test_expon_fit_histw(sample):
@@ -55,8 +56,8 @@ def test_expon_fit_histw(sample):
                                 weights='hist_counts')
     tau_fit = 1./lambda_fit
     relative_error = np.abs(tau_fit-sample_tau)/sample_tau
-    print '\n [expon_fit_hist] Fit (tau): %.2f  - Relative error: %.2f %%' % \
-            (tau_fit, relative_error*100)
+    print('\n [expon_fit_hist] Fit (tau): %.2f  - Relative error: %.2f %%' % \
+            (tau_fit, relative_error*100))
     assert relative_error < max_relative_error
 
 if __name__ == '__main__':

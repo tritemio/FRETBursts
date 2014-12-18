@@ -78,7 +78,7 @@ def _exp_fit_generic(ph, fit_fun, tail_min_us=None, tail_min_p=0.1,
         tail_min = tail_min_us*1e-6/clk_p
     Lambda, residuals, x_residuals, s_size = fit_fun(dph, s_min=tail_min)
     Lambda /= clk_p
-    #print s_size,
+    #pprint(s_size)
     error = _compute_error(residuals, x_residuals, error_metrics)
     return Lambda, error
 
@@ -308,7 +308,7 @@ def smart_bg(d, ich=0, bin_=50e-3, step=1):
         #if (s % (t_max/50) == 0): pprint(" %d %%" % (s/t_max*100))
         h = np.histogram(t[(t<s)*(t>(s-step))],
                 bins=np.arange(s-step, s+1e-3, bin_))
-        print h[0]
+        #print(h[0])
         bg.append(h[0].min())
     pprint('\n')
     return np.array(bg)/bin_

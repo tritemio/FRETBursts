@@ -9,6 +9,7 @@ Functions to fit the FRET peak using different algorithms.
 This module provides a standard interface for different fitting techniques.
 """
 
+from __future__ import print_function
 import numpy as np
 from scipy.stats import binom, expon
 from scipy.optimize import minimize_scalar, leastsq
@@ -45,7 +46,7 @@ def fit_E_binom(nd, na, noprint=False, method='c', **kwargs):
     # NOTE: b and c have corner cases in which there are neg. bursts left
     pos_bursts = (nd>=0)*(na>=0)
     if (-pos_bursts).any():
-        if not noprint: print "WARNING: Discarding negative burst sizes."
+        if not noprint: print("WARNING: Discarding negative burst sizes.")
         if method == 'a':
             # a. remove bursts with neg. values
             nd, na = nd[pos_bursts], na[pos_bursts]
@@ -63,7 +64,7 @@ def fit_E_binom(nd, na, noprint=False, method='c', **kwargs):
                 nt_min = max([na[nd<0].max(), nt_min])
             nd, na = nd[nd+na>nt_min], na[nd+na>nt_min]
 
-        if not noprint: print " - Bursts left:", nd.size
+        if not noprint: print(" - Bursts left:", nd.size)
         assert (nd>=0).all() and (na>=0).all()
     min_kwargs = dict(bounds=(0,1), method='bounded',
             options={'disp':1, 'xtol': 1e-6})
@@ -212,7 +213,7 @@ def fit_E_slope(nd, na, weights=None, gamma=1.):
     #err_fun = lambda k, x, y, w: (y - k*x)*w
     err_fun = lambda k, x, y, w: w*get_dist_euclid(nd=x, na=y, slope=k)
     res = leastsq(err_fun, x0=1, args=(nd, na, weights))
-    #print res
+    #print(res)
     return res[0][0]/(res[0][0]+1)
 
 def fit_E_E_size(nd, na, weights=None, gamma=1., gamma_correct=False):

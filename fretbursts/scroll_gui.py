@@ -13,6 +13,7 @@ functions in `burst_plot.py.
 NOTE: Needs cleanups, comments and optimization (see examples in utils/ folder)
 """
 
+from __future__ import print_function
 import numpy as np
 try:
     from PyQt4 import QtGui, QtCore
@@ -119,27 +120,27 @@ class mToolQT(object):
         #for ax in self.AX.ravel():
         #    for i in range(len(ax.lines)): ax.lines.pop()
         #    #ax.clear()
-        #print ".",
+        #print(".", end=' ')
         old = self.params
         new = dict(m = self.m_spinbox.value(),
                 bin_w = self.bin_spinbox.value(),
                 t_max = self.tmax_spinbox.value())
         if np.array([new[p] == old[p] for p in new]).all():
-            print "all same"
+            print("all same")
             return
-        #print new
+        #print(new)
 
         if new['t_max'] > self.time_max:
             self.tmax_spinbox.setValue(self.time_max)
             self.save_params()
-            print "t_max too large"
+            print("t_max too large")
             return
 
         bins = self.f_kwargs['bins']
         if new['bin_w'] <= 0 or new['bin_w'] >= 0.5*bins.max():
             self.bin_spinbox.setValue(old['bin_w'])
             self.save_params()
-            print "bins out of range"
+            print("bins out of range")
             return
         bins = np.arange(bins.min(),bins.max()+new['bin_w'],new['bin_w'])
 

@@ -138,4 +138,4 @@ from burst_plot import (
 
 import style
 
-print " - Compatibility legacy mode ON."
+print(" - Compatibility legacy mode ON.")
