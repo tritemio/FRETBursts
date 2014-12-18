@@ -1254,8 +1254,8 @@ class Data(DataContainer):
         elif np.size(tail_min_us) == n_streams:
             tail_min_us = np.asarray(tail_min_us)
         elif np.size(tail_min_us) != n_streams:
-            raise ValueError, 'Wrong tail_min_us length (%d).' %\
-                    len(tail_min_us)
+            raise ValueError('Wrong tail_min_us length (%d).' %\
+                             len(tail_min_us))
         Th_us = {}
         for i, key in enumerate(self.ph_streams):
             Th_us[key] = np.ones(self.nch)*tail_min_us[i]
@@ -2265,7 +2265,7 @@ class Data(DataContainer):
                 fit_kwargs.update(p0=[0, .05, 0.6, 0.1, 0.5])
             iE, nparam = 2, 5
         else:
-            raise ValueError, "Fitting function not recognized."
+            raise ValueError("Fitting function not recognized.")
 
         Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
 

@@ -54,7 +54,7 @@ def mkdir_p(path):
         if exc.errno == errno.EEXIST and os.path.isdir(path):
             pass
         else:
-            raise
+            raise exc
 
 def download_file(url, save_dir='./'):
     """Download a file from `url` saving it to disk.

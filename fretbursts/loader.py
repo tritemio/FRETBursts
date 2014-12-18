@@ -57,7 +57,7 @@ class H5Loader():
             node = self.h5file.get_node(where, name)
         except tables.NoSuchNodeError:
             self.h5file.close()
-            raise (IOError, "Invalid file format: '%s' is missing." % name)
+            raise IOError("Invalid file format: '%s' is missing." % name)
 
         if dest_name is None:
             dest_name = hdf5_data_map[name]
@@ -79,11 +79,11 @@ def hdf5(fname):
     http://photon-hdf5.readthedocs.org/
     """
     if not os.path.isfile(fname):
-        raise IOError, 'File not found.'
+        raise IOError('File not found.')
     data_file = tables.open_file(fname, mode = "r")
     if not _is_valid_photon_hdf5(data_file):
         data_file.close()
-        raise (IOError, 'The file is not a valid Photon-HDF5 format.')
+        raise IOError('The file is not a valid Photon-HDF5 format.')
 
     d = Data(fname=fname)
     loader = H5Loader(data_file, d)
@@ -106,8 +106,8 @@ def hdf5(fname):
             assert 'nanotimes_specs' in ph_group
         except AssertionError:
             data_file.close()
-            raise (IOError, ('The lifetime flag is True but the TCSPC '
-                             'data is missing.'))
+            raise IOError(('The lifetime flag is True but the TCSPC '
+                           'data is missing.'))
 
     if d.nch == 1:
         # load single-spot data from "basic layout"
@@ -209,11 +209,11 @@ def hdf5_phdata(fname):
     https://github.com/tritemio/FRETBursts/wiki/HDF5-Ph-Data-format-0.2-Draft
     """
     if not os.path.isfile(fname):
-        raise IOError, 'File not found.'
+        raise IOError('File not found.')
     data_file = tables.open_file(fname, mode = "r")
     if not _is_valid_hdf5_phdata(data_file):
         data_file.close()
-        raise (IOError, 'The file is not a valid HDF5-Ph-Data format.')
+        raise IOError('The file is not a valid HDF5-Ph-Data format.')
 
     # Default values for some parameters
     params = dict(leakage=0., gamma=1.)
@@ -240,8 +240,8 @@ def hdf5_phdata(fname):
             assert 'nanotimes_specs' in ph_group
         except AssertionError:
             data_file.close()
-            raise (IOError, ('The lifetime flag is True but the TCSPC '
-                             'data is missing.'))
+            raise IOError(('The lifetime flag is True but the TCSPC '
+                           'data is missing.'))
 
     if d.nch == 1:
         # load single-spot data from "basic layout"
@@ -316,7 +316,7 @@ def hdf5_legacy(fname):
     For new data use :func:`hdf5` instead.
     """
     if not os.path.isfile(fname):
-        raise IOError, 'File not found.'
+        raise IOError('File not found.')
     data_file = tables.open_file(fname, mode = "r")
     file_format = ('smFRET_format_version', '0.1')
     if file_format[0] not in data_file.root._v_attrs:
@@ -330,7 +330,7 @@ def hdf5_legacy(fname):
     # Load mandatory parameters
     for field in ('clk_p', 'nch', 'ALEX'):
         if not '/' + field in data_file:
-            raise(ValueError, "Filed '%s' not found" % field)
+            raise ValueError("Filed '%s' not found" % field)
         params[field] = data_file.get_node('/', name=field).read()
 
     # Load optional parameter (overwriting defaults)
