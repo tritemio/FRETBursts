@@ -16,7 +16,10 @@ loading and preprocessing can be found in the `dataload` folder.
 from __future__ import print_function, absolute_import
 import os
 import numpy as np
-import cPickle as pickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 import tables
 
 from .dataload.multi_ch_reader import load_data_ordered16
