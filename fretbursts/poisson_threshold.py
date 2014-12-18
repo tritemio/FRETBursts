@@ -17,7 +17,7 @@ Poisson process rate: lam or rate or bg_rate
 Time window duration: T
 Poisson distribution parameter: n = lam*T
 """
-
+from __future__ import print_function
 import numpy as np
 from scipy.stats import poisson, chi2, erlang
 
@@ -107,7 +107,7 @@ def find_optimal_T_iter(bg_rate, m, P_user, max_iter=int(1e6), debug=False):
             converged = True
             break
     if not converged: raise StopIteration
-    if debug: print "T_min = %.3f ms, T_max = %.3f ms" % (T*1e3, 2*T*1e3)
+    if debug: print("T_min = %.3f ms, T_max = %.3f ms" % (T*1e3, 2*T*1e3))
 
     step = T/1000.
     T = 2*T
@@ -120,7 +120,7 @@ def find_optimal_T_iter(bg_rate, m, P_user, max_iter=int(1e6), debug=False):
             converged = True
             break
     if not converged: raise StopIteration
-    if debug: print " >T_min = %.3f ms, T_max = %.3f ms" % (T*1e3, (T+step)*1e3)
+    if debug: print(" >T_min = %.3f ms, T_max = %.3f ms" % (T*1e3, (T+step)*1e3))
     return T
 
 def test_find_optimal_T_iter(P_user, debug=False):
@@ -131,12 +131,12 @@ def test_find_optimal_T_iter(P_user, debug=False):
     for y,lam in enumerate(Lam):
         for x,m in enumerate(M):
             TT[y,x] = find_optimal_T_iter(lam, m, P_user, debug=debug)
-            if debug: print "  '-> rate = %d, m = %d" % (lam, m)
-    print "\n P_user = %.2f %%, T values in ms:" % (P_user*1e2)
-    print ((" "*8) + " %7d " * M.size) % tuple(M)
+            if debug: print("  '-> rate = %d, m = %d" % (lam, m))
+    print("\n P_user = %.2f %%, T values in ms:" % (P_user*1e2))
+    print(((" "*8) + " %7d " * M.size) % tuple(M))
     for y,lam in enumerate(Lam):
-        print " %7d " % lam,
-        print (" %7.3f "*M.size) % tuple(TT[y,:]*1e3)
+        print(" %7d " % lam,)
+        print((" %7.3f "*M.size) % tuple(TT[y,:]*1e3))
     return TT
 
 def test_find_optimal_T(P_user, debug=False):
@@ -147,12 +147,12 @@ def test_find_optimal_T(P_user, debug=False):
     for y,lam in enumerate(Lam):
         for x,m in enumerate(M):
             TT[y,x] = find_optimal_T(lam, m, P_user)
-            if debug: print "  '-> rate = %d, m = %d" % (lam, m)
-    print "\n P_user = %.2f %%, T values in ms:" % (P_user*1e2)
-    print ((" "*8) + " %7d " * M.size) % tuple(M)
+            if debug: print("  '-> rate = %d, m = %d" % (lam, m))
+    print("\n P_user = %.2f %%, T values in ms:" % (P_user*1e2))
+    print(((" "*8) + " %7d " * M.size) % tuple(M))
     for y,lam in enumerate(Lam):
-        print " %7d " % lam,
-        print (" %7.3f "*M.size) % tuple(TT[y,:]*1e3)
+        print(" %7d " % lam,)
+        print((" %7.3f "*M.size) % tuple(TT[y,:]*1e3))
     return TT
 
 
@@ -164,11 +164,11 @@ def old_hard_threshold_T(factor=2.5):
     for y,lam in enumerate(Lam):
         for x,m in enumerate(M):
             TT[y,x] = float(m)/(factor*lam)
-    print "\n T values in ms, OLD HARD-THRESHOLD METHOD:"
-    print ((" "*8) + " %7d " * M.size) % tuple(M)
+    print("\n T values in ms, OLD HARD-THRESHOLD METHOD:")
+    print(((" "*8) + " %7d " * M.size) % tuple(M))
     for y,lam in enumerate(Lam):
-        print " %7d " % lam,
-        print (" %7.3f "*M.size) % tuple(TT[y,:]*1e3)
+        print(" %7d " % lam,)
+        print((" %7.3f "*M.size) % tuple(TT[y,:]*1e3))
     return TT
 
 
