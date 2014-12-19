@@ -34,7 +34,7 @@ def splot(d, fun=scatter_width_size,
         try:
             if i == 0 and not nosuptitle: fig.set_title(d.status())
         except:
-            print "WARNING: No title in plots."
+            print("WARNING: No title in plots.")
         ax.grid(pgrid)
         fun(d, i, **kwargs)
     s = None

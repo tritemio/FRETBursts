@@ -3,7 +3,7 @@ import numpy.random as R
 
 mu0 = 0
 sigma0 = 1
-print "Real values:", mu0, sigma0
+print("Real values: %s " % (mu0, sigma0))
 
 ## Compare the two methods
 n = 1000

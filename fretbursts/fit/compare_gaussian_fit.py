@@ -2,7 +2,7 @@ from gaussian_fitting import *
 
 mu0 = -0.1
 sigma0 = 1.8
-print "Real values:", mu0, sigma0
+print("Real values: %s %s" % (mu0, sigma0))
 
 ## Compare the two methods
 n = 10000
