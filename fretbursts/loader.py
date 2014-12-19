@@ -37,14 +37,19 @@ from .dataload.pytables_array_list import PyTablesList
 from .hdf5 import hdf5_data_map, mandatory_root_fields
 
 
-def _is_valid_photon_hdf5(h5file):
-    meta = dict(format_name = 'Photon-HDF5', format_version = '0.2')
+def assert_valid_photon_hdf5(h5file):
+    meta = dict(format_name = b'Photon-HDF5', format_version = b'0.2')
+    msg = ''
     for attr, value in meta.items():
         if attr not in h5file.root._v_attrs:
-            return False
-        if h5file.root._v_attrs[attr] != meta[attr]:
-            return False
-    return True
+            msg += ' * Error: %s not in %s\n' % (attr, h5file.root._v_attrs)
+        stored_value = h5file.root._v_attrs[attr]
+        if stored_value != value:
+            msg += ' * Error: %s != %s\n' % (stored_value, value)
+    if msg is not '':
+        h5file.close()
+        msg = 'Not a valid Photon-HDF5 file. \n' + msg
+        raise IOError(msg)
 
 def _is_basic_layout(h5file):
     return 'photon_data' in h5file.root
@@ -84,9 +89,7 @@ def hdf5(fname):
     if not os.path.isfile(fname):
         raise IOError('File not found.')
     data_file = tables.open_file(fname, mode = "r")
-    if not _is_valid_photon_hdf5(data_file):
-        data_file.close()
-        raise IOError('The file is not a valid Photon-HDF5 format.')
+    assert_valid_photon_hdf5(data_file)
 
     d = Data(fname=fname)
     loader = H5Loader(data_file, d)
