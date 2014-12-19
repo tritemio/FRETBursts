@@ -22,7 +22,7 @@ if on_rtd:
     sys.path.pop(0)
 
 print("python exec: " + sys.executable)
-print("sys.path: " + sys.path)
+print("sys.path: " + ';'.join(sys.path))
 try:
     import numpy
     print("numpy: %s, %s" % (numpy.__version__, numpy.__file__))
