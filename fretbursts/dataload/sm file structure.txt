@@ -1,0 +1,48 @@
+sm file header structure
+(as deciphered by XM from the original LabVIEW code by TL, 11/8/2012)
+
+Note: [Type] denotes an array of Type, where Type is a data type (e.g. I32 = signed 32 bit word)
+
+I32: version 			// usually = 2
+I32: String1 Size
+String1: Comment string		// usually empty
+I32: String2 Size
+String2: File Type		// usually = "Simple"
+I32: pointer1 to data file section pointers // points to the end of the file where this info is stored at the end of acquisition
+I32: String3 size
+String3: File section type	// usually = "Arrival Time Counter"
+I32: section size (in bytes)
+
+Struct Array: Colum Definitions	// LabVIEW "column definitions" cluster array (see definition below). Usually 3 elements.
+[I32]: Data			// Data structure is detailed below
+[I32]: file section pointers	// offsets from beginning of file. Usually only one element, i.e. one data section
+
+
+
+Column Definitions cluster array:
+
+the array has usually 3 elements.
+Each element is comprised of:
+- String: column name		// variable size and content
+- Double: resolution		// 64 bit float giving the time resolution of the photon time stamp's component
+				// usually = 53.6871 [s] (= 12.5 ns x 2^32) for the most significant bits (MSB) of the time stamp (first element)
+				// usually = 12.5E-9 [s] (= 12.5 ns) for the least significant bits (LSB) of the time stamp (second element)
+				// usually = 0 for the third array element
+- Double: offset		// usually = 0
+- [String]: channel names	// usually empty for the first and second element
+				// contains the channel names defined in the "Counter" section of the acquisition configuration file/UI
+				// in the third array element
+
+Data section structure:
+
+each photon information comprises a channel number (U32) and a photon stamp (two U32). The channel number corresponds to the index in "Channel names" string array in the 3rd element of the Column Definitions cluster array. In other words, for a 2 channel acquisition, this value is either 0 or 1.
+
+The photon stamp data is most significant bits first, last significant bits last. In principle, the conversion to real time should be done as: MSB x MSB resolution + LSB x LSB resolution, but in practice, it is sufficient to consider the two successive U32 words as a single U64 word and use LSB resolution x U64.
+
+
+Note: the actual size of the data section (if there is only one) is obtained by:
+
+"pointer to data file section pointers" - "Data start location"
+
+the latter is easily obtained when reading the header as defined above, and can vary depending on the channel names, comment string size, etc, so it is potentially risky to assume it has a constant value. However, in the case there are two channels, one being named "Ch1" and the other "Ch2" (or any other combination of 3 character strings) and the comment string is empty, the offset happens to be 166 bytes.
+In the case there are three channels, one being named "Ch1", the other "Ch2" (or any other combination of 3 character strings) and the last "Monitor" and the comment string is empty, the offset happens to be 177 bytes.
