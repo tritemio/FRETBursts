@@ -626,7 +626,7 @@ class Data(DataContainer):
     **Burst search parameters (user input)**
 
     These are the parameters used to perform the burst search
-    (see :meth:`burst_search_t`).
+    (see :meth:`burst_search`).
 
     Attributes:
         ph_sel (Ph_sel object): photon selection used for burst search.
@@ -1613,7 +1613,7 @@ class Data(DataContainer):
         pprint('[DONE]\n', mute)
 
     def burst_search_t(self, **kwargs):
-        """Deprecated: replaced by :meth:`Data.bursts_search()`.
+        """Deprecated: replaced by :meth:`burst_search`.
         """
         print('WARNING: This method is deprecated, '
               'please use `Data.burst_search()` instead.')
@@ -1657,7 +1657,7 @@ class Data(DataContainer):
             `.calc_bg()` must be called before the burst search.
 
         Example:
-            d.burst_search_t(L=10, m=10, F=6)
+            d.burst_search(L=10, m=10, F=6)
 
         Returns:
             None, all the results are saved in the object.
@@ -1787,7 +1787,7 @@ class Data(DataContainer):
     # Corrections methods
     #
     def background_correction_t(self, relax_nt=False, mute=False):
-        """Deprecated: replaced by :meth:`Data.background_correction()`.
+        """Deprecated: replaced by :meth:`background_correction`.
         """
         print('WARNING: This method is deprecated, '
               'please use `Data.background_correction()` instead.')
@@ -1882,7 +1882,7 @@ class Data(DataContainer):
         The corrections are: background, leakage (or bleed-through) and
         direct excitation (dir_ex).
         """
-        self.background_correction_t(mute=mute)
+        self.background_correction(mute=mute)
         self.leakage_correction(mute=mute)
         if 'dir_ex' in self and self.ALEX:
             self.direct_excitation_correction(mute=mute)
@@ -1904,7 +1904,7 @@ class Data(DataContainer):
         old_dithering = self.dithering
         self.calc_ph_num()       # recompute uncorrected na, nd, nda, naa
         if old_bg_corrected:
-            self.background_correction_t()
+            self.background_correction()
         if old_leakage_corrected:
             self.leakage_correction()
         if old_dir_ex_corrected:
