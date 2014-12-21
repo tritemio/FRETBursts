@@ -712,7 +712,7 @@ class Data(DataContainer):
 
     def __init__(self, **kwargs):
         # Default values
-        init_kw = dict(ALEX=False, _leakage=0., _gamma=1., chi_ch=1.,
+        init_kw = dict(ALEX=False, _leakage=0., _gamma=1., _chi_ch=1.,
                        _dir_ex=0., s=[])
         # Override with user data
         init_kw.update(**kwargs)
@@ -1103,7 +1103,7 @@ class Data(DataContainer):
                 value = [ np.concatenate(self[name])[sort_index] ]
                 dc.add(**{name: value})
         dc.add(nch=1)
-        dc.add(chi_ch=1.)
+        dc.add(_chi_ch=1.)
         # NOTE: Updating gamma has the side effect of recomputing E
         #       (and S if ALEX). We need to update gamma because, in general,
         #       gamma can be an array with a value for each ch.
@@ -1124,7 +1124,7 @@ class Data(DataContainer):
                    '_leakage', '_dir_ex', '_gamma', 'bg_time_s', 'nperiods',
                    'rate_dd', 'rate_ad', 'rate_aa', 'rate_m', 'T', 'rate_th',
                    'bg_corrected', 'leakage_corrected', 'dir_ex_corrected',
-                   'dithering', 'chi_ch', 's', 'ALEX']
+                   'dithering', '_chi_ch', 's', 'ALEX']
         p_dict = dict(self)
         for name in p_dict.keys():
             if name not in p_names:
@@ -1927,8 +1927,8 @@ class Data(DataContainer):
     def update_leakage(self, leakage):
         """Apply/update leakage (or bleed-through) correction.
         """
-        assert (size(leakage) == 1) or (size(leakage) == self.nch)
-        self.add(_leakage=leakage, leakage_corrected=True)
+        assert (np.size(leakage) == 1) or (np.size(leakage) == self.nch)
+        self.add(_leakage=np.asfarray(leakage), leakage_corrected=True)
         self._update_corrections()
 
     def update_bt(self, BT):
@@ -1949,12 +1949,23 @@ class Data(DataContainer):
     def update_dir_ex(self, dir_ex):
         """Apply/update direct excitation correction with value `dir_ex`.
         """
+        assert np.size(dir_ex) == 1
         self.add(_dir_ex=dir_ex, dir_ex_corrected=True)
         self._update_corrections()
 
+    @property
+    def chi_ch(self):
+        return self._chi_ch
+
+    @chi_ch.setter
+    def chi_ch(self, value):
+        self.update_chi_ch(value)
+
     def update_chi_ch(self, chi_ch):
         """Change the `chi_ch` value and recompute FRET."""
-        self.add(chi_ch=chi_ch)
+        msg = 'chi_ch is a per-channel correction and must have size == nch.'
+        assert np.size(chi_ch) == self.nch, ValueError(msg)
+        self.add(_chi_ch=np.asfarray(chi_ch))
         self.calc_fret(corrections=False)
 
     @property
@@ -1967,15 +1978,17 @@ class Data(DataContainer):
 
     def update_gamma(self, gamma):
         """Change the `gamma` value and recompute FRET."""
-        assert (size(gamma) == 1) or (size(gamma) == self.nch)
-        self.add(_gamma=gamma)
+        assert (np.size(gamma) == 1) or (np.size(gamma) == self.nch)
+        self.add(_gamma=np.asfarray(gamma))
         self.calc_fret(corrections=False)
 
     def get_gamma_array(self):
-        """Get the array of gamma values (one per ch).
-        Use this function to obtain an array of gamma values
-        regardless of the actual `gamma` (that can be scalar).
-        Gamma values are multiplied by `chi_ch`.
+        """Get the array of gamma factors, one per ch.
+
+        It always returns an array of gamma factors regardless of
+        whether `self.gamma` is scalar or array.
+
+        Each element of the returned array is multiplied by `chi_ch`.
         """
         gamma = self.gamma
         G = np.r_[[gamma]*self.nch] if np.size(gamma) == 1 else gamma
@@ -1985,13 +1998,13 @@ class Data(DataContainer):
     def get_leakage_array(self):
         """Get the array of leakage coefficients, one per ch.
 
-        This function always returns an array of leakage values regardless
-        whether `leakage` is scalar or array.
+        It always returns an array of leakage coefficients regardless of
+        whether `self.leakage` is scalar or array.
 
         Each element of the returned array is multiplied by `chi_ch`.
         """
-        lk_size = size(self.leakage)
-        Lk = np.r_[[self.leakage]*self.nch] if lk_size == 1 else self.leakage
+        leakage = self.leakage
+        Lk = np.r_[[leakage]*self.nch] if np.size(leakage) == 1 else leakage
         Lk *= self.chi_ch
         return Lk
 
@@ -2060,7 +2073,7 @@ class Data(DataContainer):
 
         This is an high-level functions that can be run after burst search.
         By default, it will count Donor and Acceptor photons, perform
-        corrections (background, bleed-through), and compute gamma-corrected
+        corrections (background, leakage), and compute gamma-corrected
         FRET efficiencies (and stoichiometry if ALEX).
 
         Arguments:
