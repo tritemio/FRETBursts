@@ -530,6 +530,7 @@ class DataContainer(dict):
         self.update(**kwargs)
         for k, v in kwargs.items():
             setattr(self, k, v)
+
     def delete(self, *args):
         """Delete an element (attribute and/or dict entry). """
         for name in args:
@@ -711,8 +712,8 @@ class Data(DataContainer):
 
     def __init__(self, **kwargs):
         # Default values
-        init_kw = dict(ALEX=False, leakage=0., gamma=1., chi_ch=1., dir_ex=0.,
-                       s=[])
+        init_kw = dict(ALEX=False, _leakage=0., _gamma=1., chi_ch=1.,
+                       _dir_ex=0., s=[])
         # Override with user data
         init_kw.update(**kwargs)
         DataContainer.__init__(self, **init_kw)
@@ -735,7 +736,7 @@ class Data(DataContainer):
         except KeyError:
             raise AttributeError(msg_missing_attr)
         else:
-            # Support lists, tuples and object with arrays interface
+            # Support lists, tuples and object with array interface
             # (i.e. numpy arrays or pandas objects).
             if type(value) in [list, tuple] or hasattr(value, '__array__'):
                 if len(value) == self.nch:
@@ -1120,7 +1121,7 @@ class Data(DataContainer):
         from `.name()` and `.Name()`.
         """
         p_names = ['fname', 'clk_p', 'nch', 'ph_sel', 'L', 'm', 'F', 'P',
-                   'leakage', 'dir_ex', 'gamma', 'bg_time_s', 'nperiods',
+                   '_leakage', '_dir_ex', '_gamma', 'bg_time_s', 'nperiods',
                    'rate_dd', 'rate_ad', 'rate_aa', 'rate_m', 'T', 'rate_th',
                    'bg_corrected', 'leakage_corrected', 'dir_ex_corrected',
                    'dithering', 'chi_ch', 's', 'ALEX']
@@ -1821,10 +1822,9 @@ class Data(DataContainer):
         """
         if self.leakage_corrected: return -1
         pprint("   - Applying leakage correction.\n", mute)
-        assert (size(self.leakage) == 1) or (size(self.leakage) == self.nch)
         Lk = self.get_leakage_array()
-        for i in range(self.nch):
-            if self.na[i].size == 0: continue  # if no bursts skip this ch
+        for i, num_bursts in enumerate(self.num_bursts):
+            if num_bursts == 0: continue  # if no bursts skip this ch
             self.na[i] -= self.nd[i]*Lk[i]
             self.nt[i] = self.nd[i] + self.na[i]
             if self.ALEX: self.nt[i] += self.naa[i]
@@ -1837,8 +1837,8 @@ class Data(DataContainer):
         """
         if self.dir_ex_corrected: return -1
         pprint("   - Applying direct excitation correction.\n", mute)
-        for i in range(self.nch):
-            if self.na[i].size == 0: continue  # if no bursts skip this ch
+        for i, num_bursts in enumerate(self.num_bursts):
+            if num_bursts == 0: continue  # if no bursts skip this ch
             self.na[i] -= self.naa[i]*self.dir_ex
             self.nt[i] = self.nd[i] + self.na[i]
             if self.ALEX: self.nt[i] += self.naa[i]
@@ -1871,7 +1871,9 @@ class Data(DataContainer):
         """
         if 'E_fit' not in self:
             print("ERROR: E_fit values not found. Call a `.fit_E_*` first.")
-            return
+            returssert (size(self.leakage) == 1) or (size(self.leakage) ==
+                    self.nch)
+            n
         EE = self.E_fit.mean()  # Mean E value among the CH
         chi_ch = (1/EE - 1)/(1/self.E_fit - 1)
         return chi_ch
@@ -1884,7 +1886,7 @@ class Data(DataContainer):
         """
         self.background_correction(mute=mute)
         self.leakage_correction(mute=mute)
-        if 'dir_ex' in self and self.ALEX:
+        if self.ALEX:
             self.direct_excitation_correction(mute=mute)
 
     def _update_corrections(self):
@@ -1914,6 +1916,21 @@ class Data(DataContainer):
         # Recompute E and S with no corrections (because already applied)
         self.calc_fret(count_ph=False, corrections=False)
 
+    @property
+    def leakage(self):
+        return self._leakage
+
+    @leakage.setter
+    def leakage(self, leakage):
+        self.update_leakage(leakage)
+
+    def update_leakage(self, leakage):
+        """Apply/update leakage (or bleed-through) correction.
+        """
+        assert (size(leakage) == 1) or (size(leakage) == self.nch)
+        self.add(_leakage=leakage, leakage_corrected=True)
+        self._update_corrections()
+
     def update_bt(self, BT):
         """Deprecated. Use .update_leakage() instead.
         """
@@ -1921,16 +1938,18 @@ class Data(DataContainer):
         print('Use .update_leakage() instead.')
         self.update_leakage(BT)
 
-    def update_leakage(self, leakage):
-        """Apply/update leakage (or bleed-through) correction.
-        """
-        self.add(leakage=leakage, leakage_corrected=True)
-        self._update_corrections()
+    @property
+    def dir_ex(self):
+        return self._dir_ex
+
+    @dir_ex.setter
+    def dir_ex(self, value):
+        self.update_dir_ex(value)
 
     def update_dir_ex(self, dir_ex):
         """Apply/update direct excitation correction with value `dir_ex`.
         """
-        self.add(dir_ex=dir_ex, dir_ex_corrected=True)
+        self.add(_dir_ex=dir_ex, dir_ex_corrected=True)
         self._update_corrections()
 
     def update_chi_ch(self, chi_ch):
@@ -1938,9 +1957,18 @@ class Data(DataContainer):
         self.add(chi_ch=chi_ch)
         self.calc_fret(corrections=False)
 
+    @property
+    def gamma(self):
+        return self._gamma
+
+    @gamma.setter
+    def gamma(self, value):
+        self.update_gamma(value)
+
     def update_gamma(self, gamma):
         """Change the `gamma` value and recompute FRET."""
-        self.add(gamma=gamma)
+        assert (size(gamma) == 1) or (size(gamma) == self.nch)
+        self.add(_gamma=gamma)
         self.calc_fret(corrections=False)
 
     def get_gamma_array(self):
@@ -1949,7 +1977,6 @@ class Data(DataContainer):
         regardless of the actual `gamma` (that can be scalar).
         Gamma values are multiplied by `chi_ch`.
         """
-        assert (size(self.gamma) == 1) or (size(self.gamma) == self.nch)
         gamma = self.gamma
         G = np.r_[[gamma]*self.nch] if np.size(gamma) == 1 else gamma
         G *= self.chi_ch
@@ -1964,7 +1991,6 @@ class Data(DataContainer):
         Each element of the returned array is multiplied by `chi_ch`.
         """
         lk_size = size(self.leakage)
-        assert (lk_size == 1) or (lk_size == self.nch)
         Lk = np.r_[[self.leakage]*self.nch] if lk_size == 1 else self.leakage
         Lk *= self.chi_ch
         return Lk
@@ -2105,7 +2131,7 @@ class Data(DataContainer):
             else:
                 s += " BS_%s L%d m%d P%s F%.1f" % \
                         (self.ph_sel, self.L, self.m, self.P, np.mean(self.F))
-        if 'gamma' in self: s += " G%.3f" % np.mean(self.gamma)
+        s += " G%.3f" % np.mean(self.gamma)
         if 'bg_fun' in self: s += " BG%s" % self.bg_fun.__name__[:-4]
         if 'bg_time_s' in self: s += "-%ds" % self.bg_time_s
         if 'fuse' in self: s += " Fuse%.1fms" % self.fuse
