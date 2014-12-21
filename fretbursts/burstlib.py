@@ -1980,7 +1980,8 @@ class Data(DataContainer):
         """Change the `gamma` value and recompute FRET."""
         assert (np.size(gamma) == 1) or (np.size(gamma) == self.nch)
         self.add(_gamma=np.asfarray(gamma))
-        self.calc_fret(corrections=False)
+        if 'mburst' in self:
+            self.calc_fret(corrections=False)
 
     def get_gamma_array(self):
         """Get the array of gamma factors, one per ch.
