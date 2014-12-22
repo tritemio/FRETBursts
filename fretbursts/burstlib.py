@@ -1846,7 +1846,8 @@ class Data(DataContainer):
 
     def dither(self, lsb=2, mute=False):
         """Add dithering (uniform random noise) to burst sizes (nd, na,...).
-        `lsb` is the amplitude of dithering (if lsb=2 then noise is in -1..1).
+
+        The dithering amplitude is the range -0.5*lsb .. 0.5*lsb.
         """
         if self.dithering: return -1
         pprint("   - Applying burst-size dithering.\n", mute)
@@ -1864,6 +1865,7 @@ class Data(DataContainer):
 
     def calc_chi_ch(self):
         """Calculate the gamma correction prefactor factor `chi_ch` (array).
+
         `chi_ch` is a ch-dependent prefactor for gamma used to correct
         the dispersion of fitted E peaks (`E_fit`).
         `chi_ch` is returned, to apply the correction use `update_chi_ch()`.
@@ -1891,11 +1893,12 @@ class Data(DataContainer):
     def _update_corrections(self):
         """Recompute corrections whose flag is True.
 
-        Check the flags .bg_corrected, .leakage_corrected, .dir_ex_corrected,
-        dithering and recompute the corresponding correction if the flag
+        Checks the flags .bg_corrected, .leakage_corrected, .dir_ex_corrected,
+        .dithering and recomputes the correction if the corresponding flag
         is True (i.e. if the correction was already applied).
 
-        Allows to recompute only the corrections the are already applied.
+        Differently from :meth:`corrections`, this allows to recompute
+        corrections that have already been applied.
         """
         if 'mburst' not in self: return  # no burst search performed yet
 
