@@ -530,6 +530,7 @@ class DataContainer(dict):
         self.update(**kwargs)
         for k, v in kwargs.items():
             setattr(self, k, v)
+
     def delete(self, *args):
         """Delete an element (attribute and/or dict entry). """
         for name in args:
@@ -711,8 +712,8 @@ class Data(DataContainer):
 
     def __init__(self, **kwargs):
         # Default values
-        init_kw = dict(ALEX=False, leakage=0., gamma=1., chi_ch=1., dir_ex=0.,
-                       s=[])
+        init_kw = dict(ALEX=False, _leakage=0., _gamma=1., _chi_ch=1.,
+                       _dir_ex=0., s=[])
         # Override with user data
         init_kw.update(**kwargs)
         DataContainer.__init__(self, **init_kw)
@@ -735,7 +736,7 @@ class Data(DataContainer):
         except KeyError:
             raise AttributeError(msg_missing_attr)
         else:
-            # Support lists, tuples and object with arrays interface
+            # Support lists, tuples and object with array interface
             # (i.e. numpy arrays or pandas objects).
             if type(value) in [list, tuple] or hasattr(value, '__array__'):
                 if len(value) == self.nch:
@@ -1102,7 +1103,7 @@ class Data(DataContainer):
                 value = [ np.concatenate(self[name])[sort_index] ]
                 dc.add(**{name: value})
         dc.add(nch=1)
-        dc.add(chi_ch=1.)
+        dc.add(_chi_ch=1.)
         # NOTE: Updating gamma has the side effect of recomputing E
         #       (and S if ALEX). We need to update gamma because, in general,
         #       gamma can be an array with a value for each ch.
@@ -1120,10 +1121,10 @@ class Data(DataContainer):
         from `.name()` and `.Name()`.
         """
         p_names = ['fname', 'clk_p', 'nch', 'ph_sel', 'L', 'm', 'F', 'P',
-                   'leakage', 'dir_ex', 'gamma', 'bg_time_s', 'nperiods',
+                   '_leakage', '_dir_ex', '_gamma', 'bg_time_s', 'nperiods',
                    'rate_dd', 'rate_ad', 'rate_aa', 'rate_m', 'T', 'rate_th',
                    'bg_corrected', 'leakage_corrected', 'dir_ex_corrected',
-                   'dithering', 'chi_ch', 's', 'ALEX']
+                   'dithering', '_chi_ch', 's', 'ALEX']
         p_dict = dict(self)
         for name in p_dict.keys():
             if name not in p_names:
@@ -1786,13 +1787,6 @@ class Data(DataContainer):
     ##
     # Corrections methods
     #
-    def background_correction_t(self, relax_nt=False, mute=False):
-        """Deprecated: replaced by :meth:`background_correction`.
-        """
-        print('WARNING: This method is deprecated, '
-              'please use `Data.background_correction()` instead.')
-        self.background_correction(relax_nt=relax_nt, mute=mute)
-
     def background_correction(self, relax_nt=False, mute=False):
         """Apply background correction to burst sizes (nd, na,...)
         """
@@ -1816,15 +1810,21 @@ class Data(DataContainer):
                     self.nda[ich] -= self.bg_da[ich][period] * width
                 self.nt[ich] += self.naa[ich]
 
+    def background_correction_t(self, relax_nt=False, mute=False):
+        """Deprecated: replaced by :meth:`background_correction`.
+        """
+        print('WARNING: This method is deprecated, '
+              'please use `Data.background_correction()` instead.')
+        self.background_correction(relax_nt=relax_nt, mute=mute)
+
     def leakage_correction(self, mute=False):
         """Apply leakage correction to burst sizes (nd, na,...)
         """
         if self.leakage_corrected: return -1
         pprint("   - Applying leakage correction.\n", mute)
-        assert (size(self.leakage) == 1) or (size(self.leakage) == self.nch)
         Lk = self.get_leakage_array()
-        for i in range(self.nch):
-            if self.na[i].size == 0: continue  # if no bursts skip this ch
+        for i, num_bursts in enumerate(self.num_bursts):
+            if num_bursts == 0: continue  # if no bursts skip this ch
             self.na[i] -= self.nd[i]*Lk[i]
             self.nt[i] = self.nd[i] + self.na[i]
             if self.ALEX: self.nt[i] += self.naa[i]
@@ -1837,8 +1837,8 @@ class Data(DataContainer):
         """
         if self.dir_ex_corrected: return -1
         pprint("   - Applying direct excitation correction.\n", mute)
-        for i in range(self.nch):
-            if self.na[i].size == 0: continue  # if no bursts skip this ch
+        for i, num_bursts in enumerate(self.num_bursts):
+            if num_bursts == 0: continue  # if no bursts skip this ch
             self.na[i] -= self.naa[i]*self.dir_ex
             self.nt[i] = self.nd[i] + self.na[i]
             if self.ALEX: self.nt[i] += self.naa[i]
@@ -1872,6 +1872,7 @@ class Data(DataContainer):
         if 'E_fit' not in self:
             print("ERROR: E_fit values not found. Call a `.fit_E_*` first.")
             return
+
         EE = self.E_fit.mean()  # Mean E value among the CH
         chi_ch = (1/EE - 1)/(1/self.E_fit - 1)
         return chi_ch
@@ -1884,7 +1885,7 @@ class Data(DataContainer):
         """
         self.background_correction(mute=mute)
         self.leakage_correction(mute=mute)
-        if 'dir_ex' in self and self.ALEX:
+        if self.ALEX:
             self.direct_excitation_correction(mute=mute)
 
     def _update_corrections(self):
@@ -1914,6 +1915,21 @@ class Data(DataContainer):
         # Recompute E and S with no corrections (because already applied)
         self.calc_fret(count_ph=False, corrections=False)
 
+    @property
+    def leakage(self):
+        return self._leakage
+
+    @leakage.setter
+    def leakage(self, leakage):
+        self.update_leakage(leakage)
+
+    def update_leakage(self, leakage):
+        """Apply/update leakage (or bleed-through) correction.
+        """
+        assert (np.size(leakage) == 1) or (np.size(leakage) == self.nch)
+        self.add(_leakage=np.asfarray(leakage), leakage_corrected=True)
+        self._update_corrections()
+
     def update_bt(self, BT):
         """Deprecated. Use .update_leakage() instead.
         """
@@ -1921,35 +1937,59 @@ class Data(DataContainer):
         print('Use .update_leakage() instead.')
         self.update_leakage(BT)
 
-    def update_leakage(self, leakage):
-        """Apply/update leakage (or bleed-through) correction.
-        """
-        self.add(leakage=leakage, leakage_corrected=True)
-        self._update_corrections()
+    @property
+    def dir_ex(self):
+        return self._dir_ex
+
+    @dir_ex.setter
+    def dir_ex(self, value):
+        self.update_dir_ex(value)
 
     def update_dir_ex(self, dir_ex):
         """Apply/update direct excitation correction with value `dir_ex`.
         """
-        self.add(dir_ex=dir_ex, dir_ex_corrected=True)
+        assert np.size(dir_ex) == 1
+        self.add(_dir_ex=dir_ex, dir_ex_corrected=True)
         self._update_corrections()
+
+    @property
+    def chi_ch(self):
+        return self._chi_ch
+
+    @chi_ch.setter
+    def chi_ch(self, value):
+        self.update_chi_ch(value)
 
     def update_chi_ch(self, chi_ch):
         """Change the `chi_ch` value and recompute FRET."""
-        self.add(chi_ch=chi_ch)
+        msg = 'chi_ch is a per-channel correction and must have size == nch.'
+        assert np.size(chi_ch) == self.nch, ValueError(msg)
+        self.add(_chi_ch=np.asfarray(chi_ch))
         self.calc_fret(corrections=False)
+
+    @property
+    def gamma(self):
+        return self._gamma
+
+    @gamma.setter
+    def gamma(self, value):
+        self.update_gamma(value)
 
     def update_gamma(self, gamma):
         """Change the `gamma` value and recompute FRET."""
-        self.add(gamma=gamma)
-        self.calc_fret(corrections=False)
+        assert (np.size(gamma) == 1) or (np.size(gamma) == self.nch)
+        self.add(_gamma=np.asfarray(gamma))
+        if 'mburst' in self:
+            self.calc_fret(corrections=False)
 
     def get_gamma_array(self):
-        """Get the array of gamma values (one per ch).
-        Use this function to obtain an array of gamma values
-        regardless of the actual `gamma` (that can be scalar).
-        Gamma values are multiplied by `chi_ch`.
+        """Get the array of gamma factors, one per ch.
+
+        It always returns an array of gamma factors regardless of
+        whether `self.gamma` is scalar or array.
+
+        Each element of the returned array is multiplied by `chi_ch`.
         """
-        assert (size(self.gamma) == 1) or (size(self.gamma) == self.nch)
         gamma = self.gamma
         G = np.r_[[gamma]*self.nch] if np.size(gamma) == 1 else gamma
         G *= self.chi_ch
@@ -1958,14 +1998,13 @@ class Data(DataContainer):
     def get_leakage_array(self):
         """Get the array of leakage coefficients, one per ch.
 
-        This function always returns an array of leakage values regardless
-        whether `leakage` is scalar or array.
+        It always returns an array of leakage coefficients regardless of
+        whether `self.leakage` is scalar or array.
 
         Each element of the returned array is multiplied by `chi_ch`.
         """
-        lk_size = size(self.leakage)
-        assert (lk_size == 1) or (lk_size == self.nch)
-        Lk = np.r_[[self.leakage]*self.nch] if lk_size == 1 else self.leakage
+        leakage = self.leakage
+        Lk = np.r_[[leakage]*self.nch] if np.size(leakage) == 1 else leakage
         Lk *= self.chi_ch
         return Lk
 
@@ -2034,7 +2073,7 @@ class Data(DataContainer):
 
         This is an high-level functions that can be run after burst search.
         By default, it will count Donor and Acceptor photons, perform
-        corrections (background, bleed-through), and compute gamma-corrected
+        corrections (background, leakage), and compute gamma-corrected
         FRET efficiencies (and stoichiometry if ALEX).
 
         Arguments:
@@ -2105,7 +2144,7 @@ class Data(DataContainer):
             else:
                 s += " BS_%s L%d m%d P%s F%.1f" % \
                         (self.ph_sel, self.L, self.m, self.P, np.mean(self.F))
-        if 'gamma' in self: s += " G%.3f" % np.mean(self.gamma)
+        s += " G%.3f" % np.mean(self.gamma)
         if 'bg_fun' in self: s += " BG%s" % self.bg_fun.__name__[:-4]
         if 'bg_time_s' in self: s += "-%ds" % self.bg_time_s
         if 'fuse' in self: s += " Fuse%.1fms" % self.fuse

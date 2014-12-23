@@ -40,7 +40,6 @@ def load_dataset_8ch():
     leakage = 0.038
     gamma = 0.43
     d = loader.hdf5(fname=fname)
-    d.add(leakage=leakage, gamma=gamma)
     d.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
     d.burst_search(L=10, m=10, F=7)
     return d
@@ -58,6 +57,11 @@ def data(request):
 @pytest.fixture(scope="module")
 def data_8ch(request):
     d = load_dataset_8ch()
+    return d
+
+@pytest.fixture(scope="module")
+def data_1ch(request):
+    d = load_dataset_1ch()
     return d
 
 
@@ -203,6 +207,7 @@ def test_iter_ph_times_period(data):
             assert (ph_period == ph_period_test).all()
 
 def test_burst_search(data):
+    """Smoke test and bg_bs check."""
     data.burst_search(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Dem'))
     assert list_equal(data.bg_bs, data.bg_dd)
     data.burst_search(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Aem'))
@@ -215,6 +220,46 @@ def test_burst_search(data):
         assert list_equal(data.bg_bs, bg_Aem)
 
     data.burst_search(L=10, m=10, F=7)
+
+def test_leakage(data):
+    """
+    Test setting leakage before and after burst search
+    """
+    # burst search, then set leakage
+    data.burst_search()
+    data.leakage = 0.04
+    na1 = list(data.na)
+    # set leakage, then burst search
+    data.burst_search()
+    na2 = list(data.na)
+    assert list_array_equal(na1, na2)
+
+def test_gamma(data):
+    """
+    Test setting gamma before and after burst search
+    """
+    # burst search, then set gamma
+    data.burst_search()
+    data.gamma = 0.5
+    E1 = list(data.E)
+    # set leakage, then burst search
+    data.burst_search()
+    E2 = list(data.E)
+    assert list_array_equal(E1, E2)
+
+def test_dir_ex(data_1ch):
+    """
+    Test setting dir_ex before and after burst search
+    """
+    data = data_1ch
+    # burst search, then set dir_ex
+    data.burst_search()
+    data.dir_ex = 0.05
+    na1 = list(data.na)
+    # set leakage, then burst search
+    data.burst_search()
+    na2 = list(data.na)
+    assert list_array_equal(na1, na2)
 
 def test_b_functions(data):
     itstart, iwidth, inum_ph, iistart, iiend, itend = 0, 1, 2, 3, 4, 5
