@@ -31,7 +31,7 @@ def load_dataset_1ch():
     loader.usalex_apply_period(d)
 
     d.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
-    d.burst_search_t(L=10, m=10, F=7)
+    d.burst_search(L=10, m=10, F=7)
     return d
 
 def load_dataset_8ch():
@@ -42,7 +42,7 @@ def load_dataset_8ch():
     d = loader.hdf5(fname=fname)
     d.add(leakage=leakage, gamma=gamma)
     d.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
-    d.burst_search_t(L=10, m=10, F=7)
+    d.burst_search(L=10, m=10, F=7)
     return d
 
 @pytest.fixture(scope="module", params=[
@@ -203,18 +203,18 @@ def test_iter_ph_times_period(data):
             assert (ph_period == ph_period_test).all()
 
 def test_burst_search(data):
-    data.burst_search_t(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Dem'))
+    data.burst_search(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Dem'))
     assert list_equal(data.bg_bs, data.bg_dd)
-    data.burst_search_t(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Aem'))
+    data.burst_search(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Aem'))
     assert list_equal(data.bg_bs, data.bg_ad)
 
     if data.ALEX:
-        data.burst_search_t(L=10, m=10, F=7,
+        data.burst_search(L=10, m=10, F=7,
                             ph_sel=Ph_sel(Dex='Aem', Aex='Aem'))
         bg_Aem = [b1 + b2 for b1, b2 in zip(data.bg_ad, data.bg_aa)]
         assert list_equal(data.bg_bs, bg_Aem)
 
-    data.burst_search_t(L=10, m=10, F=7)
+    data.burst_search(L=10, m=10, F=7)
 
 def test_b_functions(data):
     itstart, iwidth, inum_ph, iistart, iiend, itend = 0, 1, 2, 3, 4, 5

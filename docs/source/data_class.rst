@@ -60,7 +60,7 @@ Methods for background estimation, burst search and burst-data calculations.
 
     .. automethod:: calc_bg
 
-    .. automethod:: burst_search_t
+    .. automethod:: burst_search
 
     .. automethod:: calc_fret
 
@@ -86,7 +86,7 @@ List of :class:`Data` methods used to apply burst corrections.
 
     .. automethod:: update_gamma
 
-    .. automethod:: background_correction_t
+    .. automethod:: background_correction
 
     .. automethod:: leakage_correction
 

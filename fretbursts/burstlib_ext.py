@@ -654,14 +654,14 @@ def burst_search_and_gate(dx, F=6, m=10, ph_sel1=Ph_sel(Dex='DAem'),
     Return:
         A new `Data` object containing bursts from the and-gate search.
 
-    See also :meth:`fretbursts.burstlib.Data.burst_search_t`.
+    See also :meth:`fretbursts.burstlib.Data.burst_search`.
     """
     dx_d = dx
     dx_a = dx.copy(mute=mute)
     dx_and = dx.copy(mute=mute)
 
-    dx_d.burst_search_t(L=m, m=m, F=F, ph_sel=ph_sel1, mute=mute)
-    dx_a.burst_search_t(L=m, m=m, F=F, ph_sel=ph_sel2, mute=mute)
+    dx_d.burst_search(L=m, m=m, F=F, ph_sel=ph_sel1, mute=mute)
+    dx_a.burst_search(L=m, m=m, F=F, ph_sel=ph_sel2, mute=mute)
 
     mburst_and = []
     for mburst_d, mburst_a in zip(dx_d.mburst, dx_a.mburst):
