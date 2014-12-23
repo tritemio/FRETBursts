@@ -1871,9 +1871,8 @@ class Data(DataContainer):
         """
         if 'E_fit' not in self:
             print("ERROR: E_fit values not found. Call a `.fit_E_*` first.")
-            returssert (size(self.leakage) == 1) or (size(self.leakage) ==
-                    self.nch)
-            n
+            return
+
         EE = self.E_fit.mean()  # Mean E value among the CH
         chi_ch = (1/EE - 1)/(1/self.E_fit - 1)
         return chi_ch
