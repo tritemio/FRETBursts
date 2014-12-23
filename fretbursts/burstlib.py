@@ -1787,13 +1787,6 @@ class Data(DataContainer):
     ##
     # Corrections methods
     #
-    def background_correction_t(self, relax_nt=False, mute=False):
-        """Deprecated: replaced by :meth:`background_correction`.
-        """
-        print('WARNING: This method is deprecated, '
-              'please use `Data.background_correction()` instead.')
-        self.background_correction(relax_nt=relax_nt, mute=mute)
-
     def background_correction(self, relax_nt=False, mute=False):
         """Apply background correction to burst sizes (nd, na,...)
         """
@@ -1816,6 +1809,13 @@ class Data(DataContainer):
                 if 'nda' in self:
                     self.nda[ich] -= self.bg_da[ich][period] * width
                 self.nt[ich] += self.naa[ich]
+
+    def background_correction_t(self, relax_nt=False, mute=False):
+        """Deprecated: replaced by :meth:`background_correction`.
+        """
+        print('WARNING: This method is deprecated, '
+              'please use `Data.background_correction()` instead.')
+        self.background_correction(relax_nt=relax_nt, mute=mute)
 
     def leakage_correction(self, mute=False):
         """Apply leakage correction to burst sizes (nd, na,...)
