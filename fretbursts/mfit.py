@@ -184,7 +184,7 @@ def factory_two_gaussians(add_bridge=False, p1_center=0.1, p2_center=0.9,
     if add_bridge:
         bridge = lmfit.model.Model(bridge_function, prefix='br_')
         model += bridge
-        bridge.set_param_hint('amplitude', value=0.0001, min=0)
+        model.set_param_hint('br_amplitude', value=0.0001, min=0)
         model.set_param_hint('br_center1', expr = 'p1_center')
         model.set_param_hint('br_center2', expr = 'p2_center')
         model.set_param_hint('br_sigma1', expr = 'p1_sigma')
