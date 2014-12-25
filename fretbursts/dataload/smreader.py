@@ -120,6 +120,10 @@ def load_sm(fname, return_labels=False):
     # View of the binary data as an array (no copy performed)
     data = np.frombuffer(rawdata[:valid_size], dtype=sm_dtype)
 
+    # Swap byte order inplace to little endian
+    data.setflags(write=True)
+    data = data.byteswap(True).newbyteorder()
+
     if return_labels:
         return data['timestamp'], data['detector'], labels
     else:
