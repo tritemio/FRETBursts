@@ -15,41 +15,35 @@ For the reference documentation for fitting multi-channel histograms see:
 
     mfit
 
-For some legacy modules used for gaussian and exponential fitting see:
-
-.. toctree::
-    :maxdepth: 3
-
-    gaussian_fitting
-    exp_fitting
-
-
 Overview
 --------
 
 FRETBursts uses of the powerful `lmfit <http://lmfit.github.io/lmfit-py/>`_
 library for most fittings (like E or S histogram fitting).
-Lmfit is installed when running the *FRETBursts Installation* notebook
-(see :doc:`installation`).
+Lmfit should be automatically installed when installing FRETBursts, but
+in any case it is easily installable via `pip install lmfit`.
+For more installation info see :doc:`installation`.
 
-FRETBursts requires `lmfit` version 0.8rc3 or higher.
+FRETBursts requires `lmfit` version 0.8 or higher.
 
 Fitting E or S histograms
 -------------------------
 
 The module :mod:`fretbursts.mfit` provides a class
 :class:`fretbursts.mfit.MultiFitter`
-that allow to build histograms and KDE on a multi-channel sample population
+that allow to build histograms and
+`KDE <http://en.wikipedia.org/wiki/Kernel_density_estimation>`_
+on a multi-channel sample population
 (typically E or S values for each burst). The MultiFitter class can find
 the max peak position of a KDE or fit the histogram with an arbitrary model.
 A set of predefined models is provided to handle common cases.
-While sensible defaults are applied the user can control
+Sensible defaults are applied but the user can control
 every detail of the fit by setting initial values, parameter bounds
 (min, max), algebraic constrains and so on. New models can be created by
 composing simpler models (by using `+` operator). See the lmfit documentation
 for more info on how to define
 `models <http://lmfit.github.io/lmfit-py/model.html>`_
-and `composite models <http://lmfit.github.io/lmfit-py/model.html#creating-composite-models>`_.
+and `composite models <http://lmfit.github.io/lmfit-py/model.html#composite-models-adding-or-multiplying-models>`_.
 
 A convenience function :func:`fretbursts.burstlib_ext.burst_fitter` can be
 used to create a `MultiFitter` object to fit either E or S. As an example
@@ -87,14 +81,13 @@ For more information refer to the official
 `lmfit documentation <http://lmfit.github.io/lmfit-py/>`_.
 
 
-
 Legacy Fit functions
-====================
+--------------------
 
-These are legacy functions used in versions of FRETBursts < 0.4.
-This function are retained for backward compatibility.
+A set of legacy functions used in versions of FRETBursts < 0.4
+are defined in `fretbursts/fit`. This function are retained for backward
+compatibility but should not be used in new analysis.
 
-A set of generic fit function is provided in `fretbursts/fit`.
 These are low-level (i.e. generic) fit functions to fit gaussian or
 exponential models.
 

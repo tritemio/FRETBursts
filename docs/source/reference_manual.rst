@@ -9,10 +9,11 @@ Contents:
     loader
     data_class
     ph_sel
-    burst_selection
     background
-    burstsearch
+    burst_selection
     fit
+    plots
+    burstsearch
     plugins
     HDF5_format
     fretmath
