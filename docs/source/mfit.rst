@@ -17,6 +17,9 @@ The MultiFitter class
 Model factory functions
 -----------------------
 
+In this section you find the documentation for the factory-functions
+that return pre-initialized models for fitting E and S data.
+
 .. autofunction:: factory_gaussian
 
 .. autofunction:: factory_asym_gaussian
