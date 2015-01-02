@@ -89,7 +89,7 @@ __all_local_names = [
 
         # Classes, functions, variables
         "Data", "Sel", "Sel_mask", "Sel_mask_apply", "gui_fname", "Ph_sel",
-        "download_file",
+        "download_file", "init_notebook",
 
         # Standalone plots or plots as a function of ch
         "mch_plot_bg", "plot_alternation_hist",
@@ -159,5 +159,44 @@ if has_matplotlib and has_pandas and has_lmfit:
 from .utils.gui import gui_fname
 from .utils.misc import download_file
 from .utils import git
+
+def init_notebook(fs=13, savefig_dpi=65):
+    """
+    Set the default plot style for inline plots using the seaborn library.
+
+    This function must be called from an ipython notebook or
+    ipython QT console.
+
+    Arguments:
+        fs (int): base font size for text labels (not for title)
+        savefig_dpi (int): this value determines the figure size in
+            the notebook. It is assigned to
+            matplotlib.rcParams['savefig.dpi']
+
+    Returns:
+        The imported seaborn library. By saving the return value you
+        don't need to import seaborn again.
+    """
+    ip = get_ipython()
+    ip.enable_matplotlib('inline')
+
+    import seaborn as sns
+    sns.set_style('darkgrid')
+    rc={'font.size': fs, 'axes.labelsize': fs, 'legend.fontsize': fs,
+        'axes.titlesize': fs*1.1,
+        'xtick.labelsize': fs, 'ytick.labelsize': fs,
+        'savefig.dpi': savefig_dpi,
+        'font.sans-serif': ['Arial', 'Liberation Sans'],
+    }
+    sns.set(rc=rc)
+    blue = '#0055d4'
+    green = '#2ca02c'
+    color_brewer = sns.color_palette("Set1", 9)
+    colors = np.array(color_brewer)[(1,0,2,3,4,8,6,7), :]
+    colors = list(colors)
+    colors[:3] = (blue, colors[1], green)
+    sns.set_palette(colors, 8)
+    sns.colors = colors
+    return sns
 
 citation()
