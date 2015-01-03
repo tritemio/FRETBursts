@@ -12,6 +12,7 @@ before_install:
 install:
     - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy pandas matplotlib pytables pytest
     - pip install lmfit
+    - pip install seaborn
     - python setup.py build
     - python setup.py install
     - rm -rf build
