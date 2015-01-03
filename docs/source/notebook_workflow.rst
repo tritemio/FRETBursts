@@ -65,5 +65,5 @@ the import is performed by the ``load_fretbursts`` script with::
     %run load_fretbursts
 
 Note that before running this script for the first time you need to run the
-:ref*`Installation notebook <install_notebook>`.
+:ref:`Installation notebook <install_notebook>`.
 
