@@ -92,7 +92,7 @@ __all_local_names = [
         "download_file", "init_notebook",
 
         # Standalone plots or plots as a function of ch
-        "mch_plot_bg", "plot_alternation_hist",
+        "mch_plot_bg", "plot_alternation_hist", "alex_jointplot",
 
         # Plots types used for 1ch of multi-ch plots through `dplot`
         "timetrace", "timetrace_single", "ratetrace", "ratetrace_single",
@@ -139,7 +139,7 @@ if has_matplotlib and has_pandas and has_lmfit:
     from . import burst_plot as bpl
     from .burst_plot import (
             # Standalone plots as a function of ch
-            mch_plot_bg, plot_alternation_hist,
+            mch_plot_bg, plot_alternation_hist, alex_jointplot,
 
             # Single-ch plots used in multi-ch plots through `dplot`
             timetrace, timetrace_single, ratetrace, ratetrace_single,
@@ -160,7 +160,7 @@ from .utils.gui import gui_fname
 from .utils.misc import download_file
 from .utils import git
 
-def init_notebook(fs=13, savefig_dpi=65):
+def init_notebook(fs=13, savefig_dpi=65, seaborn_style='darkgrid'):
     """
     Set the default plot style for inline plots using the seaborn library.
 
@@ -181,7 +181,7 @@ def init_notebook(fs=13, savefig_dpi=65):
     ip.enable_matplotlib('inline')
 
     import seaborn as sns
-    sns.set_style('darkgrid')
+
     rc={'font.size': fs, 'axes.labelsize': fs, 'legend.fontsize': fs,
         'axes.titlesize': fs*1.1,
         'xtick.labelsize': fs, 'ytick.labelsize': fs,
@@ -197,6 +197,7 @@ def init_notebook(fs=13, savefig_dpi=65):
     colors[:3] = (blue, colors[1], green)
     sns.set_palette(colors, 8)
     sns.colors = colors
+    sns.set_style(seaborn_style)
     return sns
 
 citation()

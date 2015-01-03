@@ -1481,3 +1481,109 @@ def dplot(d, func, **kwargs):
     elif d.nch == 48:
         return dplot_48ch(d=d, func=func, **kwargs)
 
+##
+#  ALEX join-plot using seaborn
+#
+def _alex_plot_style(g):
+    """Set plot style and colorbar for an ALEX joint plot.
+    """
+    g.set_axis_labels(xlabel="E", ylabel="S")
+    g.ax_marg_x.grid(True)
+    g.ax_marg_y.grid(True)
+    plt.setp(g.ax_marg_y.get_xticklabels(), visible=True)
+    plt.setp(g.ax_marg_x.get_yticklabels(), visible=True)
+    g.ax_marg_x.locator_params(axis='y', tight=True, nbins=3)
+    g.ax_marg_y.locator_params(axis='x', tight=True, nbins=3)
+    pos = g.ax_joint.get_position().get_points()
+    X, Y = pos[:, 0], pos[:, 1]
+    cax = plt.axes([1., Y[0], (X[1] - X[0])*0.045, Y[1]-Y[0]])
+    plt.colorbar(cax=cax)
+
+def _hist_bursts(arr, dx, **kwargs):
+    """Wrapper to call hist_burst_data() from seaborn plot_marginals().
+    """
+    vertical = kwargs.get('vertical', False)
+    data_name = 'S' if vertical else 'E'
+    hist_burst_data(dx, data_name=data_name, **kwargs)
+
+def _alex_hexbin_vmax(patches, vmax_fret=True, Smax=0.8):
+    """Return max the counts in the E-S hexbin histogram in `patches`.
+
+    When `vmax_fret` is True, returns the max count for S < Smax.
+    Otherwise returns the max count in all the histogram.
+    """
+    counts = patches.get_array()
+    if vmax_fret:
+        offset = patches.get_offsets()
+        xoffset, yoffset = offset[:, 0], offset[:, 1]
+        mask = yoffset < Smax
+        vmax = counts[mask].max()
+    else:
+        vmax = counts.max()
+    return vmax
+
+def _calc_vmin(vmax, vmax_threshold, vmin_default):
+    if vmax <= vmax_threshold:
+        vmin = vmin_default - 0.5*vmax
+    elif vmax_threshold < vmax < 2*vmax_threshold:
+        vmin = vmin_default - 0.5*vmax*((2*vmax_threshold - vmax)/ \
+                                        (1.*vmax_threshold))
+    else:
+        vmin = vmin_default
+    return vmin
+
+def alex_jointplot(d, i=0, gridsize=50, cmap='YlGnBu_crop',
+                   zero_transparent=True, vmax_fret=True, vmax_threshold=10,
+                   vmin_default=0, vmin=None, cmap_compensate=False,
+                   joint_kws = dict(edgecolor='grey', lw=0.2),
+                   marginal_kws = dict(show_kde=True,
+                                       bandwidth=0.03,
+                                       binwidth=0.03)):
+    """Plot an ALEX join plot: E-S 2-D histograms and marginal plots.
+    """
+    g = sns.JointGrid(x=d.E[i], y=d.S[i], ratio=3, space=0.2,
+                      xlim=(-0.2, 1.2), ylim=(-0.2, 1.2))
+    joint_kws.update(gridsize=gridsize, cmap=cmap,
+                     extent=(-0.2, 1.2, -0.2, 1.2))
+    jplot = g.plot_joint(plt.hexbin, mincnt=zero_transparent, **joint_kws)
+
+    poly = jplot.ax_joint.get_children()[2]
+    vmax = _alex_hexbin_vmax(poly, vmax_fret=vmax_fret)
+    if vmin is None:
+        if cmap_compensate:
+            #vmin = _calc_vmin(vmax, vmax_threshold, vmin_default)
+            vmin = -vmax/3
+        else:
+            vmin = vmin_default
+    poly.set_clim(vmin, vmax)
+
+    g.plot_marginals(_hist_bursts, dx=d, **marginal_kws)
+    g.annotate(lambda x, y: x.size, stat='# Bursts',
+               template='{stat}: {val}')
+    _alex_plot_style(g)
+
+def _register_colormaps():
+    import matplotlib as mpl
+    import seaborn as sns
+
+    c = sns.color_palette('nipy_spectral', 64)[2:43]
+    cmap = mpl.colors.LinearSegmentedColormap.from_list('alex_lv', c)
+    cmap.set_under(alpha=0)
+    mpl.cm.register_cmap(name='alex_lv', cmap=cmap)
+
+    c = sns.color_palette('YlGnBu', 64)[16:]
+    cmap = mpl.colors.LinearSegmentedColormap.from_list('YlGnBu_crop', c)
+    cmap.set_under(alpha=0)
+    mpl.cm.register_cmap(name='YlGnBu_crop', cmap=cmap)
+
+def alex_jointplot_stub(*args):
+    """Stub function used whens eaborn is not installed."""
+    pprint('Error: to use this function you need to install seaborn.')
+
+try:
+    import seaborn as sns
+except ImportError:
+    pprint('WARNING: seaborn not installed. ALEX join-plot disabled.\n')
+    alex_jointplot = alex_jointplot_stub
+else:
+    _register_colormaps()
