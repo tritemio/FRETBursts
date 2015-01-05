@@ -5,7 +5,8 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-This module defines all the plotting functions for the `Data` object.
+This module defines all the plotting functions for the
+:class:`fretbursts.burstlib.Data` object.
 
 The main plot function is `dplot()` that takes, as parameters, a `Data()`
 object and a 1-ch-plot-function and creates a subplot for each channel.
@@ -23,6 +24,8 @@ The 1-ch plot functions names all start with the plot type (`timetrace`,
 **Example 2** - Plot a FRET histogramm for each ch with a fit overlay::
 
     dplot(d, hist_fret, show_model=True)
+
+For more examples refer to the `FRETBurst notebooks <http://nbviewer.ipython.org/github/tritemio/FRETBursts_notebooks/tree/master/notebooks/>`_.
 
 """
 
@@ -141,6 +144,11 @@ def mch_plot_bsize(d):
 #  ALEX alternation period plots
 #
 def plot_alternation_hist(d, bins=100, **kwargs):
+    """Plot the us-ALEX alternation histogram for the variable `d`.
+
+    This function must be called on us-ALEX data **before** calling
+    :func:`fretbursts.loader.usalex_apply_period`.
+    """
     plt.figure()
     ph_times_t, det_t, period = d.ph_times_t, d.det_t, d.alex_period
     d_ch, a_ch = d.det_donor_accept
@@ -164,6 +172,11 @@ def plot_alternation_hist(d, bins=100, **kwargs):
     legend(loc='best')
 
 def plot_alternation_hist_nsalex(d):
+    """Plot the ns-ALEX alternation histogram for the variable `d`.
+
+    This function must be called on ns-ALEX data **before** calling
+    :func:`fretbursts.loader.nsalex_apply_period`.
+    """
     nanotimes_d = d.nanotimes_t[d.det_t == d.det_donor_accept[0]]
     nanotimes_a = d.nanotimes_t[d.det_t == d.det_donor_accept[1]]
     hist(nanotimes_d, bins=np.arange(4096), histtype='step', lw=1.2,
@@ -618,20 +631,34 @@ def _fitted_E_plot(d, i=0, F=1, no_E=False, ax=None, show_model=True,
                 bbox=dict(boxstyle='round', facecolor='#dedede', alpha=0.5))
 
 
-def hist_width(d, i=0, bins=r_[0:10:0.025], yscale='log', density=True,
-               **kwargs):
-    b = d.mburst[i]
-    histog, bins = np.histogram(bl.b_width(b)*d.clk_p*1e3, bins=bins,
+def hist_width(d, i=0, bins=(0, 10, 0.025), yscale='log', density=True,
+               **plot_style):
+    """Plot histogram of burst durations.
+
+    Parameters:
+        d (Data): Data object
+        i (int): channel index
+        bins (array or None): array of bin edges. If not None overrides `binw`
+        yscale (string): 'log' or 'linear', sets the plot y scale.
+        density (bool): if True, normalize the histogram to approximate
+            the probability density function.
+    """
+    bursts = d.mburst[i]
+    if len(bins) == 3:
+        bins = np.arange(*bins)
+
+    histog, bins = np.histogram(bl.b_width(bursts)*d.clk_p*1e3, bins=bins,
                                 density=density)
-    #bins *= d.clk_p  # (ms)
-    bins = bins[:-1]#+(bins[1]-bins[0])/2.
-    plot_style = dict(color='red', lw=2)
-    plot_style.update(**kwargs)
-    plot(bins, histog, **plot_style)
+
+    centers = bins[:-1] + 0.5*(bins[1] - bins[0])
+    plot_style_ = dict(color='red', lw=2)
+    plot_style_.update(**_normalize_kwargs(plot_style, kind='line2d'))
+    plot(centers, histog, **plot_style_)
     gca().set_yscale(yscale)
-    #fill_between(bins,0,histog,color='red', alpha=0.5)
-    xlabel('Burst width (ms)'); ylabel('# Burst')
-    plt.xlim(xmin=0); plt.ylim(ymin=0)
+    plt.xlabel('Burst width (ms)')
+    plt.ylabel('# Burst')
+    plt.xlim(xmin=0)
+    plt.ylim(ymin=0)
 
 def hist_size(d, i=0, vmax=600, binw=4, bins=None,
               which='all', gamma=1, add_naa=False,
@@ -643,7 +670,7 @@ def hist_size(d, i=0, vmax=600, binw=4, bins=None,
         i (int): channel index
         vmax (int/float): histogram max
         binw (int/float): histogram bin width
-        bins (array or None): array of bin edges. If not NOne overrides `binw`
+        bins (array or None): array of bin edges. If not Nosealsone overrides `binw`
         which (string): which counts to consider. 'all' all-photon size
             computed with `d.burst_sizes()`; 'nd', 'na', 'naa' get counts from
             `d.nd`, `d.na`, `d.naa` (respectively Dex-Dem, Dex-Aem, Aex-Aem).
@@ -698,15 +725,81 @@ def hist_burst_data(d, i=0, data_name='E', ax=None, binwidth=0.03, bins=None,
             show_model=False, show_model_peaks=True,
             hist_bar_style={}, hist_plot_style={}, model_plot_style={},
             kde_plot_style={}, verbose=False):
-    """Plot burst_data histogram and KDE.
+    """Plot burst_data (i.e. E, S, etc...) histogram and KDE.
 
-    When `bins` is not None it overrides `binwidth`.
+    This a generic function to plot histograms for any burst data.
+    In particular this function is called by :func:`hist_fret` and
+    :func:`hist_S` to make E and S histograms respectively.
 
-    Histograms and KDE can be plotted on any Data variable after burst search.
-    To show a model, a model must be fitted first by calling
-    d.E_fitter.fit_histogram(). To show the KDE peaks position, they must be
-    computed first with d.E_fitter.find_kde_max().
+    Histograms and KDE can be plotted on any `Data` variable after
+    burst search. To show a model, a model must be fitted first by calling
+    `d.E_fitter.fit_histogram()`. To show the KDE peaks position, they
+    must be computed first with `d.E_fitter.find_kde_max()`.
+
+    The arguments are shown below grouped in logical sections.
+
+    **Generic arguments**
+
+    Args:
+        data_name (string): name of the burst data (i.e. 'E' or 'S')
+        ax (None or matplotlib axis): optional axis instance to plot in.
+        vertical (bool): if True the x axis is oriented vertically.
+        verbose (bool): if False, suppress any printed output.
+
+    **Histogram arguments**: control the histogram appearance
+
+    Args:
+        hist_style (string): if 'bar' use a classical bar histogram,
+            otherwise do a normal line plot of bin counts vs bin centers
+        bins (None or array): if None the bins are computed according to
+            `binwidth`. If not None contains the arrays of bin edges
+            and overrides `binwidth`.
+        binwidth (float): bin width for the histogram.
+        pdf (bool): if True, normalize the histogram to obtain a PDF.
+        hist_bar_style (dict): style dict for the histogram when
+            `hist_style == 'bar'`.
+        hist_plot_style (dict): style dict for the histogram when
+            `hist_style != 'bar'`.
+
+    **Model arguments**: control the model plot
+
+    Args:
+        show_model (bool): if True shows the model fitted to the histogram
+        model (lmfit.Model object or None): lmfit Model used for histogram
+            fitting. If None the histogram is not fitted.
+        show_model_peaks (bool): if True marks the position of model peaks
+        model_plot_style (dict): style dict for the model plot
+
+    **KDE arguments**: control the KDE plot
+
+    Args:
+        show_kde (bool): if True shows the KDE curve
+        show_kde_peak (bool): if True marks the position of the KDE peak
+        bandwidth (float or None): bandwidth used to compute the KDE
+            If None the KDE is not computed.
+        kde_plot_style (dict): style dict for the KDE curve
+
+    **Weights arguments** (weights are used to weight bursts according to
+    their size, affecting histograms and KDEs).
+
+    Args:
+        weights (string or None): kind of burst-size weights.
+            See :func:`fretbursts.fret_fit.get_weights`.
+        gamma (float): gamma factor passed to `get_weights()`.
+        add_naa (bool): if True adds `naa` to the burst size.
+
+    **Fit text arguments**: control how to print annotation with
+    fit information.
+
+    Args:
+        fit_from (string): determines how to obtain the fit value. If 'kde'
+            the fit value is the KDE peak. Otherwise it must be the name
+            of a model parameter that will be used as fit value.
+        show_fit_value (bool): if True annotate the plot with fit value.
+        show_fit_stats (bool): if True annotate the figure with mean fit
+            value and max deviation across the channels (for multi-spot).
     """
+
     assert data_name in d
     fitter_name = data_name + '_fitter'
 
@@ -821,13 +914,11 @@ def hist_fret(d, i=0, ax=None, binwidth=0.03, bins=None, pdf=True,
             kde_plot_style={}, verbose=False):
     """Plot FRET histogram and KDE.
 
-    When `bins` is not None it overrides `binwidth`.
+    The most used argument is `binwidth` that sets the histogram bin width.
 
-    Histograms and KDE can be plotted on any Data variable after burst search.
-    To show a model, a model must be fitted first by calling
-    d.E_fitter.fit_histogram(). To show the KDE peaks position, they must be
-    computed first with d.E_fitter.find_kde_max().
+    For detailed documentation see :func:`hist_burst_data`.
     """
+
     hist_burst_data(d, i, data_name='E', ax=ax, binwidth=binwidth, bins=bins,
             pdf=pdf, weights=weights, gamma=gamma, add_naa=add_naa,
             hist_style=hist_style, show_fit_stats=show_fit_stats,
@@ -849,13 +940,10 @@ def hist_S(d, i=0, ax=None, binwidth=0.03, bins=None, pdf=True,
            kde_plot_style={}, verbose=False):
     """Plot S histogram and KDE.
 
-    When `bins` is not None it overrides `binwidth`.
+    The most used argument is `binwidth` that sets the histogram bin width.
 
-    Histograms and KDE can be plotted on any Data variable after burst search.
-    To show a model, a model must be fitted first by calling
-    d.S_fitter.fit_histogram(). To show the KDE peaks position, they must be
-    computed first with d.S_fitter.find_kde_max().
-    """
+    For detailed documentation see :func:`hist_burst_data`.    """
+
     hist_burst_data(d, i, data_name='S', ax=ax, binwidth=binwidth, bins=bins,
             pdf=pdf, weights=weights, gamma=gamma, add_naa=add_naa,
             hist_style=hist_style, show_fit_stats=show_fit_stats,
@@ -1116,7 +1204,7 @@ def hist_ph_delays(d, i=0, time_min_s=0, time_max_s=30, bin_width_us=10,
 def hist_mdelays(d, i=0, m=10, bins_s=(0, 10, 0.02), bp=0, no_bg_fit=True,
                  hold=False, bg_ppf=0.01, ph_sel=Ph_sel('all'), spline=True,
                  s=1., bg_fit=True, bg_F=0.8):
-    """Histogram of m-ph delays (all ph vs in-burst ph)."""
+    """Histogram of m-photons delays (all-ph vs in-burst ph)."""
     ax = gca()
     if not hold:
         #ax.clear()
@@ -1539,7 +1627,38 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='YlGnBu_crop',
                    marginal_kws = dict(show_kde=True,
                                        bandwidth=0.03,
                                        binwidth=0.03)):
-    """Plot an ALEX join plot: E-S 2-D histograms and marginal plots.
+    """Plot an ALEX join plot: an E-S 2D histograms with marginal E and S.
+
+    This function plots a jointplot: a main 2D histogram (hexbin plot)
+    for E-S and the marginal histograms for E and S separately.
+    The 2D histogram is an hexbin plot, i.e. the bin shape is hexagonal
+    that has the advantage to reduce artifacts due to discretizations.
+
+    Arguments:
+        d (Data object): the variable containing the bursts to plot
+        i (int): the channel number. Default 0.
+        gridsize (int): the grid size for the 2D histogram (hexbin)
+        cmap (string): name of the colormap for the 2D histogram. In
+            addition to all the matplotlib colormaps, FRETbursts defines
+            two custom colormaps 'YlGnBu_crop' and 'alex_lv'.
+            Default 'YlGnBu_crop'.
+        zero_transparent (bool): If True bins with 0 counts will be
+            transparent.
+        vmax_fret (bool): if True, the colormap max value is equal to the
+            max bin counts in the FRET region (S < 0.8). If False the
+            colormap max is equal to the max bin counts.
+        joint_kws (dict): keyword arguments passed to Seaborn
+            plot_joint() to customize the plot style of the 2D histogram.
+        marginal_kws (dict) : keyword arguments passed to Seaborn
+            plot_joint() to customize the plot style of the marginals plots.
+
+    .. seealso::
+        The `Seaborn documentation <http://web.stanford.edu/~mwaskom/software/seaborn/index.html>`__
+        has more info on plot customization:
+
+        * http://web.stanford.edu/~mwaskom/software/seaborn/tutorial/axis_grids.html?highlight=jointgrid#plotting-bivariate-data-with-jointgrid-and-jointplot
+        * http://web.stanford.edu/~mwaskom/software/seaborn/generated/seaborn.JointGrid.html
+
     """
     g = sns.JointGrid(x=d.E[i], y=d.S[i], ratio=3, space=0.2,
                       xlim=(-0.2, 1.2), ylim=(-0.2, 1.2))
@@ -1547,6 +1666,7 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='YlGnBu_crop',
                      extent=(-0.2, 1.2, -0.2, 1.2))
     jplot = g.plot_joint(plt.hexbin, mincnt=zero_transparent, **joint_kws)
 
+    # Set the vmin and vmax values for the colormap
     poly = jplot.ax_joint.get_children()[2]
     vmax = _alex_hexbin_vmax(poly, vmax_fret=vmax_fret)
     if vmin is None:
