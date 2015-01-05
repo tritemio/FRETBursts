@@ -1,6 +1,8 @@
 Plotting Data
 =============
 
+.. contents::
+
 .. automodule:: fretbursts.burst_plot
 
 
