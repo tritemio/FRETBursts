@@ -176,9 +176,21 @@ def get_dist_euclid(nd, na, E_fit=None, slope=None):
 def get_weights(nd, na, weights, naa=0, gamma=1.):
     """Return burst weigths computed according to different criteria.
 
-    `nd`, `na`: background corrected donor and acceptor ph. per burst
-    `weights`: (string) type of weights (if None returns uniform weights).
-                see source for all the possible weights.
+    The burst size is computed as `nd*gamma + na + naa`.
+
+    Arguments:
+        nd, na, naa (1D arrays): photon counts in each burst.
+        gamma (float): gamma factor used for corrected burst size.
+        weights (string or None): type of weights, possible weights are:
+            'size' burst size, 'size_min' burst size - min(burst size),
+            'size2' (burst size)^2, 'sqrt' sqrt(burst size),
+            'inv_size' 1/(burst size), 'inv_sqrt' 1/sqrt(burst size),
+            'cum_size' CDF_of_burst_sizes(burst size),
+            'cum_size2' CDF_of_burst_sizes(burst size)^2.
+            If None returns uniform weights.
+
+    Returns:
+        1D array of weigths, one element per burst.
     """
     nt = nd*gamma + na + naa
     if weights is None:           # all weights the same
