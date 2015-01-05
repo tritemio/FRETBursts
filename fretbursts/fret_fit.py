@@ -4,9 +4,10 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-Functions to fit the FRET peak using different algorithms.
+This module contains functions for direct fitting of burst populations
+(FRET peaks) without passing through a FRET histogram.
 
-This module provides a standard interface for different fitting techniques.
+This module provides a standard interface for different fitting algorithms.
 """
 
 from __future__ import print_function, absolute_import

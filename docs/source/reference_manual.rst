@@ -12,6 +12,7 @@ Contents:
     background
     burst_selection
     fit
+    fret_fit
     plots
     burstsearch
     plugins

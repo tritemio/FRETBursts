@@ -144,20 +144,20 @@ def count_ph_in_bursts_py(bursts, mask):
 
     This function takes a burst-array and a boolean mask (photon selection)
     and computes the number of photons selected by the mask.
-    It is used, for example, to count donor and acceptor photons in each burst.
+    It is used, for example, to count donor and acceptor photons
+    in each burst.
 
     This is a reference implementation. In practice the multi-channel
     is always used instead (see :func:`mch_count_ph_in_bursts_py`).
 
     Arguments:
-        Mburst (list of 2D arrays, int64): a list of burst-arrays, one per ch.
-        Mask (list of 1D boolean arrays): a list of photon masks (one per ch),
-            For each channel, the boolean mask must be of the same size of the
-            timestamp array used for burst search.
+        bursts (2D array, int64): the burst-array.
+        mask (1D boolean array): the photon mask. The boolean mask must be
+            of the same size of the timestamp array used for burst search.
 
     Returns:
-        A list of 1D arrays, each containing the number of photons in the
-        photon selection mask.
+        A 1D array containing the number of photons in each burst
+        counting only photons in the selection mask.
     """
     num_ph = np.zeros(bursts.shape[0], dtype=np.int16)
     for i, burst in enumerate(bursts):
@@ -170,7 +170,8 @@ def mch_count_ph_in_bursts_py(Mburst, Mask):
 
     This multi-channel function takes a list of burst-arrays and a list of
     photon masks and compute the number of photons selected by the mask.
-    It is used, for example, to count donor and acceptor photons in each burst.
+    It is used, for example, to count donor and acceptor photons in
+    each burst.
 
     Arguments:
         Mburst (list of 2D arrays, int64): a list of burst-arrays, one per ch.
@@ -179,8 +180,8 @@ def mch_count_ph_in_bursts_py(Mburst, Mask):
             timestamp array used for burst search.
 
     Returns:
-        A list of 1D arrays, each containing the number of photons in the
-        photon selection mask.
+        A list of 1D array, each containing the number of photons
+        in each burst counting only photons in the selection mask.
     """
     Num_ph = []
     for bursts, mask in zip(Mburst, Mask):
