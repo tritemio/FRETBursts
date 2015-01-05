@@ -143,19 +143,26 @@ def mch_plot_bsize(d):
 ##
 #  ALEX alternation period plots
 #
-def plot_alternation_hist(d, bins=100, **kwargs):
+def plot_alternation_hist(d, bins=100, ax=None, **kwargs):
     """Plot the us-ALEX alternation histogram for the variable `d`.
 
     This function must be called on us-ALEX data **before** calling
     :func:`fretbursts.loader.usalex_apply_period`.
     """
-    plt.figure()
+    if ax is None:
+        plt.figure()
+        ax = plt.gca()
+
     ph_times_t, det_t, period = d.ph_times_t, d.det_t, d.alex_period
     d_ch, a_ch = d.det_donor_accept
     d_em_t = (det_t == d_ch)
     kwargs.update(bins=bins, alpha=0.2)
-    hist(ph_times_t[d_em_t] % period, color='g', label='D', **kwargs)
-    hist(ph_times_t[~d_em_t] % period, color='r', label='A', **kwargs)
+
+    D_label = 'Donor: %d-%d' % (d.D_ON[0], d.D_ON[1])
+    A_label = 'Accept: %d-%d' % (d.A_ON[0], d.A_ON[1])
+    hist(ph_times_t[d_em_t] % period, color='g', label=D_label, **kwargs)
+    hist(ph_times_t[~d_em_t] % period, color='r', label=A_label, **kwargs)
+    plt.xlabel('Timestamps MODULO alternation period')
 
     if d.D_ON[0] < d.D_ON[1]:
         plt.axvspan(d.D_ON[0], d.D_ON[1], color='g', alpha=0.1)
@@ -171,12 +178,16 @@ def plot_alternation_hist(d, bins=100, **kwargs):
 
     legend(loc='best')
 
-def plot_alternation_hist_nsalex(d):
+def plot_alternation_hist_nsalex(d, ax=None):
     """Plot the ns-ALEX alternation histogram for the variable `d`.
 
     This function must be called on ns-ALEX data **before** calling
     :func:`fretbursts.loader.nsalex_apply_period`.
     """
+    if ax is None:
+        plt.figure()
+        ax = plt.gca()
+
     nanotimes_d = d.nanotimes_t[d.det_t == d.det_donor_accept[0]]
     nanotimes_a = d.nanotimes_t[d.det_t == d.det_donor_accept[1]]
     hist(nanotimes_d, bins=np.arange(4096), histtype='step', lw=1.2,
