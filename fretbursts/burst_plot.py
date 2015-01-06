@@ -1589,6 +1589,8 @@ def _alex_plot_style(g):
     g.set_axis_labels(xlabel="E", ylabel="S")
     g.ax_marg_x.grid(True)
     g.ax_marg_y.grid(True)
+    g.ax_marg_x.set_xlabel('')
+    g.ax_marg_y.set_ylabel('')
     plt.setp(g.ax_marg_y.get_xticklabels(), visible=True)
     plt.setp(g.ax_marg_x.get_yticklabels(), visible=True)
     g.ax_marg_x.locator_params(axis='y', tight=True, nbins=3)
