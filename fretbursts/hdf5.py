@@ -81,7 +81,7 @@ _fields_meta = OrderedDict([
     ('particles', 'Particle label (integer) for each timestamp.'),
 
     ## Setup group
-    ('setup', 'Information about the experimental setup.')
+    ('setup', 'Information about the experimental setup.'),
     ('excitation_wavelengths', 'Array of excitation wavelengths (meters).'),
     ('excitation_powers', ('Array of excitation powers (in the same order as '
                           'excitation_wavelengths). Units: Watts.')),
@@ -193,7 +193,14 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
         basename, extension = os.path.splitext(d.fname)
         h5_fname = basename + '.hdf5'
 
-    if os.path.exists(h5_fname):
+    orig_file_metadata = {}
+    if os.path.isfile(d.fname):
+        orig_file_metadata = get_file_metadata(d.fname)
+    else:
+        pprint("WARNING: Could locate original file '%s'\n" % d.fname)
+        pprint("         Provenance info not saved.\n")
+
+    if os.path.isfile(h5_fname):
         basename, extension = os.path.splitext(h5_fname)
         h5_fname = basename + '_new_copy.hdf5'
 
@@ -215,8 +222,13 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
         writer.add_array('/', 'alex_period_donor')
         writer.add_array('/', 'alex_period_acceptor')
 
+    ## Add provenance metadata
+    prov_group = writer.add_group('/', 'provenance')
+    for field, value in orig_file_metadata.items():
+        writer.add_carray(prov_group, field, obj=value)
+
     ## Add setup info, if present in d
-    setup_group = writer.add_array('/', 'setup')
+    setup_group = writer.add_group('/', 'setup')
     setup_fields = ['excitation_wavelengths', 'excitation_powers',
                     'excitation_polarizations', 'detection_polarization1',
                     'detection_polarization2']
@@ -293,6 +305,8 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
 def get_file_metadata(fname):
     """Return a dict with file metadata.
     """
+    assert os.path.isfile(fname)
+
     full_filename = os.path.abspath(fname)
     filename = os.path.basename(full_filename)
 
