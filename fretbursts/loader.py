@@ -95,8 +95,15 @@ def hdf5(fname):
     loader = H5Loader(data_file, d)
 
     # Load mandatory parameters
-    for field in mandatory_root_fields:
+    mand_fields = [f for f in mandatory_root_fields if f != 'num_detectors']
+    for field in mand_fields:
         loader.load_data('/', field)
+    try:
+        data_file.get_node('/', 'num_detectors')
+    except tables.NoSuchNodeError:
+        pprint("WARNING: No 'num_detectors' field found in the HDF5 file.\n")
+    else:
+        loader.load_data('/', 'num_detectors')
 
     if d.ALEX:
         loader.load_data('/', 'alex_period')
