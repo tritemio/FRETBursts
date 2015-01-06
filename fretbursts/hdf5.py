@@ -13,6 +13,7 @@ also provided.
 
 from __future__ import print_function, absolute_import
 import os
+import time
 import tables
 from collections import OrderedDict
 
@@ -37,6 +38,8 @@ _fields_meta = OrderedDict([
                        'channels. The value is 1 if no polarization selection '
                        'is performed and 2 if two orthogonal polarizations '
                        'are recorded.')),
+    ('num_detectors', ('Total number of detector pixels used in the '
+                       'measurement.')),
     ('lifetime', ('If True (or 1) the data contains nanotimes from TCSPC '
                  'hardware')),
     ('alex', 'If True (or 1) the file contains ALternated EXcitation data.'),
@@ -78,6 +81,7 @@ _fields_meta = OrderedDict([
     ('particles', 'Particle label (integer) for each timestamp.'),
 
     ## Setup group
+    ('setup', 'Information about the experimental setup.')
     ('excitation_wavelengths', 'Array of excitation wavelengths (meters).'),
     ('excitation_powers', ('Array of excitation powers (in the same order as '
                           'excitation_wavelengths). Units: Watts.')),
@@ -87,6 +91,13 @@ _fields_meta = OrderedDict([
                                 '"polarization1".')),
     ('detection_polarization2', ('Polarization angle (in degrees) for '
                                 '"polarization2".')),
+
+    ## Provenance group
+    ('provenance', 'Information about the original data file.'),
+    ('filename', 'Original file name.'),
+    ('full_filename', 'Original full file name, including the folder.'),
+    ('creation_time', 'Original file creation time.'),
+    ('modification_time', 'Original file time of last modification.'),
     ])
 
 hdf5_data_map = {key: key for key in _fields_meta.keys()}
@@ -105,8 +116,9 @@ hdf5_data_map.update(
             alex_period_acceptor = 'A_ON',
             )
 
-mandatory_root_fields = ['timestamps_unit', 'num_spots', 'alex', 'lifetime',
-                         'num_spectral_ch', 'num_polariz_ch']
+mandatory_root_fields = ['timestamps_unit', 'num_spots', 'num_detectors',
+                         'num_spectral_ch', 'num_polariz_ch',
+                         'alex', 'lifetime',]
 
 
 class H5Writer():
@@ -145,7 +157,7 @@ class H5Writer():
 
 
 def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
-          verbose=True):
+          verbose=True, num_spectral_ch=2):
     """
     Saves the `Data` object `d` in the HDF5-Ph-Data format.
 
@@ -171,9 +183,11 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
 
     # Add default values for missing mandatory fields
     if 'num_spectral_ch' not in d:
-        d.add(num_spectral_ch = 2)
+        d.add(num_spectral_ch = num_spectral_ch)
     if 'num_polariz_ch' not in d:
         d.add(num_polariz_ch = 1)
+    if 'num_detectors' not in d:
+        d.add(num_detectors = d.nch*d.num_spectral_ch)
 
     if h5_fname is None:
         basename, extension = os.path.splitext(d.fname)
@@ -200,6 +214,15 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
         writer.add_array('/', 'alex_period')
         writer.add_array('/', 'alex_period_donor')
         writer.add_array('/', 'alex_period_acceptor')
+
+    ## Add setup info, if present in d
+    setup_group = writer.add_array('/', 'setup')
+    setup_fields = ['excitation_wavelengths', 'excitation_powers',
+                    'excitation_polarizations', 'detection_polarization1',
+                    'detection_polarization2']
+    for field in setup_fields:
+        if field in d:
+            writer.add_carray(setup_group, field)
 
     ## Save the photon-data
     if d.nch == 1:
@@ -265,6 +288,25 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
 
     data_file.flush()
     d.add(data_file=data_file)
+
+
+def get_file_metadata(fname):
+    """Return a dict with file metadata.
+    """
+    full_filename = os.path.abspath(fname)
+    filename = os.path.basename(full_filename)
+
+    # Creation and modification time (but not exactlt on *NIX)
+    # see https://docs.python.org/2/library/os.path.html#os.path.getctime)
+    ctime = time.localtime(os.path.getctime(full_filename))
+    mtime = time.localtime(os.path.getmtime(full_filename))
+
+    ctime_str = time.strftime("%Y-%m-%d %H:%M:%S", ctime)
+    mtime_str = time.strftime("%Y-%m-%d %H:%M:%S", mtime)
+
+    metadata = dict(filename=filename, full_filename=full_filename,
+                    creation_time=ctime_str, modification_time=mtime_str)
+    return metadata
 
 
 def print_attrs(data_file, node_name='/', which='user'):
