@@ -207,6 +207,7 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
     pprint('Saving: %s' % h5_fname, not verbose)
     data_file = tables.open_file(h5_fname, mode = "w",
                                  title = "Confocal smFRET data")
+    d.add(data_file=data_file)
     writer = H5Writer(data_file, d, comp_filter)
 
     ## Save the root-node metadata
@@ -225,7 +226,7 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
     ## Add provenance metadata
     prov_group = writer.add_group('/', 'provenance')
     for field, value in orig_file_metadata.items():
-        writer.add_carray(prov_group, field, obj=value)
+        writer.add_array(prov_group, field, obj=value.encode('latin-1'))
 
     ## Add setup info, if present in d
     setup_group = writer.add_group('/', 'setup')
@@ -234,7 +235,7 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
                     'detection_polarization2']
     for field in setup_fields:
         if field in d:
-            writer.add_carray(setup_group, field)
+            writer.add_array(setup_group, field)
 
     ## Save the photon-data
     if d.nch == 1:
@@ -299,7 +300,6 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
                 writer.add_array(det_group, 'acceptor', obj=True)
 
     data_file.flush()
-    d.add(data_file=data_file)
 
 
 def get_file_metadata(fname):
