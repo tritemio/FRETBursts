@@ -158,7 +158,8 @@ def plot_alternation_hist(d, bins=None, ax=None, **kwargs):
         plot_alternation = plot_alternation_hist_usalex
     plot_alternation(d, bins=bins, ax=ax, **kwargs)
 
-def plot_alternation_hist_usalex(d, bins=None, ax=None, **kwargs):
+def plot_alternation_hist_usalex(d, bins=None, ax=None,
+                                 hist_style={}, span_style={}):
     """Plot the us-ALEX alternation histogram for the variable `d`.
 
     This function must be called on us-ALEX data **before** calling
@@ -174,25 +175,31 @@ def plot_alternation_hist_usalex(d, bins=None, ax=None, **kwargs):
     ph_times_t, det_t, period = d.ph_times_t, d.det_t, d.alex_period
     d_ch, a_ch = d.det_donor_accept
     d_em_t = (det_t == d_ch)
-    kwargs.update(bins=bins, alpha=0.2)
+    hist_style_ = dict(bins=bins, alpha=0.2)
+    hist_style_.update(hist_style)
+
+    span_style_ = dict(alpha=0.1)
+    span_style_.update(span_style)
 
     D_label = 'Donor: %d-%d' % (d.D_ON[0], d.D_ON[1])
     A_label = 'Accept: %d-%d' % (d.A_ON[0], d.A_ON[1])
-    hist(ph_times_t[d_em_t] % period, color='g', label=D_label, **kwargs)
-    hist(ph_times_t[~d_em_t] % period, color='r', label=A_label, **kwargs)
-    plt.xlabel('Timestamp MODULO alternation period')
+    hist(ph_times_t[d_em_t] % period, color=green, label=D_label,
+         **hist_style_)
+    hist(ph_times_t[~d_em_t] % period, color=red, label=A_label,
+         **hist_style_)
+    plt.xlabel('Timestamp MODULO Alternation period')
 
     if d.D_ON[0] < d.D_ON[1]:
-        plt.axvspan(d.D_ON[0], d.D_ON[1], color='g', alpha=0.1)
+        plt.axvspan(d.D_ON[0], d.D_ON[1], color=green, **span_style_)
     else:
-        plt.axvspan(0,d.D_ON[1], color='g', alpha=0.1)
-        plt.axvspan(d.D_ON[0], period, color='g', alpha=0.1)
+        plt.axvspan(0,d.D_ON[1], color=green, **span_style_)
+        plt.axvspan(d.D_ON[0], period, color=green, **span_style_)
 
     if d.A_ON[0] < d.A_ON[1]:
-        plt.axvspan(d.A_ON[0], d.A_ON[1], color='r', alpha=0.1)
+        plt.axvspan(d.A_ON[0], d.A_ON[1], color=red, **span_style_)
     else:
-        plt.axvspan(0, d.A_ON[1], color='r', alpha=0.1)
-        plt.axvspan(d.A_ON[0], period, color='r', alpha=0.1)
+        plt.axvspan(0, d.A_ON[1], color=red, **span_style_)
+        plt.axvspan(d.A_ON[0], period, color=red, **span_style_)
 
     legend(loc='best')
 
