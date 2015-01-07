@@ -28,7 +28,7 @@ def load_dataset_1ch():
     d = loader.hdf5(fname=fname)
     d.add(det_donor_accept=(0, 1), alex_period=4000,
           D_ON=(2850, 580), A_ON=(900, 2580))
-    loader.usalex_apply_period(d)
+    loader.alex_apply_period(d)
 
     d.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
     d.burst_search(L=10, m=10, F=7)
@@ -37,8 +37,6 @@ def load_dataset_1ch():
 def load_dataset_8ch():
     fn = "12d_New_30p_320mW_steer_3.hdf5"
     fname = DATASETS_DIR + fn
-    leakage = 0.038
-    gamma = 0.43
     d = loader.hdf5(fname=fname)
     d.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
     d.burst_search(L=10, m=10, F=7)
