@@ -180,7 +180,7 @@ def plot_alternation_hist_usalex(d, bins=None, ax=None, **kwargs):
     A_label = 'Accept: %d-%d' % (d.A_ON[0], d.A_ON[1])
     hist(ph_times_t[d_em_t] % period, color='g', label=D_label, **kwargs)
     hist(ph_times_t[~d_em_t] % period, color='r', label=A_label, **kwargs)
-    plt.xlabel('Timestamps MODULO alternation period')
+    plt.xlabel('Timestamp MODULO alternation period')
 
     if d.D_ON[0] < d.D_ON[1]:
         plt.axvspan(d.D_ON[0], d.D_ON[1], color='g', alpha=0.1)
