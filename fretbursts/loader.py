@@ -34,7 +34,7 @@ from .dataload.manta_reader import (load_manta_timestamps,
 from .utils.misc import pprint, deprecate
 from .burstlib import Data
 from .dataload.pytables_array_list import PyTablesList
-from .hdf5 import hdf5_data_map, mandatory_root_fields
+from .hdf5 import hdf5_data_map, mandatory_root_fields, dict_from_group
 
 
 def assert_valid_photon_hdf5(h5file):
@@ -76,10 +76,6 @@ class H5Loader():
                 self.data.add(**{dest_name: [node.read()]})
             else:
                 self.data[dest_name].append(node.read())
-
-def dict_from_group(group):
-    """Return a dict with the content of a tables group."""
-    return {node.name: node.read() for node in group}
 
 def hdf5(fname):
     """Load a data file saved in Photon-HDF5 format version 0.2 or higher.
@@ -229,9 +225,6 @@ def hdf5_phdata(fname):
              Please udate your files and use the the new format.
              To save the file in the new Photon-HDF5 format use
              the function :func:`fretbursts.hdf5.store`.
-
-    For description and specs of the HDF5-Ph-Data format see:
-    https://github.com/tritemio/FRETBursts/wiki/HDF5-Ph-Data-format-0.2-Draft
     """
     if not os.path.isfile(fname):
         raise IOError('File not found.')

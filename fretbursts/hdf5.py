@@ -327,6 +327,10 @@ def get_file_metadata(fname):
     return metadata
 
 
+def dict_from_group(group):
+    """Return a dict with the content of a PyTables group."""
+    return {node.name: node.read() for node in group}
+
 def print_attrs(data_file, node_name='/', which='user'):
     """Print the HDF5 attributes for `node_name`.
 
