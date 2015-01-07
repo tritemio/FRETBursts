@@ -1166,15 +1166,30 @@ class Data(DataContainer):
         return res
 
     def time_max(self):
-        """Return the measurement time (last photon) in seconds."""
+        """Return the last recorded time in seconds."""
+        return self._time_reduce(last=True, func=max)
+
+    def time_min(self):
+        """Return the first recorded time in seconds."""
+        return self._time_reduce(last=False, func=min)
+
+    def _time_reduce(self, last=True, func=max):
+        """Return start or end time reduced with `func`.
+        """
+        idx = -1 if last else 0
+        # Try using ph_times_m
         if 'ph_times_m' in self:
-            return max([t[-1]*self.clk_p for t in self.ph_times_m])
+            time = func(t[idx] for t in self.iter_ph_times())
+        # if it is an ALEX measurement before alex_apply_periods()
         elif 'ph_times_t' in self:
-            return self.ph_times_t.max()*self.clk_p
+            time = func(self.ph_times_t)
+        # if it is a variable with only burst data
         elif 'mburst' in self:
-            return max([b_end(mb)[-1]*self.clk_p for mb in self.mburst])
+            b_func = b_end if last else b_start
+            time = func(b_func(mb)[idx] for mb in self.mburst)
         else:
             raise ValueError("No timestamps or bursts found.")
+        return time*self.clk_p
 
     def ph_in_bursts_mask_ich(self, ich=0, ph_sel=Ph_sel('all')):
         """Return mask of all photons inside bursts for channel `ich`.
