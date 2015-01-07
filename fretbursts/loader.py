@@ -541,9 +541,9 @@ def usalex(fname, leakage=0, gamma=1., header=None, bytes_to_read=-1, BT=None):
         d.add(D_ON=(2850, 580), A_ON=(900, 2580), alex_period=4000)
         plot_alternation_hist(d)
 
-    If the plot looks good apply the alternation with::
+    If the plot looks good, apply the alternation with::
 
-        loader.usalex_apply_period(d)
+        loader.alex_apply_period(d)
 
     Now `d` is ready for futher processing such as background estimation,
     burst search, etc...
@@ -572,21 +572,23 @@ def usalex(fname, leakage=0, gamma=1., header=None, bytes_to_read=-1, BT=None):
 def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
     """Applies to the Data object `d` the alternation period previously set.
 
-    Note that you first need to load the data with :func:`usalex` and then
-    to set the alternation parameters using `d.add()`.
+    Note that you first need to load the data in a variable `d` and then
+    set the alternation parameters using `d.add(D_ON=..., A_ON=...)`.
 
-    The pattern to load usALEX data is the following::
+    The typical pattern for loading ALEX data is the following::
 
-        d = loader.usalex(fname=fname)
-        d.add(D_ON=(2850, 580), A_ON=(900, 2580), alex_period=4000)
-        plot_alternation_hist(d)
+        d = loader.hdf5(fname=fname)
+        d.add(D_ON=(2850, 580), A_ON=(900, 2580))
+        alex_plot_alternation(d)
 
-    If the plot looks good apply the alternation with::
+    If the plot looks good, apply the alternation with::
 
-        loader.usalex_apply_period(d)
+        loader.alex_apply_period(d)
 
     Now `d` is ready for futher processing such as background estimation,
     burst search, etc...
+
+    *See also:* :func:`alex_apply_period`.
     """
     donor_ch, accept_ch  = d.det_donor_accept
     # Remove eventual ch different from donor or acceptor
@@ -656,11 +658,11 @@ def nsalex(fname, leakage=0, gamma=1.):
 
         d = loader.nsalex(fname=fname)
         d.add(D_ON=(2850, 580), A_ON=(900, 2580))
-        nsalex_plot_alternation(d)
+        alex_plot_alternation(d)
 
     If the plot looks good apply the alternation with::
 
-        loader.nsalex_apply_period(d)
+        loader.alex_apply_period(d)
 
     Now `d` is ready for futher processing such as background estimation,
     burst search, etc...
@@ -682,21 +684,23 @@ def nsalex(fname, leakage=0, gamma=1.):
 def nsalex_apply_period(d, delete_ph_t=True):
     """Applies to the Data object `d` the alternation period previously set.
 
-    Note that you first need to load the data with :func:`nsalex` and then
-    to set the alternation parameters using `d.add()`.
+    Note that you first need to load the data in a variable `d` and then
+    set the alternation parameters using `d.add(D_ON=..., A_ON=...)`.
 
-    The pattern to load nsALEX data is the following::
+    The typical pattern for loading ALEX data is the following::
 
-        d = loader.nsalex(fname=fname)
+        d = loader.hdf5(fname=fname)
         d.add(D_ON=(2850, 580), A_ON=(900, 2580))
-        nsalex_plot_alternation(d)
+        alex_plot_alternation(d)
 
-    If the plot looks good apply the alternation with::
+    If the plot looks good, apply the alternation with::
 
-        loader.nsalex_apply_period(d)
+        loader.alex_apply_period(d)
 
     Now `d` is ready for futher processing such as background estimation,
     burst search, etc...
+
+    *See also:* :func:`alex_apply_period`.
     """
     # Note: between boolean arrays * is equavilent to logical AND,
     #       and + is equivalent to logical OR.
@@ -740,3 +744,30 @@ def nsalex_apply_period(d, delete_ph_t=True):
         d.delete('det_t')
         d.delete('nanotimes_t')
 
+def alex_apply_period(d, delete_ph_t=True):
+    """Apply the ALEX period definition set in D_ON and A_ON attributes.
+
+    This function works both for us-ALEX and ns-ALEX data.
+
+    Note that you first need to load the data in a variable `d` and then
+    set the alternation parameters using `d.add(D_ON=..., A_ON=...)`.
+
+    The typical pattern for loading ALEX data is the following::
+
+        d = loader.hdf5(fname=fname)
+        d.add(D_ON=(2850, 580), A_ON=(900, 2580))
+        alex_plot_alternation(d)
+
+    If the plot looks good, apply the alternation with::
+
+        loader.alex_apply_period(d)
+
+    Now `d` is ready for futher processing such as background estimation,
+    burst search, etc...
+    """
+    assert d.ALEX
+    if d.lifetime:
+        apply_period_func = nsalex_apply_period
+    else:
+        apply_period_func = usalex_apply_period
+    apply_period_func(d, delete_ph_t=delete_ph_t)

@@ -143,15 +143,33 @@ def mch_plot_bsize(d):
 ##
 #  ALEX alternation period plots
 #
-def plot_alternation_hist(d, bins=100, ax=None, **kwargs):
+def plot_alternation_hist(d, bins=None, ax=None, **kwargs):
+    """Plot the ALEX alternation histogram for the variable `d`.
+
+    This function works both for us-ALEX and ns-ALEX data.
+
+    This function must be called on ALEX data **before** calling
+    :func:`fretbursts.loader.alex_apply_period`.
+    """
+    assert d.ALEX
+    if d.lifetime:
+        plot_alternation = plot_alternation_hist_nsalex
+    else:
+        plot_alternation = plot_alternation_hist_usalex
+    plot_alternation(d, bins=bins, ax=ax, **kwargs)
+
+def plot_alternation_hist_usalex(d, bins=None, ax=None, **kwargs):
     """Plot the us-ALEX alternation histogram for the variable `d`.
 
     This function must be called on us-ALEX data **before** calling
-    :func:`fretbursts.loader.usalex_apply_period`.
+    :func:`fretbursts.loader.alex_apply_period`.
     """
     if ax is None:
         plt.figure()
         ax = plt.gca()
+
+    if bins is None:
+        bins = 100
 
     ph_times_t, det_t, period = d.ph_times_t, d.det_t, d.alex_period
     d_ch, a_ch = d.det_donor_accept
@@ -178,22 +196,25 @@ def plot_alternation_hist(d, bins=100, ax=None, **kwargs):
 
     legend(loc='best')
 
-def plot_alternation_hist_nsalex(d, ax=None):
+def plot_alternation_hist_nsalex(d, bins=None, ax=None):
     """Plot the ns-ALEX alternation histogram for the variable `d`.
 
     This function must be called on ns-ALEX data **before** calling
-    :func:`fretbursts.loader.nsalex_apply_period`.
+    :func:`fretbursts.loader.alex_apply_period`.
     """
     if ax is None:
         plt.figure()
         ax = plt.gca()
 
+    if bins is None:
+        bins = np.arange(4096)
+
     nanotimes_d = d.nanotimes_t[d.det_t == d.det_donor_accept[0]]
     nanotimes_a = d.nanotimes_t[d.det_t == d.det_donor_accept[1]]
-    hist(nanotimes_d, bins=np.arange(4096), histtype='step', lw=1.2,
-         alpha=0.5, color='g', label='Donor')
-    hist(nanotimes_a, bins=np.arange(4096), histtype='step', lw=1.2,
-         alpha=0.5, color='r', label='Acceptor')
+    hist(nanotimes_d, bins=bins, histtype='step', label='Donor', lw=1.2,
+         alpha=0.5, color='g')
+    hist(nanotimes_a, bins=bins, histtype='step', label='Acceptor', lw=1.2,
+         alpha=0.5, color='r')
     plt.yscale('log')
     plt.axvspan(d.D_ON[0], d.D_ON[1], color='g', alpha=0.1)
     plt.axvspan(d.A_ON[0], d.A_ON[1], color='r', alpha=0.1)
