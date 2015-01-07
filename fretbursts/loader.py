@@ -77,6 +77,10 @@ class H5Loader():
             else:
                 self.data[dest_name].append(node.read())
 
+def dict_from_group(group):
+    """Return a dict with the content of a tables group."""
+    return {node.name: node.read() for node in group}
+
 def hdf5(fname):
     """Load a data file saved in Photon-HDF5 format version 0.2 or higher.
 
@@ -109,6 +113,14 @@ def hdf5(fname):
         loader.load_data('/', 'alex_period')
         loader.load_data('/', 'alex_period_donor')
         loader.load_data('/', 'alex_period_acceptor')
+
+    ## Load setup fields
+    if '/setup' in data_file:
+        d.add(setup=dict_from_group(data_file.root.setup))
+
+    ## Load provenance fields
+    if '/provenance' in data_file:
+        d.add(provenance=dict_from_group(data_file.root.provenance))
 
     if _is_basic_layout(data_file):
         ph_group = data_file.root.photon_data

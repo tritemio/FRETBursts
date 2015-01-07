@@ -120,6 +120,12 @@ mandatory_root_fields = ['timestamps_unit', 'num_spots', 'num_detectors',
                          'num_spectral_ch', 'num_polariz_ch',
                          'alex', 'lifetime',]
 
+setup_fields = ['excitation_wavelengths', 'excitation_powers',
+                'excitation_polarizations', 'detection_polarization1',
+                'detection_polarization2']
+
+provenance_fields = ['filename', 'full_filename', 'creation_time',
+                     'modification_time']
 
 class H5Writer():
     """Helper class for writing fields of a Data() object in HDF5.
@@ -226,13 +232,11 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
     ## Add provenance metadata
     prov_group = writer.add_group('/', 'provenance')
     for field, value in orig_file_metadata.items():
+        assert field in provenance_fields
         writer.add_array(prov_group, field, obj=value.encode('latin-1'))
 
     ## Add setup info, if present in d
     setup_group = writer.add_group('/', 'setup')
-    setup_fields = ['excitation_wavelengths', 'excitation_powers',
-                    'excitation_polarizations', 'detection_polarization1',
-                    'detection_polarization2']
     for field in setup_fields:
         if field in d:
             writer.add_array(setup_group, field)
