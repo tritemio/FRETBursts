@@ -1139,17 +1139,6 @@ def get_ES_range():
         print('E1={E1:.3}, E2={E2:.3}, S1={S1:.3}, S2={S2:.3}'.format(**sel))
     return sel
 
-def hist_sbr(d, ich=0, **hist_kwargs):
-    """Histogram of per-burst Signal-to-Background Ratio (SBR).
-    """
-    if not 'sbr' in d:
-        d.calc_sbr()
-    style_kwargs = dict(bins=np.r_[0:20:0.5])  # default style
-    style_kwargs.update(**hist_kwargs)
-    hist(d.sbr[ich], **style_kwargs)
-    xlabel('SBR'); ylabel('# Bursts')
-
-
 def hist_bg_single(d, i=0, period=0, binwidth=1e-4, bins=None, tmax=0.01,
                    ph_sel=Ph_sel('all'), show_fit=True, yscale='log',
                    manual_rate=None, manual_tau_th=500,
@@ -1357,22 +1346,38 @@ def hist_mdelays(d, i=0, m=10, bins_s=(0, 10, 0.02), bp=0,
 
 def hist_mrates(d, i=0, m=10, bins=(0, 20e3, 20), yscale='log', pdf=True,
         dense=True):
-    """Histogram of m-photons rates.
+    """Histogram of m-photons rates. See also :func:`hist_mdelays`.
     """
     ph = d.get_ph_times(ich=i)
     if dense:
         ph_mrates = 1.*m/((ph[m-1:]-ph[:ph.size-m+1])*d.clk_p*1e3)
     else:
         ph_mrates = 1.*m/(np.diff(ph[::m])*d.clk_p*1e3)
+
     hist = HistData(*np.histogram(ph_mrates, bins=_bins_array(bins)))
     ydata = hist.pdf if pdf else hist.counts
-
     plot(hist.bincenters, ydata, '.-')
     gca().set_yscale(yscale)
     xlabel("Rates (kcps)")
 
 ## Bursts stats
-def hist_rate_in_burst(d, i=0, gamma=1, add_naa=False, bins=20,
+def hist_sbr(d, i=0, bins=(0, 20, 5), pdf=True, plot_style={}):
+    """Histogram of per-burst Signal-to-Background Ratio (SBR).
+    """
+    if not 'sbr' in d:
+        d.calc_sbr()
+
+    hist = HistData(*np.histogram(d.sbr[i], bins=_bins_array(bins)))
+    ydata = hist.pdf if pdf else hist.counts
+
+    plot_style_ = dict(marker='o')
+    plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
+    plot(hist.bincenters, ydata, **plot_style_)
+    plt.xlabel('SBR')
+    plt.ylabel('# Bursts')
+
+
+def hist_rate_in_burst(d, i=0, gamma=1, add_naa=False, bins=20, pdf=False,
                        plot_style={}):
     """Histogram of waiting times between bursts.
     """
@@ -1381,23 +1386,25 @@ def hist_rate_in_burst(d, i=0, gamma=1, add_naa=False, bins=20,
     rates_kcps = 1e-3*(burst_sizes/burst_widths)
 
     hist = HistData(*np.histogram(rates_kcps, bins=_bins_array(bins)))
+    ydata = hist.pdf if pdf else hist.counts
 
     plot_style_ = dict(marker='o')
     plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
-    plot(hist.bincenters, hist.counts, **plot_style_)
+    plot(hist.bincenters, ydata, **plot_style_)
 
     plt.xlabel('In-burst ph. rate (kcps)')
     plt.ylabel('# Bursts')
 
-def hist_burst_delays(d, i=0, bins=(0, 10, 0.1), plot_style={}):
+def hist_burst_delays(d, i=0, bins=(0, 10, 0.1), pdf=False, plot_style={}):
     """Histogram of waiting times between bursts.
     """
     bdelays = np.diff(bl.b_start(d.mburst[i])*d.clk_p)
     hist = HistData(*np.histogram(bdelays, bins=_bins_array(bins)))
+    ydata = hist.pdf if pdf else hist.counts
 
     plot_style_ = dict(marker='o')
     plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
-    plot(hist.bincenters, hist.counts, **plot_style_)
+    plot(hist.bincenters, ydata, **plot_style_)
 
     plt.xlabel('Delays between bursts (s)')
     plt.ylabel('# Bursts')
