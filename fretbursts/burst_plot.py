@@ -626,6 +626,33 @@ def time_ph(d, i=0, num_ph=1e4, ph_istart=0):
 #  Histogram plots
 #
 
+class HistData(object):
+    """Stores histogram counts and bins and provides derived fields.
+
+    Attributes:
+        counts (array, ints): array of counts in each bin
+        bins (array): array of bin edges. Size is size(counts) + 1.
+        bincenters (array): array of bin  centers. Size is size(counts).
+        pdf (array, floats): array od normalized counts (aka PDF)
+    """
+    def __init__(self, counts, bins):
+        self.counts = counts
+        self.bins = bins
+        self.binwidth = bins[1] - bins[0]
+
+    @property
+    def bincenters(self):
+        if not hasattr(self, '_bincenters'):
+            self._bincenters = self.bins[:-1] + 0.5*self.binwidth
+        return self._bincenters
+
+    @property
+    def pdf(self):
+        if not hasattr(self, '_pdf'):
+            self._pdf = np.array(self.counts, dtype=np.float)
+            self._pdf /= (self.counts.sum() * self.binwidth)
+        return self._pdf
+
 def _get_fit_E_text(d, pylab=True):
     """Return a formatted string for fitted E."""
     delta = (d.E_fit.max()-d.E_fit.min())*100
@@ -676,37 +703,38 @@ def _fitted_E_plot(d, i=0, F=1, no_E=False, ax=None, show_model=True,
                 bbox=dict(boxstyle='round', facecolor='#dedede', alpha=0.5))
 
 
-def hist_width(d, i=0, bins=(0, 10, 0.025), yscale='log', density=True,
-               **plot_style):
+def hist_width(d, i=0, bins=(0, 10, 0.025), pdf=True, yscale='log',
+               plot_style={}):
     """Plot histogram of burst durations.
 
     Parameters:
         d (Data): Data object
         i (int): channel index
-        bins (array or None): array of bin edges. If not None overrides `binw`
+        bins (array or None): array of bin edges. If len(bins) == 3
+            then is interpreted as (start, stop, step) values.
+        pdf (bool): if True, normalize the histogram to obtain a PDF.
         yscale (string): 'log' or 'linear', sets the plot y scale.
-        density (bool): if True, normalize the histogram to approximate
-            the probability density function.
+        plot_style (dict): dict of matplotlib line style passed to `plot`.
     """
     bursts = d.mburst[i]
     if len(bins) == 3:
         bins = np.arange(*bins)
 
-    histog, bins = np.histogram(bl.b_width(bursts)*d.clk_p*1e3, bins=bins,
-                                density=density)
+    hist = HistData(*np.histogram(bl.b_width(bursts)*d.clk_p*1e3,
+                                 bins=bins, density=False))
 
-    centers = bins[:-1] + 0.5*(bins[1] - bins[0])
+    ydata = hist.pdf if pdf else hist.counts
     plot_style_ = dict(color=red, lw=2)
     plot_style_.update(**_normalize_kwargs(plot_style, kind='line2d'))
-    plot(centers, histog, **plot_style_)
-    gca().set_yscale(yscale)
+    plot(hist.bincenters, ydata, **plot_style_)
+    plt.gca().set_yscale(yscale)
     plt.xlabel('Burst width (ms)')
     plt.ylabel('# Burst')
     plt.xlim(xmin=0)
     plt.ylim(ymin=0)
 
 def hist_size(d, i=0, vmax=600, binw=4, bins=None,
-              which='all', gamma=1, add_naa=False,
+              which='all', gamma=1, add_naa=False, pdf=False,
               yscale='log', legend=True, plot_style={}):
     """Plot histogram of burst sizes.
 
@@ -715,10 +743,11 @@ def hist_size(d, i=0, vmax=600, binw=4, bins=None,
         i (int): channel index
         vmax (int/float): histogram max
         binw (int/float): histogram bin width
-        bins (array or None): array of bin edges. If not Nosealsone overrides `binw`
+        bins (array or None): array of bin edges. If not None overrides `binw`
         which (string): which counts to consider. 'all' all-photon size
             computed with `d.burst_sizes()`; 'nd', 'na', 'naa' get counts from
             `d.nd`, `d.na`, `d.naa` (respectively Dex-Dem, Dex-Aem, Aex-Aem).
+        pdf (bool): if True, normalize the histogram to obtain a PDF.
         yscale (string): 'log' or 'linear', sets the plot y scale.
         legend (bool): if True add legend to plot
         plot_style (dict): dict of matplotlib line style passed to `plot`.
@@ -736,16 +765,17 @@ def hist_size(d, i=0, vmax=600, binw=4, bins=None,
         size = d[which][i]
         label = which
 
-    colors = ['k', 'g', 'r', 'orange']
+    colors = ['k', green, red, purple]
     colors_dict = {k: c for k, c in zip(valid_which, colors)}
 
     if bins is None:
         bins = np.arange(0, vmax+binw, binw)
-    counts, bins = np.histogram(size, bins=bins)
-    x = bins[:-1] + 0.5*(bins[1] + bins[0])
-    plot_style_ = dict(linewidth=2, color=colors_dict[which])
+    hist = HistData(*np.histogram(size, bins=bins))
+
+    ydata = hist.pdf if pdf else hist.counts
+    plot_style_ = dict(linewidth=2, color=colors_dict[which], label=label)
     plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
-    plot(x, counts, label=label, **plot_style_)
+    plot(hist.bincenters, ydata, **plot_style_)
 
     gca().set_yscale(yscale)
     xlabel('# Ph.'); ylabel('# Bursts')

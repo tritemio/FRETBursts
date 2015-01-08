@@ -345,7 +345,7 @@ class MultiFitter(FitterBase):
         `self.hist_bins`). If `bins` is not None, `binwidth` is ignored and
         `self.hist_binwidth` is computed from `self.hist_bins`.
 
-        All the kwargs (except for binwidth) are passed to `numpy.histogram`.
+        The kwargs and `bins` are passed to `numpy.histogram`.
         """
         ## Check if the same histogram is alredy computed
         if self._hist_computed:
