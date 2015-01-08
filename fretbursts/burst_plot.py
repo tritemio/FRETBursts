@@ -1269,7 +1269,7 @@ def hist_ph_delays(d, i=0, time_min_s=0, time_max_s=30, bin_width_us=10,
                                                            100*(rg-re)/re))
     plt.legend(loc='best', fancybox=True)
 
-def hist_mdelays(d, i=0, m=10, bins_s=(0, 10, 0.02), bp=0,
+def hist_mdelays(d, i=0, m=10, bins_s=(0, 10, 0.02), period=0,
                  hold=False, bg_ppf=0.01, ph_sel=Ph_sel('all'), spline=True,
                  s=1., bg_fit=True, bg_F=0.8):
     """Histogram of m-photons delays (all-ph vs in-burst ph).
@@ -1280,7 +1280,7 @@ def hist_mdelays(d, i=0, m=10, bins_s=(0, 10, 0.02), bp=0,
         for _ind in range(len(ax.lines)): ax.lines.pop()
 
     results = bext.calc_mdelays_hist(
-                        d=d, ich=i, m=m, period=bp, bins_s=bins_s,
+                        d=d, ich=i, m=m, period=period, bins_s=bins_s,
                         ph_sel=ph_sel, bursts=True, bg_fit=bg_fit, bg_F=bg_F)
     bin_x, histog_y = results[:2]
     bg_dist = results[2]

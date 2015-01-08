@@ -363,12 +363,12 @@ def bursts_fitter(dx, burst_data='E', save_fitter=True,
                   'burst_weights': (weights, float(gamma), add_naa)})
     return fitter
 
-def _get_bg_distrib_erlang(d, ich=0, m=10, ph_sel=Ph_sel('all'), bp=(0, -1)):
+def _get_bg_distrib_erlang(d, ich=0, m=10, ph_sel=Ph_sel('all'),
+                           period=(0, -1)):
     """Return a frozen (scipy) erlang distrib. with rate equal to the bg rate.
     """
     assert ph_sel in [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
-    if np.size(bp) == 1: bp = (bp, bp)
-    periods = slice(d.Lim[ich][bp[0]][0], d.Lim[ich][bp[1]][1] + 1)
+
     # Compute the BG distribution
     if ph_sel == Ph_sel('all'):
         bg_ph = d.bg_dd[ich] + d.bg_ad[ich]
@@ -377,7 +377,7 @@ def _get_bg_distrib_erlang(d, ich=0, m=10, ph_sel=Ph_sel('all'), bp=(0, -1)):
     elif ph_sel == Ph_sel(Dex='Aem'):
         bg_ph = d.bg_ad[ich]
 
-    rate_ch_kcps = bg_ph[periods].mean()/1e3   # bg rate in kcps
+    rate_ch_kcps = bg_ph[period[0]:period[1]+1].mean()/1e3  # bg rate in kcps
     bg_dist = erlang(a=m, scale=1./rate_ch_kcps)
     return bg_dist
 
@@ -436,7 +436,7 @@ def histogram_mdelays(d, ich=0, m=10, period=None, ph_sel=Ph_sel('all'),
             histograms_y = np.vstack([counts_tot, counts_bursts])
     return histograms_y, bin_center
 
-def calc_mdelays_hist(d, ich=0, m=10, bp=(0, -1), bins_s=(0, 10, 0.02),
+def calc_mdelays_hist(d, ich=0, m=10, period=(0, -1), bins_s=(0, 10, 0.02),
                       ph_sel=Ph_sel('all'), bursts=False, bg_fit=True,
                       bg_F=0.8):
     """Compute histogram of m-photons delays (or waiting times).
@@ -445,8 +445,9 @@ def calc_mdelays_hist(d, ich=0, m=10, bp=(0, -1), bins_s=(0, 10, 0.02),
         dx (Data object): contains the burst data to process.
         ich (int): the channel number. Default 0.
         m (int): number of photons used to compute each delay.
-        bp (int or 2-element tuple): index of the period to use. If tuple,
-            the period range between bp[0] and bp[1] (included) is used.
+        period (int or 2-element tuple): index of the period to use. If
+            tuple, the period range between period[0] and period[1]
+            (included) is used.
         bins_s (3-element tuple): start, stop and step for the bins
         ph_sel (Ph_sel object): photon selection to use.
     Returns:
@@ -462,8 +463,8 @@ def calc_mdelays_hist(d, ich=0, m=10, bp=(0, -1), bins_s=(0, 10, 0.02),
               bin_x > bg_mean*bg_F. Returned only if `bg_fit` is True.
     """
     assert ph_sel in [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
-    if np.size(bp) == 1: bp = (bp, bp)
-    periods = slice(d.Lim[ich][bp[0]][0], d.Lim[ich][bp[1]][1] + 1)
+    if np.size(period) == 1: period = (period, period)
+    periods = slice(d.Lim[ich][period[0]][0], d.Lim[ich][period[1]][1] + 1)
     bins = np.arange(*bins_s)
 
     if ph_sel == Ph_sel('all'):
@@ -501,7 +502,8 @@ def calc_mdelays_hist(d, ich=0, m=10, bp=(0, -1), bins_s=(0, 10, 0.02),
     results = [bin_x, histograms_y]
 
     # Compute the BG distribution
-    bg_dist = _get_bg_distrib_erlang(d, ich=ich, m=m, bp=bp, ph_sel=ph_sel)
+    bg_dist = _get_bg_distrib_erlang(d, ich=ich, m=m, period=period,
+                                     ph_sel=ph_sel)
     bg_mean = bg_dist.mean()
     results.append(bg_dist)
 
