@@ -548,7 +548,7 @@ def usalex(fname, leakage=0, gamma=1., header=None, bytes_to_read=-1, BT=None):
         print('WARNING: `header` argument ignored. '
               '         The header length is now computed automatically.')
     print(" - Loading '%s' ... " % fname)
-    ph_times_t, det_t = load_sm(fname)
+    ph_times_t, det_t, labels = load_sm(fname, return_labels=True)
     print(" [DONE]\n")
 
     DONOR_ON = (2850, 580)
@@ -559,6 +559,7 @@ def usalex(fname, leakage=0, gamma=1., header=None, bytes_to_read=-1, BT=None):
               ALEX=True, lifetime=False,
               D_ON=DONOR_ON, A_ON=ACCEPT_ON, alex_period=alex_period,
               ph_times_t=ph_times_t, det_t=det_t, det_donor_accept=(0, 1),
+              ch_labels=labels,
               )
     return dx
 
