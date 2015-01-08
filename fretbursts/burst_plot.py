@@ -653,56 +653,6 @@ class HistData(object):
             self._pdf /= (self.counts.sum() * self.binwidth)
         return self._pdf
 
-def _get_fit_E_text(d, pylab=True):
-    """Return a formatted string for fitted E."""
-    delta = (d.E_fit.max()-d.E_fit.min())*100
-    fit_text = r'\langle{E}_{fit}\rangle = %.3f \qquad ' % d.E_fit.mean()
-    fit_text += r'\Delta E_{fit} = %.2f \%%' % delta
-    if pylab: fit_text = r'$'+fit_text+r'$'
-    return fit_text
-
-def _fitted_E_plot(d, i=0, F=1, no_E=False, ax=None, show_model=True,
-                   verbose=False, two_gauss_model=False, lw=2.5, color='k',
-                   alpha=0.5, fillcolor=None):
-    """Plot a fitted model overlay on a FRET histogram."""
-    if ax is None:
-        ax2 = gca()
-    else:
-        ax2 = plt.twinx(ax=ax)
-        ax2.grid(False)
-
-    if d.fit_E_curve and show_model:
-        x = r_[-0.2:1.21:0.002]
-        y = d.fit_E_model(x, d.fit_E_res[i, :])
-        scale = F*d.fit_E_model_F[i]
-        if two_gauss_model:
-            assert d.fit_E_res.shape[1] > 2
-            if d.fit_E_res.shape[1] == 5:
-                m1, s1, m2, s2, a1 =  d.fit_E_res[i, :]
-                a2 = (1-a1)
-            elif d.fit_E_res.shape[1] == 6:
-                m1, s1, a1, m2, s2, a2 =  d.fit_E_res[i, :]
-            y1 = a1*normpdf(x, m1, s1)
-            y2 = a2*normpdf(x, m2, s2)
-            ax2.plot(x, scale*y1, ls='--', lw=lw, alpha=alpha, color=color)
-            ax2.plot(x, scale*y2, ls='--', lw=lw, alpha=alpha, color=color)
-        if fillcolor == None:
-            ax2.plot(x, scale*y, lw=lw, alpha=alpha, color=color)
-        else:
-            ax2.fill_between(x, scale*y, lw=lw, alpha=alpha, edgecolor=color,
-                             facecolor=fillcolor, zorder=10)
-        if verbose:
-            print('Fit Integral:', np.trapz(scale*y, x))
-
-    ax2.axvline(d.E_fit[i], lw=3, color='r', ls='--', alpha=0.6)
-    xtext = 0.6 if d.E_fit[i] < 0.6 else 0.2
-    if d.nch > 1 and not no_E:
-        ax2.text(xtext, 0.81,"CH%d: $E_{fit} = %.3f$" % \
-                (i+1, d.E_fit[i]),
-                transform = gca().transAxes, fontsize=16,
-                bbox=dict(boxstyle='round', facecolor='#dedede', alpha=0.5))
-
-
 def hist_width(d, i=0, bins=(0, 10, 0.025), pdf=True, yscale='log',
                plot_style={}):
     """Plot histogram of burst durations.
@@ -791,6 +741,56 @@ def hist_size_all(d, i=0, **kwargs):
         fields.append('naa')
     for which in fields:
         hist_size(d, i, which=which, **kwargs)
+
+
+def _get_fit_E_text(d, pylab=True):
+    """Return a formatted string for fitted E."""
+    delta = (d.E_fit.max()-d.E_fit.min())*100
+    fit_text = r'\langle{E}_{fit}\rangle = %.3f \qquad ' % d.E_fit.mean()
+    fit_text += r'\Delta E_{fit} = %.2f \%%' % delta
+    if pylab: fit_text = r'$'+fit_text+r'$'
+    return fit_text
+
+def _fitted_E_plot(d, i=0, F=1, no_E=False, ax=None, show_model=True,
+                   verbose=False, two_gauss_model=False, lw=2.5, color='k',
+                   alpha=0.5, fillcolor=None):
+    """Plot a fitted model overlay on a FRET histogram."""
+    if ax is None:
+        ax2 = gca()
+    else:
+        ax2 = plt.twinx(ax=ax)
+        ax2.grid(False)
+
+    if d.fit_E_curve and show_model:
+        x = r_[-0.2:1.21:0.002]
+        y = d.fit_E_model(x, d.fit_E_res[i, :])
+        scale = F*d.fit_E_model_F[i]
+        if two_gauss_model:
+            assert d.fit_E_res.shape[1] > 2
+            if d.fit_E_res.shape[1] == 5:
+                m1, s1, m2, s2, a1 =  d.fit_E_res[i, :]
+                a2 = (1-a1)
+            elif d.fit_E_res.shape[1] == 6:
+                m1, s1, a1, m2, s2, a2 =  d.fit_E_res[i, :]
+            y1 = a1*normpdf(x, m1, s1)
+            y2 = a2*normpdf(x, m2, s2)
+            ax2.plot(x, scale*y1, ls='--', lw=lw, alpha=alpha, color=color)
+            ax2.plot(x, scale*y2, ls='--', lw=lw, alpha=alpha, color=color)
+        if fillcolor == None:
+            ax2.plot(x, scale*y, lw=lw, alpha=alpha, color=color)
+        else:
+            ax2.fill_between(x, scale*y, lw=lw, alpha=alpha, edgecolor=color,
+                             facecolor=fillcolor, zorder=10)
+        if verbose:
+            print('Fit Integral:', np.trapz(scale*y, x))
+
+    ax2.axvline(d.E_fit[i], lw=3, color='r', ls='--', alpha=0.6)
+    xtext = 0.6 if d.E_fit[i] < 0.6 else 0.2
+    if d.nch > 1 and not no_E:
+        ax2.text(xtext, 0.81,"CH%d: $E_{fit} = %.3f$" % \
+                (i+1, d.E_fit[i]),
+                transform = gca().transAxes, fontsize=16,
+                bbox=dict(boxstyle='round', facecolor='#dedede', alpha=0.5))
 
 def hist_burst_data(d, i=0, data_name='E', ax=None, binwidth=0.03, bins=None,
             vertical=False, pdf=False, hist_style='bar',
