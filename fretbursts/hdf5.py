@@ -40,6 +40,7 @@ _fields_meta = OrderedDict([
                        'are recorded.')),
     ('num_detectors', ('Total number of detector pixels used in the '
                        'measurement.')),
+    ('measurement_duration', 'Measurement duration in seconds.'),
     ('lifetime', ('If True (or 1) the data contains nanotimes from TCSPC '
                  'hardware')),
     ('alex', 'If True (or 1) the file contains ALternated EXcitation data.'),
