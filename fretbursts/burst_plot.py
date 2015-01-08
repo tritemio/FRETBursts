@@ -582,7 +582,7 @@ def timetrace_bg(d, i=0, nolegend=False, ncol=2, plot_style={}):
          **plot_style_)
     if d.ALEX:
         plot(t, 1e-3*d.bg_aa[i], label="AA: %d cps" % d.rate_aa[i],
-             color='m', **plot_style_)
+             color=purple, **plot_style_)
     if not nolegend:
         legend(loc='best', frameon=False, ncol=ncol)
     xlabel("Time (s)"); ylabel("BG rate (kcps)"); grid(True)
@@ -696,7 +696,7 @@ def hist_width(d, i=0, bins=(0, 10, 0.025), yscale='log', density=True,
                                 density=density)
 
     centers = bins[:-1] + 0.5*(bins[1] - bins[0])
-    plot_style_ = dict(color='red', lw=2)
+    plot_style_ = dict(color=red, lw=2)
     plot_style_.update(**_normalize_kwargs(plot_style, kind='line2d'))
     plot(centers, histog, **plot_style_)
     gca().set_yscale(yscale)
@@ -1081,9 +1081,9 @@ def plot_ES_selection(ax, E1, E2, S1, S2, rect=True, **kwargs):
     for both the rectangle and the ellipsis.
     """
     if rect:
-        rect_color, ellips_color = 'blue', 'gray'
+        rect_color, ellips_color = blue, 'gray'
     else:
-        rect_color, ellips_color = 'gray', 'blue'
+        rect_color, ellips_color = 'gray', blue
     patch_style = dict(fill=False, lw=1.5, alpha=0.5)
     patch_style.update(**kwargs)
     rect = Rectangle(xy=(E1, S1), height=(S2 - S1), width=(E2 - E1),
@@ -1728,6 +1728,7 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='YlGnBu_crop',
     g.annotate(lambda x, y: x.size, stat='# Bursts',
                template='{stat}: {val}')
     _alex_plot_style(g)
+    return g
 
 def _register_colormaps():
     import matplotlib as mpl
