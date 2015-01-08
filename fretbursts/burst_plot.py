@@ -721,8 +721,8 @@ def hist_size(d, i=0, vmax=600, binw=4, bins=None,
     if bins is None:
         bins = np.arange(0, vmax+binw, binw)
     hist = HistData(*np.histogram(size, bins=bins))
-
     ydata = hist.pdf if pdf else hist.counts
+
     plot_style_ = dict(linewidth=2, color=colors_dict[which], label=label)
     plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
     plot(hist.bincenters, ydata, **plot_style_)
@@ -1350,38 +1350,62 @@ def hist_mdelays(d, i=0, m=10, bins_s=(0, 10, 0.02), bp=0,
     plt.legend(ncol=2, frameon=False)
     xlabel("Time (ms)")
 
-def hist_mrates(d, i=0, m=10, bins=r_[0:20e3:20], yscale='log', normed=True,
+def hist_mrates(d, i=0, m=10, bins=(0, 20e3, 20), yscale='log', pdf=True,
         dense=True):
-    """Histogram of m-photons rates."""
-    ph = d.ph_times_m[i]
+    """Histogram of m-photons rates.
+    """
+    if not np.isscalar(bins) and len(bins) == 3:
+        bins = np.arange(*bins)
+
+    ph = d.get_ph_times(ich=i)
     if dense:
         ph_mrates = 1.*m/((ph[m-1:]-ph[:ph.size-m+1])*d.clk_p*1e3)
     else:
         ph_mrates = 1.*m/(np.diff(ph[::m])*d.clk_p*1e3)
-    #gauss = lambda M,std: gaussian(M,std)/gaussian(M,std).sum()
-    H = np.histogram(ph_mrates, bins=bins, normed=normed)
-    epdf_x = H[1][:-1]
-    epdf_y = H[0]
-    plot(epdf_x, epdf_y, '.-')
-    #plot(epdf_x, convolve(epdf_y, gauss(30,4),'same'), lw=2)
+    hist = HistData(*np.histogram(ph_mrates, bins=bins))
+    ydata = hist.pdf if pdf else hist.counts
+
+    plot(hist.bincenters, ydata, '.-')
     gca().set_yscale(yscale)
     xlabel("Rates (kcps)")
 
 ## Bursts stats
-def hist_rate_in_burst(d, i=0, bins=20):
-    """Histogram of total photon rate in each burst."""
-    b = d.mburst[i]
-    rate = 1e-3*d.nt[i]/(bl.b_width(b)*d.clk_p)
-    hist(rate, bins=bins, color="blue")
-    xlabel('In-burst ph. rate (kcps)'); ylabel('# Bursts')
-    #xlim(xmin=d.L/2); ylim(ymin=0)
+def hist_rate_in_burst(d, i=0, gamma=1, add_naa=False, bins=20,
+                       plot_style={}):
+    """Histogram of waiting times between bursts.
+    """
+    if not np.isscalar(bins) and len(bins) == 3:
+        bins = np.arange(*bins)
 
-def hist_burst_delays(d, i=0, tmax_seconds=0.5, bins=100, **kwargs):
-    """Histogram of waiting times between bursts."""
-    b = d.mburst[i]
-    bd = clk_to_s(np.sort(np.diff(b[:,0].astype(float))))[:-20]
-    hist(bd[bd<tmax_seconds], bins=bins, **kwargs)
-    xlabel('Delays between bursts (s)'); ylabel('# bursts')
+    burst_widths = bl.b_width(d.mburst[i])*d.clk_p
+    burst_sizes = d.burst_sizes_ich(ich=i, gamma=gamma, add_naa=add_naa)
+    rates_kcps = 1e-3*(burst_sizes/burst_widths)
+
+    hist = HistData(*np.histogram(rates_kcps, bins=bins))
+
+    plot_style_ = dict(marker='o')
+    plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
+    plot(hist.bincenters, hist.counts, **plot_style_)
+
+    plt.xlabel('In-burst ph. rate (kcps)')
+    plt.ylabel('# Bursts')
+
+def hist_burst_delays(d, i=0, bins=(0, 10, 0.1), plot_style={}):
+    """Histogram of waiting times between bursts.
+    """
+    if not np.isscalar(bins) and len(bins) == 3:
+        bins = np.arange(*bins)
+
+    bdelays = np.diff(bl.b_start(d.mburst[i])*d.clk_p)
+    hist = HistData(*np.histogram(bdelays, bins=bins))
+
+    plot_style_ = dict(marker='o')
+    plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
+    plot(hist.bincenters, hist.counts, **plot_style_)
+
+    plt.xlabel('Delays between bursts (s)')
+    plt.ylabel('# Bursts')
+
 
 ## Burst internal "symmetry"
 def hist_asymmetry(d, i=0, bin_max=2, binwidth=0.1, stat_func=np.median):
