@@ -13,8 +13,8 @@ import numpy as np
 from .pytables_array_list import PyTablesList
 
 
-def load_manta_timestamps(fname, format='xa', full_output=False,
-                          i_start=0, i_stop=None, debug=False):
+def load_manta_timestamps(fname, format='xa', full_output=False, i_start=0,
+                          i_stop=None, delta_rollover=1, debug=False):
     """Load manta-timestamps data from `fname`.
 
     Parameters
@@ -46,7 +46,8 @@ def load_manta_timestamps(fname, format='xa', full_output=False,
                     i_start=i_start, i_stop=i_stop, debug=debug)
     timestamps, det = get_timestamps_detectors(data, nbits=24)
     timestamps_m, big_ff, small_ff = process_timestamps(
-            timestamps, det, fifo_flag=True, debug=debug)
+            timestamps, det, fifo_flag=True, delta_rollover=delta_rollover,
+            debug=debug)
     if full_output:
         return timestamps_m, big_ff, small_ff, timestamps, det
     else:
@@ -285,12 +286,14 @@ def unroll_timestamps_ch64(timestamps, det, nbits=24, debug=True):
     prev_idx = - 1
     rollover_index = np.nonzero(det == 64)[0]
     for epoch, rollover_idx in enumerate(rollover_index):
+        # Number of timestamps in current epoch
         t_num = rollover_idx - prev_idx - 1
         times_c[t_istart : t_istart + t_num] = \
                 timestamps[prev_idx + 1 : rollover_idx] + period_clk*epoch
         if debug:
             det_c1[t_istart : t_istart + t_num] = \
                     det[prev_idx + 1 : rollover_idx]
+
         t_istart += t_num
         prev_idx = rollover_idx
     # Compute last chunk after the last rollover timestamp
