@@ -1276,10 +1276,11 @@ def hist_ph_delays(d, i=0, time_min_s=0, time_max_s=30, bin_width_us=10,
                                                            100*(rg-re)/re))
     plt.legend(loc='best', fancybox=True)
 
-def hist_mdelays(d, i=0, m=10, bins_s=(0, 10, 0.02), bp=0, no_bg_fit=True,
+def hist_mdelays(d, i=0, m=10, bins_s=(0, 10, 0.02), bp=0,
                  hold=False, bg_ppf=0.01, ph_sel=Ph_sel('all'), spline=True,
                  s=1., bg_fit=True, bg_F=0.8):
-    """Histogram of m-photons delays (all-ph vs in-burst ph)."""
+    """Histogram of m-photons delays (all-ph vs in-burst ph).
+    """
     ax = gca()
     if not hold:
         #ax.clear()
