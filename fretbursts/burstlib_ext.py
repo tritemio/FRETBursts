@@ -389,43 +389,33 @@ def _get_bg_erlang(d, ich=0, m=10, ph_sel=Ph_sel('all'), period=0):
     bg_dist = erlang(a=m, scale=1./bg_rate)
     return bg_dist
 
-def histogram_mdelays(d, ich=0, m=10, period=None, ph_sel=Ph_sel('all'),
-                      binwidth=1e-3, dt_max=10e-3, bins=None, bursts=False):
+def histogram_mdelays(d, ich=0, m=10, ph_sel=Ph_sel('all'),
+                      binwidth=1e-3, dt_max=10e-3, bins=None,
+                      inbursts=False):
     """Compute histogram of m-photons delays (or waiting times).
 
     Arguments
         dx (Data object): contains the burst data to process.
         ich (int): the channel number. Default 0.
         m (int): number of photons used to compute each delay.
-        period (int or None): index of the period to use, if None uses
-            all periods.
         ph_sel (Ph_sel object): photon selection to use.
+        inbursts (bool): if True, compute the histogram with only
+            photons in bursts.
 
     Returns
-        If bursts == False, returns one HistData object with the histogram
-        from all the selected photons.
-        If bursts == True, return a second HistData object with the
-        histogram computed with only photons in bursts.
+        A HistData object containing the computed histogram.
     """
     if bins is None:
         bins = np.arange(0, dt_max, binwidth)
 
-    if period is None:
+    if not inbursts:
         ph = d.get_ph_times(ich=ich, ph_sel=ph_sel)
     else:
-        ph = d.get_ph_times_period(period=period, ich=ich, ph_sel=ph_sel)
+        ph = d.ph_in_bursts_ich(ich=ich, ph_sel=ph_sel)
 
     ph_mdelays = np.diff(ph[::m])*d.clk_p
-    hist_tot = HistData(*np.histogram(ph_mdelays, bins=bins))
-    if bursts:
-        if period is not None:
-            print("WARNING: the burst-ph histogram is built from all periods")
-        ph_in_bursts = d.ph_in_bursts_ich(ich=ich, ph_sel=ph_sel)
-        phb_mdelays = np.diff(ph_in_bursts[::m])*d.clk_p
-        hist_inbursts = HistData(*np.histogram(phb_mdelays, bins=bins))
-        return hist_tot, hist_inbursts
-
-    return hist_tot
+    hist = HistData(*np.histogram(ph_mdelays, bins=bins))
+    return hist
 
 def calc_mdelays_hist(d, ich=0, m=10, period=(0, -1), bins_s=(0, 10, 0.02),
                       ph_sel=Ph_sel('all'), bursts=False, bg_fit=True,
