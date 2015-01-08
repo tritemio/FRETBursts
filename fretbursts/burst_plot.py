@@ -653,6 +653,14 @@ class HistData(object):
             self._pdf /= (self.counts.sum() * self.binwidth)
         return self._pdf
 
+def _bins_array(bins):
+    """In case bins is a 3-element tuple returns a full array of bin edges.
+    Otherwise returns the input unchaged.
+    """
+    if not np.isscalar(bins) and len(bins) == 3:
+        bins = np.arange(*bins)
+    return bins
+
 def hist_width(d, i=0, bins=(0, 10, 0.025), pdf=True, yscale='log',
                plot_style={}):
     """Plot histogram of burst durations.
@@ -666,13 +674,9 @@ def hist_width(d, i=0, bins=(0, 10, 0.025), pdf=True, yscale='log',
         yscale (string): 'log' or 'linear', sets the plot y scale.
         plot_style (dict): dict of matplotlib line style passed to `plot`.
     """
-    bursts = d.mburst[i]
-    if len(bins) == 3:
-        bins = np.arange(*bins)
+    burst_widths = bl.b_width(d.mburst[i])*d.clk_p*1e3
 
-    hist = HistData(*np.histogram(bl.b_width(bursts)*d.clk_p*1e3,
-                                 bins=bins, density=False))
-
+    hist = HistData(*np.histogram(burst_widths, bins=_bins_array(bins)))
     ydata = hist.pdf if pdf else hist.counts
     plot_style_ = dict(color=red, lw=2)
     plot_style_.update(**_normalize_kwargs(plot_style, kind='line2d'))
@@ -1350,19 +1354,17 @@ def hist_mdelays(d, i=0, m=10, bins_s=(0, 10, 0.02), bp=0,
     plt.legend(ncol=2, frameon=False)
     xlabel("Time (ms)")
 
+
 def hist_mrates(d, i=0, m=10, bins=(0, 20e3, 20), yscale='log', pdf=True,
         dense=True):
     """Histogram of m-photons rates.
     """
-    if not np.isscalar(bins) and len(bins) == 3:
-        bins = np.arange(*bins)
-
     ph = d.get_ph_times(ich=i)
     if dense:
         ph_mrates = 1.*m/((ph[m-1:]-ph[:ph.size-m+1])*d.clk_p*1e3)
     else:
         ph_mrates = 1.*m/(np.diff(ph[::m])*d.clk_p*1e3)
-    hist = HistData(*np.histogram(ph_mrates, bins=bins))
+    hist = HistData(*np.histogram(ph_mrates, bins=_bins_array(bins)))
     ydata = hist.pdf if pdf else hist.counts
 
     plot(hist.bincenters, ydata, '.-')
@@ -1374,14 +1376,11 @@ def hist_rate_in_burst(d, i=0, gamma=1, add_naa=False, bins=20,
                        plot_style={}):
     """Histogram of waiting times between bursts.
     """
-    if not np.isscalar(bins) and len(bins) == 3:
-        bins = np.arange(*bins)
-
     burst_widths = bl.b_width(d.mburst[i])*d.clk_p
     burst_sizes = d.burst_sizes_ich(ich=i, gamma=gamma, add_naa=add_naa)
     rates_kcps = 1e-3*(burst_sizes/burst_widths)
 
-    hist = HistData(*np.histogram(rates_kcps, bins=bins))
+    hist = HistData(*np.histogram(rates_kcps, bins=_bins_array(bins)))
 
     plot_style_ = dict(marker='o')
     plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
@@ -1393,11 +1392,8 @@ def hist_rate_in_burst(d, i=0, gamma=1, add_naa=False, bins=20,
 def hist_burst_delays(d, i=0, bins=(0, 10, 0.1), plot_style={}):
     """Histogram of waiting times between bursts.
     """
-    if not np.isscalar(bins) and len(bins) == 3:
-        bins = np.arange(*bins)
-
     bdelays = np.diff(bl.b_start(d.mburst[i])*d.clk_p)
-    hist = HistData(*np.histogram(bdelays, bins=bins))
+    hist = HistData(*np.histogram(bdelays, bins=_bins_array(bins)))
 
     plot_style_ = dict(marker='o')
     plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
