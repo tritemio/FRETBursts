@@ -13,6 +13,34 @@ import sys
 import numpy as np
 
 
+class HistData(object):
+    """Stores histogram counts and bins and provides derived fields.
+
+    Attributes:
+        counts (array, ints): array of counts in each bin
+        bins (array): array of bin edges. Size is size(counts) + 1.
+        bincenters (array): array of bin  centers. Size is size(counts).
+        pdf (array, floats): array od normalized counts (aka PDF)
+    """
+    def __init__(self, counts, bins):
+        self.counts = counts
+        self.bins = bins
+        self.binwidth = bins[1] - bins[0]
+
+    @property
+    def bincenters(self):
+        if not hasattr(self, '_bincenters'):
+            self._bincenters = self.bins[:-1] + 0.5*self.binwidth
+        return self._bincenters
+
+    @property
+    def pdf(self):
+        if not hasattr(self, '_pdf'):
+            self._pdf = np.array(self.counts, dtype=np.float)
+            self._pdf /= (self.counts.sum() * self.binwidth)
+        return self._pdf
+
+
 def clk_to_s(t_ck, clk_p=12.5*1e-9):
     """Convert clock cycles to seconds."""
     return t_ck*clk_p

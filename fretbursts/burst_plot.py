@@ -51,7 +51,7 @@ from .ph_sel import Ph_sel
 from . import burstlib as bl
 from . import burstlib_ext as bext
 from . import background as bg
-from .utils.misc import clk_to_s, pprint
+from .utils.misc import clk_to_s, pprint, HistData
 from .scroll_gui import ScrollingToolQT
 from . import gui_selection as gs
 
@@ -626,38 +626,11 @@ def time_ph(d, i=0, num_ph=1e4, ph_istart=0):
 #  Histogram plots
 #
 
-class HistData(object):
-    """Stores histogram counts and bins and provides derived fields.
-
-    Attributes:
-        counts (array, ints): array of counts in each bin
-        bins (array): array of bin edges. Size is size(counts) + 1.
-        bincenters (array): array of bin  centers. Size is size(counts).
-        pdf (array, floats): array od normalized counts (aka PDF)
-    """
-    def __init__(self, counts, bins):
-        self.counts = counts
-        self.bins = bins
-        self.binwidth = bins[1] - bins[0]
-
-    @property
-    def bincenters(self):
-        if not hasattr(self, '_bincenters'):
-            self._bincenters = self.bins[:-1] + 0.5*self.binwidth
-        return self._bincenters
-
-    @property
-    def pdf(self):
-        if not hasattr(self, '_pdf'):
-            self._pdf = np.array(self.counts, dtype=np.float)
-            self._pdf /= (self.counts.sum() * self.binwidth)
-        return self._pdf
-
 def _bins_array(bins):
-    """In case bins is a 3-element tuple returns a full array of bin edges.
+    """In case bins is a 3-element sequence returns an array of bin edges.
     Otherwise returns the input unchaged.
     """
-    if not np.isscalar(bins) and len(bins) == 3:
+    if np.size(bins) == 3:
         bins = np.arange(*bins)
     return bins
 
