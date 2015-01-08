@@ -728,7 +728,7 @@ def hist_size(d, i=0, vmax=600, binw=4, bins=None,
     plot(hist.bincenters, ydata, **plot_style_)
 
     gca().set_yscale(yscale)
-    xlabel('# Ph.'); ylabel('# Bursts')
+    xlabel('Burst size'); ylabel('# Bursts')
     if legend: gca().legend(loc='best')
 
 def hist_size_all(d, i=0, **kwargs):
