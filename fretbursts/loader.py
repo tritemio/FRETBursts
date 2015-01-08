@@ -556,7 +556,7 @@ def usalex(fname, leakage=0, gamma=1., header=None, bytes_to_read=-1, BT=None):
     alex_period = 4000
 
     dx = Data(fname=fname, clk_p=12.5e-9, nch=1, leakage=leakage, gamma=gamma,
-              ALEX=True,
+              ALEX=True, lifetime=False,
               D_ON=DONOR_ON, A_ON=ACCEPT_ON, alex_period=alex_period,
               ph_times_t=ph_times_t, det_t=det_t, det_donor_accept=(0, 1),
               )
@@ -640,7 +640,7 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
 # nsALEX loader functions
 #
 
-def nsalex(fname, leakage=0, gamma=1.):
+def nsalex(fname):
     """Load a nsALEX file and return a Data() object.
 
     This function returns a Data() object to which you need to apply
