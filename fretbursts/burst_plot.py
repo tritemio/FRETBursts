@@ -634,6 +634,17 @@ def _bins_array(bins):
         bins = np.arange(*bins)
     return bins
 
+def _hist_bursts(data, bins, pdf, user_plot_style, default_plot_style=None):
+    hist = HistData(*np.histogram(data, bins=_bins_array(bins)))
+    ydata = hist.pdf if pdf else hist.counts
+    if default_plot_style is None:
+        default_plot_style = dict(marker='o')
+    default_plot_style.update(_normalize_kwargs(user_plot_style,
+                                                kind='line2d'))
+    plot(hist.bincenters, ydata, **default_plot_style)
+    plt.ylabel('# Bursts')
+
+
 def hist_width(d, i=0, bins=(0, 10, 0.025), pdf=True, yscale='log',
                plot_style={}):
     """Plot histogram of burst durations.
@@ -649,14 +660,9 @@ def hist_width(d, i=0, bins=(0, 10, 0.025), pdf=True, yscale='log',
     """
     burst_widths = bl.b_width(d.mburst[i])*d.clk_p*1e3
 
-    hist = HistData(*np.histogram(burst_widths, bins=_bins_array(bins)))
-    ydata = hist.pdf if pdf else hist.counts
-    plot_style_ = dict(color=red, lw=2)
-    plot_style_.update(**_normalize_kwargs(plot_style, kind='line2d'))
-    plot(hist.bincenters, ydata, **plot_style_)
+    _hist_bursts(burst_widths, bins, pdf, plot_style)
     plt.gca().set_yscale(yscale)
     plt.xlabel('Burst width (ms)')
-    plt.ylabel('# Burst')
     plt.xlim(xmin=0)
     plt.ylim(ymin=0)
 
@@ -682,14 +688,14 @@ def hist_size(d, i=0, vmax=600, binw=4, bins=None,
     valid_which = ["all", "nd", "na", "naa"]
     assert which in valid_which
     if which == 'all':
-        size = d.burst_sizes_ich(ich=i, gamma=gamma, add_naa=add_naa)
+        sizes = d.burst_sizes_ich(ich=i, gamma=gamma, add_naa=add_naa)
         label = 'nd + na'
         if gamma != 1:
             label = "%.2f %s" % (gamma, label)
         if add_naa:
             label += " + naa"
     else:
-        size = d[which][i]
+        sizes = d[which][i]
         label = which
 
     colors = ['k', green, red, purple]
@@ -697,16 +703,15 @@ def hist_size(d, i=0, vmax=600, binw=4, bins=None,
 
     if bins is None:
         bins = np.arange(0, vmax+binw, binw)
-    hist = HistData(*np.histogram(size, bins=bins))
-    ydata = hist.pdf if pdf else hist.counts
 
-    plot_style_ = dict(linewidth=2, color=colors_dict[which], label=label)
-    plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
-    plot(hist.bincenters, ydata, **plot_style_)
-
+    _hist_bursts(sizes, bins, pdf, plot_style,
+                 default_plot_style = dict(linewidth=2,
+                                           color=colors_dict[which],
+                                           label=label))
     gca().set_yscale(yscale)
-    xlabel('Burst size'); ylabel('# Bursts')
-    if legend: gca().legend(loc='best')
+    plt.xlabel('Burst size')
+    if legend:
+        gca().legend(loc='best')
 
 def hist_size_all(d, i=0, **kwargs):
     """Plot burst sizes for all the combinations of photons.
@@ -1317,8 +1322,8 @@ def hist_mdelays(d, i=0, m=10, bins_s=(0, 10, 0.02), period=0,
     xlabel("Time (ms)")
 
 
-def hist_mrates(d, i=0, m=10, bins=(0, 20e3, 20), yscale='log', pdf=True,
-        dense=True):
+def hist_mrates(d, i=0, m=10, bins=(0, 4000, 100), yscale='log', pdf=False,
+                dense=True, plot_style={}):
     """Histogram of m-photons rates. See also :func:`hist_mdelays`.
     """
     ph = d.get_ph_times(ich=i)
@@ -1329,26 +1334,20 @@ def hist_mrates(d, i=0, m=10, bins=(0, 20e3, 20), yscale='log', pdf=True,
 
     hist = HistData(*np.histogram(ph_mrates, bins=_bins_array(bins)))
     ydata = hist.pdf if pdf else hist.counts
-    plot(hist.bincenters, ydata, '.-')
+    plot_style_ = dict(marker='o')
+    plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
+    plot(hist.bincenters, ydata, **plot_style_)
     gca().set_yscale(yscale)
     xlabel("Rates (kcps)")
 
 ## Bursts stats
-def hist_sbr(d, i=0, bins=(0, 20, 5), pdf=True, plot_style={}):
+def hist_sbr(d, i=0, bins=(0, 30, 1), pdf=True, plot_style={}):
     """Histogram of per-burst Signal-to-Background Ratio (SBR).
     """
     if not 'sbr' in d:
         d.calc_sbr()
-
-    hist = HistData(*np.histogram(d.sbr[i], bins=_bins_array(bins)))
-    ydata = hist.pdf if pdf else hist.counts
-
-    plot_style_ = dict(marker='o')
-    plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
-    plot(hist.bincenters, ydata, **plot_style_)
+    _hist_bursts(d.sbr[i], bins, pdf, plot_style)
     plt.xlabel('SBR')
-    plt.ylabel('# Bursts')
-
 
 def hist_rate_in_burst(d, i=0, gamma=1, add_naa=False, bins=20, pdf=False,
                        plot_style={}):
@@ -1358,30 +1357,16 @@ def hist_rate_in_burst(d, i=0, gamma=1, add_naa=False, bins=20, pdf=False,
     burst_sizes = d.burst_sizes_ich(ich=i, gamma=gamma, add_naa=add_naa)
     rates_kcps = 1e-3*(burst_sizes/burst_widths)
 
-    hist = HistData(*np.histogram(rates_kcps, bins=_bins_array(bins)))
-    ydata = hist.pdf if pdf else hist.counts
-
-    plot_style_ = dict(marker='o')
-    plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
-    plot(hist.bincenters, ydata, **plot_style_)
-
+    _hist_bursts(rates_kcps, bins, pdf, plot_style)
     plt.xlabel('In-burst ph. rate (kcps)')
-    plt.ylabel('# Bursts')
 
-def hist_burst_delays(d, i=0, bins=(0, 10, 0.1), pdf=False, plot_style={}):
+def hist_burst_delays(d, i=0, bins=(0, 10, 0.2), pdf=False, plot_style={}):
     """Histogram of waiting times between bursts.
     """
     bdelays = np.diff(bl.b_start(d.mburst[i])*d.clk_p)
-    hist = HistData(*np.histogram(bdelays, bins=_bins_array(bins)))
-    ydata = hist.pdf if pdf else hist.counts
 
-    plot_style_ = dict(marker='o')
-    plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
-    plot(hist.bincenters, ydata, **plot_style_)
-
+    _hist_bursts(bdelays, bins, pdf, plot_style)
     plt.xlabel('Delays between bursts (s)')
-    plt.ylabel('# Bursts')
-
 
 ## Burst internal "symmetry"
 def hist_asymmetry(d, i=0, bin_max=2, binwidth=0.1, stat_func=np.median):
@@ -1665,7 +1650,7 @@ def _alex_plot_style(g):
     cax = plt.axes([1., Y[0], (X[1] - X[0])*0.045, Y[1]-Y[0]])
     plt.colorbar(cax=cax)
 
-def _hist_bursts(arr, dx, **kwargs):
+def _hist_bursts_marg(arr, dx, **kwargs):
     """Wrapper to call hist_burst_data() from seaborn plot_marginals().
     """
     vertical = kwargs.get('vertical', False)
@@ -1755,7 +1740,7 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='YlGnBu_crop',
             vmin = vmin_default
     poly.set_clim(vmin, vmax)
 
-    g.plot_marginals(_hist_bursts, dx=d, **marginal_kws)
+    g.plot_marginals(_hist_bursts_marg, dx=d, **marginal_kws)
     g.annotate(lambda x, y: x.size, stat='# Bursts',
                template='{stat}: {val}')
     _alex_plot_style(g)

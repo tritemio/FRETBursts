@@ -43,11 +43,11 @@ Timetrace and ratetrace plots
 
 .. autofunction:: hist_bg
 
-.. autofunction:: hist_mdelays
-
 .. autofunction:: hist_rate_in_burst
 
 .. autofunction:: hist_burst_delays
+
+.. autofunction:: hist_asymmetry
 
 
 ALEX plots
