@@ -1017,7 +1017,7 @@ class Data(DataContainer):
             List of arrays of burst sizes, one array per channel.
         """
         kwargs = dict(gamma=gamma, gamma1=gamma1, add_naa=add_naa)
-        bsize_list = [self.get_burst_size(ich, **kwargs) for ich in
+        bsize_list = [self.burst_sizes_ich(ich, **kwargs) for ich in
                                                             range(self.nch)]
         return np.array(bsize_list)
 
