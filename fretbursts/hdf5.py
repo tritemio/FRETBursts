@@ -315,7 +315,7 @@ def get_file_metadata(fname):
     full_filename = os.path.abspath(fname)
     filename = os.path.basename(full_filename)
 
-    # Creation and modification time (but not exactlt on *NIX)
+    # Creation and modification time (but not exactly on *NIX)
     # see https://docs.python.org/2/library/os.path.html#os.path.getctime)
     ctime = time.localtime(os.path.getctime(full_filename))
     mtime = time.localtime(os.path.getmtime(full_filename))

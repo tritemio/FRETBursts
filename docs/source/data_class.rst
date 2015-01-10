@@ -49,7 +49,7 @@ for summary information:
 
     .. automethod:: status
 
-    .. automethod:: name
+    .. autoattribute:: name
 
     .. automethod:: Name
 

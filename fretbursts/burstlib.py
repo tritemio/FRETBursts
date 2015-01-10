@@ -1118,7 +1118,7 @@ class Data(DataContainer):
         """Returns a plain dict containing only parameters and no arrays.
         This can be used as a summary of data analysis parameters.
         Additional keys `name' and `Names` are added with values
-        from `.name()` and `.Name()`.
+        from `.name` and `.Name()`.
         """
         p_names = ['fname', 'clk_p', 'nch', 'ph_sel', 'L', 'm', 'F', 'P',
                    '_leakage', '_dir_ex', '_gamma', 'bg_time_s', 'nperiods',
@@ -1129,7 +1129,7 @@ class Data(DataContainer):
         for name in p_dict.keys():
             if name not in p_names:
                 p_dict.pop(name)
-        p_dict.update(name=self.name(), Name=self.Name())
+        p_dict.update(name=self.name, Name=self.Name())
         return p_dict
 
     def expand(self, ich=0, alex_naa=False, width=False):
@@ -2155,7 +2155,7 @@ class Data(DataContainer):
     def status(self, add="", noname=False):
         """Return a string with burst search, corrections and selection info.
         """
-        name = "" if noname else self.name()
+        name = "" if noname else self.name
         s = name
         if 'L' in self: # burst search has been done
             if 'min_rate_cps' in self:
@@ -2179,8 +2179,9 @@ class Data(DataContainer):
         if 's' in self: s += ' '.join(self.s)
         return s + add
 
+    @property
     def name(self):
-        """Return short filename (last subfolder + fname with no extension)"""
+        """Measurement name: last subfolder + file name with no extension."""
         name = basename = os.path.splitext(os.path.basename(self.fname))[0]
         last_dir = os.path.basename(os.path.dirname(self.fname))
         if last_dir is not '':
