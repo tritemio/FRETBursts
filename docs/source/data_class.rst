@@ -21,10 +21,11 @@ A description of the :class:`Data` class and its main attributes.
 .. autoclass:: Data
 
 
-Basic info methods
-------------------
+Summary information
+-------------------
 
-List of :class:`Data` methods that output basic information.
+List of :class:`Data` attributes and methods (names ending with `()`)
+for summary information:
 
 .. class:: Data
 
