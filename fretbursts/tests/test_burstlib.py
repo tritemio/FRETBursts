@@ -92,20 +92,20 @@ def list_array_allclose(list1, list2):
 def test_time_min_max():
     """Test time_min and time_max for ALEX data."""
     d = load_dataset_1ch(process=False)
-    assert d.time_max() == d.ph_times_t.max()*d.clk_p
-    assert d.time_min() == d.ph_times_t.min()*d.clk_p
+    assert d.time_max == d.ph_times_t.max()*d.clk_p
+    assert d.time_min == d.ph_times_t.min()*d.clk_p
     _alex_process(d)
-    assert d.time_max() == d.ph_times_m[0][-1]*d.clk_p
-    assert d.time_min() == d.ph_times_m[0][0]*d.clk_p
+    assert d.time_max == d.ph_times_m[0][-1]*d.clk_p
+    assert d.time_min == d.ph_times_m[0][0]*d.clk_p
     d.delete('ph_times_m')
-    assert d.time_max() == bl.b_end(d.mburst[0])[-1]*d.clk_p
-    assert d.time_min() == bl.b_start(d.mburst[0])[0]*d.clk_p
+    assert d.time_max == bl.b_end(d.mburst[0])[-1]*d.clk_p
+    assert d.time_min == bl.b_start(d.mburst[0])[0]*d.clk_p
 
 def test_time_min_max_multispot(data_8ch):
     """Test time_min and time_max for multi-spot data."""
     d = data_8ch
-    assert d.time_max() == max(t[-1] for t in d.ph_times_m)*d.clk_p
-    assert d.time_min() == min(t[0] for t in d.ph_times_m)*d.clk_p
+    assert d.time_max == max(t[-1] for t in d.ph_times_m)*d.clk_p
+    assert d.time_min == min(t[0] for t in d.ph_times_m)*d.clk_p
 
 def test_bg_calc(data):
     """Smoke test bg_calc() and test deletion of bg fields.

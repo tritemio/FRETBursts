@@ -1056,8 +1056,8 @@ class Data(DataContainer):
     def slice_ph(self, time_s1=0, time_s2=None, s='slice'):
         """Return a new Data object with ph in [`time_s1`,`time_s2`] (seconds)
         """
-        if time_s2 is None: time_s2 = self.time_max()
-        if time_s2 >= self.time_max() and time_s1 <= 0:
+        if time_s2 is None: time_s2 = self.time_max
+        if time_s2 >= self.time_max and time_s1 <= 0:
                 return self.copy()
 
         t1_clk, t2_clk = time_s1/self.clk_p, time_s2/self.clk_p
@@ -1165,12 +1165,14 @@ class Data(DataContainer):
             res.append(w)
         return res
 
+    @property
     def time_max(self):
-        """Return the last recorded time in seconds."""
+        """The last recorded time in seconds."""
         return self._time_reduce(last=True, func=max)
 
+    @property
     def time_min(self):
-        """Return the first recorded time in seconds."""
+        """The first recorded time in seconds."""
         return self._time_reduce(last=False, func=min)
 
     def _time_reduce(self, last=True, func=max):

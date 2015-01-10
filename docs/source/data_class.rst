@@ -28,7 +28,9 @@ List of :class:`Data` methods that output basic information.
 
 .. class:: Data
 
-    .. automethod:: time_max
+    .. autoattribute:: time_max
+
+    .. autoattribute:: time_min
 
     .. autoattribute:: ph_data_sizes
 

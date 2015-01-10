@@ -608,7 +608,7 @@ def join_data(d_list, gap=1):
             mask = new_d.i_origin[ich] == i_orig
             new_d.mburst[ich][mask, itstart] += offset_clk
             new_d.mburst[ich][mask, itend] += offset_clk
-        offset_clk += (d_orig.time_max() + gap)/d_orig.clk_p
+        offset_clk += (d_orig.time_max + gap)/d_orig.clk_p
 
     return new_d
 
