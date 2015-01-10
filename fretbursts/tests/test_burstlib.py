@@ -244,6 +244,21 @@ def test_burst_search(data):
 
     data.burst_search(L=10, m=10, F=7)
 
+def test_burst_sizes(data):
+    """Test for .burst_sizes_ich() and burst_sizes()"""
+    # Smoke test
+    plain_sizes = data.burst_sizes()
+    assert len(plain_sizes) == data.nch
+    # Test gamma and gamma1 arguments
+    bs1 = data.burst_sizes_ich(gamma=0.5)
+    bs2 = data.burst_sizes_ich(gamma1=0.5)
+    assert np.allclose(bs1, bs2/0.5)
+    # Test add_naa
+    if data.ALEX:
+        bs_no_naa = data.burst_sizes_ich(add_naa=False)
+        bs_naa = data.burst_sizes_ich(add_naa=True)
+        assert np.allclose(bs_no_naa + data.naa_, bs_naa)
+
 def test_leakage(data):
     """
     Test setting leakage before and after burst search
