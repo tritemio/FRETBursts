@@ -60,22 +60,29 @@ class H5Loader():
         self.h5file = h5file
         self.data = data
 
-    def load_data(self, where, name, dest_name=None, ich=None):
+    def load_data(self, where, name, dest_name=None, ich=None,
+                  allow_missing=False):
         try:
             node = self.h5file.get_node(where, name)
         except tables.NoSuchNodeError:
-            self.h5file.close()
-            raise IOError("Invalid file format: '%s' is missing." % name)
+            if allow_missing:
+                node_value = np.array([])
+            else:
+                self.h5file.close()
+                raise IOError("Invalid file format: '%s' is missing." % name)
+        else:
+            node_value = node.read()
 
         if dest_name is None:
             dest_name = hdf5_data_map[name]
+
         if ich is None:
-            self.data.add(**{dest_name: node.read()})
+            self.data.add(**{dest_name: node_value})
         else:
-            if ich == 0:
-                self.data.add(**{dest_name: [node.read()]})
+            if dest_name not in self.data:
+                self.data.add(**{dest_name: [node_value]})
             else:
-                self.data[dest_name].append(node.read())
+                self.data[dest_name].append(node_value)
 
 def hdf5(fname):
     """Load a data file saved in Photon-HDF5 format version 0.2 or higher.
@@ -179,14 +186,16 @@ def hdf5(fname):
     else:
         # Load multi-spot data from multi-spot layout
         for ich in range(d.nch):
-            ph_group = data_file.root._f_get_child('photon_data_%d' % ich)
-            loader.load_data(ph_group, 'timestamps', dest_name='ph_times_m',
-                             ich=ich)
+            ph_group_name = '/photon_data_%d' % ich
+            loader.load_data(ph_group_name, 'timestamps', allow_missing=True,
+                             dest_name='ph_times_m', ich=ich)
 
-            name = 'detectors'
-            if name not in ph_group:
-                a_em=slice(None)
+            if ph_group_name not in data_file:
+                a_em = np.array([], dtype=bool)
+            elif ph_group_name + '/detectors' not in data_file:
+                a_em = slice(None)
             else:
+                ph_group = data_file.root._f_get_child(ph_group_name)
                 det_specs = ph_group.detectors_specs
                 donor = det_specs.donor.read()
                 accept = det_specs.acceptor.read()
@@ -200,7 +209,8 @@ def hdf5(fname):
                     d_em = (det == donor)
                     assert not (a_em*d_em).any()
                     assert (a_em + d_em).all()
-            if ich == 0:
+
+            if 'A_em' not in d:
                 d.add(A_em = [a_em])
             else:
                 d.A_em.append(a_em)

@@ -288,6 +288,7 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
     else:
         # Multi-spot: using "multi-spot layout"
         for ich, ph in enumerate(d.iter_ph_times()):
+            if ph.size == 0: continue
             ch_group = writer.add_group('/', 'photon_data_%d' % ich,
                                         metakey='photon_data')
 
