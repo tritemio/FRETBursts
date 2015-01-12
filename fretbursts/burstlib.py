@@ -785,7 +785,7 @@ class Data(DataContainer):
         """Array of total number of photons (ph-data) for each channel.
         """
         if not hasattr(self, '_ph_data_sizes'):
-            # This works both for numpy arrays and pytables list of arrays
+            # This works both for numpy arrays and pytables arrays
             self._ph_data_sizes = np.array([ph.shape[0] for ph in
                                                             self.ph_times_m])
         return self._ph_data_sizes
@@ -890,9 +890,14 @@ class Data(DataContainer):
         """
         ph = self.ph_times_m[ich]
 
-        # If not a list is an on-disk array, and needs to be loaded (with [:])
-        if type(self.ph_times_m) is not list:
-            ph = ph[:]
+        # If not a list is an on-disk array, we need to load it
+        if not isinstance(ph, np.ndarray):
+            if hasattr(self, '_ph_cache') and self._ph_cache_ich == ich:
+                ph = self._ph_cache
+            else:
+                ph = ph.read()
+                self._ph_cache = ph
+                self._ph_cache_ich = ich
 
         return ph[self.get_ph_mask(ich, ph_sel=ph_sel)]
 

@@ -61,7 +61,7 @@ class H5Loader():
         self.data = data
 
     def load_data(self, where, name, dest_name=None, ich=None,
-                  allow_missing=False):
+                  allow_missing=False, ondisk=False):
         try:
             node = self.h5file.get_node(where, name)
         except tables.NoSuchNodeError:
@@ -71,7 +71,7 @@ class H5Loader():
                 self.h5file.close()
                 raise IOError("Invalid file format: '%s' is missing." % name)
         else:
-            node_value = node.read()
+            node_value = node if ondisk else node.read()
 
         if dest_name is None:
             dest_name = hdf5_data_map[name]
@@ -84,7 +84,7 @@ class H5Loader():
             else:
                 self.data[dest_name].append(node_value)
 
-def hdf5(fname):
+def hdf5(fname, ondisk=False):
     """Load a data file saved in Photon-HDF5 format version 0.2 or higher.
 
     Any :class:`fretbursts.burstlib.Data` object can be saved in HDF5 format
@@ -92,6 +92,13 @@ def hdf5(fname):
 
     For description and specs of the Photon-HDF5 format see:
     http://photon-hdf5.readthedocs.org/
+
+    Arguments:
+        ondisk (bool): if True do not load in the timestamp arrays, just
+            load the array reference. Multi-spot only. Default False.
+
+    Returns:
+        A :class:`fretbursts.burstlib.Data` object containing the data.
     """
     if not os.path.isfile(fname):
         raise IOError('File not found.')
@@ -188,7 +195,7 @@ def hdf5(fname):
         for ich in range(d.nch):
             ph_group_name = '/photon_data_%d' % ich
             loader.load_data(ph_group_name, 'timestamps', allow_missing=True,
-                             dest_name='ph_times_m', ich=ich)
+                             dest_name='ph_times_m', ich=ich, ondisk=ondisk)
 
             if ph_group_name not in data_file:
                 a_em = np.array([], dtype=bool)
