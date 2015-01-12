@@ -1190,7 +1190,8 @@ class Data(DataContainer):
         idx = -1 if last else 0
         # Try using ph_times_m
         if 'ph_times_m' in self:
-            time = func(t[idx] for t in self.iter_ph_times() if t.size > 0)
+            # This works with both numpy arrays and pytables arrays
+            time = func(t[idx] for t in self.ph_times_m if t.shape[0] > 0)
         # if it is an ALEX measurement before alex_apply_periods()
         elif 'ph_times_t' in self:
             time = func(self.ph_times_t)
