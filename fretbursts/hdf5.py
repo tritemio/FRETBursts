@@ -198,6 +198,8 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
 
     if h5_fname is None:
         basename, extension = os.path.splitext(d.fname)
+        if compression['complib'] == 'blosc':
+            basename += '_blosc'
         h5_fname = basename + '.hdf5'
 
     orig_file_metadata = {}
