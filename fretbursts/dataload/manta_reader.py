@@ -179,7 +179,7 @@ def process_timestamps(timestamps, det, delta_rollover=1, nbits=24,
             del times32
         else:
             # Return an array of size 0 for current ch
-            times64 = np.zeros(0, dtype='int64')
+            times64 = np.array([], dtype='int64')
         timestamps_m.append(times64)
 
     return timestamps_m, full_big_fifo_m, full_small_fifo_m
