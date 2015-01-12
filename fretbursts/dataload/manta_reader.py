@@ -23,7 +23,7 @@ def load_manta_timestamps(fname, format='xa', full_output=False, i_start=0,
         name of the file containing the data
     format : (string)
         Select a data format. Use **raw** for unmodified manta timestamps
-        as saved by Luca's VI; **xa** for the format save by Xavier VI.
+        as saved by Luca's VI; **xa** for the format saved by Xavier VI.
     debug : (boolean)
         enable additional safety-checks.
     i_start, i_stop : (integers)
@@ -107,10 +107,18 @@ def load_raw_manta_data(fname, dtype='<u4'):
 
 def get_timestamps_detectors(data, nbits=24):
     """From raw uint32 words extracts timestamps and detector fields.
-    Returns two arrays: timestamps (uint32) and detectors (uint32).
+    Returns two arrays: timestamps (uint32) and detectors (uint8).
+    Note that to save RAM, the timestamps memory is the same as data that
+    is modified by zeroing the detectors bit.
     """
-    det = np.right_shift(data, nbits) + 1
-    timestamps = np.bitwise_and(data,  2**nbits - 1)
+    # Extract the detector allocating only a new uint8 array
+    dt = np.dtype([('det', 'u1'), ('time', '3u1')])
+    det = np.frombuffer(data, dtype=dt)['det'].copy()
+    det += 1
+    # Timestamps are in the lower `nbit` bits, use the same memory as `data`
+    # and zeros the high bits containing the detectors
+    data.setflags(write=True)
+    timestamps = np.bitwise_and(data,  2**nbits - 1, out=data)
     return timestamps, det
 
 def process_timestamps(timestamps, det, delta_rollover=1, nbits=24,
