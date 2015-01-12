@@ -1173,12 +1173,16 @@ class Data(DataContainer):
     @property
     def time_max(self):
         """The last recorded time in seconds."""
-        return self._time_reduce(last=True, func=max)
+        if not hasattr(self, '_time_max'):
+            self._time_max = self._time_reduce(last=True, func=max)
+        return self._time_max
 
     @property
     def time_min(self):
         """The first recorded time in seconds."""
-        return self._time_reduce(last=False, func=min)
+        if not hasattr(self, '_time_min'):
+            self._time_min =self._time_reduce(last=False, func=min)
+        return self._time_min
 
     def _time_reduce(self, last=True, func=max):
         """Return start or end time reduced with `func`.
