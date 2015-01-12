@@ -94,10 +94,12 @@ def test_time_min_max():
     d = load_dataset_1ch(process=False)
     assert d.time_max == d.ph_times_t.max()*d.clk_p
     assert d.time_min == d.ph_times_t.min()*d.clk_p
+    del d._time_max, d._time_min
     _alex_process(d)
     assert d.time_max == d.ph_times_m[0][-1]*d.clk_p
     assert d.time_min == d.ph_times_m[0][0]*d.clk_p
     d.delete('ph_times_m')
+    del d._time_max, d._time_min
     assert d.time_max == bl.b_end(d.mburst[0])[-1]*d.clk_p
     assert d.time_min == bl.b_start(d.mburst[0])[0]*d.clk_p
 
