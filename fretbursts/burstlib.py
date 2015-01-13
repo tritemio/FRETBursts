@@ -1647,7 +1647,7 @@ class Data(DataContainer):
               'please use `Data.burst_search()` instead.')
         self.burst_search(**kwargs)
 
-    def burst_search(self, L=10, m=10, P=None, F=6., min_rate_cps=None,
+    def burst_search(self, L=None, m=10, P=None, F=6., min_rate_cps=None,
             nofret=False, max_rate=False, dither=False, ph_sel=Ph_sel('all'),
             verbose=False, mute=False, pure_python=False):
         """Performs a burst search with specified parameters.
@@ -1663,7 +1663,8 @@ class Data(DataContainer):
         Parameters:
             m (int): number of consecutive photons used to compute the
                 photon rate.
-            L (int): minimum number of photons in burst
+            L (int or None): minimum number of photons in burst. If None
+                L = m is used.
             P (float): threshold for burst detection expressed as a
                 probability that a detected bursts is not due to a Poisson
                 background. If not None, `P` overrides `F`. Note that the
@@ -1693,7 +1694,7 @@ class Data(DataContainer):
         pprint(" - Performing burst search (verbose=%s) ..." % verbose, mute)
         # Erase any previous burst data
         self.delete_burst_data()
-
+        if L is None: L = m
         if min_rate_cps is not None:
             self._burst_search_rate(m=m, L=L, min_rate_cps=min_rate_cps,
                                     ph_sel=ph_sel, verbose=verbose,
