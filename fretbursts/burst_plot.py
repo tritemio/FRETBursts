@@ -119,14 +119,14 @@ def mch_plot_bg(d, **kwargs):
     plot(r_[1:d.nch+1],[b.mean()*1e-3 for b in d.bg_ad], color='r', lw=2,
             label=' A', **kwargs)
     xlabel("CH"); ylabel("kcps"); grid(True); legend(loc='best')
-    title(d.name())
+    title(d.name)
 
 def mch_plot_bg_ratio(d):
     """Plot ratio of A over D background vs channel."""
     plot(r_[1:d.nch+1],[ba.mean()/bd.mean() for bd,ba in zip(d.bg_dd,d.bg_ad)],
             color='g', lw=2, label='A/D')
     xlabel("CH"); ylabel("BG Ratio A/D"); grid(True)
-    title("BG Ratio A/D "+d.name())
+    title("BG Ratio A/D "+d.name)
 
 def mch_plot_bsize(d):
     """Plot mean burst size vs channel."""
@@ -137,7 +137,7 @@ def mch_plot_bsize(d):
     xlabel("CH"); ylabel("Mean burst size")
     grid(True)
     legend(loc='best')
-    title(d.name())
+    title(d.name)
 
 
 ##
@@ -1610,7 +1610,7 @@ def dplot_1ch(d, func, pgrid=True, ax=None,
         ax = fig.add_subplot(111)
     else:
         fig = ax.figure
-    s = d.name()
+    s = d.name
     if 'rate_m' in d: s += (' BG=%.1fk' % (d.rate_m[0]*1e-3))
     if 'T' in d: s += (u', T=%dμs' % (d.T[0]*1e6))
     if 'mburst' in d: s += (', #bu=%d' %  d.num_bursts[0])
