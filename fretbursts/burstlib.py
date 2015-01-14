@@ -76,6 +76,14 @@ def _get_mch_count_ph_in_bursts_func(pure_python=False):
     else:
         # or what is available
         return mch_count_ph_in_bursts
+
+def isarray(obj):
+    """Test if the object support the array interface.
+
+    Returns True for numpy arrays and pandas sequences.
+    """
+    return hasattr(obj, '__array__')
+
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##  GLOBAL VARIABLES
 ##
@@ -507,7 +515,7 @@ def mask_empty(mask):
 
     `mask` can be a boolean array or a slice object.
     """
-    if type(mask) is slice:
+    if isinstance(mask, slice):
         is_slice_empty = (mask.stop == 0)
         return is_slice_empty
     else:
@@ -737,8 +745,7 @@ class Data(DataContainer):
             raise AttributeError(msg_missing_attr)
         else:
             # Support lists, tuples and object with array interface
-            # (i.e. numpy arrays or pandas objects).
-            if type(value) in [list, tuple] or hasattr(value, '__array__'):
+            if isinstance(value, (list, tuple)) or isarray(value):
                 if len(value) == self.nch:
                     return value[0]
             raise ValueError('Name "%s" is not a per-channel field.' % field)
@@ -770,7 +777,7 @@ class Data(DataContainer):
         """
         m = hashlib.new(hash_name)
         for ph in self.iter_ph_times():
-            if type(ph) is np.ndarray:
+            if isinstance(ph, np.ndarray):
                 m.update(ph.data)
             else:
                 # TODO Handle ph_times in PyTables files
@@ -803,7 +810,7 @@ class Data(DataContainer):
     def _check_ph_sel(self, ph_sel):
         """Check consistency of `ph_sel` with current data (ALEX vs not ALEX).
         """
-        assert type(ph_sel) is Ph_sel
+        assert isinstance(ph_sel, Ph_sel)
 
         if not self.ALEX and ph_sel == Ph_sel(Dex='DAem'):
             ph_sel = Ph_sel('all')
@@ -827,7 +834,7 @@ class Data(DataContainer):
             ph_sel (Ph_sel object): object defining the photon selection.
                 See :mod:`fretbursts.ph_sel` for details.
         """
-        assert type(ich) == int
+        assert isinstance(ich, int)
         ph_sel = self._check_ph_sel(ph_sel)
 
         # This is the only case in which Aex='DAem' for non-ALEX data is OK
@@ -964,7 +971,7 @@ class Data(DataContainer):
         if mask is None:
             mask = self.get_ph_mask(ich=ich, ph_sel=ph_sel)
 
-        if type(mask) is slice and mask == slice(None):
+        if isinstance(mask, slice) and mask == slice(None):
             ph_times_period = ph_times[period_slice]
         else:
             ph_times_period = ph_times[period_slice][mask[period_slice]]
@@ -1409,10 +1416,10 @@ class Data(DataContainer):
                 # where self.A_em[ich] is a bool and not a bool-array
                 # In this case, either `dd_mask` or `ad_mask` is
                 # slice(None) (all-elements selection)
-                if type(dd_mask) is slice and dd_mask == slice(None):
+                if isinstance(dd_mask, slice) and dd_mask == slice(None):
                     bg_dd[ip], bg_dd_err[ip] = bg[ip], bg_err[ip]
                     continue
-                if type(ad_mask) is slice and ad_mask == slice(None):
+                if isinstance(ad_mask, slice) and ad_mask == slice(None):
                     bg_ad[ip], bg_ad_err[ip] = bg[ip], bg_err[ip]
                     continue
 
@@ -1621,7 +1628,7 @@ class Data(DataContainer):
     def _fix_mburst_from(self, ph_sel, mute=False):
         """Convert burst data from any ph_sel to 'all' timestamps selection.
         """
-        assert type(ph_sel) is Ph_sel and ph_sel != Ph_sel('all')
+        assert isinstance(ph_sel, Ph_sel) and ph_sel != Ph_sel('all')
         pprint(' - Fixing  burst data to refer to ph_times_m ... ', mute)
         old_MBurst = [mb.copy() for mb in self.mburst]
 
@@ -1749,7 +1756,7 @@ class Data(DataContainer):
             nt = [b_size(b).astype(float) if b.size > 0 else np.array([])\
                         for b in self.mburst]
             A_em = [self.get_A_em(ich) for ich in xrange(self.nch)]
-            if type(A_em[0]) is slice:
+            if isinstance(A_em[0], slice):
                 # This to support the case of A-only or D-only data
                 n0 = [np.zeros(mb.shape[0]) for mb in self.mburst]
                 if A_em[0] == slice(None):

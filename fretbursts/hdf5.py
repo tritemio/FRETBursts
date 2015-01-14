@@ -299,7 +299,7 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
             # If A_em[ich] is a slice we have a single color so we don't
             # save the detector (there is only one detector per channel).
             a_em = d.A_em[ich]
-            if type(a_em) is not slice:
+            if not isinstance(a_em, slice):
                 writer.add_carray(ch_group, 'detectors',
                                   obj=a_em.view(dtype='uint8'))
                 # Detector specs
