@@ -26,35 +26,35 @@ _format_meta = OrderedDict([
     ('format_title', 'HDF5-based format for time-series of photon data.'),
     ('format_version', '0.2'),
     ('format_url', 'http://photon-hdf5.readthedocs.org/'),
-    ])
+])
 
 # Metadata for different fields (arrays) in the HDF5 format
 _fields_meta = OrderedDict([
     # Root parameters
     ('num_spots', 'Number of excitation or detection spots.'),
     ('num_spectral_ch', ('Number of different spectral bands in the detection '
-                        'channels (i.e. 2 for 2-colors smFRET).')),
+                         'channels (i.e. 2 for 2-colors smFRET).')),
     ('num_polariz_ch', ('Number of different polarization in the detection '
-                       'channels. The value is 1 if no polarization selection '
-                       'is performed and 2 if two orthogonal polarizations '
-                       'are recorded.')),
+                        'channels. The value is 1 if no polarization selection '
+                        'is performed and 2 if two orthogonal polarizations '
+                        'are recorded.')),
     ('num_detectors', ('Total number of detector pixels used in the '
                        'measurement.')),
     ('measurement_duration', 'Measurement duration in seconds.'),
     ('lifetime', ('If True (or 1) the data contains nanotimes from TCSPC '
-                 'hardware')),
+                  'hardware')),
     ('alex', 'If True (or 1) the file contains ALternated EXcitation data.'),
     ('alex_period', ('The duration of the excitation alternation using '
-                    'the same units as the timestamps.')),
+                     'the same units as the timestamps.')),
     ('alex_period_donor', ('Start and stop values identifying the donor '
-                          'emission period.')),
+                           'emission period.')),
     ('alex_period_acceptor', ('Start and stop values identifying the acceptor '
-                             'emission period.')),
+                              'emission period.')),
     ('timestamps_unit', 'Time in seconds of 1-unit increment in timestamps.'),
 
     # Photon-data
     ('photon_data', ('Group containing arrays of photon-data (one element per '
-                    'photon)')),
+                     'photon)')),
     ('timestamps', 'Array of photon timestamps'),
 
     ('detectors', 'Array of detector numbers for each timestamp'),
@@ -62,11 +62,11 @@ _fields_meta = OrderedDict([
     ('donor', 'Detectors for the donor spectral range'),
     ('acceptor', 'Detectors for the acceptor spectral range'),
     ('polarization1', ('Detectors ID for the "polarization1". By default is '
-                      'the polarization parallel to the excitation, '
-                      'unless specified differently in the "/setup_specs".')),
+                       'the polarization parallel to the excitation, '
+                       'unless specified differently in the "/setup_specs".')),
     ('polarization2', ('Detectors ID for the "polarization2". By default is '
-                     'the polarization perpendicular to the excitation, '
-                     'unless specified differently in the "/setup_specs".')),
+                       'the polarization perpendicular to the excitation, '
+                       'unless specified differently in the "/setup_specs".')),
 
     ('nanotimes', 'TCSPC photon arrival time (nanotimes)'),
     ('nanotimes_specs', 'Group for nanotime-specific data.'),
@@ -77,7 +77,7 @@ _fields_meta = OrderedDict([
     ('tau_donor_only', 'Intrinsic Donor lifetime (seconds).'),
     ('tau_fret_donor', 'Donor lifetime in presence of Acceptor (seconds).'),
     ('inverse_fret_rate', ('FRET energy transfer lifetime (seconds). Inverse '
-                          'of the rate of D*A -> DA*.')),
+                           'of the rate of D*A -> DA*.')),
 
     ('particles', 'Particle label (integer) for each timestamp.'),
 
@@ -85,13 +85,13 @@ _fields_meta = OrderedDict([
     ('setup', 'Information about the experimental setup.'),
     ('excitation_wavelengths', 'Array of excitation wavelengths (meters).'),
     ('excitation_powers', ('Array of excitation powers (in the same order as '
-                          'excitation_wavelengths). Units: Watts.')),
+                           'excitation_wavelengths). Units: Watts.')),
     ('excitation_polarizations', ('Polarization angle (in degrees), one for '
-                                 'each laser.')),
+                                  'each laser.')),
     ('detection_polarization1', ('Polarization angle (in degrees) for '
-                                '"polarization1".')),
+                                 '"polarization1".')),
     ('detection_polarization2', ('Polarization angle (in degrees) for '
-                                '"polarization2".')),
+                                 '"polarization2".')),
 
     ## Provenance group
     ('provenance', 'Information about the original data file.'),
@@ -103,19 +103,19 @@ _fields_meta = OrderedDict([
 
 hdf5_data_map = {key: key for key in _fields_meta.keys()}
 hdf5_data_map.update(
-            timestamps_unit = 'clk_p',
-            num_spots = 'nch',
-            alex = 'ALEX',
-            #lifetime
-            #alex_period
-            #nanotimes_unit
-            timestamps = 'ph_times_t',
-            detectors = 'det_t',
-            #nanotimes = 'nanotime',
-            #particles = 'par',
-            alex_period_donor = 'D_ON',
-            alex_period_acceptor = 'A_ON',
-            )
+    timestamps_unit='clk_p',
+    num_spots='nch',
+    alex='ALEX',
+    #lifetime
+    #alex_period
+    #nanotimes_unit
+    timestamps='ph_times_t',
+    detectors='det_t',
+    #nanotimes='nanotime',
+    #particles='par',
+    alex_period_donor='D_ON',
+    alex_period_acceptor='A_ON',
+)
 
 mandatory_root_fields = ['timestamps_unit', 'num_spots', 'num_detectors',
                          'num_spectral_ch', 'num_polariz_ch',
@@ -128,7 +128,7 @@ setup_fields = ['excitation_wavelengths', 'excitation_powers',
 provenance_fields = ['filename', 'full_filename', 'creation_time',
                      'modification_time']
 
-class H5Writer():
+class H5Writer(object):
     """Helper class for writing fields of a Data() object in HDF5.
 
     It uses the global mapping and meta-data dictionaries defined above
@@ -186,15 +186,15 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
     comp_filter = tables.Filters(**compression)
     if 'lifetime' not in d:
         # Test on different fields for ALEX and non-ALEX
-        d.add(lifetime = ('nanotimes_t' in d) or ('nanotimes' in d))
+        d.add(lifetime=('nanotimes_t' in d) or ('nanotimes' in d))
 
     # Add default values for missing mandatory fields
     if 'num_spectral_ch' not in d:
-        d.add(num_spectral_ch = num_spectral_ch)
+        d.add(num_spectral_ch=num_spectral_ch)
     if 'num_polariz_ch' not in d:
-        d.add(num_polariz_ch = 1)
+        d.add(num_polariz_ch=1)
     if 'num_detectors' not in d:
-        d.add(num_detectors = d.nch*d.num_spectral_ch)
+        d.add(num_detectors=d.nch*d.num_spectral_ch)
 
     if h5_fname is None:
         basename, extension = os.path.splitext(d.fname)
@@ -214,8 +214,8 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
         h5_fname = basename + '_new_copy.hdf5'
 
     pprint('Saving: %s' % h5_fname, not verbose)
-    data_file = tables.open_file(h5_fname, mode = "w",
-                                 title = "Confocal smFRET data")
+    data_file = tables.open_file(h5_fname, mode="w",
+                                 title="Confocal smFRET data")
     d.add(data_file=data_file)
     writer = H5Writer(data_file, d, comp_filter)
 
@@ -348,7 +348,7 @@ def print_attrs(data_file, node_name='/', which='user'):
     """
     node = data_file.get_node(node_name)
     print('List of attributes for:\n  %s\n' % node)
-    for attr in node._v_attrs._f_list():
+    for attr in node._v_attrs._f_list(which):
         print('\t%s' % attr)
         print('\t    %s' % repr(node._v_attrs[attr]))
 

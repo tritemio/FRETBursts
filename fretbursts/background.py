@@ -142,7 +142,7 @@ def exp_cdf_fit(ph, tail_min_us=None, clk_p=12.5e-9, error_metrics='KS'):
 
 
 def exp_hist_fit(ph, tail_min_us, binw=50e-6, clk_p=12.5e-9,
-                  weights='hist_counts', error_metrics='KS'):
+                 weights='hist_counts', error_metrics='KS'):
     """Compute background rate with WLS histogram fit of waiting-times.
 
     Compute the background rate, selecting waiting-times (delays) larger
@@ -217,7 +217,7 @@ def fit_varying_min_delta_ph(d, min_delta_ph_list, bg_fit_fun=exp_fit,
 
     for ich in range(d.nch):
         for period, ph in enumerate(
-                              d.iter_ph_times_period(ich=ich, ph_sel=ph_sel)):
+                d.iter_ph_times_period(ich=ich, ph_sel=ph_sel)):
             for i_min, min_delta_ph in enumerate(min_delta_ph_list):
                 try:
                     BG[ich, period, i_min], BG_err[ich, period, i_min] = \
@@ -230,7 +230,7 @@ def fit_varying_min_delta_ph(d, min_delta_ph_list, bg_fit_fun=exp_fit,
 
 
 def fit_var_tail_us(d, Tail_min_us_list, t_max_s,
-                       bg_fit_fun=exp_fit, ph_sel=Ph_sel('all'), **kwargs):
+                    bg_fit_fun=exp_fit, ph_sel=Ph_sel('all'), **kwargs):
     """
     Fit BG of a ph_sel on all CH for all the values in `Tail_min_us_list`.
 
@@ -263,7 +263,7 @@ def fit_var_tail_us(d, Tail_min_us_list, t_max_s,
         for it, t in enumerate(Tail_min_us_list):
             try:
                 BG[ch, it], BG_err[ch, it] = bg_fit_fun(
-                        ph_t, tail_min_us=t, clk_p=d.clk_p, **kwargs)
+                    ph_t, tail_min_us=t, clk_p=d.clk_p, **kwargs)
             except:
                 break # Skip remaining Tail_min
     return BG, BG_err
@@ -289,7 +289,7 @@ def gauss_fit(ph, bin_ms=10, clk_p=12.5e-9):
     tt, ti = histo(ph=ph, bin_ms=bin_ms, clk_p=clk_p)
     #mu, sig = gaussian_fit(tt, mu_sigma_guess=[tt.mean(), tt.std()])
     mu, sig = gaussian_fit_hist(tt, mu0=tt.mean(), sigma0=tt.std())
-    mask = (tt<(mu+3*sig))*(tt>(mu-3*sig))
+    mask = (tt < (mu+3*sig))*(tt > (mu-3*sig))
     tt2 = tt[mask]
     #mu2, sig2 = gaussian_fit(tt2, mu_sigma_guess=[mu,sig])
     mu2, sig2 = gaussian_fit_hist(tt2, mu0=mu, sigma0=sig)
@@ -307,8 +307,8 @@ def smart_bg(d, ich=0, bin_=50e-3, step=1):
     pprint(" Calculation started:")
     for s in np.arange(step, t_max, step):
         #if (s % (t_max/50) == 0): pprint(" %d %%" % (s/t_max*100))
-        h = np.histogram(t[(t<s)*(t>(s-step))],
-                bins=np.arange(s-step, s+1e-3, bin_))
+        h = np.histogram(t[(t < s)*(t > (s-step))],
+                         bins=np.arange(s-step, s+1e-3, bin_))
         #print(h[0])
         bg.append(h[0].min())
     pprint('\n')

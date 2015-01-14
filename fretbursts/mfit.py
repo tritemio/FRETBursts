@@ -185,10 +185,10 @@ def factory_two_gaussians(add_bridge=False, p1_center=0.1, p2_center=0.9,
         bridge = lmfit.model.Model(bridge_function, prefix='br_')
         model += bridge
         model.set_param_hint('br_amplitude', value=0.0001, min=0)
-        model.set_param_hint('br_center1', expr = 'p1_center')
-        model.set_param_hint('br_center2', expr = 'p2_center')
-        model.set_param_hint('br_sigma1', expr = 'p1_sigma')
-        model.set_param_hint('br_sigma2', expr = 'p2_sigma')
+        model.set_param_hint('br_center1', expr='p1_center')
+        model.set_param_hint('br_center2', expr='p2_center')
+        model.set_param_hint('br_sigma1', expr='p1_sigma')
+        model.set_param_hint('br_sigma2', expr='p2_sigma')
         name += '-bridge'
     model.name = name
     return model
@@ -261,10 +261,10 @@ def factory_two_asym_gaussians(add_bridge=False, p1_center=0.1, p2_center=0.9,
         bridge = lmfit.model.Model(bridge_function, prefix='br_')
         model += bridge
         bridge.set_param_hint('amplitude', value=0.0001, min=0)
-        model.set_params_hint('br_center1', expr = 'p1_center')
-        model.set_params_hint('br_center2', expr = 'p2_center')
-        model.set_params_hint('br_sigma1', expr = 'p1_sigma2')
-        model.set_params_hint('br_sigma2', expr = 'p2_sigma1')
+        model.set_params_hint('br_center1', expr='p1_center')
+        model.set_params_hint('br_center2', expr='p2_center')
+        model.set_params_hint('br_sigma1', expr='p1_sigma2')
+        model.set_params_hint('br_sigma2', expr='p2_sigma1')
         name += '-bridge'
     model.name = name
     return model
@@ -364,7 +364,7 @@ class MultiFitter(FitterBase):
             if weights is not None:
                 kwargs.update(weights=weights)
             counts, bins = np.histogram(data, **kwargs)
-            hist_counts.append( counts )
+            hist_counts.append(counts)
         self._set_hist_data(hist_counts, bins)
 
     def set_weights_func(self, weight_func, weight_kwargs=None):
@@ -384,8 +384,8 @@ class MultiFitter(FitterBase):
         self.weights = []
         for i in range(self.ndata):
             weight_kw_i = {k: v[i] if np.size(v) > 1 else v
-                                for k, v in weight_kwargs.items()}
-            self.weights.append( weight_func(**weight_kw_i) )
+                           for k, v in weight_kwargs.items()}
+            self.weights.append(weight_func(**weight_kw_i))
 
     def fit_histogram(self, model=None, pdf=True, **fit_kwargs):
         """Fit the histogram of each channel using the same lmfit model.
@@ -414,7 +414,7 @@ class MultiFitter(FitterBase):
         for i, data in enumerate(data_list):
             self.fit_res.append(self.model.fit(data, x=self.hist_axis,
                                                #params=init_params,
-                                               **fit_kwargs) )
+                                               **fit_kwargs))
             self.params.iloc[i] = pd.Series(self.fit_res[-1].values)
 
     def calc_kde(self, bandwidth=0.03):

@@ -32,15 +32,15 @@ from .fretmath import gamma_correct_E, gamma_uncorrect_E
 
 from .burstsearch import burstsearchlib as bslib
 from .burstsearch.burstsearchlib import (
-        itstart, iwidth, inum_ph, iistart, iiend, itend,
-        # Burst search function
-        bsearch,
-        # Burst data functions
-        b_start, b_end, b_width, b_istart, b_iend, b_size,
-        b_ph_rate, b_separation,
-        # Photon counting function,
-        mch_count_ph_in_bursts
-        )
+    itstart, iwidth, inum_ph, iistart, iiend, itend,
+    # Burst search function
+    bsearch,
+    # Burst data functions
+    b_start, b_end, b_width, b_istart, b_iend, b_size,
+    b_ph_rate, b_separation,
+    # Photon counting function,
+    mch_count_ph_in_bursts
+    )
 
 from . import background as bg
 from . import select_bursts
@@ -1425,21 +1425,21 @@ class Data(DataContainer):
 
                 dd_mask_i = dd_mask[i0:i1]
                 if dd_mask_i.any():
-                    bg_dd[ip], bg_dd_err[ip] = fun(ph_i[dd_mask_i],
-                                       tail_min_us=th_us_ch_dd, **kwargs)
+                    bg_dd[ip], bg_dd_err[ip] = fun(
+                        ph_i[dd_mask_i], tail_min_us=th_us_ch_dd, **kwargs)
 
                 ad_mask_i = ad_mask[i0:i1]
                 if ad_mask_i.any():
-                    bg_ad[ip], bg_ad_err[ip] = fun(ph_i[ad_mask_i],
-                                       tail_min_us=th_us_ch_ad, **kwargs)
+                    bg_ad[ip], bg_ad_err[ip] = fun(
+                        ph_i[ad_mask_i], tail_min_us=th_us_ch_ad, **kwargs)
 
                 if self.ALEX and aa_mask.any():
                     da_mask_i = da_mask[i0:i1]
-                    bg_da[ip], bg_da_err[ip] = fun(ph_i[da_mask_i],
-                                       tail_min_us=th_us_ch_da, **kwargs)
+                    bg_da[ip], bg_da_err[ip] = fun(
+                        ph_i[da_mask_i], tail_min_us=th_us_ch_da, **kwargs)
                     aa_mask_i = aa_mask[i0:i1]
-                    bg_aa[ip], bg_aa_err[ip] = fun(ph_i[aa_mask_i],
-                                       tail_min_us=th_us_ch_aa, **kwargs)
+                    bg_aa[ip], bg_aa_err[ip] = fun(
+                        ph_i[aa_mask_i], tail_min_us=th_us_ch_aa, **kwargs)
 
             Lim.append(lim);     Ph_p.append(ph_p)
             BG.append(bg);       BG_err.append(bg_err)
@@ -1524,15 +1524,15 @@ class Data(DataContainer):
               Ph_sel(Dex='Aem'): self.bg_ad}
         if self.ALEX:
             bg_Dex = [bg_dd + bg_ad for bg_dd, bg_ad in
-                            zip(self.bg_dd, self.bg_ad)]
+                      zip(self.bg_dd, self.bg_ad)]
             bg_Aex = [bg_da + bg_aa for bg_da, bg_aa in
-                            zip(self.bg_da, self.bg_aa)]
+                      zip(self.bg_da, self.bg_aa)]
             bg_Dem = [bg_dd + bg_da for bg_dd, bg_da in
-                            zip(self.bg_dd, self.bg_da)]
+                      zip(self.bg_dd, self.bg_da)]
             bg_Aem = [bg_ad + bg_aa for bg_ad, bg_aa in
-                            zip(self.bg_ad, self.bg_aa)]
+                      zip(self.bg_ad, self.bg_aa)]
             bg_noDA = [bg_dd + bg_ad + bg_aa for bg_dd, bg_ad, bg_aa in
-                            zip(self.bg_dd, self.bg_ad, self.bg_aa)]
+                       zip(self.bg_dd, self.bg_ad, self.bg_aa)]
             BG.update(**{Ph_sel(Aex='Aem'): self.bg_aa,
                          Ph_sel(Aex='Dem'): self.bg_da,
                          Ph_sel(Dex='DAem'): bg_Dex,
@@ -1582,7 +1582,7 @@ class Data(DataContainer):
         mburst = []
         T_clk = (1.*m/Min_rate_cps)/self.clk_p
         for ich, (ph, t_clk) in enumerate(zip(self.iter_ph_times(ph_sel),
-                                          T_clk)):
+                                              T_clk)):
             label = '%s CH%d' % (ph_sel, ich+1) if verbose else None
             mb = bsearch(ph, L, m, t_clk, label=label, verbose=verbose)
             mburst.append(mb)
@@ -2250,14 +2250,14 @@ class Data(DataContainer):
 
         fit_res, fit_model_F = zeros((self.nch, 2)), zeros(self.nch)
         for ich, (nd, na, E, mask) in enumerate(zip(
-                                            self.nd, self.na, self.E, Mask)):
+                self.nd, self.na, self.E, Mask)):
             w = fret_fit.get_weights(nd[mask], na[mask],
                                      weights=weights, gamma=gamma)
             # Compute weighted mean
             fit_res[ich, 0] = np.dot(w, E[mask])/w.sum()
             # Compute weighted variance
             fit_res[ich, 1] = np.sqrt(
-                    np.dot(w, (E[mask] - fit_res[ich, 0])**2)/w.sum())
+                np.dot(w, (E[mask] - fit_res[ich, 0])**2)/w.sum())
             fit_model_F[ich] = 1.*mask.sum()/mask.size
 
         fit_model = lambda x, p: SS.norm.pdf(x, p[0], p[1])
@@ -2294,7 +2294,7 @@ class Data(DataContainer):
                                                  **kwargs)
                             for _d, _a, mask in zip(self.nd, self.na, Mask)])
         self.add(fit_E_res=fit_res, fit_E_name='MLE: na ~ Binomial',
-                E_fit=fit_res, fit_E_curve=False, fit_E_E1=E1, fit_E_E2=E2)
+                 E_fit=fit_res, fit_E_curve=False, fit_E_E1=E1, fit_E_E2=E2)
         self.fit_E_calc_variance()
         return self.E_fit
 
@@ -2334,7 +2334,7 @@ class Data(DataContainer):
         return self.E_fit
 
     def fit_E_generic(self, E1=-1, E2=2, fit_fun=two_gaussian_fit_hist,
-            weights=None, gamma=1., **fit_kwargs):
+                      weights=None, gamma=1., **fit_kwargs):
         """Fit E in each channel with `fit_fun` using burst in [E1,E2] range.
         All the fitting functions are defined in
         :mod:`fretbursts.fit.gaussian_fitting`.
@@ -2376,8 +2376,8 @@ class Data(DataContainer):
         Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
 
         fit_res, fit_model_F = zeros((self.nch, nparam)), zeros(self.nch)
-        for ich, (nd, na, E, mask) in enumerate(
-                                        zip(self.nd, self.na, self.E, Mask)):
+        for ich, (nd, na, E, mask) in enumerate(zip(
+                self.nd, self.na, self.E, Mask)):
             if '_hist' in fit_fun.__name__ or '_EM' in fit_fun.__name__:
                 if weights is None:
                     w = None
@@ -2412,10 +2412,10 @@ class Data(DataContainer):
                 setattr(self, name, self[name])
         # Deal with the normalization to the number of bursts
         self.add(fit_model_F=r_[[1.*old_E.size/new_E.size \
-                for old_E,new_E in zip(D.E, self.E)]])
+                for old_E, new_E in zip(D.E, self.E)]])
 
     def fit_E_calc_variance(self, weights='sqrt', dist='DeltaE',
-            E_fit=None, E1=-1, E2=2):
+                            E_fit=None, E1=-1, E2=2):
         """Compute several versions of WEIGHTED std.dev. of the E estimator.
         `weights` are multiplied *BEFORE* squaring the distance/error
         `dist` can be 'DeltaE' or 'SlopeEuclid'

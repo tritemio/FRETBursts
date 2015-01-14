@@ -225,8 +225,8 @@ def calc_bg_brute(dx, min_ph_delay_list=None, return_all=False,
         # Compute BG and error for all ch, periods and thresholds
         # Shape: (nch, nperiods, len(thresholds))
         BG_data[ph_sel], BG_data_e[ph_sel] = bg.fit_varying_min_delta_ph(
-                dx, min_ph_delay_list, bg_fit_fun=bg.exp_fit, ph_sel=ph_sel,
-                error_metrics=error_metrics)
+            dx, min_ph_delay_list, bg_fit_fun=bg.exp_fit, ph_sel=ph_sel,
+            error_metrics=error_metrics)
 
         # Compute the best Th and BG estimate for all ch and periods
         for ich in range(dx.nch):
@@ -349,11 +349,11 @@ def bursts_fitter(dx, burst_data='E', save_fitter=True,
     if weights is not None:
         weight_kwargs = dict(weights=weights, gamma=gamma, nd=dx.nd, na=dx.na)
         if add_naa:
-            weight_kwargs.update(naa = dx.naa)
-        fitter.set_weights_func(weight_func = fret_fit.get_weights,
-                                weight_kwargs = dict(weights=weights,
-                                                     gamma=gamma,
-                                                     nd=dx.nd, na=dx.na))
+            weight_kwargs.update(naa=dx.naa)
+        fitter.set_weights_func(weight_func=fret_fit.get_weights,
+                                weight_kwargs=dict(weights=weights,
+                                                   gamma=gamma,
+                                                   nd=dx.nd, na=dx.na))
     if bandwidth is not None:
         fitter.calc_kde(bandwidth)
     if binwidth is not None:
@@ -497,7 +497,7 @@ def calc_mdelays_hist(d, ich=0, m=10, period=(0, -1), bins_s=(0, 10, 0.02),
         fit_func = lambda x, a, rate_kcps: a*erlang.pdf(x, a=m,
                                                         scale=1./rate_kcps)
         err_func = lambda p, x, y: fit_func(x, p[0], p[1]) - y
-        p, flag = leastsq(err_func, x0=[0.9, 3.], args=(_x,_y))
+        p, flag = leastsq(err_func, x0=[0.9, 3.], args=(_x, _y))
         print(p, flag)
         a, rate_kcps = p
         results.extend([a, rate_kcps])
@@ -566,7 +566,7 @@ def join_data(d_list, gap=1):
     # Set the bursts fields by concatenation along axis = 0
     for name in Data.burst_fields:
         if name in new_d:
-            new_d.add(**{ name: [np.array([])]*nch })
+            new_d.add(**{name: [np.array([])]*nch})
             for ich in xrange(nch):
                 new_size = np.sum([d[name][ich].shape[0] for d in d_list])
                 if new_size == 0:
@@ -579,17 +579,17 @@ def join_data(d_list, gap=1):
     new_nperiods = np.sum([d.nperiods for d in d_list])
     for name in Data.bg_fields:
         if name in new_d:
-            new_d.add(**{ name: [] })
+            new_d.add(**{name: []})
             for ich in xrange(nch):
                 value = np.concatenate([d[name][ich] for d in d_list])
                 new_d[name].append(value)
                 assert new_d[name][ich].shape[0] == new_nperiods
 
     # Set the i_origin burst attribute
-    new_d.add(i_origin = [])
+    new_d.add(i_origin=[])
     for ich in xrange(nch):
         i_origin_ch = np.concatenate([i_d*np.ones(d.num_bursts[ich])
-                        for i_d, d in enumerate(d_list)])
+                                      for i_d, d in enumerate(d_list)])
         new_d.i_origin.append(i_origin_ch)
 
     # Update the `bp` attribute to refer to the background period in

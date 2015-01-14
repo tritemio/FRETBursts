@@ -131,7 +131,7 @@ def bsearch_py(t, L, m, T, label='Burst search', verbose=True):
             if i_end - i_start >= L:
                 burst_start, burst_end = t[i_start], t[i_end-1]
                 bursts.append([burst_start, burst_end-burst_start,
-                    i_end-i_start, i_start, i_end-1, burst_end])
+                               i_end-i_start, i_start, i_end-1, burst_end])
     return np.array(bursts, dtype=np.int64)
 
 
@@ -162,7 +162,7 @@ def count_ph_in_bursts_py(bursts, mask):
     num_ph = np.zeros(bursts.shape[0], dtype=np.int16)
     for i, burst in enumerate(bursts):
         # Counts photons between start and end of current `burst`
-        num_ph[i] = mask[ burst[iistart] : burst[iiend]+1 ].sum()
+        num_ph[i] = mask[burst[iistart] : burst[iiend]+1].sum()
     return num_ph
 
 def mch_count_ph_in_bursts_py(Mburst, Mask):
@@ -188,7 +188,7 @@ def mch_count_ph_in_bursts_py(Mburst, Mask):
         num_ph = np.zeros(bursts.shape[0], dtype=np.int16)
         for i, burst in enumerate(bursts):
             # Counts photons between start and end of current `burst`
-            num_ph[i] = mask[ burst[iistart] : burst[iiend]+1 ].sum()
+            num_ph[i] = mask[burst[iistart] : burst[iiend]+1].sum()
             #count_ph_in_bursts(bursts, mask).astype(float)
         Num_ph.append(num_ph.astype(float))
     return Num_ph
@@ -276,6 +276,3 @@ def burst_and(bursts_d, bursts_a):
         bursts.append(burst)
 
     return np.vstack(bursts)
-
-
-#

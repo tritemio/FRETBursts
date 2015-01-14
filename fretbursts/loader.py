@@ -26,11 +26,11 @@ from .dataload.multi_ch_reader import load_data_ordered16
 from .dataload.smreader import load_sm
 from .dataload.spcreader import load_spc
 from .dataload.manta_reader import (load_manta_timestamps,
-                                   load_xavier_manta_data,
-                                   get_timestamps_detectors,
-                                   #process_timestamps,
-                                   process_store,
-                                   load_manta_timestamps_pytables)
+                                    load_xavier_manta_data,
+                                    get_timestamps_detectors,
+                                    #process_timestamps,
+                                    process_store,
+                                    load_manta_timestamps_pytables)
 from .utils.misc import pprint, deprecate
 from .burstlib import Data
 from .dataload.pytables_array_list import PyTablesList
@@ -38,7 +38,7 @@ from .hdf5 import hdf5_data_map, mandatory_root_fields, dict_from_group
 
 
 def assert_valid_photon_hdf5(h5file):
-    meta = dict(format_name = b'Photon-HDF5', format_version = b'0.2')
+    meta = dict(format_name=b'Photon-HDF5', format_version=b'0.2')
     msg = ''
     for attr, value in meta.items():
         if attr not in h5file.root._v_attrs:
@@ -102,7 +102,7 @@ def hdf5(fname, ondisk=False):
     """
     if not os.path.isfile(fname):
         raise IOError('File not found.')
-    data_file = tables.open_file(fname, mode = "r")
+    data_file = tables.open_file(fname, mode="r")
     assert_valid_photon_hdf5(data_file)
 
     d = Data(fname=fname)
@@ -218,7 +218,7 @@ def hdf5(fname, ondisk=False):
                     assert (a_em + d_em).all()
 
             if 'A_em' not in d:
-                d.add(A_em = [a_em])
+                d.add(A_em=[a_em])
             else:
                 d.A_em.append(a_em)
 
@@ -227,7 +227,7 @@ def hdf5(fname, ondisk=False):
 
 
 def _is_valid_hdf5_phdata(h5file):
-    meta = dict(format_name = 'HDF5-Ph-Data', format_version = '0.2')
+    meta = dict(format_name='HDF5-Ph-Data', format_version='0.2')
     for attr, value in meta.items():
         if attr not in h5file.root._v_attrs:
             return False
@@ -245,7 +245,7 @@ def hdf5_phdata(fname):
     """
     if not os.path.isfile(fname):
         raise IOError('File not found.')
-    data_file = tables.open_file(fname, mode = "r")
+    data_file = tables.open_file(fname, mode="r")
     if not _is_valid_hdf5_phdata(data_file):
         data_file.close()
         raise IOError('The file is not a valid HDF5-Ph-Data format.')
@@ -321,7 +321,7 @@ def hdf5_phdata(fname):
 
             name = 'detectors'
             if name not in ph_group:
-                a_em=slice(None)
+                a_em = slice(None)
             else:
                 det_specs = ph_group.detectors_specs
                 donor = det_specs.donor.read()
@@ -337,7 +337,7 @@ def hdf5_phdata(fname):
                     assert not (a_em*d_em).any()
                     assert (a_em + d_em).all()
             if ich == 0:
-                d.add(A_em = [a_em])
+                d.add(A_em=[a_em])
             else:
                 d.A_em.append(a_em)
 
@@ -352,7 +352,7 @@ def hdf5_legacy(fname):
     """
     if not os.path.isfile(fname):
         raise IOError('File not found.')
-    data_file = tables.open_file(fname, mode = "r")
+    data_file = tables.open_file(fname, mode="r")
     file_format = ('smFRET_format_version', '0.1')
     if file_format[0] not in data_file.root._v_attrs:
         print("WARNING: Attribute '%s' not found." % file_format[0])
@@ -392,7 +392,7 @@ def hdf5_legacy(fname):
         params.update(ph_times_t=ph_times_t, det_t=det_t)
     else:
         # Multi-spot ALEX
-        raise NotImplemented
+        raise NotImplementedError
 
     d = Data(fname=fname, **params)
 
@@ -440,22 +440,23 @@ def multispot8(fname, bytes_to_read=-1, swap_D_A=True, leakage=0, gamma=1.):
 load_multispot8 = deprecate(multispot8, "load_multispot8", "loader.multispot8")
 
 def multispot8_core(fname, bytes_to_read=-1, swap_D_A=True, leakage=0,
-                         gamma=1.):
+                    gamma=1.):
     """Load a 8-ch multispot file and return a Data() object.
     """
-    dx = Data(fname=fname, clk_p=12.5e-9, nch=8, leakage=leakage, gamma=gamma)
-    ph_times_m, A_em, ph_times_det = load_data_ordered16(fname=fname,
-            n_bytes_to_read=bytes_to_read, swap_D_A=swap_D_A)
+    dx = Data(fname=fname, clk_p=12.5e-9, nch=8, leakage=leakage,
+              gamma=gamma)
+    ph_times_m, A_em, ph_times_det = load_data_ordered16(
+        fname=fname, n_bytes_to_read=bytes_to_read, swap_D_A=swap_D_A)
     dx.add(ph_times_m=ph_times_m, A_em=A_em, ALEX=False)
     return dx
 
 def multispot48_simple(fname, leakage=0, gamma=1.,
-                     i_start=0, i_stop=None, debug=False):
+                       i_start=0, i_stop=None, debug=False):
     """Load a 48-ch multispot file and return a Data() object.
     """
     dx = Data(fname=fname, clk_p=10e-9, nch=48, leakage=leakage, gamma=gamma)
     ph_times_m, big_fifo, ch_fifo = load_manta_timestamps(
-                fname, i_start=i_start, i_stop=i_stop, debug=debug)
+        fname, i_start=i_start, i_stop=i_stop, debug=debug)
     A_em = [True] * len(ph_times_m)
     dx.add(ph_times_m=ph_times_m, A_em=A_em, ALEX=False)
     big_fifo_full = np.array([b.any() for b in big_fifo]).any()
@@ -472,7 +473,6 @@ def multispot48(fname, leakage=0, gamma=1., reprocess=False,
                 i_start=0, i_stop=None, debug=False):
     """Load a 48-ch multispot file and return a Data() object.
     """
-    import tables
     basename, ext = os.path.splitext(fname)
     fname_h5 = basename + '.hdf5'
     fname_dat = basename + '.dat'
@@ -485,8 +485,8 @@ def multispot48(fname, leakage=0, gamma=1., reprocess=False,
         pprint('DONE.\n - Extracting timestamps and detectors ... ')
         timestamps, det = get_timestamps_detectors(data, nbits=24)
         pprint('DONE.\n - Processing and storing ... ')
-        ph_times_m, big_fifo, ch_fifo = process_store(timestamps, det,
-                        out_fname=fname_h5, fifo_flag=True, debug=False)
+        ph_times_m, big_fifo, ch_fifo = process_store(
+            timestamps, det, out_fname=fname_h5, fifo_flag=True, debug=False)
         pprint('DONE.\n')
         return ph_times_m, big_fifo, ch_fifo
 
@@ -576,8 +576,7 @@ def usalex(fname, leakage=0, gamma=1., header=None, bytes_to_read=-1, BT=None):
               ALEX=True, lifetime=False,
               D_ON=DONOR_ON, A_ON=ACCEPT_ON, alex_period=alex_period,
               ph_times_t=ph_times_t, det_t=det_t, det_donor_accept=(0, 1),
-              ch_labels=labels,
-              )
+              ch_labels=labels)
     return dx
 
 def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
@@ -601,7 +600,7 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
 
     *See also:* :func:`alex_apply_period`.
     """
-    donor_ch, accept_ch  = d.det_donor_accept
+    donor_ch, accept_ch = d.det_donor_accept
     # Remove eventual ch different from donor or acceptor
     d_ch_mask_t = (d.det_t == donor_ch)
     a_ch_mask_t = (d.det_t == accept_ch)
@@ -688,8 +687,7 @@ def nsalex(fname):
               D_ON=DONOR_ON, A_ON=ACCEPT_ON,
               nanotimes_nbins=nanotimes_nbins,
               ph_times_t=ph_times_t, det_t=det_t, nanotimes_t=nanotimes,
-              det_donor_accept=(4, 6),
-              )
+              det_donor_accept=(4, 6))
     return dx
 
 def nsalex_apply_period(d, delete_ph_t=True):
@@ -716,7 +714,7 @@ def nsalex_apply_period(d, delete_ph_t=True):
     # Note: between boolean arrays * is equavilent to logical AND,
     #       and + is equivalent to logical OR.
 
-    donor_ch, accept_ch  = d.det_donor_accept
+    donor_ch, accept_ch = d.det_donor_accept
 
     # Mask for donor + acceptor detectors (discard other detectors)
     d_ch_mask_t = (d.det_t == donor_ch)
