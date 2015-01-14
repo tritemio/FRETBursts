@@ -46,13 +46,13 @@ from . import background as bg
 from . import select_bursts
 from  . import fit
 from .fit.gaussian_fitting import (gaussian_fit_hist,
-                                  gaussian_fit_cdf,
-                                  two_gaussian_fit_hist,
-                                  two_gaussian_fit_hist_min,
-                                  two_gaussian_fit_hist_min_ab,
-                                  two_gaussian_fit_EM,
-                                  two_gauss_mix_pdf,
-                                  two_gauss_mix_ab,)
+                                   gaussian_fit_cdf,
+                                   two_gaussian_fit_hist,
+                                   two_gaussian_fit_hist_min,
+                                   two_gaussian_fit_hist_min_ab,
+                                   two_gaussian_fit_EM,
+                                   two_gauss_mix_pdf,
+                                   two_gauss_mix_ab,)
 
 
 # Redefine some old functions that have been renamed so old scripts will not
@@ -121,7 +121,7 @@ def Select_bursts(d_orig, filter_fun, negate=False, nofret=False, **kwargs):
         are new objects.
     """
     Masks, str_sel = Sel_mask(d_orig, filter_fun, negate=negate,
-            return_str=True, **kwargs)
+                              return_str=True, **kwargs)
     d_sel = Sel_mask_apply(d_orig, Masks, nofret=nofret, str_sel=str_sel)
     return d_sel
 
@@ -139,7 +139,7 @@ def Sel_mask(d_orig, filter_fun, negate=False, return_str=False, **kwargs):
         :func:`Select_bursts`, :func:`Sel_mask_apply`
     """
     ## Create the list of bool masks for the bursts selection
-    M = [filter_fun(d_orig,i,**kwargs) for i in range(d_orig.nch)]
+    M = [filter_fun(d_orig, i, **kwargs) for i in range(d_orig.nch)]
     Masks = [-m[0] if negate else m[0] for m in M]
     str_sel = M[0][1]
     if return_str: return Masks, str_sel
@@ -167,7 +167,7 @@ def Sel_mask_apply(d_orig, Masks, nofret=False, str_sel=''):
         # the old list that is also in the original object.
         # The list is initialized with empty arrays because this is the valid
         # value when a ch has no bursts.
-        ds.add(**{ name: [np.array([])]*d_orig.nch })
+        ds.add(**{name: [np.array([])]*d_orig.nch})
 
         # Assign the new data
         for ich, mask in enumerate(Masks):
@@ -201,8 +201,8 @@ def top_tail(nx, a=0.1):
     """Return for each ch the mean size of the top `a` fraction.
     nx is one of nd, na, nt from Data() (list of burst size in each ch).
     """
-    assert a>0 and a<1
-    return np.r_[[n[n>n.max()*(1-a)].mean() for n in nx]]
+    assert a > 0 and a < 1
+    return np.r_[[n[n > n.max()*(1-a)].mean() for n in nx]]
 
 # Quick functions to calculate rate-trace from ph_times
 def ph_rate(m, ph):
@@ -365,7 +365,7 @@ def fuse_bursts_iter(bursts, ms=0, clk_p=12.5e-9, verbose=True):
     z = 0
     init_nburst = bursts.shape[0]
     new_nburst, nburst = 0, 1  # starting condition
-    while (new_nburst < nburst):
+    while new_nburst < nburst:
         z += 1
         nburst = bursts.shape[0]
         bursts = b_fuse(bursts, ms=ms, clk_p=clk_p)
@@ -464,11 +464,11 @@ def burst_stats(mburst, clk_p=12.5*1e9):
     """Compute average duration, size and burst-delay for bursts in mburst.
     """
     width_stats = np.array([[b[:, 1].mean(), b[:, 1].std()] for b in mburst
-        if len(b) > 0]).T
+                            if len(b) > 0]).T
     height_stats = np.array([[b[:, 2].mean(), b[:, 2].std()] for b in mburst
-        if len(b) > 0]).T
+                             if len(b) > 0]).T
     mean_burst_delay = np.array([np.diff(b[:, 0]).mean() for b in mburst
-        if len(b) > 0])
+                                 if len(b) > 0])
     return (clk_to_s(width_stats, clk_p)*1e3, height_stats,
             clk_to_s(mean_burst_delay, clk_p))
 
@@ -794,7 +794,7 @@ class Data(DataContainer):
         if not hasattr(self, '_ph_data_sizes'):
             # This works both for numpy arrays and pytables arrays
             self._ph_data_sizes = np.array([ph.shape[0] for ph in
-                                                            self.ph_times_m])
+                                            self.ph_times_m])
         return self._ph_data_sizes
 
     def iter_ph_masks(self, ph_sel=Ph_sel('all')):
@@ -1030,7 +1030,7 @@ class Data(DataContainer):
         """
         kwargs = dict(gamma=gamma, gamma1=gamma1, add_naa=add_naa)
         bsize_list = [self.burst_sizes_ich(ich, **kwargs) for ich in
-                                                            range(self.nch)]
+                      range(self.nch)]
         return np.array(bsize_list)
 
     def iter_bursts_ph(self, ich=0):
@@ -1070,7 +1070,7 @@ class Data(DataContainer):
         """
         if time_s2 is None: time_s2 = self.time_max
         if time_s2 >= self.time_max and time_s1 <= 0:
-                return self.copy()
+            return self.copy()
 
         t1_clk, t2_clk = time_s1/self.clk_p, time_s2/self.clk_p
         assert np.array([t1_clk < ph.max() for ph in self.ph_times_m]).all()
@@ -1112,7 +1112,7 @@ class Data(DataContainer):
         for name in self.burst_fields:
             if name in self:
                 # Concatenate arrays along axis = 0
-                value = [ np.concatenate(self[name])[sort_index] ]
+                value = [np.concatenate(self[name])[sort_index]]
                 dc.add(**{name: value})
         dc.add(nch=1)
         dc.add(_chi_ch=1.)
@@ -1188,7 +1188,7 @@ class Data(DataContainer):
     def time_min(self):
         """The first recorded time in seconds."""
         if not hasattr(self, '_time_min'):
-            self._time_min =self._time_reduce(last=False, func=min)
+            self._time_min = self._time_reduce(last=False, func=min)
         return self._time_min
 
     def _time_reduce(self, last=True, func=max):
@@ -1322,7 +1322,7 @@ class Data(DataContainer):
         # Discard last period if shorter than 0.1s
         if nperiods > 1:
             t_last_period = [t_max_i*self.clk_p - (nperiods - 1)*time_s
-                                for t_max_i in t_max_mch]
+                             for t_max_i in t_max_mch]
             if np.min(t_last_period) < 0.1:
                 nperiods -= 1
         return int(nperiods)
@@ -1606,9 +1606,9 @@ class Data(DataContainer):
             Tck = T/self.clk_p
             for ip, (l0, l1) in enumerate(self.Lim[ich]):
                 if verbose:
-                    label='%s CH%d-%d' % (ph_sel, ich+1, ip)
+                    label = '%s CH%d-%d' % (ph_sel, ich+1, ip)
                 mb = bsearch(ph[l0:l1+1], L, m, Tck[ip], label=label,
-                        verbose=verbose)
+                             verbose=verbose)
                 if mb.size > 0: # if we found at least one burst
                     mb[:, iistart] += l0
                     mb[:, iiend] += l0
@@ -1655,8 +1655,9 @@ class Data(DataContainer):
         self.burst_search(**kwargs)
 
     def burst_search(self, L=None, m=10, P=None, F=6., min_rate_cps=None,
-            nofret=False, max_rate=False, dither=False, ph_sel=Ph_sel('all'),
-            verbose=False, mute=False, pure_python=False):
+                     nofret=False, max_rate=False, dither=False,
+                     ph_sel=Ph_sel('all'), verbose=False, mute=False,
+                     pure_python=False):
         """Performs a burst search with specified parameters.
 
         This method performs a sliding-window burst search without
@@ -1807,11 +1808,13 @@ class Data(DataContainer):
         mburst = mch_fuse_bursts(self.mburst, ms=ms, clk_p=self.clk_p)
         new_d = Data(**self)
         for k in ['E', 'S', 'nd', 'na', 'naa', 'nt', 'lsb', 'bp']:
-            if k in new_d: new_d.delete(k)
+            if k in new_d:
+                new_d.delete(k)
         new_d.add(bg_corrected=False, leakage_corrected=False,
                   dir_ex_corrected=False, dithering=False)
         new_d.add(mburst=mburst, fuse=ms)
-        if 'bg' in new_d: new_d._calc_burst_period()
+        if 'bg' in new_d:
+            new_d._calc_burst_period()
         if process:
             pprint(" - Counting D and A ph and calculating FRET ... \n", mute)
             new_d.calc_fret(count_ph=True, corrections=True,
@@ -1955,6 +1958,8 @@ class Data(DataContainer):
 
     @property
     def leakage(self):
+        """Spectral leakage (bleedthrough) of D emission in the A channel.
+        """
         return self._leakage
 
     @leakage.setter
@@ -1977,6 +1982,7 @@ class Data(DataContainer):
 
     @property
     def dir_ex(self):
+        """Direct excitation correction factor."""
         return self._dir_ex
 
     @dir_ex.setter
@@ -1992,6 +1998,7 @@ class Data(DataContainer):
 
     @property
     def chi_ch(self):
+        """Per-channel relative gamma factor."""
         return self._chi_ch
 
     @chi_ch.setter
@@ -2007,6 +2014,7 @@ class Data(DataContainer):
 
     @property
     def gamma(self):
+        """Gamma correction factor (i.e. D vs A channel imbalance)."""
         return self._gamma
 
     @gamma.setter
@@ -2093,12 +2101,14 @@ class Data(DataContainer):
         """
         if ph_sel == Ph_sel('all'):
             Max_Rate = [b_rate_max(ph_data=ph, m=m, bursts=mb)
-                    for ph, mb in zip(self.iter_ph_times(), self.mburst)]
+                        for ph, mb in
+                        zip(self.iter_ph_times(), self.mburst)]
         else:
             Max_Rate = [b_rate_max(ph_data=ph, m=m, bursts=mb, mask=mask)
-                    for ph, mask, mb in zip(self.iter_ph_times(),
-                                            self.iter_ph_masks(ph_sel=ph_sel),
-                                            self.mburst)]
+                        for ph, mask, mb in
+                        zip(self.iter_ph_times(),
+                            self.iter_ph_masks(ph_sel=ph_sel),
+                            self.mburst)]
 
         Max_Rate = [mr/self.clk_p - bg[bp] for bp, bg, mr in
                     zip(self.bp, self.bg_from(ph_sel), Max_Rate)]
@@ -2152,14 +2162,14 @@ class Data(DataContainer):
         """Compute "stoichiometry" (the `S` parameter) for each burst."""
         G = self.get_gamma_array()
         S = [1.0*(g*d+a)/(g*d+a+aa) for d, a, aa, g in
-                zip(self.nd, self.na, self.naa, G)]
+             zip(self.nd, self.na, self.naa, G)]
         self.add(S=S)
 
     def calc_alex_hist(self, bin_step=0.05):
         """Compute the ALEX histogram with given bin width `bin_step`"""
         self.add(bin_step=bin_step)
         ES_hist_tot = [ES_histog(E, S, bin_step) for E, S in
-                                                        zip(self.E, self.S)]
+                       zip(self.E, self.S)]
         E_bins, S_bins = ES_hist_tot[0][1], ES_hist_tot[0][2]
         ES_hist = [h[0] for h in ES_hist_tot]
         E_ax = E_bins[:-1] + 0.5*bin_step
@@ -2239,21 +2249,22 @@ class Data(DataContainer):
         Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
 
         fit_res, fit_model_F = zeros((self.nch, 2)), zeros(self.nch)
-        for ich, (nd, na, E, mask) in enumerate(
-                                        zip(self.nd, self.na, self.E, Mask)):
+        for ich, (nd, na, E, mask) in enumerate(zip(
+                                            self.nd, self.na, self.E, Mask)):
             w = fret_fit.get_weights(nd[mask], na[mask],
                                      weights=weights, gamma=gamma)
             # Compute weighted mean
             fit_res[ich, 0] = np.dot(w, E[mask])/w.sum()
             # Compute weighted variance
             fit_res[ich, 1] = np.sqrt(
-                    np.dot(w, (E[mask] - fit_res[ich,0])**2)/w.sum())
+                    np.dot(w, (E[mask] - fit_res[ich, 0])**2)/w.sum())
             fit_model_F[ich] = 1.*mask.sum()/mask.size
 
         fit_model = lambda x, p: SS.norm.pdf(x, p[0], p[1])
         self.add(fit_E_res=fit_res, fit_E_name='Moments',
-                E_fit=fit_res[:,0], fit_E_curve=True, fit_E_E1=E1, fit_E_E2=E2,
-                fit_E_model=fit_model, fit_E_model_F=fit_model_F)
+                 E_fit=fit_res[:, 0], fit_E_curve=True, fit_E_E1=E1,
+                 fit_E_E2=E2, fit_E_model=fit_model,
+                 fit_E_model_F=fit_model_F)
         self.fit_E_calc_variance()
         return self.E_fit
 
@@ -2269,9 +2280,9 @@ class Data(DataContainer):
             nd, na, bg_d, bg_a = self.expand(ich)
             bg_x = bg_d if method == 3 else bg_a
             fit_res[ich] = fit_fun[method](nd[mask], na[mask],
-                    bg_x[mask], **kwargs)
+                                           bg_x[mask], **kwargs)
         self.add(fit_E_res=fit_res, fit_E_name='MLE: na ~ Poisson',
-                E_fit=fit_res, fit_E_curve=False, fit_E_E1=E1, fit_E_E2=E2)
+                 E_fit=fit_res, fit_E_curve=False, fit_E_E1=E1, fit_E_E2=E2)
         self.fit_E_calc_variance()
         return self.E_fit
 
@@ -2279,8 +2290,9 @@ class Data(DataContainer):
         """ML fit for E modeling na ~ Binomial, using bursts in [E1,E2] range.
         """
         Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
-        fit_res = np.array([fret_fit.fit_E_binom(_d[mask], _a[mask], **kwargs)
-                for _d, _a, mask in zip(self.nd, self.na, Mask)])
+        fit_res = np.array([fret_fit.fit_E_binom(_d[mask], _a[mask],
+                                                 **kwargs)
+                            for _d, _a, mask in zip(self.nd, self.na, Mask)])
         self.add(fit_E_res=fit_res, fit_E_name='MLE: na ~ Binomial',
                 E_fit=fit_res, fit_E_curve=False, fit_E_E1=E1, fit_E_E2=E2)
         self.fit_E_calc_variance()
@@ -2294,13 +2306,15 @@ class Data(DataContainer):
         """
         assert kind in ['slope', 'E_size']
         # Build a dictionary fun_d so we'll call the function fun_d[kind]
-        fun_d = dict(slope=fret_fit.fit_E_slope, E_size=fret_fit.fit_E_E_size)
+        fun_d = dict(slope=fret_fit.fit_E_slope,
+                     E_size=fret_fit.fit_E_E_size)
         Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
         fit_res = np.array([fun_d[kind](nd[mask], na[mask], **kwargs)
-                for nd, na, mask in zip(self.nd,self.na,Mask)])
+                            for nd, na, mask in
+                            zip(self.nd, self.na, Mask)])
         fit_name = dict(slope='Linear slope fit', E_size='E_size fit')
         self.add(fit_E_res=fit_res, fit_E_name=fit_name[kind],
-                E_fit=fit_res, fit_E_curve=False, fit_E_E1=E1, fit_E_E2=E2)
+                 E_fit=fit_res, fit_E_curve=False, fit_E_E1=E1, fit_E_E2=E2)
         self.fit_E_calc_variance()
         return self.E_fit
 
@@ -2314,9 +2328,9 @@ class Data(DataContainer):
             w = fret_fit.get_weights(nd, na, weights=weights, gamma=gamma)
             fit_res[ich, :] = fit_func(E, weights=w, **kwargs)
         self.add(fit_E_res=fit_res, fit_E_name=fit_func.__name__,
-                E_fit=fit_res[:,2], fit_E_curve=True,
-                fit_E_model=two_gauss_mix_pdf,
-                fit_E_model_F=np.repeat(1, self.nch))
+                 E_fit=fit_res[:, 2], fit_E_curve=True,
+                 fit_E_model=two_gauss_mix_pdf,
+                 fit_E_model_F=np.repeat(1, self.nch))
         return self.E_fit
 
     def fit_E_generic(self, E1=-1, E2=2, fit_fun=two_gaussian_fit_hist,
@@ -2378,19 +2392,20 @@ class Data(DataContainer):
 
         # Save enough info to generate a fit plot (see hist_fret in burst_plot)
         self.add(fit_E_res=fit_res, fit_E_name=fit_fun.__name__,
-                E_fit=fit_res[:,iE], fit_E_curve=True, fit_E_E1=E1,fit_E_E2=E2,
-                fit_E_model=fit_model, fit_E_model_F=fit_model_F,
-                fit_E_weights=weights, fit_E_gamma=gamma,
-                fit_E_kwargs=fit_kwargs)
+                 E_fit=fit_res[:, iE], fit_E_curve=True, fit_E_E1=E1,
+                 fit_E_E2=E2, fit_E_model=fit_model,
+                 fit_E_model_F=fit_model_F, fit_E_weights=weights,
+                 fit_E_gamma=gamma, fit_E_kwargs=fit_kwargs)
         return self.E_fit
 
     def fit_from(self, D):
         """Copy fit results from another Data() variable.
         Now that the fit methods accept E1,E1 parameter this probabily useless.
         """
+        # NOTE Are 'fit_guess' and 'fit_fix' still used ?
         fit_data = ['fit_E_res', 'fit_E_name', 'E_fit', 'fit_E_curve',
-                'fit_E_E1', 'fit_E_E2=E2', 'fit_E_model', 'fit_E_model_F',
-                'fit_guess', 'fit_fix']  # NOTE Are these last two still used ?
+                    'fit_E_E1', 'fit_E_E2=E2', 'fit_E_model',
+                    'fit_E_model_F', 'fit_guess', 'fit_fix']
         for name in fit_data:
             if name in D:
                 self[name] = D[name]
@@ -2421,7 +2436,7 @@ class Data(DataContainer):
             E_fit = np.repeat(E_fit, self.nch)
         assert size(E_fit) == self.nch
 
-        E_sel = [Ei[(Ei>E1)*(Ei<E2)] for Ei in self.E]
+        E_sel = [Ei[(Ei > E1)*(Ei < E2)] for Ei in self.E]
         Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
 
         E_var, E_var_bu, E_var_ph = \

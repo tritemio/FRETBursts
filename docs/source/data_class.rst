@@ -54,6 +54,24 @@ for summary information:
     .. automethod:: Name
 
 
+Correction factors
+------------------
+
+The following are the various burst correction factors. They are `Data`
+properties, so setting their value automatically updates all the burst
+quantities (including E and S).
+
+.. class:: Data
+
+    .. autoattribute:: gamma
+
+    .. autoattribute:: leakage
+
+    .. autoattribute:: dir_ex
+
+    .. autoattribute:: chi_ch
+
+
 Analysis methods
 ----------------
 
