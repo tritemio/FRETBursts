@@ -15,9 +15,9 @@ Quick: Package installation
 If you are just starting with FRETBursts this is the preferred installation
 method.
 
-To install the last stable release type::
+To install the latest stable release type::
 
-    pip install fretbursts==0.4rc4 --upgrade
+    pip install fretbursts==0.4rc5 --upgrade
 
 To install the latest version from GitHub, type::
 

@@ -121,9 +121,9 @@ rich text, math and graphics with (live) code. For more info please visit:
 
 ##Installation
 
-Briefly, the installation requires installing a scientific python distribution 
-(such as [Continuum Anaconda](https://store.continuum.io/cshop/anaconda/)) 
-and then installing the `fretbursts` python package (`pip install fretbursts==0.4rc4`).
+Briefly, the installation requires installing a scientific python distribution
+(such as [Continuum Anaconda](https://store.continuum.io/cshop/anaconda/))
+and then installing the `fretbursts` python package (`pip install fretbursts==0.4rc5`).
 
 A detailed description of different installation options can be found in:
 
