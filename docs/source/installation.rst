@@ -29,8 +29,8 @@ Alternatively you can clone FRETBursts git repository and run::
     python setup.py install
 
 The optimized C extensions are installed in both cases. Make sure that
-the dependencies `lmfit` and `seaborn` have been installed, if not
-installe them with::
+the dependencies `lmfit` and `seaborn` have been installed. If not
+just install them with::
 
     pip install lmfit==0.8.1 seaborn
 
