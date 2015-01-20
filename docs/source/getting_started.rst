@@ -7,4 +7,5 @@ Getting started
 
     installation
     notebook_workflow
+    dependencies
 
