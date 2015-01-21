@@ -347,9 +347,13 @@ def bursts_fitter(dx, burst_data='E', save_fitter=True,
     assert burst_data in dx
     fitter = mfit.MultiFitter(dx[burst_data])
     if weights is not None:
-        weight_kwargs = dict(weights=weights, gamma=gamma, nd=dx.nd, na=dx.na)
+        weight_kwargs = dict(weights=weights, gamma=gamma,
+                             nd=dx.nd, na=dx.na)
         if add_naa:
-            weight_kwargs.update(naa=dx.naa)
+            weight_kwargs['naa'] = dx.naa
+        if weights == 'brightness':
+            weight_kwargs['widths'] = [burstlib.b_width(mb)*dx.clk_p
+                                       for mb in dx.mburst]
         fitter.set_weights_func(weight_func=fret_fit.get_weights,
                                 weight_kwargs=weight_kwargs)
     if bandwidth is not None:

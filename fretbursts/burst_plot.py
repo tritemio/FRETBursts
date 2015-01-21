@@ -51,7 +51,7 @@ from .ph_sel import Ph_sel
 from . import burstlib as bl
 from . import burstlib_ext as bext
 from . import background as bg
-from .utils.misc import clk_to_s, pprint, HistData
+from .utils.misc import pprint, HistData
 from .scroll_gui import ScrollingToolQT
 from . import gui_selection as gs
 

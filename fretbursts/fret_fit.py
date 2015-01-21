@@ -174,7 +174,7 @@ def get_dist_euclid(nd, na, E_fit=None, slope=None):
     distances = np.sqrt((nd-nd_l)**2 + (na-na_l)**2)
     return distances
 
-def get_weights(nd, na, weights, naa=0, gamma=1.):
+def get_weights(nd, na, weights, naa=0, gamma=1., widths=None):
     """Return burst weigths computed according to different criteria.
 
     The burst size is computed as `nd*gamma + na + naa`.
@@ -182,6 +182,8 @@ def get_weights(nd, na, weights, naa=0, gamma=1.):
     Arguments:
         nd, na, naa (1D arrays): photon counts in each burst.
         gamma (float): gamma factor used for corrected burst size.
+        width (None array): array of burst durations used when
+            weights='brightness'
         weights (string or None): type of weights, possible weights are:
             'size' burst size, 'size_min' burst size - min(burst size),
             'size2' (burst size)^2, 'sqrt' sqrt(burst size),
@@ -196,26 +198,30 @@ def get_weights(nd, na, weights, naa=0, gamma=1.):
     nt = nd*gamma + na + naa
     if weights is None:           # all weights the same
         weights = np.ones(nd.size)
-    elif weights is 'size':       # weight = burst size (with gamma)
+    elif weights == 'size':       # weight = burst size (with gamma)
         weights = nt
-    elif weights is 'size_min':   # weight = burst size - min(burst size)
+    elif weights == 'size_min':   # weight = burst size - min(burst size)
         weights = nt - nt.min() + 1
-    elif weights is 'size2':      # weight = (burst size)^2
+    elif weights == 'size2':      # weight = (burst size)^2
         weights = nt**2
-    elif weights is 'sqrt':       # weigth = sqrt(burst size)
+    elif weights == 'sqrt':       # weigth = sqrt(burst size)
         weights = np.sqrt(nt)
-    elif weights is 'inv_size':   # weight = 1/(burst size)
+    elif weights == 'inv_size':   # weight = 1/(burst size)
         weights = 1./(nt)
-    elif weights is 'inv_sqrt':   # weight = 1/sqrt(burst size)
+    elif weights == 'inv_sqrt':   # weight = 1/sqrt(burst size)
         weights = 1./np.sqrt(nt)
-    elif weights is 'cum_size':   # weight = CDF_of_burst_sizes(burst size)
+    elif weights == 'cum_size':   # weight = CDF_of_burst_sizes(burst size)
         ecdf = [np.sort(nt), 1.*np.arange(1, nt.size+1)/nt.size]
         weights = np.interp(nt, ecdf[0], ecdf[1], left=0, right=1)
-    elif weights is 'cum_size2':   # weight = CDF_of_burst_sizes(burst size)^2
+    elif weights == 'cum_size2':   # weight = CDF_of_burst_sizes(burst size)^2
         ecdf = [np.sort(nt), 1.*np.arange(1, nt.size+1)/nt.size]
         weights = np.interp(nt, ecdf[0], ecdf[1]**2, left=0, right=1)
+    elif weights == 'brightness':
+        assert widths is not None, \
+            "The widths argument is needed to compute the 'brigness' weights"
+        weights = nt/widths
     else:
-        raise ValueError
+        raise ValueError("Wrong weights name.")
     assert weights.size == nd.size
     return weights
 
