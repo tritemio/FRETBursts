@@ -204,7 +204,7 @@ def single(d, ich=0, th=1):
     bursts_mask = np.hstack([gap_mask,False])*np.hstack([False,gap_mask])
     return bursts_mask, ''
 
-def consecutive(d, ich=0, sep1=0, sep2=np.inf, kind='first'):
+def consecutive(d, ich=0, sep1=0, sep2=np.inf, kind='both'):
     """Select consecutive bursts with sep1 <= separation <= sep2 (in sec.).
 
     Arguments:
@@ -217,15 +217,14 @@ def consecutive(d, ich=0, sep1=0, sep2=np.inf, kind='first'):
         "Invalid value for 'kind'. Valid values are %s" % str(kind_valids)
 
     bseparation = bslib.b_separation(d.mburst[ich])*d.clk_p
-    burst_mask = (bseparation >= sep1)*(bseparation <= sep2)
-    if kind == 'first':
-        return np.hstack([burst_mask, (False,)])
-    elif kind == 'second':
-        return np.hstack([(False,), burst_mask])
-    elif kind == 'both':
-        return np.hstack([burst_mask, (False,)]) + \
-               np.hstack([(False,), burst_mask])
+    pair_mask = (bseparation >= sep1)*(bseparation <= sep2)
 
+    bursts_mask = np.zeros(d.num_bursts[ich], dtype=bool)
+    if kind in ['first', 'both']:
+        bursts_mask += np.hstack([pair_mask, (False,)])
+    elif kind in ['second', 'both']:
+        bursts_mask += np.hstack([(False,), pair_mask])
+    return bursts_mask, ''
 
 ## Selection on burst size vs BG
 def nd_bg(d, ich=0, F=5):
