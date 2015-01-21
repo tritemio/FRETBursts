@@ -3,11 +3,14 @@
 FRETBursts Installation
 =======================
 
-FRETBursts can be installed as a standard python package (either via PIP
-or conda).
+FRETBursts can be installed as a standard python package either via `conda`
+or PIP (see below).
 
 In any case, to easily install the different dependencies, you need to
-install a **scientific python distribution**.
+install a **scientific python distribution**. If you don't know where
+to start just install
+`Continuum Anaconda <https://store.continuum.io/cshop/anaconda/>`_
+(free version).
 
 After installing FRETBursts, it is recommended that you download the
 `FRETBursts notebooks <https://github.com/tritemio/FRETBursts_notebooks/archive/master.zip>`__
@@ -16,50 +19,60 @@ to get started. See :ref:`running_fretbursts`.
 
 .. _package_install:
 
+Package installation (conda)
+----------------------------
+
+`conda` is the package manager used by Anaconda that simplifies installation
+and upgrades. If you installed the Anaconda distribution, this is
+the preferred method to install FRETBursts and keep it updated.
+
+As a first step, add the "channel" containing the FRETBursts
+packages::
+
+    conda config --add channels tritemio
+
+Then install FRETBursts with::
+
+    conda install fretbursts
+
+The previous command will upgrade to the newest FRETBursts version
+whenever available.
+
 Package installation (PIP)
 --------------------------
 
-This is the preferred method if you are just starting with FRETBursts.
+FRETBursts can be also installed through the standard python package
+manager (PIP).
 
-Start by installing `Continuum Anaconda <https://store.continuum.io/cshop/anaconda/>`__
-python distribution (free version).
+In this case, make sure that all the non-pure python dependencies are already
+installed (i.e. numpy, scipy, pandas, matplotlib, pyqt, pytables).
 
-Then you can install latest FRETBursts release with through PIP::
+Then install or upgrade FRETBursts with::
 
     pip install fretbursts --upgrade
 
 Use the previous command every time you want to upgrade to the latest stable
 release.
 
-Package installation (conda)
-----------------------------
-
-If you prefer installing FRETBursts through `conda` (the Anaconda package
-manager), you need to add the FRETBursts channel::
-
-    conda config --add channels tritemio
-
-and then install FRETBursts with::
-
-    conda install fretbursts
-
 Install from GitHub (development)
 ---------------------------------
 
-You can install the latest development version from GitHub with::
+You can install the latest development version directly from GitHub with::
 
     pip install git+git://github.com/tritemio/FRETBursts.git
 
-Alternatively you can clone FRETBursts git repository and run::
+.. note ::
+    Note that the previous command fails when `git <http://git-scm.com/>`_
+    is not installed.
+
+Alternatively you can clone FRETBursts git repository and from the
+source folder run::
 
     python setup.py build
     python setup.py install
 
 The optimized C extensions are installed in both cases. Make sure that
-the dependencies `lmfit` and `seaborn` have been installed. If not
-just install them with::
-
-    pip install lmfit seaborn
+the dependencies `lmfit` and `seaborn` have been installed.
 
 .. _source_install:
 
