@@ -217,7 +217,7 @@ def consecutive(d, ich=0, sep1=0, sep2=np.inf, kind='first'):
         "Invalid value for 'kind'. Valid values are %s" % str(kind_valids)
 
     bseparation = bslib.b_separation(d.mburst[ich])*d.clk_p
-    burst_mask = (bseparation >= sep1)*(bseparation >= sep2)
+    burst_mask = (bseparation >= sep1)*(bseparation <= sep2)
     if kind == 'first':
         return np.hstack([burst_mask, (False,)])
     elif kind == 'second':
