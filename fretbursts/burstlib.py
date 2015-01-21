@@ -140,10 +140,13 @@ def Sel_mask(d_orig, filter_fun, negate=False, return_str=False, **kwargs):
     """
     ## Create the list of bool masks for the bursts selection
     M = [filter_fun(d_orig, i, **kwargs) for i in range(d_orig.nch)]
+    assert np.all([isinstance(m[1], str) for m in M])
     Masks = [-m[0] if negate else m[0] for m in M]
     str_sel = M[0][1]
-    if return_str: return Masks, str_sel
-    else: return Masks
+    if return_str:
+        return Masks, str_sel
+    else:
+        return Masks
 
 def Sel_mask_apply(d_orig, Masks, nofret=False, str_sel=''):
     """Returns a new Data object with bursts select according to Masks.

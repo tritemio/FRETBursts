@@ -191,7 +191,7 @@ def topN_sbr(d, ich=0, N=200):
 def max_rate(d, ich=0, min_rate_p=0.1):
     min_rate = d.max_rate[ich].max()*min_rate_p
     mask = (d.max_rate[ich] >= min_rate)
-    return mask
+    return mask, ''
 
 
 ## Selection on burst time (nearby, overlapping or isolated bursts)
@@ -202,7 +202,7 @@ def single(d, ich=0, th=1):
     burst_end = bslib.b_end(d.mburst[ich])
     gap_mask = (burst_start[1:] - burst_end[:-1]) >= th
     bursts_mask = np.hstack([gap_mask,False])*np.hstack([False,gap_mask])
-    return bursts_mask
+    return bursts_mask, ''
 
 def consecutive(d, ich=0, sep1=0, sep2=np.inf, kind='first'):
     """Select consecutive bursts with sep1 <= separation <= sep2 (in sec.).
@@ -232,25 +232,25 @@ def nd_bg(d, ich=0, F=5):
     """Select bursts with (nd >= bg_dd*F)."""
     bg_burst = d.bg_dd[ich][d.bp[ich]]*bslib.b_width(d.mburst[ich])*d.clk_p
     bursts_mask = (d.nd[ich] >= F*bg_burst)
-    return bursts_mask
+    return bursts_mask, ''
 
 def na_bg(d, ich=0, F=5):
     """Select bursts with (na >= bg_ad*F)."""
     bg_burst = d.bg_ad[ich][d.bp[ich]]*bslib.b_width(d.mburst[ich])*d.clk_p
     bursts_mask = (d.na[ich] >= F*bg_burst)
-    return bursts_mask
+    return bursts_mask, ''
 
 def naa_bg(d, ich=0, F=5):
     """Select bursts with (naa >= bg_aa*F)."""
     bg_burst = d.bg_aa[ich][d.bp[ich]]*bslib.b_width(d.mburst[ich])*d.clk_p
     bursts_mask = (d.naa[ich] >= F*bg_burst)
-    return bursts_mask
+    return bursts_mask, ''
 
 def nt_bg(d, ich=0, F=5):
     """Select bursts with (nt >= bg*F)."""
     bg_burst = d.bg[ich][d.bp[ich]]*bslib.b_width(d.mburst[ich])*d.clk_p
     bursts_mask = (d.nt[ich] > F*bg_burst)
-    return bursts_mask
+    return bursts_mask, ''
 
 ## Selection on burst size vs BG (probabilistic)
 def na_bg_p(d, ich=0, P=0.05, F=1.):
@@ -260,7 +260,7 @@ def na_bg_p(d, ich=0, P=0.05, F=1.):
     max_num_bg_ph = stats.poisson(F*accept_ch_bg_rate*bursts_width).isf(P)
     #print("Min num. ph = ",  max_num_bg_ph)
     bursts_mask = (d.na[ich] >= max_num_bg_ph)
-    return bursts_mask
+    return bursts_mask, ''
 
 def nd_bg_p(d, ich=0, P=0.05, F=1.):
     """Select bursts w/ DD signal using P{F*BG>=nd} < P."""
@@ -269,7 +269,7 @@ def nd_bg_p(d, ich=0, P=0.05, F=1.):
     max_num_bg_ph = stats.poisson(F*donor_ch_bg_rate*bursts_width).isf(P)
     #print("Min num. ph = ", max_num_bg_ph)
     bursts_mask = (d.nd[ich] >= max_num_bg_ph)
-    return bursts_mask
+    return bursts_mask, ''
 
 def naa_bg_p(d, ich=0, P=0.05, F=1.):
     """Select bursts w/ AA signal using P{F*BG>=naa} < P."""
@@ -278,7 +278,7 @@ def naa_bg_p(d, ich=0, P=0.05, F=1.):
     max_num_bg_ph = stats.poisson(F*A_em_ex_bg_rate*bursts_width).isf(P)
     #print("Min num. ph = ", max_num_bg_ph)
     bursts_mask = (d.naa[ich] >= max_num_bg_ph)
-    return bursts_mask
+    return bursts_mask, ''
 
 def nt_bg_p(d, ich=0, P=0.05, F=1.):
     """Select bursts w/ signal using P{F*BG>=nt} < P."""
@@ -290,7 +290,7 @@ def nt_bg_p(d, ich=0, P=0.05, F=1.):
     #print("Poisson rate = ", bg_rate*bursts_width)
     #print("rate = ", bg_rate)
     bursts_mask = (d.nt[ich] >= max_num_bg_ph)
-    return bursts_mask
+    return bursts_mask, ''
 
 
 ## Old selection functions
@@ -322,14 +322,14 @@ def size_noise(d, ich=0, th=2):
     burst_width = bslib.b_width(d.mburst[ich])
     noise_d, noise_a = burst_width*d.rate_dd[ich], burst_width*d.rate_ad[ich]
     bursts_mask = (d.nd[ich] >= th*noise_d)*(d.na[ich] >= th*noise_a)
-    return bursts_mask
+    return bursts_mask, ''
 
 def size_noise_or(d, ich=0, th=2):
     """Select bursts w/ size th times above the noise on D or A ch."""
     burst_width = bslib.b_width(d.mburst[ich])
     noise_d, noise_a = burst_width*d.rate_dd[ich], burst_width*d.rate_ad[ich]
     bursts_mask = (d.nd[ich] >= th*noise_d)+(d.na[ich] >= th*noise_a)
-    return bursts_mask
+    return bursts_mask, ''
 
 ## this uses prob_to_be_bg from burstlib_misc.py
 #def no_bg(d, ich=0, P=0.005, NF=1.):
@@ -350,5 +350,5 @@ def fret_value(d, ich=0, E=0.5, P_th=0.01):
         #min_accept_num = interp(th, y,accept_num)
         min_accept_num = RV.ppf(P_th) # ppf: percent point function (cdf^-1)
         bursts_mask[indexes] = (d.na[ich][indexes] > min_accept_num)
-    return bursts_mask
+    return bursts_mask, ''
 
