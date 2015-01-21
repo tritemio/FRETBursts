@@ -1687,7 +1687,7 @@ def _calc_vmin(vmax, vmax_threshold, vmin_default):
         vmin = vmin_default
     return vmin
 
-def alex_jointplot(d, i=0, gridsize=50, cmap='YlGnBu_crop',
+def alex_jointplot(d, i=0, gridsize=50, C=None, cmap='YlGnBu_crop',
                    zero_transparent=True, vmax_fret=True, vmax_threshold=10,
                    vmin_default=0, vmin=None, cmap_compensate=False,
                    joint_kws=dict(edgecolor='grey', lw=0.2),
@@ -1705,6 +1705,9 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='YlGnBu_crop',
         d (Data object): the variable containing the bursts to plot
         i (int): the channel number. Default 0.
         gridsize (int): the grid size for the 2D histogram (hexbin)
+        C (1D array or None): array of weights, it must have size equal to
+            the number of bursts in channel `i` (d.num_bursts[i]).
+            Passed to matplotlib hexbin().
         cmap (string): name of the colormap for the 2D histogram. In
             addition to all the matplotlib colormaps, FRETbursts defines
             two custom colormaps 'YlGnBu_crop' and 'alex_lv'.
@@ -1729,7 +1732,7 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='YlGnBu_crop',
     """
     g = sns.JointGrid(x=d.E[i], y=d.S[i], ratio=3, space=0.2,
                       xlim=(-0.2, 1.2), ylim=(-0.2, 1.2))
-    joint_kws.update(gridsize=gridsize, cmap=cmap,
+    joint_kws.update(gridsize=gridsize, C=C, cmap=cmap,
                      extent=(-0.2, 1.2, -0.2, 1.2))
     jplot = g.plot_joint(plt.hexbin, mincnt=zero_transparent, **joint_kws)
 
