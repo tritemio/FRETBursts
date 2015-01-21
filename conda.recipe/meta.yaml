@@ -1,0 +1,77 @@
+package:
+  name: fretbursts
+  version: {{ environ['GIT_DESCRIBE_TAG'] }}
+
+source:
+    #path: ../fretbursts/
+    git_url: https://github.com/tritemio/fretbursts.git
+    #git_url: ../fretbursts/
+    #git_tag : 0.4rc6.dev3
+    # fn: fretbursts-0.4rc5.zip
+    # url: https://pypi.python.org/packages/source/f/fretbursts/fretbursts-0.4rc5.zip
+    # md5: 6c8fd936f30b4f9678756e5aeff18c7f
+
+build:
+    number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
+    #string: {{ '0' if environ.get('GIT_BUILD_STR', '').startswith('0_') else environ.get('GIT_BUILD_STR', '') }}
+
+requirements:
+  build:
+    - python
+    - libpython    [win64]
+    - setuptools
+    - cython 0.20*
+    - numpy
+    - scipy
+    - matplotlib
+    - lmfit
+    - seaborn
+
+  run:
+    - python
+    - numpy
+    - scipy
+    - matplotlib
+    - lmfit
+    - seaborn
+    - pyqt
+    - pytables
+    - pandas
+
+test:
+  # Python imports
+  imports:
+    - fretbursts
+
+  # commands:
+    # You can put test commands to be run here.  Use this to test that the
+    # entry points work.
+
+
+  # You can also put a file called run_test.py in the recipe that will be run
+  # at test time.
+
+  # requires:
+    # Put any additional test requirements here.  For example
+    # - nose
+
+about:
+  home: http://github.com/tritemio/FRETBursts/
+  license: GPLv2
+  summary: 'Burst analysis toolkit for single and multi-spot smFRET data.'
+
+# If the app key is present, the package will be an app, meaning it will
+# appear in the Anaconda launcher.
+app:
+  # The command that is called to launch the app
+  entry: ipython notebook
+  # Icon file contained in the recipe
+  #icon: icon_64x64.png
+  summary: 'Burst analysis toolkit for single and multi-spot smFRET data.'
+  # If own_environment is true, installing the app through the launcher
+  # will install into its own environment. The default is false.
+  #own_environment: true
+
+# See
+# http://docs.continuum.io/conda/build.html for
+# more information about meta.yaml
