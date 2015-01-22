@@ -112,11 +112,11 @@ def bsavefig(d, s):
 
 def mch_plot_bg(d, **kwargs):
     """Plot background vs channel for DA, D and A photons."""
-    plot(r_[1:d.nch+1], [b.mean()*1e-3 for b in d.bg], lw=2, color='b',
+    plot(r_[1:d.nch+1], [b.mean()*1e-3 for b in d.bg], lw=2, color=blue,
          label=' T', **kwargs)
-    plot(r_[1:d.nch+1], [b.mean()*1e-3 for b in d.bg_dd], color='g', lw=2,
+    plot(r_[1:d.nch+1], [b.mean()*1e-3 for b in d.bg_dd], color=green, lw=2,
          label=' D', **kwargs)
-    plot(r_[1:d.nch+1], [b.mean()*1e-3 for b in d.bg_ad], color='r', lw=2,
+    plot(r_[1:d.nch+1], [b.mean()*1e-3 for b in d.bg_ad], color=red, lw=2,
          label=' A', **kwargs)
     xlabel("CH"); ylabel("kcps"); grid(True); legend(loc='best')
     title(d.name)
@@ -125,16 +125,16 @@ def mch_plot_bg_ratio(d):
     """Plot ratio of A over D background vs channel."""
     plot(r_[1:d.nch+1],
          [ba.mean()/bd.mean() for bd, ba in zip(d.bg_dd, d.bg_ad)],
-         color='g', lw=2, label='A/D')
+         color=green, lw=2, label='A/D')
     xlabel("CH"); ylabel("BG Ratio A/D"); grid(True)
     title("BG Ratio A/D "+d.name)
 
 def mch_plot_bsize(d):
     """Plot mean burst size vs channel."""
     CH = np.arange(1, d.nch+1)
-    plot(CH, [b.mean() for b in d.nt], color='b', lw=2, label=' T')
-    plot(CH, [b.mean() for b in d.nd], color='g', lw=2, label=' D')
-    plot(CH, [b.mean() for b in d.na], color='r', lw=2, label=' A')
+    plot(CH, [b.mean() for b in d.nt], color=blue, lw=2, label=' T')
+    plot(CH, [b.mean() for b in d.nd], color=green, lw=2, label=' D')
+    plot(CH, [b.mean() for b in d.na], color=red, lw=2, label=' A')
     xlabel("CH"); ylabel("Mean burst size")
     grid(True)
     legend(loc='best')
@@ -220,12 +220,12 @@ def plot_alternation_hist_nsalex(d, bins=None, ax=None):
     nanotimes_d = d.nanotimes_t[d.det_t == d.det_donor_accept[0]]
     nanotimes_a = d.nanotimes_t[d.det_t == d.det_donor_accept[1]]
     hist(nanotimes_d, bins=bins, histtype='step', label='Donor', lw=1.2,
-         alpha=0.5, color='g')
+         alpha=0.5, color=green)
     hist(nanotimes_a, bins=bins, histtype='step', label='Acceptor', lw=1.2,
-         alpha=0.5, color='r')
+         alpha=0.5, color=red)
     plt.yscale('log')
-    plt.axvspan(d.D_ON[0], d.D_ON[1], color='g', alpha=0.1)
-    plt.axvspan(d.A_ON[0], d.A_ON[1], color='r', alpha=0.1)
+    plt.axvspan(d.D_ON[0], d.D_ON[1], color=green, alpha=0.1)
+    plt.axvspan(d.A_ON[0], d.A_ON[1], color=red, alpha=0.1)
 
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -549,7 +549,7 @@ def timetrace_fret(d, i=0, gamma=1., **kwargs):
     b = d.mburst[i]
     bsizes = bl.select_bursts.get_burst_size(d, ich=i, gamma=gamma)
 
-    style_kwargs = dict(marker='o', mew=0.5, color='b', mec='grey',
+    style_kwargs = dict(marker='o', mew=0.5, color=blue, mec='grey',
                         alpha=0.4, ls='')
     style_kwargs.update(**kwargs)
 
@@ -620,8 +620,8 @@ def time_ph(d, i=0, num_ph=1e4, ph_istart=0):
     u = d.clk_p # time scale
     plt.vlines(ph_d*u, 0, 1, color='k', alpha=0.02)
     plt.vlines(ph_a*u, 0, 1, color='k', alpha=0.02)
-    plt.vlines(start*u, -0.5, 1.5, lw=3, color='g', alpha=0.5)
-    plt.vlines(end*u, -0.5, 1.5, lw=3, color='r', alpha=0.5)
+    plt.vlines(start*u, -0.5, 1.5, lw=3, color=green, alpha=0.5)
+    plt.vlines(end*u, -0.5, 1.5, lw=3, color=red, alpha=0.5)
     xlabel("Time (s)")
 
 
@@ -769,7 +769,7 @@ def _fitted_E_plot(d, i=0, F=1, no_E=False, ax=None, show_model=True,
         if verbose:
             print('Fit Integral:', np.trapz(scale*y, x))
 
-    ax2.axvline(d.E_fit[i], lw=3, color='r', ls='--', alpha=0.6)
+    ax2.axvline(d.E_fit[i], lw=3, color=red, ls='--', alpha=0.6)
     xtext = 0.6 if d.E_fit[i] < 0.6 else 0.2
     if d.nch > 1 and not no_E:
         ax2.text(xtext, 0.81, "CH%d: $E_{fit} = %.3f$" % \
@@ -1240,11 +1240,11 @@ def hist_ph_delays(
     rc = bg.exp_cdf_fit(ph, tail_min_us=efit_tail_min_us)
     t = r_[0:1200]*1e-6
     F = 1 if 'normed' in kwargs else H[0].sum()*(bin_width_us)
-    plot(t*1e6, 0.65*F*efun(t, rc)*1e-6, lw=3, alpha=0.5, color='m',
+    plot(t*1e6, 0.65*F*efun(t, rc)*1e-6, lw=3, alpha=0.5, color=purple,
          label="%d cps - Exp CDF (tail_min_p=%.2f)" % (rc, efit_tail_min_us))
-    plot(t*1e6, 0.65*F*efun(t, re)*1e-6, lw=3, alpha=0.5, color='r',
+    plot(t*1e6, 0.65*F*efun(t, re)*1e-6, lw=3, alpha=0.5, color=red,
          label="%d cps - Exp ML (tail_min_p=%.2f)" % (re, efit_tail_min_us))
-    plot(t*1e6, 0.68*F*efun(t, rg)*1e-6, lw=3, alpha=0.5, color='g',
+    plot(t*1e6, 0.68*F*efun(t, rg)*1e-6, lw=3, alpha=0.5, color=green,
          label=u"%d cps - Hist (bin_ms=%d) [Δ=%d%%]" % (hfit_bin_ms, rg,
                                                         100*(rg-re)/re))
     plt.legend(loc='best', fancybox=True)
@@ -1301,13 +1301,13 @@ def hist_mdelays(d, i=0, m=10, bins_s=(0, 10, 0.02), period=0,
     #text(0.8,0.8,"I = %.1f %%" % (integr*100), transform = gca().transAxes)
 
     ## MDelays plot
-    plot(bin_x, mdelays_pdf_y, lw=2, color='b', alpha=0.5,
+    plot(bin_x, mdelays_pdf_y, lw=2, color=blue, alpha=0.5,
          label="Delays dist.")
-    plot(bin_x, mdelays_b_pdf_y, lw=2, color='r', alpha=0.5,
+    plot(bin_x, mdelays_b_pdf_y, lw=2, color=red, alpha=0.5,
          label="Delays dist. (in burst)")
     plt.axvline(max_delay_th_P, color='k',
                 label="BG ML dist. @ %.1f%%" % (bg_ppf*100))
-    plt.axvline(max_delay_th_F, color='m',
+    plt.axvline(max_delay_th_F, color=purple,
                 label="BS threshold (F=%d)" % d.F)
 
     ## Bg distribution plots
@@ -1383,8 +1383,9 @@ def hist_asymmetry(d, i=0, bin_max=2, binwidth=0.1, stat_func=np.median):
     asym_counts_pos = counts[izero:] - counts[:izero][::-1]
     asym_counts = np.hstack([asym_counts_neg, asym_counts_pos])
 
-    plt.bar(bins[:-1], width=binwidth, height=counts, fc='b', alpha=0.5)
-    plt.bar(bins[:-1], width=binwidth, height=asym_counts, fc='r', alpha=0.5)
+    plt.bar(bins[:-1], width=binwidth, height=counts, fc=blue, alpha=0.5)
+    plt.bar(bins[:-1], width=binwidth, height=asym_counts, fc=red,
+            alpha=0.5)
     plt.grid(True)
     plt.xlabel('Time (ms)')
     plt.ylabel('# Bursts')
@@ -1407,7 +1408,7 @@ def scatter_width_size(d, i=0):
     t_ms = arange(0, 50)
     plot(t_ms, ((d.m)/(d.T[i]))*t_ms*1e-3, '--', lw=2, color='k',
          label='Slope = m/T = min. rate = %1.0f cps' % (d.m/d.T[i]))
-    plot(t_ms, d.rate_m[i]*t_ms*1e-3, '--', lw=2, color='r',
+    plot(t_ms, d.rate_m[i]*t_ms*1e-3, '--', lw=2, color=red,
          label='Noise rate: BG*t')
     xlabel('Burst width (ms)'); ylabel('Burst size (# ph.)')
     plt.xlim(0, 10); plt.ylim(0, 300)
@@ -1432,7 +1433,7 @@ def scatter_fret_size(d, i=0, which='all', gamma=1, add_naa=False,
         assert which in d
         size = d[which][i]
 
-    plot_style_ = dict(linestyle='', alpha=0.1, color='b',
+    plot_style_ = dict(linestyle='', alpha=0.1, color=blue,
                        marker='o', markeredgewidth=0, markersize=3)
     plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
     plot(d.E[i], size, **plot_style_)
@@ -1442,7 +1443,7 @@ def scatter_fret_size(d, i=0, which='all', gamma=1, add_naa=False,
 def scatter_fret_nd_na(d, i=0, show_fit=False, no_text=False, gamma=1.,
                        **kwargs):
     """Scatterplot of FRET versus gamma-corrected burst size."""
-    default_kwargs = dict(mew=0, ms=3, alpha=0.3, color="blue")
+    default_kwargs = dict(mew=0, ms=3, alpha=0.3, color=blue)
     default_kwargs.update(**kwargs)
     plot(d.E[i], gamma*d.nd[i]+d.na[i], 'o', **default_kwargs)
     xlabel("FRET Efficiency (E)")
