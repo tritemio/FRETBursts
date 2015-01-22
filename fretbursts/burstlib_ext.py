@@ -367,8 +367,10 @@ def bursts_fitter(dx, burst_data='E', save_fitter=True,
         if model is not None:
             fitter.fit_histogram(model=model, verbose=verbose)
     if save_fitter:
-        dx.add(**{burst_data + '_fitter': fitter,
-                  'burst_weights': (weights, float(gamma), add_naa)})
+        dx.add(
+            **{burst_data+'_fitter': fitter,
+               burst_data+'_weights': (weights, float(gamma), add_naa)}
+              )
     return fitter
 
 def _get_bg_distrib_erlang(d, ich=0, m=10, ph_sel=Ph_sel('all'),
