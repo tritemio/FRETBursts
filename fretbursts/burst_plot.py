@@ -1044,11 +1044,10 @@ def hist2d_alex(d, i=0, vmin=2, vmax=0, bin_step=None, S_max_norm=0.8,
                 interp='bicubic', cmap='hot', under_color='white',
                 over_color='white', scatter=True, scatter_ms=3,
                 scatter_color='orange', scatter_alpha=0.2, gui_sel=False,
-                ax=None, cbar_ax=None, grid_color='#D0D0D0'):
+                cbar_ax=None, grid_color='#D0D0D0'):
     """Plot 2-D E-S ALEX histogram with a scatterplot overlay.
     """
-    if ax is None:
-        ax = plt.gca()
+    ax = plt.gca()
     if bin_step is not None:
         d.calc_alex_hist(bin_step=bin_step)
     ES_hist, E_bins, S_bins, S_ax = d.ES_hist[i], d.E_bins, d.S_bins, d.S_ax
@@ -1072,13 +1071,32 @@ def hist2d_alex(d, i=0, vmin=2, vmax=0, bin_step=None, S_max_norm=0.8,
         gcf().colorbar(im)
     else:
         cbar_ax.colorbar(im)
-    ax.set_xlim(-0.2, 1.2); ax.set_ylim(-0.2, 1.2)
-    ax.set_xlabel('E');     ax.set_ylabel('S')
+    ax.set_xlim(-0.2, 1.2)
+    ax.set_ylim(-0.2, 1.2)
+    ax.set_xlabel('E')
+    ax.set_ylabel('S')
     ax.grid(color=grid_color)
     if gui_sel:
         # the selection object must be saved (otherwise will be destroyed)
         hist2d_alex.gui_sel = gs.rectSelection(gcf(), gca())
 
+def hexbin_alex(d, i=0, figsize=(6, 5), vmin=0, vmax_fret=True, gridsize=40,
+                **hexbin_kwargs):
+    """Plot an hexbin 2D histogram for E-S.
+    """
+    fig = plt.gcf()
+    fig.set_size_inches(*figsize)
+
+    hexbin_kwargs_ = dict(extent=(-0.2, 1.2, -0.2, 1.2), gridsize=gridsize,
+                          mincnt=1, cmap='GnBu_r')
+    if hexbin_kwargs is not None:
+        hexbin_kwargs_.update(hexbin_kwargs)
+    poly = plt.hexbin(d.E[i], d.S[i], **hexbin_kwargs_)
+    vmax = _alex_hexbin_vmax(poly, vmax_fret=vmax_fret)
+    poly.set_clim(vmin, vmax)
+    plt.xlabel('E')
+    plt.ylabel('S')
+    plt.colorbar()
 
 def plot_ES_selection(ax, E1, E2, S1, S2, rect=True, **kwargs):
     """Plot an overlay ROI on top of an E-S plot (i.e. ALEX histogram).

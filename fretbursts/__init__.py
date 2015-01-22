@@ -104,7 +104,7 @@ __all_local_names = [
         "hist_mrates", "hist_rate_in_burst", "hist_burst_delays",
         "scatter_width_size", "scatter_rate_da", "scatter_fret_size",
         "scatter_fret_nd_na", "scatter_fret_width", "scatter_da",
-        "scatter_naa_nt", "scatter_alex",
+        "scatter_naa_nt", "scatter_alex", "hexbin_alex",
 
         # Wrapper functions that create a plot for each channel
         "dplot", "dplot_48ch", "dplot_8ch", "dplot_1ch",
@@ -150,7 +150,7 @@ if has_matplotlib and has_pandas and has_lmfit:
             hist_mrates, hist_rate_in_burst, hist_burst_delays,
             scatter_width_size, scatter_rate_da, scatter_fret_size,
             scatter_fret_nd_na, scatter_fret_width, scatter_da,
-            scatter_naa_nt, scatter_alex,
+            scatter_naa_nt, scatter_alex, hexbin_alex,
 
             # Wrapper functions that create a plot for each channel
             dplot, dplot_48ch, dplot_8ch, dplot_1ch,
