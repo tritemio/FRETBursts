@@ -222,7 +222,7 @@ def consecutive(d, ich=0, sep1=0, sep2=np.inf, kind='both'):
     bursts_mask = np.zeros(d.num_bursts[ich], dtype=bool)
     if kind in ['first', 'both']:
         bursts_mask += np.hstack([pair_mask, (False,)])
-    elif kind in ['second', 'both']:
+    if kind in ['second', 'both']:
         bursts_mask += np.hstack([(False,), pair_mask])
     return bursts_mask, ''
 
