@@ -13,6 +13,10 @@ import sys
 import numpy as np
 
 
+def _is_list_of_arrays(obj):
+    return isinstance(obj, list) and np.all([isinstance(v, np.ndarray)
+                                             for v in obj])
+
 class HistData(object):
     """Stores histogram counts and bins and provides derived fields.
 

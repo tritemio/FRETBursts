@@ -51,7 +51,7 @@ from .ph_sel import Ph_sel
 from . import burstlib as bl
 from . import burstlib_ext as bext
 from . import background as bg
-from .utils.misc import pprint, HistData
+from .utils.misc import pprint, HistData, _is_list_of_arrays
 from .scroll_gui import ScrollingToolQT
 from . import gui_selection as gs
 
@@ -874,7 +874,8 @@ def hist_burst_data(
         xlabel, ylabel = ylabel, xlabel
         xlim, ylim = ylim, xlim
     weights_tuple = (weights, float(gamma), add_naa)
-    if not hasattr(d, fitter_name) or d.burst_weights != weights_tuple:
+    if not hasattr(d, fitter_name) or _is_list_of_arrays(weights) \
+            or d.burst_weights != weights_tuple:
         if hasattr(d, fitter_name):
             print(' - Overwriting the old %s object with the new weights.' %\
                     fitter_name)
