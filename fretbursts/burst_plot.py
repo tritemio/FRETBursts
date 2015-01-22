@@ -1690,7 +1690,7 @@ def _calc_vmin(vmax, vmax_threshold, vmin_default):
     return vmin
 
 def alex_jointplot(d, i=0, gridsize=50, cmap='YlGnBu_crop',
-                   zero_transparent=True, vmax_fret=True, vmax_threshold=10,
+                   vmax_fret=True, vmax_threshold=10,
                    vmin_default=0, vmin=None, cmap_compensate=False,
                    joint_kws=None, marginal_kws=None):
     """Plot an ALEX join plot: an E-S 2D histograms with marginal E and S.
@@ -1711,15 +1711,14 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='YlGnBu_crop',
             addition to all the matplotlib colormaps, FRETbursts defines
             two custom colormaps 'YlGnBu_crop' and 'alex_lv'.
             Default 'YlGnBu_crop'.
-        zero_transparent (bool): If True bins with 0 counts will be
-            transparent.
         vmax_fret (bool): if True, the colormap max value is equal to the
             max bin counts in the FRET region (S < 0.8). If False the
             colormap max is equal to the max bin counts.
-        joint_kws (dict): keyword arguments passed to Seaborn
-            plot_joint() to customize the plot style of the 2D histogram.
+        joint_kws (dict): keyword arguments passed to Seaborn plot_joint()
+            and hence to matplolib hexbin to customize the plot style.
         marginal_kws (dict) : keyword arguments passed to Seaborn
-            plot_joint() to customize the plot style of the marginals plots.
+            plot_marginals() to customize the plot style of the marginals
+            plots.
 
     .. seealso::
         The `Seaborn documentation <http://web.stanford.edu/~mwaskom/software/seaborn/index.html>`__
@@ -1732,10 +1731,10 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='YlGnBu_crop',
     g = sns.JointGrid(x=d.E[i], y=d.S[i], ratio=3, space=0.2,
                       xlim=(-0.2, 1.2), ylim=(-0.2, 1.2))
     joint_kws_ = dict(edgecolor='grey', linewidth=0.2, gridsize=gridsize,
-                      cmap=cmap, extent=(-0.2, 1.2, -0.2, 1.2))
+                      cmap=cmap, extent=(-0.2, 1.2, -0.2, 1.2), mincnt=1)
     if joint_kws is not None:
         joint_kws_.update(_normalize_kwargs(joint_kws))
-    jplot = g.plot_joint(plt.hexbin, mincnt=zero_transparent, **joint_kws_)
+    jplot = g.plot_joint(plt.hexbin, **joint_kws_)
 
     # Set the vmin and vmax values for the colormap
     poly = jplot.ax_joint.get_children()[2]
