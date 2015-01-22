@@ -902,8 +902,8 @@ def hist_burst_data(
 
     hist_plot_style_ = dict(linestyle='-', marker='o', markersize=6,
                             linewidth=2, alpha=0.6, label='E Histogram')
-    hist_plot_style_.update(**_normalize_kwargs(hist_plot_style,
-                                                kind='line2d'))
+    hist_plot_style_.update(_normalize_kwargs(hist_plot_style,
+                                              kind='line2d'))
     if hist_style == 'bar':
         bar(fitter.hist_bins[:-1], hist_vals, fitter.hist_binwidth,
             **hist_bar_style_)
@@ -921,8 +921,8 @@ def hist_burst_data(
 
     if show_model:
         model_plot_style_ = dict(color='k', alpha=0.8, label='Model')
-        model_plot_style_.update(**_normalize_kwargs(model_plot_style,
-                                                     kind='line2d'))
+        model_plot_style_.update(_normalize_kwargs(model_plot_style,
+                                                   kind='line2d'))
         fit_res = fitter.fit_res[i]
         x = fitter.x_axis
         y = scale*fit_res.model.eval(x=x, **fit_res.values)
@@ -943,8 +943,8 @@ def hist_burst_data(
         fitter.calc_kde(bandwidth=bandwidth)
         kde_plot_style_ = dict(linewidth=1.5, color='k', alpha=0.8,
                                label='KDE')
-        kde_plot_style_.update(**_normalize_kwargs(kde_plot_style,
-                                                   kind='line2d'))
+        kde_plot_style_.update(_normalize_kwargs(kde_plot_style,
+                                                 kind='line2d'))
         y = scale*fitter.kde[i](x)
         xx, yy = (y, x) if vertical else (x, y)
         ax.plot(xx, yy, **kde_plot_style_)
@@ -1479,7 +1479,7 @@ def scatter_alex(d, i=0, **kwargs):
     plot_style = dict(mew=1, ms=4, mec='black', color='purple',
                       alpha=0.1)
     plot_style = _normalize_kwargs(plot_style, 'line2d')
-    plot_style.update(**_normalize_kwargs(kwargs))
+    plot_style.update(_normalize_kwargs(kwargs))
     plot(d.E[i], d.S[i], 'o', **plot_style)
     xlabel("E"); ylabel('S')
     plt.xlim(-0.2, 1.2); plt.ylim(-0.2, 1.2)
@@ -1688,13 +1688,10 @@ def _calc_vmin(vmax, vmax_threshold, vmin_default):
         vmin = vmin_default
     return vmin
 
-def alex_jointplot(d, i=0, gridsize=50, C=None, cmap='YlGnBu_crop',
+def alex_jointplot(d, i=0, gridsize=50, cmap='YlGnBu_crop',
                    zero_transparent=True, vmax_fret=True, vmax_threshold=10,
                    vmin_default=0, vmin=None, cmap_compensate=False,
-                   joint_kws=dict(edgecolor='grey', lw=0.2),
-                   marginal_kws=dict(show_kde=True,
-                                     bandwidth=0.03,
-                                     binwidth=0.03)):
+                   joint_kws=None, marginal_kws=None):
     """Plot an ALEX join plot: an E-S 2D histograms with marginal E and S.
 
     This function plots a jointplot: a main 2D histogram (hexbin plot)
@@ -1733,9 +1730,11 @@ def alex_jointplot(d, i=0, gridsize=50, C=None, cmap='YlGnBu_crop',
     """
     g = sns.JointGrid(x=d.E[i], y=d.S[i], ratio=3, space=0.2,
                       xlim=(-0.2, 1.2), ylim=(-0.2, 1.2))
-    joint_kws.update(gridsize=gridsize, C=C, cmap=cmap,
-                     extent=(-0.2, 1.2, -0.2, 1.2))
-    jplot = g.plot_joint(plt.hexbin, mincnt=zero_transparent, **joint_kws)
+    joint_kws_ = dict(edgecolor='grey', linewidth=0.2, gridsize=gridsize,
+                      cmap=cmap, extent=(-0.2, 1.2, -0.2, 1.2))
+    if joint_kws is not None:
+        joint_kws_.update(_normalize_kwargs(joint_kws))
+    jplot = g.plot_joint(plt.hexbin, mincnt=zero_transparent, **joint_kws_)
 
     # Set the vmin and vmax values for the colormap
     poly = jplot.ax_joint.get_children()[2]
@@ -1748,7 +1747,10 @@ def alex_jointplot(d, i=0, gridsize=50, C=None, cmap='YlGnBu_crop',
             vmin = vmin_default
     poly.set_clim(vmin, vmax)
 
-    g.plot_marginals(_hist_bursts_marg, dx=d, **marginal_kws)
+    marginal_kws_ = dict(show_kde=True, bandwidth=0.03, binwidth=0.03)
+    if marginal_kws is not None:
+        marginal_kws_.update(_normalize_kwargs(marginal_kws))
+    g.plot_marginals(_hist_bursts_marg, dx=d, **marginal_kws_)
     g.annotate(lambda x, y: x.size, stat='# Bursts',
                template='{stat}: {val}')
     _alex_plot_style(g)
