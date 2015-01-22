@@ -349,8 +349,7 @@ def bursts_fitter(dx, burst_data='E', save_fitter=True,
     if weights is not None:
         if _is_list_of_arrays(weights):
             # If weights is a list of array just use an identity function
-            fitter.set_weights_func(weight_func=lambda w: w,
-                                    weight_kwargs={'w': weights})
+            fitter.weights = weights
         else:
             # Otherwise build the kwargs to be passed to get_weights
             weight_kwargs = dict(weights=weights, gamma=gamma,

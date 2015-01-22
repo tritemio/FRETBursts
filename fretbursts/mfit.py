@@ -412,9 +412,9 @@ class MultiFitter(FitterBase):
         self.fit_res = []
         #init_params = copy.deepcopy(self.model.params)
         for i, data in enumerate(data_list):
-            self.fit_res.append(self.model.fit(data, x=self.hist_axis,
-                                               #params=init_params,
-                                               **fit_kwargs))
+            self.fit_res.append(
+                self.model.fit(data, x=self.hist_axis, **fit_kwargs)
+                )
             self.params.iloc[i] = pd.Series(self.fit_res[-1].values)
 
     def calc_kde(self, bandwidth=0.03):
