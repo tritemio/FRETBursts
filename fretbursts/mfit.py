@@ -334,9 +334,21 @@ class MultiFitter(FitterBase):
     def __init__(self, data_list):
         self.data_list = data_list
         self.ndata = len(data_list)
-        self.weights = [None]*self.ndata
+        self._weights = [None]*self.ndata
         self._hist_computed = False
         self._kde_computed = False
+
+    @property
+    def weights(self):
+        return self._weights
+
+    @weights.setter
+    def weights(self, value):
+        try:
+            self._weights = [v for v in value]
+        except TypeError:
+            # value is not iterable
+            self._weights = [value]*self.ndata
 
     def histogram(self, binwidth=0.03, bins=None, verbose=False, **kwargs):
         """Compute the histogram of the data for each channel.

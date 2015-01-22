@@ -346,21 +346,20 @@ def bursts_fitter(dx, burst_data='E', save_fitter=True,
     """
     assert burst_data in dx
     fitter = mfit.MultiFitter(dx[burst_data])
-    if weights is not None:
-        if _is_list_of_arrays(weights):
-            # If weights is a list of array just use an identity function
-            fitter.weights = weights
-        else:
-            # Otherwise build the kwargs to be passed to get_weights
-            weight_kwargs = dict(weights=weights, gamma=gamma,
-                                 nd=dx.nd, na=dx.na)
-            if add_naa:
-                weight_kwargs['naa'] = dx.naa
-            if weights == 'brightness':
-                weight_kwargs['widths'] = [burstlib.b_width(mb)*dx.clk_p
-                                           for mb in dx.mburst]
-            fitter.set_weights_func(weight_func=fret_fit.get_weights,
-                                    weight_kwargs=weight_kwargs)
+    if weights is None or _is_list_of_arrays(weights):
+        # If no weights or precomputed weights
+        fitter.weights = weights
+    else:
+        # Otherwise build the kwargs to compute weights through get_weights
+        weight_kwargs = dict(weights=weights, gamma=gamma,
+                             nd=dx.nd, na=dx.na)
+        if add_naa:
+            weight_kwargs['naa'] = dx.naa
+        if weights == 'brightness':
+            weight_kwargs['widths'] = [burstlib.b_width(mb)*dx.clk_p
+                                       for mb in dx.mburst]
+        fitter.set_weights_func(weight_func=fret_fit.get_weights,
+                                weight_kwargs=weight_kwargs)
     if bandwidth is not None:
         fitter.calc_kde(bandwidth)
     if binwidth is not None:
