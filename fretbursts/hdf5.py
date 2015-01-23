@@ -166,7 +166,7 @@ class H5Writer(object):
 def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
           verbose=True, num_spectral_ch=2):
     """
-    Saves the `Data` object `d` in the HDF5-Ph-Data format.
+    Saves the `Data` object `d` in the Photon-HDF5 format.
 
     As a side effect the `d` object is modified by adding the attribute
     `data_file` that contains a reference to the pytables file.
@@ -180,8 +180,8 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
             from `d.fname`, by replacing the original extension with '.hdf5'.
         verbose (bool): if True prints the name of the saved file.
 
-    For description and specs of the HDF5-Ph-Data format see:
-    https://github.com/tritemio/FRETBursts/wiki/HDF5-Ph-Data-format-0.2-Draft
+    For description and specs of the Photon-HDF5 format see:
+    http://photon-hdf5.readthedocs.org/
     """
     comp_filter = tables.Filters(**compression)
     if 'lifetime' not in d:
