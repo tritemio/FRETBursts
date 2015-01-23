@@ -57,6 +57,8 @@ ALEX plots
 
 .. autofunction:: hist2d_alex
 
+.. autofunction:: hexbin_alex
+
 .. autofunction:: plot_ES_selection
 
 .. autofunction:: plot_alternation_hist
