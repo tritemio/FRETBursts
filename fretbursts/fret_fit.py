@@ -189,7 +189,8 @@ def get_weights(nd, na, weights, naa=0, gamma=1., widths=None):
             'size2' (burst size)^2, 'sqrt' sqrt(burst size),
             'inv_size' 1/(burst size), 'inv_sqrt' 1/sqrt(burst size),
             'cum_size' CDF_of_burst_sizes(burst size),
-            'cum_size2' CDF_of_burst_sizes(burst size)^2.
+            'cum_size2' CDF_of_burst_sizes(burst size)^2,
+            'brightness' the burst size divided by the burst width.
             If None returns uniform weights.
 
     Returns:
