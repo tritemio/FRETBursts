@@ -21,7 +21,7 @@ from .utils.misc import pprint
 
 
 # Metadata for the HDF5 root node
-_format_meta = OrderedDict([
+_root_attributes = OrderedDict([
     ('format_name', 'Photon-HDF5'),
     ('format_title', 'HDF5-based format for time-series of photon data.'),
     ('format_version', '0.2'),
@@ -29,7 +29,7 @@ _format_meta = OrderedDict([
 ])
 
 # Metadata for different fields (arrays) in the HDF5 format
-_fields_meta = OrderedDict([
+fields_descr = OrderedDict([
     # Root parameters
     ('num_spots', 'Number of excitation or detection spots.'),
     ('num_spectral_ch', ('Number of different spectral bands in the detection '
@@ -44,8 +44,9 @@ _fields_meta = OrderedDict([
     ('lifetime', ('If True (or 1) the data contains nanotimes from TCSPC '
                   'hardware')),
     ('alex', 'If True (or 1) the file contains ALternated EXcitation data.'),
-    ('alex_period', ('The duration of the excitation alternation using '
-                     'the same units as the timestamps.')),
+    ('alex_period', ('The duration of the us-ALEX excitation alternation '
+                     'in the same units as the timestamps.')),
+    ('laser_pulse_rate', 'The laser(s) pulse rate in Hertz.'),
     ('alex_period_donor', ('Start and stop values identifying the donor '
                            'emission period.')),
     ('alex_period_acceptor', ('Start and stop values identifying the acceptor '
@@ -70,8 +71,8 @@ _fields_meta = OrderedDict([
 
     ('nanotimes', 'TCSPC photon arrival time (nanotimes)'),
     ('nanotimes_specs', 'Group for nanotime-specific data.'),
-    ('tcspc_bin', 'TCSPC time bin duration in seconds (nanotimes unit).'),
-    ('tcspc_nbins', 'Number of TCSPC bins.'),
+    ('tcspc_unit', 'TCSPC time bin duration in seconds (nanotimes unit).'),
+    ('tcspc_num_bins', 'Number of TCSPC bins.'),
     ('tcspc_range', 'TCSPC full-scale range in seconds.'),
     ('tau_accept_only', 'Intrinsic Acceptor lifetime (seconds).'),
     ('tau_donor_only', 'Intrinsic Donor lifetime (seconds).'),
@@ -101,7 +102,8 @@ _fields_meta = OrderedDict([
     ('modification_time', 'Original file time of last modification.'),
     ])
 
-hdf5_data_map = {key: key for key in _fields_meta.keys()}
+
+hdf5_data_map = {key: key for key in fields_descr.keys()}
 hdf5_data_map.update(
     timestamps_unit='clk_p',
     num_spots='nch',
@@ -146,7 +148,7 @@ class H5Writer(object):
             obj = self.data[hdf5_data_map[name]]
 
         func(where, name, obj=obj,
-             title=_fields_meta[name],
+             title=fields_descr[name],
              **kwargs)
 
     def add_carray(self, where, name, obj=None):
@@ -160,7 +162,7 @@ class H5Writer(object):
         if metakey is None:
             metakey = name
         return self.h5file.create_group(where, name,
-                                        title=_fields_meta[metakey])
+                                        title=fields_descr[metakey])
 
 
 def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
@@ -220,7 +222,7 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
     writer = H5Writer(data_file, d, comp_filter)
 
     ## Save the root-node metadata
-    for name, value in _format_meta.items():
+    for name, value in _root_attributes.items():
         data_file.root._f_setattr(name, value)
 
     ## Save the mandatory parameters
