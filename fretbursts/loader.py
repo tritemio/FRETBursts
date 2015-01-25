@@ -120,9 +120,12 @@ def hdf5(fname, ondisk=False):
         loader.load_data('/', 'num_detectors')
 
     if d.ALEX:
-        loader.load_data('/', 'alex_period')
-        loader.load_data('/', 'alex_period_donor')
-        loader.load_data('/', 'alex_period_acceptor')
+        if d.lifetime:
+            loader.load_data('/', 'laser_pulse_rate', allow_missing=True)
+        else:
+            loader.load_data('/', 'alex_period')
+        loader.load_data('/', 'alex_period_donor', allow_missing=True)
+        loader.load_data('/', 'alex_period_acceptor', allow_missing=True)
 
     ## Load setup fields
     if '/setup' in data_file:
