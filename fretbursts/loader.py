@@ -183,7 +183,7 @@ def hdf5(fname, ondisk=False):
         if 'nanotimes_specs' in ph_group:
             nanot_specs = ph_group.nanotimes_specs
             nanotimes_params = {}
-            for name in ['tcspc_bin', 'tcspc_nbins', 'tcspc_range']:
+            for name in ['tcspc_unit', 'tcspc_num_bins', 'tcspc_range']:
                 value = nanot_specs._f_get_child(name).read()
                 nanotimes_params.update(**{name: value})
             for name in ['tau_accept_only', 'tau_donor_only',
