@@ -201,7 +201,6 @@ def plot_alternation_hist_usalex(d, bins=None, ax=None,
     else:
         plt.axvspan(0, d.A_ON[1], color=red, **span_style_)
         plt.axvspan(d.A_ON[0], period, color=red, **span_style_)
-
     legend(loc='best')
 
 def plot_alternation_hist_nsalex(d, bins=None, ax=None):
@@ -215,7 +214,7 @@ def plot_alternation_hist_nsalex(d, bins=None, ax=None):
         ax = plt.gca()
 
     if bins is None:
-        bins = np.arange(4096)
+        bins = np.arange(d.nanotimes_params['tcspc_num_bins'])
 
     nanotimes_d = d.nanotimes_t[d.det_t == d.det_donor_accept[0]]
     nanotimes_a = d.nanotimes_t[d.det_t == d.det_donor_accept[1]]
@@ -226,6 +225,7 @@ def plot_alternation_hist_nsalex(d, bins=None, ax=None):
     plt.yscale('log')
     plt.axvspan(d.D_ON[0], d.D_ON[1], color=green, alpha=0.1)
     plt.axvspan(d.A_ON[0], d.A_ON[1], color=red, alpha=0.1)
+    legend(loc='best')
 
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
