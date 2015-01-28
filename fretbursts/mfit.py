@@ -395,7 +395,7 @@ class MultiFitter(FitterBase):
         """
         self.weights = []
         for i in range(self.ndata):
-            weight_kw_i = {k: v[i] if not np.isscalar(v) else v
+            weight_kw_i = {k: v[i] if isinstance(v, list) else v
                            for k, v in weight_kwargs.items()}
             self.weights.append(weight_func(**weight_kw_i))
 
