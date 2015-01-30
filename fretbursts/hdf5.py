@@ -13,7 +13,7 @@ also provided.
 
 from __future__ import print_function, absolute_import
 
-from .phconvert import hdf5 as ph5
+import phconvert as phc
 
 
 hdf5_data_map = dict(
@@ -79,7 +79,7 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
             data['donor'], data['acceptor'] = 1, 0
             if 'par' in d:
                 data['particles'] = data.pop('par')[0]
-        ph5.hdf5.photon_hdf5(d, compression=compression)
+        phc.hdf5.photon_hdf5(d, compression=compression)
     else:
         if d.ALEX:
             raise NotImplementedError
@@ -87,6 +87,6 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
             data['donor'], data['acceptor'] = 1, 0
             det = [None if isinstance(a_em, slice) else a_em.view('uint8')
                    for a_em in d.A_em]
-            ph5.hdf5.photon_hdf5(d, compression=compression,
+            phc.hdf5.photon_hdf5(d, compression=compression,
                                  iter_timestamps=d.iter_ph_times(),
                                  iter_detectors=iter(det))
