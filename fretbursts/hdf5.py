@@ -17,6 +17,7 @@ import phconvert as phc
 
 
 hdf5_data_map = dict(
+    filename='fname',
     timestamps_unit='clk_p',
     num_spots='nch',
     alex='ALEX',
@@ -30,6 +31,7 @@ hdf5_data_map = dict(
     alex_period_acceptor='A_ON',
 )
 
+hdf5_data_map_r = {v: k for k, v in hdf5_data_map.items()}
 
 def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
           verbose=True, num_spectral_ch=2):
@@ -64,7 +66,7 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
     if 'num_detectors' not in d:
         d.add(num_detectors=d.nch*d.num_spectral_ch)
 
-    data = {hdf5_data_map.get(k, k): v for k, v in d.items()}
+    data = {hdf5_data_map_r.get(k, k): v for k, v in d.items()}
 
     if d.lifetime:
         data.update(d.nanotimes_params)
@@ -79,7 +81,7 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
             data['donor'], data['acceptor'] = 1, 0
             if 'par' in d:
                 data['particles'] = data.pop('par')[0]
-        phc.hdf5.photon_hdf5(d, compression=compression)
+        phc.hdf5.photon_hdf5(data, compression=compression)
     else:
         if d.ALEX:
             raise NotImplementedError
@@ -87,6 +89,7 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
             data['donor'], data['acceptor'] = 1, 0
             det = [None if isinstance(a_em, slice) else a_em.view('uint8')
                    for a_em in d.A_em]
-            phc.hdf5.photon_hdf5(d, compression=compression,
+            phc.hdf5.photon_hdf5(data, compression=compression,
                                  iter_timestamps=d.iter_ph_times(),
                                  iter_detectors=iter(det))
+    d.add(data_file=data['data_file'])
