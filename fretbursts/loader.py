@@ -34,7 +34,9 @@ from .dataload.manta_reader import (load_manta_timestamps,
 from .utils.misc import pprint, deprecate
 from .burstlib import Data
 from .dataload.pytables_array_list import PyTablesList
-from .hdf5 import hdf5_data_map, mandatory_root_fields, dict_from_group
+from .hdf5 import hdf5_data_map
+
+from phconvert.hdf5 import mandatory_root_fields, dict_from_group
 
 
 def assert_valid_photon_hdf5(h5file):
@@ -74,7 +76,7 @@ class H5Loader():
             node_value = node if ondisk else node.read()
 
         if dest_name is None:
-            dest_name = hdf5_data_map[name]
+            dest_name = hdf5_data_map.get(name, name)
 
         if ich is None:
             self.data.add(**{dest_name: node_value})
@@ -127,13 +129,14 @@ def hdf5(fname, ondisk=False):
         loader.load_data('/', 'alex_period_donor', allow_missing=True)
         loader.load_data('/', 'alex_period_acceptor', allow_missing=True)
 
-    ## Load setup fields
-    if '/setup' in data_file:
-        d.add(setup=dict_from_group(data_file.root.setup))
+    ## Load metadata groups
+    metagroups = ['/setup', '/provenance', '/identity']
+    for group in metagroups:
+        if group in data_file:
+            d.add(**{group[1:]: dict_from_group(data_file.get_node(group))})
 
-    ## Load provenance fields
-    if '/provenance' in data_file:
-        d.add(provenance=dict_from_group(data_file.root.provenance))
+    if '/acquisition_time' in data_file:
+        d.add(acquisition_time=data_file.root.acquisition_time.read())
 
     if _is_basic_layout(data_file):
         ph_group = data_file.root.photon_data
