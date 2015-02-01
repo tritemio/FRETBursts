@@ -11,7 +11,7 @@ before_install:
     - conda config --add channels tritemio
 
 install:
-    - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy pandas matplotlib pytables pytest pyqt seaborn lmfit phconvert
+    - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy pandas matplotlib pytables pytest pyqt seaborn lmfit phconvert cython
     - python setup.py build
     - python setup.py install
     - rm -rf build
