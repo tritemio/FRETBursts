@@ -26,6 +26,7 @@ requirements:
     - matplotlib
     - lmfit
     - seaborn
+    - phconvert
 
   run:
     - python
@@ -37,6 +38,7 @@ requirements:
     - pyqt
     - pytables
     - pandas
+    - phconvert
 
 test:
   # Python imports
