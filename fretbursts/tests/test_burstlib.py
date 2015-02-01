@@ -232,6 +232,13 @@ def test_iter_ph_times_period(data):
             ph_period_test = ph_period_test[mask[istart : iend + 1]]
             assert (ph_period == ph_period_test).all()
 
+def test_burst_search_py_cy(data):
+    """Test consistency of python and cython burst search."""
+    data.burst_search(pure_python=True)
+    mburst1 = [b.copy() for b in data.mburst]
+    data.burst_search(pure_python=False)
+    assert list_array_equal(mburst1, data.mburst)
+
 def test_burst_search(data):
     """Smoke test and bg_bs check."""
     data.burst_search(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Dem'))
@@ -241,7 +248,7 @@ def test_burst_search(data):
 
     if data.ALEX:
         data.burst_search(L=10, m=10, F=7,
-                            ph_sel=Ph_sel(Dex='Aem', Aex='Aem'))
+                          ph_sel=Ph_sel(Dex='Aem', Aex='Aem'))
         bg_Aem = [b1 + b2 for b1, b2 in zip(data.bg_ad, data.bg_aa)]
         assert list_equal(data.bg_bs, bg_Aem)
 
