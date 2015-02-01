@@ -8,6 +8,7 @@ before_install:
     - chmod +x miniconda.sh
     - ./miniconda.sh -b
     - export PATH=/home/travis/miniconda/bin:$PATH
+    - conda config --add channels tritemio
 
 install:
     - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy pandas matplotlib pytables pytest pyqt seaborn lmfit phconvert
