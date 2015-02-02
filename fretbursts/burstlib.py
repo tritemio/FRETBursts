@@ -63,12 +63,15 @@ bg_calc_exp = deprecate(bg.exp_fit, 'bg_calc_exp', 'bg.exp_fit')
 bg_calc_exp_cdf = deprecate(bg.exp_fit, 'bg_calc_exp_cdf', 'bg.exp_cdf_fit')
 
 
-def _get_bsearch_func(pure_python=False):
+def _get_bsearch_func(pure_python=False, force_cython=False):
     if pure_python:
         # return the python version
         return bslib.bsearch_py
+    elif not pure_python and force_cython:
+        # return the cython version
+        return bslib.bsearch_c
     else:
-        # or what is available
+        # try cython and fallback to python version
         return bsearch
 
 def _get_mch_count_ph_in_bursts_func(pure_python=False):
@@ -1594,13 +1597,14 @@ class Data(DataContainer):
         self.add(mburst=mburst, min_rate_cps=Min_rate_cps, T=T_clk*self.clk_p)
 
     def _burst_search_TT(self, m, L, ph_sel=Ph_sel('all'), verbose=True,
-                         pure_python=False, mute=False):
+                         pure_python=False, mute=False, force_cython=True):
         """Compute burst search with params `m`, `L` on ph selection `ph_sel`
 
         Requires the list of arrays `self.TT` with the max time-thresholds in
         the different burst periods for each channel (use `._calc_T()`).
         """
-        bsearch = _get_bsearch_func(pure_python=pure_python)
+        bsearch = _get_bsearch_func(pure_python=pure_python,
+                                    force_cython=force_cython)
 
         self.recompute_bg_lim_ph_p(ph_sel=ph_sel, mute=mute)
         MBurst = []
@@ -1662,7 +1666,7 @@ class Data(DataContainer):
     def burst_search(self, L=None, m=10, P=None, F=6., min_rate_cps=None,
                      nofret=False, max_rate=False, dither=False,
                      ph_sel=Ph_sel('all'), verbose=False, mute=False,
-                     pure_python=False):
+                     pure_python=False, force_cython=True):
         """Performs a burst search with specified parameters.
 
         This method performs a sliding-window burst search without
@@ -1717,7 +1721,8 @@ class Data(DataContainer):
             self._calc_T(m=m, P=P, F=F, ph_sel=ph_sel)
             # Use TT and compute mburst
             self._burst_search_TT(L=L, m=m, ph_sel=ph_sel, verbose=verbose,
-                                  pure_python=pure_python, mute=mute)
+                                  pure_python=pure_python, mute=mute,
+                                  force_cython=force_cython)
         pprint("[DONE]\n", mute)
 
         pprint(" - Calculating burst periods ...", mute)
