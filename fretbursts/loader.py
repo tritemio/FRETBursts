@@ -15,6 +15,7 @@ loading and preprocessing can be found in the `dataload` folder.
 
 from __future__ import print_function, absolute_import
 from builtins import range, zip
+from future.utils import viewitems
 
 import os
 import numpy as np
@@ -44,7 +45,7 @@ from phconvert.hdf5 import mandatory_root_fields, dict_from_group
 def assert_valid_photon_hdf5(h5file):
     meta = dict(format_name=b'Photon-HDF5', format_version=b'0.2')
     msg = ''
-    for attr, value in meta.items():
+    for attr, value in viewitems(meta):
         if attr not in h5file.root._v_attrs:
             msg += ' * Error: %s not in %s\n' % (attr, h5file.root._v_attrs)
         stored_value = h5file.root._v_attrs[attr]
@@ -162,7 +163,7 @@ def hdf5(fname, ondisk=False):
             mapping = {'timestamps': 'ph_times_t', 'detectors': 'det_t',
                        'nanotimes': 'nanotimes_t', 'particles': 'particles_t'}
             ich = None  # don't warp the arrays in a list
-        for name, dest_name in mapping.items():
+        for name, dest_name in viewitems(mapping):
             if name in ph_group:
                 loader.load_data(ph_group, name, dest_name=dest_name, ich=ich)
 
@@ -236,7 +237,7 @@ def hdf5(fname, ondisk=False):
 
 def _is_valid_hdf5_phdata(h5file):
     meta = dict(format_name='HDF5-Ph-Data', format_version='0.2')
-    for attr, value in meta.items():
+    for attr, value in viewitems(meta):
         if attr not in h5file.root._v_attrs:
             return False
         if h5file.root._v_attrs[attr] != meta[attr]:
@@ -296,7 +297,7 @@ def hdf5_phdata(fname):
             mapping = {'timestamps': 'ph_times_t', 'detectors': 'det_t',
                        'nanotimes': 'nanotimes_t', 'particles': 'particles_t'}
             ich = None  # don't warp the arrays in a list
-        for name, dest_name in mapping.items():
+        for name, dest_name in viewitems(mapping):
             if name in ph_group:
                 loader.load_data(ph_group, name, dest_name=dest_name, ich=ich)
 

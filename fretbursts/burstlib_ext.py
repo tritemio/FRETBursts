@@ -46,6 +46,7 @@ Finally a few functions deal with burst timestamps:
 """
 from __future__ import division, print_function, absolute_import
 from builtins import range, zip
+from future.utils import viewitems
 
 import numpy as np
 from scipy.stats import erlang
@@ -100,9 +101,9 @@ def _store_bg_data(store, base_name, min_ph_delays_us, best_bg, best_th,
     group_name = '/' + base_name[:-1]
     store.create_carray(group_name, 'min_ph_delays_us', obj=min_ph_delays_us,
                         createparents=True)
-    for ph_sel, values in BG_data.items():
+    for ph_sel, values in viewitems(BG_data):
         store.create_carray(group_name, str(ph_sel), obj=values)
-    for ph_sel, values in BG_data_e.items():
+    for ph_sel, values in viewitems(BG_data_e):
         store.create_carray(group_name, str(ph_sel) + '_err', obj=values)
     store.close()
     store = pd.HDFStore(store_name)

@@ -13,6 +13,7 @@ the :class:`Data` attribute `.bg_data_file`.
 
 from __future__ import  absolute_import
 from builtins import range, zip
+from future.utils import viewitems
 
 import os
 import numpy as np
@@ -87,7 +88,7 @@ def bg_save_hdf5(dx):
                                          createparents=True)
     # Save arrays and scalars
     pprint('\n - Saving arrays/scalars: ')
-    for name, info in bg_arrays_info.items():
+    for name, info in viewitems(bg_arrays_info):
         pprint(name + ', ')
         arr = np.array(dx[name])
         dx.bg_data_file.create_array(bg_group, name, obj=arr, title=info)

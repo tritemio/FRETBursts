@@ -30,6 +30,8 @@ For more examples refer to the `FRETBurst notebooks <http://nbviewer.ipython.org
 """
 
 from __future__ import division, print_function, absolute_import
+from future.utils import viewitems
+
 import warnings
 
 # Numeric imports
@@ -316,7 +318,7 @@ def timetrace_single(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
 
     def _set_cache(bins, x, binwidth, tmin, tmax):
         cache = dict(bins=bins, x=x, binwidth=binwidth, tmin=tmin, tmax=tmax)
-        for name, value in cache.items():
+        for name, value in viewitems(cache):
             setattr(timetrace_single, name, value)
 
     def _del_cache():

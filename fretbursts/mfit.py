@@ -11,6 +11,7 @@ models used to fit E or S histograms.
 
 from __future__ import division, print_function, absolute_import
 from builtins import range, zip
+from future.utils import viewitems
 
 import numpy as np
 import pandas as pd
@@ -397,7 +398,7 @@ class MultiFitter(FitterBase):
         self.weights = []
         for i in range(self.ndata):
             weight_kw_i = {k: v[i] if isinstance(v, list) else v
-                           for k, v in weight_kwargs.items()}
+                           for k, v in viewitems(weight_kwargs)}
             self.weights.append(weight_func(**weight_kw_i))
 
     def fit_histogram(self, model=None, pdf=True, **fit_kwargs):

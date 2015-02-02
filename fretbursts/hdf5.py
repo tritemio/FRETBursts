@@ -13,6 +13,7 @@ also provided.
 
 from __future__ import print_function, absolute_import
 from builtins import range, zip
+from future.utils import viewitems
 
 import phconvert as phc
 
@@ -32,7 +33,7 @@ hdf5_data_map = dict(
     alex_period_acceptor='A_ON',
 )
 
-hdf5_data_map_r = {v: k for k, v in hdf5_data_map.items()}
+hdf5_data_map_r = {v: k for k, v in viewitems(hdf5_data_map)}
 
 def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
           verbose=True, num_spectral_ch=2):
@@ -67,7 +68,7 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
     if 'num_detectors' not in d:
         d.add(num_detectors=d.nch*d.num_spectral_ch)
 
-    data = {hdf5_data_map_r.get(k, k): v for k, v in d.items()}
+    data = {hdf5_data_map_r.get(k, k): v for k, v in viewitems()}
 
     if d.lifetime:
         data.update(d.nanotimes_params)

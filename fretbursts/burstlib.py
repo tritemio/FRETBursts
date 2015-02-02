@@ -17,6 +17,7 @@ For usage example see the IPython Notebooks in sub-folder "notebooks".
 
 from __future__ import print_function, absolute_import
 from builtins import range, zip
+from future.utils import viewitems
 
 import os
 import hashlib
@@ -544,7 +545,7 @@ class DataContainer(dict):
     def add(self, **kwargs):
         """Adds or updates elements (attributes and/or dict entries). """
         self.update(**kwargs)
-        for k, v in kwargs.items():
+        for k, v in viewitems(kwargs):
             setattr(self, k, v)
 
     def delete(self, *args):
