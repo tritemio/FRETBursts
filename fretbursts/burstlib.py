@@ -16,6 +16,8 @@ For usage example see the IPython Notebooks in sub-folder "notebooks".
 """
 
 from __future__ import print_function, absolute_import
+from builtins import range, zip
+
 import os
 import hashlib
 import numpy as np
@@ -807,7 +809,7 @@ class Data(DataContainer):
             ph_sel (Ph_sel object): object defining the photon selection.
                 See :mod:`fretbursts.ph_sel` for details.
         """
-        for ich in xrange(self.nch):
+        for ich in range(self.nch):
             yield self.get_ph_mask(ich, ph_sel=ph_sel)
 
     def _check_ph_sel(self, ph_sel):
@@ -885,7 +887,7 @@ class Data(DataContainer):
             ph_sel (Ph_sel object): object defining the photon selection.
                 See :mod:`fretbursts.ph_sel` for details.
         """
-        for ich in xrange(self.nch):
+        for ich in range(self.nch):
             yield self.get_ph_times(ich, ph_sel=ph_sel)
 
     def get_ph_times(self, ich=0, ph_sel=Ph_sel('all')):
@@ -1405,7 +1407,7 @@ class Data(DataContainer):
             bg, bg_dd, bg_ad, bg_da, bg_aa = [zeros(nperiods) for _ in range(5)]
             zeros_list = [zeros(nperiods) for _ in range(5)]
             bg_err, bg_dd_err, bg_ad_err, bg_da_err, bg_aa_err = zeros_list
-            for ip in xrange(nperiods):
+            for ip in range(nperiods):
                 i0 = 0 if ip == 0 else i1           # pylint: disable=E0601
                 i1 = (ph_ch < (ip+1)*bg_time_clk).sum()
                 lim.append((i0, i1-1))
@@ -1480,7 +1482,7 @@ class Data(DataContainer):
         Lim, Ph_p = [], []
         for ph_ch, lim in zip(self.iter_ph_times(ph_sel), self.Lim):
             lim, ph_p = [], []
-            for ip in xrange(self.nperiods):
+            for ip in range(self.nperiods):
                 i0 = 0 if ip == 0 else i1  # pylint: disable=E0601
                 i1 = (ph_ch < (ip+1)*bg_time_clk).sum()
                 lim.append((i0, i1-1))
@@ -1536,15 +1538,15 @@ class Data(DataContainer):
                       zip(self.bg_ad, self.bg_aa)]
             bg_noDA = [bg_dd + bg_ad + bg_aa for bg_dd, bg_ad, bg_aa in
                        zip(self.bg_dd, self.bg_ad, self.bg_aa)]
-            BG.update(**{Ph_sel(Aex='Aem'): self.bg_aa,
-                         Ph_sel(Aex='Dem'): self.bg_da,
-                         Ph_sel(Dex='DAem'): bg_Dex,
-                         Ph_sel(Aex='DAem'): bg_Aex,
-                         Ph_sel(Dex='Dem', Aex='Dem'): bg_Dem,
-                         Ph_sel(Dex='Aem', Aex='Aem'): bg_Aem,
-                         Ph_sel(Dex='DAem', Aex='Aem'): bg_noDA})
+            BG.update({Ph_sel(Aex='Aem'): self.bg_aa,
+                       Ph_sel(Aex='Dem'): self.bg_da,
+                       Ph_sel(Dex='DAem'): bg_Dex,
+                       Ph_sel(Aex='DAem'): bg_Aex,
+                       Ph_sel(Dex='Dem', Aex='Dem'): bg_Dem,
+                       Ph_sel(Dex='Aem', Aex='Aem'): bg_Aem,
+                       Ph_sel(Dex='DAem', Aex='Aem'): bg_noDA})
         if ph_sel not in BG:
-            raise NotImplementedError('Photong selection not implemented.')
+            raise NotImplementedError('Photon selection not implemented.')
         return BG[ph_sel]
 
     def _calc_T(self, m, P, F=1., ph_sel=Ph_sel('all')):
@@ -1759,7 +1761,7 @@ class Data(DataContainer):
         if not self.ALEX:
             nt = [b_size(b).astype(float) if b.size > 0 else np.array([])\
                         for b in self.mburst]
-            A_em = [self.get_A_em(ich) for ich in xrange(self.nch)]
+            A_em = [self.get_A_em(ich) for ich in range(self.nch)]
             if isinstance(A_em[0], slice):
                 # This to support the case of A-only or D-only data
                 n0 = [np.zeros(mb.shape[0]) for mb in self.mburst]
@@ -2279,7 +2281,7 @@ class Data(DataContainer):
                    3: fret_fit.fit_E_poisson_nd}
         Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
         fit_res = zeros(self.nch)
-        for ich, mask in zip(xrange(self.nch), Mask):
+        for ich, mask in zip(range(self.nch), Mask):
             nd, na, bg_d, bg_a = self.expand(ich)
             bg_x = bg_d if method == 3 else bg_a
             fit_res[ich] = fit_fun[method](nd[mask], na[mask],
@@ -2293,8 +2295,7 @@ class Data(DataContainer):
         """ML fit for E modeling na ~ Binomial, using bursts in [E1,E2] range.
         """
         Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
-        fit_res = np.array([fret_fit.fit_E_binom(_d[mask], _a[mask],
-                                                 **kwargs)
+        fit_res = np.array([fret_fit.fit_E_binom(_d[mask], _a[mask], **kwargs)
                             for _d, _a, mask in zip(self.nd, self.na, Mask)])
         self.add(fit_E_res=fit_res, fit_E_name='MLE: na ~ Binomial',
                  E_fit=fit_res, fit_E_curve=False, fit_E_E1=E1, fit_E_E2=E2)
@@ -2415,7 +2416,7 @@ class Data(DataContainer):
                 setattr(self, name, self[name])
         # Deal with the normalization to the number of bursts
         self.add(fit_model_F=r_[[1.*old_E.size/new_E.size \
-                for old_E, new_E in zip(D.E, self.E)]])
+                                 for old_E, new_E in zip(D.E, self.E)]])
 
     def fit_E_calc_variance(self, weights='sqrt', dist='DeltaE',
                             E_fit=None, E1=-1, E2=2):

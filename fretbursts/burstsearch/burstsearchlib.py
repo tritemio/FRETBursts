@@ -39,6 +39,8 @@ To obtain the burst size (number of photons) for the 10-th to 20-th burst::
 """
 
 from __future__ import division, print_function
+from builtins import range, zip
+
 import numpy as np
 from fretbursts.utils.misc import pprint
 
@@ -116,7 +118,7 @@ def bsearch_py(t, L, m, T, label='Burst search', verbose=True):
     bursts = []
     in_burst = False
     above_min_rate = (t[m-1:] - t[:t.size-m+1]) <= T
-    for i in xrange(t.size-m+1):
+    for i in range(t.size-m+1):
         if above_min_rate[i]:
             if not in_burst:
                 i_start = i

@@ -14,6 +14,8 @@ loading and preprocessing can be found in the `dataload` folder.
 """
 
 from __future__ import print_function, absolute_import
+from builtins import range, zip
+
 import os
 import numpy as np
 try:

@@ -16,6 +16,8 @@ See also :func:`exp_hist_fit` for background estimation using an histogram fit.
 """
 
 from __future__ import absolute_import
+from builtins import zip, range
+
 import numpy as np
 from .ph_sel import Ph_sel
 from .utils.misc import pprint

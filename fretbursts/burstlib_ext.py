@@ -17,11 +17,14 @@ of non-core methods.
 The type of functions here implemented are quite diverse. A short summary
 follows.
 
-* :func:`bursts_fitter` and :func:`fit_bursts_kde_peak` help to build and
-  fit histograms and KDEs for E or S.
-
 * :func:`burst_search_and_gate` performs the AND-gate burst search taking
   intersection of the bursts detected in two photons streams.
+
+* :func:`burst_data` returns a pandas DataFrame with burst data (one burst
+  per row). Burst data includes sizes, duration, E, S, etc....
+
+* :func:`bursts_fitter` and :func:`fit_bursts_kde_peak` help to build and
+  fit histograms and KDEs for E or S.
 
 * :func:`calc_mdelays_hist` computes the histogram of the m-delays
   distribution of photon intervals.
@@ -42,6 +45,7 @@ Finally a few functions deal with burst timestamps:
 
 """
 from __future__ import division, print_function, absolute_import
+from builtins import range, zip
 
 import numpy as np
 from scipy.stats import erlang
@@ -214,8 +218,8 @@ def calc_bg_brute(dx, min_ph_delay_list=None, return_all=False,
 
     BG_data, BG_data_e = {}, {}
 
-    index = pd.MultiIndex.from_product([range(dx.nch), ph_sel_labels],
-                                       names=['CH', 'ph_sel'])
+    index = pd.MultiIndex.from_product([list(range(dx.nch)), ph_sel_labels],
+                                        names=['CH', 'ph_sel'])
     best_th = pd.DataFrame(index=index, columns=np.arange(dx.nperiods))
     best_th.columns.name = 'period'
     best_th.sortlevel(inplace=True)
@@ -528,7 +532,7 @@ def burst_data_period_mean(dx, burst_data):
     """
     mean_burst_data = np.zeros((dx.nch, dx.nperiods))
     for ich, (b_data_ch, period) in enumerate(zip(burst_data, dx.bp)):
-        for iperiod in xrange(dx.nperiods):
+        for iperiod in range(dx.nperiods):
             mean_burst_data[ich, iperiod] = b_data_ch[period == iperiod].mean()
     return mean_burst_data
 
@@ -575,7 +579,7 @@ def join_data(d_list, gap=1):
     for name in Data.burst_fields:
         if name in new_d:
             new_d.add(**{name: [np.array([])]*nch})
-            for ich in xrange(nch):
+            for ich in range(nch):
                 new_size = np.sum([d[name][ich].shape[0] for d in d_list])
                 if new_size == 0:
                     continue  # -> No bursts in this ch
@@ -588,14 +592,14 @@ def join_data(d_list, gap=1):
     for name in Data.bg_fields:
         if name in new_d:
             new_d.add(**{name: []})
-            for ich in xrange(nch):
+            for ich in range(nch):
                 value = np.concatenate([d[name][ich] for d in d_list])
                 new_d[name].append(value)
                 assert new_d[name][ich].shape[0] == new_nperiods
 
     # Set the i_origin burst attribute
     new_d.add(i_origin=[])
-    for ich in xrange(nch):
+    for ich in range(nch):
         i_origin_ch = np.concatenate([i_d*np.ones(d.num_bursts[ich])
                                       for i_d, d in enumerate(d_list)])
         new_d.i_origin.append(i_origin_ch)
@@ -603,8 +607,8 @@ def join_data(d_list, gap=1):
     # Update the `bp` attribute to refer to the background period in
     # the new concatenated background arrays.
     sum_nperiods = np.cumsum([d.nperiods for d in d_list])
-    for i_d, d in zip(xrange(1, len(d_list)), d_list[1:]):
-        for ich in xrange(nch):
+    for i_d, d in zip(range(1, len(d_list)), d_list[1:]):
+        for ich in range(nch):
             # Burst "slice" in new_d coming from current d
             b_mask = new_d.i_origin[ich] == i_d
             # Add the nperiods of all the previous measurements
@@ -613,7 +617,7 @@ def join_data(d_list, gap=1):
     # Modify the new mburst so the time of burst start/end is monotonic
     offset_clk = 0
     for i_orig, d_orig in enumerate(d_list):
-        for ich in xrange(nch):
+        for ich in range(nch):
             if np.size(new_d.mburst[ich]) == 0: continue
             mask = new_d.i_origin[ich] == i_orig
             new_d.mburst[ich][mask, itstart] += offset_clk

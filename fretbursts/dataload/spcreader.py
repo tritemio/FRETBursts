@@ -27,6 +27,8 @@ Drawing (note: each char represents 2 bits)::
     overflow bit: 13, bit_mask = 2^(13-1) = 4096
 """
 
+from builtins import range, zip
+
 import numpy as np
 
 

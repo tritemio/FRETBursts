@@ -12,6 +12,8 @@ the :class:`Data` attribute `.bg_data_file`.
 """
 
 from __future__ import  absolute_import
+from builtins import range, zip
+
 import os
 import numpy as np
 

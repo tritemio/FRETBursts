@@ -9,6 +9,8 @@ Module containing automated unit tests for FRETBursts.
 Running the tests requires `py.test`.
 """
 
+from builtins import range, zip
+
 import pytest
 import numpy as np
 
@@ -337,7 +339,7 @@ def test_b_end_b_iend(data):
 def test_monotonic_burst_start(data):
     """Test for monotonic burst_start."""
     d = data
-    for i in xrange(d.nch):
+    for i in range(d.nch):
         assert (np.diff(bl.b_start(d.mburst[i])) > 0).all()
 
 def test_monotonic_burst_end(data):

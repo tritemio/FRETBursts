@@ -18,6 +18,8 @@ Time window duration: T
 Poisson distribution parameter: n = lam*T
 """
 from __future__ import print_function
+from builtins import range, zip
+
 import numpy as np
 from scipy.stats import poisson, chi2, erlang
 
@@ -77,7 +79,7 @@ def prob_noise_above_th_test_version(rate, T, m):
 
     s = 0.
     for i in np.arange(m,int(rate*T + 9*np.sqrt(rate*T))+1):
-        s += reduce(lambda x,y: x*y, [(n_poiss/j) for j in range(1,i+1)])
+        s += reduce(lambda x,y: x*y, [(n_poiss/j) for j in range(1, i+1)])
         assert np.isfinite(s)
     p = np.exp(-(rate*T)) * s
     assert np.isfinite(p)
@@ -99,7 +101,7 @@ def find_optimal_T_iter(bg_rate, m, P_user, max_iter=int(1e6), debug=False):
             # P_user, then decrease T until poisson(lam*T).sf(m) < T
 
     converged = False
-    for i in xrange(max_iter):
+    for i in range(max_iter):
         prob = prob_noise_above_th(bg_rate,T,m)
         if prob > P_user:
             T /= 2.
@@ -112,7 +114,7 @@ def find_optimal_T_iter(bg_rate, m, P_user, max_iter=int(1e6), debug=False):
     step = T/1000.
     T = 2*T
     converged = False
-    for i in xrange(max_iter):
+    for i in range(max_iter):
         prob = prob_noise_above_th(bg_rate,T,m)
         if prob > P_user:
             T -= step

@@ -14,6 +14,8 @@ they are passed to higher level methods.
 * :doc:`background`
 """
 
+from builtins import range, zip
+
 import numpy as np
 from scipy.stats import linregress, expon
 from scipy.optimize import leastsq

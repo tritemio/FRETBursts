@@ -10,6 +10,8 @@ To run the burst search see burst.py
 """
 
 from __future__ import absolute_import
+from builtins import range, zip
+
 import os
 import numpy as np
 
@@ -117,7 +119,7 @@ def unwind_uni_c(times, det, nch=8, times_nbit=28, debug=True):
     num_spad = nch*2
     ts_max = (2**times_nbit)
     ph_times_m, A_det = [[]]*nch, [[]]*nch
-    for ich in xrange(nch):
+    for ich in range(nch):
         det_d, det_a = ich+1, ich+1+nch
         t_d1, t_a1 = times[det == det_d], times[det == det_a]
         t_d = t_d1.astype(int64)
@@ -145,7 +147,7 @@ def unwind_uni_o(times, det, nch=8, times_nbit=28, debug=True):
     num_spad = nch*2
     expo = (2**times_nbit)
     ph_times_m, A_det = [[]]*nch, [[]]*nch
-    for ich in xrange(nch):
+    for ich in range(nch):
         det_d, det_a = ich+1, ich+1+nch
         #a d_mask, a_mask = (det == det_d), (det == det_a)
 

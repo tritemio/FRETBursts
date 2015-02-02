@@ -10,6 +10,7 @@ To compile run::
     python setup.py build_ext --inplace
 
 """
+from builtins import range, zip
 
 import sys
 import numpy as np
@@ -54,7 +55,7 @@ def bsearch_c(np.int64_t[:] t, np.int16_t L, np.int16_t m, np.float64_t T,
     if verbose: pprint('C Burst search: %s\n' % label)
     bursts = []
 
-    for i in xrange(t.size-m+1):
+    for i in range(t.size-m+1):
         if (t[i+m-1] - t[i]) <= T:
             if not in_burst:
                 i_start = i

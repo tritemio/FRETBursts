@@ -34,6 +34,8 @@ The proper way to read the data is to read the byte-stream and interpret
 it as a record array in which each element is 12 bytes.
 """
 
+from builtins import range, zip
+
 import numpy as np
 
 class Decoder:

@@ -20,6 +20,7 @@ requirements:
     - python
     - libpython    [win64]
     - setuptools
+    - future
     - cython 0.20*
     - numpy
     - scipy
@@ -30,6 +31,7 @@ requirements:
 
   run:
     - python
+    - future
     - numpy
     - scipy
     - matplotlib

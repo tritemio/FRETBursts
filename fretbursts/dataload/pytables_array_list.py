@@ -17,6 +17,8 @@ memory use the slicing notation (like pytable_array[:]).
 """
 
 from __future__ import print_function
+from builtins import range, zip
+
 import os
 import tables
 
@@ -68,7 +70,7 @@ class PyTablesList(list):
             ## If the group was already present read the data
             self.size = self.group._v_attrs.size
             self.prefix = self.group._v_attrs.prefix
-            for i in xrange(self.group._v_attrs.size):
+            for i in range(self.group._v_attrs.size):
                 array_ = self.group._f_get_child(self.get_name(i))
                 if self.load_array:
                     array_ = array_[:]
