@@ -10,7 +10,7 @@ To compile run::
     python setup.py build_ext --inplace
 
 """
-from builtins import range, zip
+from past.builtins import xrange
 
 import sys
 import numpy as np
@@ -55,7 +55,7 @@ def bsearch_c(np.int64_t[:] t, np.int16_t L, np.int16_t m, np.float64_t T,
     if verbose: pprint('C Burst search: %s\n' % label)
     bursts = []
 
-    for i in range(t.size-m+1):
+    for i in xrange(t.size-m+1):
         if (t[i+m-1] - t[i]) <= T:
             if not in_burst:
                 i_start = i
@@ -105,7 +105,7 @@ def mch_count_ph_in_bursts_c(mburst, Mask):
         for i,b in enumerate(bursts):
             # Counts donors between start and end of current burst b
             #num_ph[i] = mask[b[iistart]:b[iiend]+1].sum()
-            for ii in range(b[iistart],b[iiend]+1):
+            for ii in xrange(b[iistart], b[iiend]+1):
                 num_ph[i] += mask[ii]
             #count_ph_in_bursts(bursts, mask).astype(float)
         Num_ph.append(num_ph.astype(np.float))
