@@ -647,9 +647,8 @@ def _hist_bursts(data, bins, pdf, user_plot_style, default_plot_style=None):
     plot(hist.bincenters, ydata, **default_plot_style)
     plt.ylabel('# Bursts')
 
-
 def hist_width(d, i=0, bins=(0, 10, 0.025), pdf=True, yscale='log',
-               plot_style={}):
+               color=None, plot_style={}):
     """Plot histogram of burst durations.
 
     Parameters:
@@ -663,23 +662,25 @@ def hist_width(d, i=0, bins=(0, 10, 0.025), pdf=True, yscale='log',
     """
     burst_widths = bl.b_width(d.mburst[i])*d.clk_p*1e3
 
+    if color is not None:
+        plot_style['color'] = color
     _hist_bursts(burst_widths, bins, pdf, plot_style)
+
     plt.gca().set_yscale(yscale)
     plt.xlabel('Burst width (ms)')
     plt.xlim(xmin=0)
     plt.ylim(ymin=0)
 
-def hist_size(d, i=0, vmax=600, binw=4, bins=None,
-              which='all', gamma=1, add_naa=False, pdf=False,
-              yscale='log', legend=True, plot_style={}):
+def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False,
+              yscale='log', gamma=1, add_naa=False, label_prefix=None,
+              legend=True, color=None, plot_style={}):
     """Plot histogram of burst sizes.
 
     Parameters:
         d (Data): Data object
         i (int): channel index
-        vmax (int/float): histogram max
-        binw (int/float): histogram bin width
-        bins (array or None): array of bin edges. If not None overrides `binw`
+        bins (array or None): array of bin edges. If len(bins) == 3
+            then is interpreted as (start, stop, step) values.
         which (string): which counts to consider. 'all' all-photon size
             computed with `d.burst_sizes()`; 'nd', 'na', 'naa' get counts from
             `d.nd`, `d.na`, `d.naa` (respectively Dex-Dem, Dex-Aem, Aex-Aem).
@@ -688,8 +689,8 @@ def hist_size(d, i=0, vmax=600, binw=4, bins=None,
         legend (bool): if True add legend to plot
         plot_style (dict): dict of matplotlib line style passed to `plot`.
     """
-    valid_which = ["all", "nd", "na", "naa"]
-    assert which in valid_which
+    which_dict = {'all': 'k', 'nd': green, 'na': red, 'naa': purple}
+    assert which in which_dict
     if which == 'all':
         sizes = d.burst_sizes_ich(ich=i, gamma=gamma, add_naa=add_naa)
         label = 'nd + na'
@@ -701,17 +702,17 @@ def hist_size(d, i=0, vmax=600, binw=4, bins=None,
         sizes = d[which][i]
         label = which
 
-    colors = ['k', green, red, purple]
-    colors_dict = {k: c for k, c in zip(valid_which, colors)}
+    if label_prefix is not None:
+        label = label_prefix + ' ' + label
 
-    if bins is None:
-        bins = np.arange(0, vmax+binw, binw)
+    if color is None:
+        color = which_dict[which]
 
-    _hist_bursts(sizes, bins, pdf, plot_style,
-                 default_plot_style=dict(linewidth=2,
-                                         color=colors_dict[which],
-                                         label=label))
-    gca().set_yscale(yscale)
+    default_plot_style = dict(linewidth=2, label=label)
+    plot_style['color'] = color
+    _hist_bursts(sizes, bins, pdf, plot_style, default_plot_style)
+
+    plt.gca().set_yscale(yscale)
     plt.xlabel('Burst size')
     if legend:
         gca().legend(loc='best')
