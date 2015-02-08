@@ -1411,31 +1411,35 @@ def hist_mrates(d, i=0, m=10, bins=(0, 4000, 100), yscale='log', pdf=False,
     xlabel("Rates (kcps)")
 
 ## Bursts stats
-def hist_sbr(d, i=0, bins=(0, 30, 1), pdf=True, plot_style={}):
+def hist_sbr(d, i=0, bins=(0, 30, 1), pdf=True, color=None, plot_style=None):
     """Histogram of per-burst Signal-to-Background Ratio (SBR).
     """
-    if not 'sbr' in d:
+    if 'sbr' not in d:
         d.calc_sbr()
-    _hist_bursts(d.sbr[i], bins, pdf, plot_style)
+    _hist_burst_taildist(d.sbr[i], bins, pdf, color=color,
+                         plot_style=plot_style)
     plt.xlabel('SBR')
 
-def hist_rate_in_burst(d, i=0, gamma=1, add_naa=False, bins=20, pdf=False,
-                       plot_style={}):
-    """Histogram of waiting times between bursts.
+
+def hist_burst_phrate(d, i=0, bins=(0, 1000, 20), pdf=True, color=None,
+                      plot_style=None):
+    """Histogram of max photon rate in each burst.
     """
-    burst_widths = bl.b_width(d.mburst[i])*d.clk_p
-    burst_sizes = d.burst_sizes_ich(ich=i, gamma=gamma, add_naa=add_naa)
-    rates_kcps = 1e-3*(burst_sizes/burst_widths)
+    if 'max_rate' not in d:
+        d.calc_max_rate(m=10)
+    _hist_burst_taildist(d.max_rate[i]*1e-3, bins, pdf, color=color,
+                         plot_style=plot_style)
+    plt.xlabel('Peak rate (kcps)')
 
-    _hist_bursts(rates_kcps, bins, pdf, plot_style)
-    plt.xlabel('In-burst ph. rate (kcps)')
 
-def hist_burst_delays(d, i=0, bins=(0, 10, 0.2), pdf=False, plot_style={}):
+def hist_burst_delays(d, i=0, bins=(0, 10, 0.2), pdf=False, color=None,
+                      plot_style=None):
     """Histogram of waiting times between bursts.
     """
     bdelays = np.diff(bl.b_start(d.mburst[i])*d.clk_p)
 
-    _hist_bursts(bdelays, bins, pdf, plot_style)
+    _hist_burst_taildist(bdelays, bins, pdf, color=color,
+                         plot_style=plot_style)
     plt.xlabel('Delays between bursts (s)')
 
 ## Burst internal "symmetry"
