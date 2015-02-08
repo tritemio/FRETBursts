@@ -90,6 +90,9 @@ gui_status = {'first_plot_in_figure': True}
 #
 def _normalize_kwargs(kwargs, kind='patch'):
     """Convert matplotlib keywords from short to long form."""
+    if kwargs is None:
+        return {}
+
     if kind == 'line2d':
         long_names = dict(c='color', ls='linestyle', lw='linewidth',
                           mec='markeredgecolor', mew='markeredgewidth',
@@ -833,8 +836,8 @@ def hist_burst_data(
         show_fit_stats=False, show_fit_value=False, fit_from='kde',
         show_kde=False, bandwidth=0.03, show_kde_peak=False,  # kde args
         show_model=False, show_model_peaks=True,
-        hist_bar_style={}, hist_plot_style={}, model_plot_style={},
-        kde_plot_style={}, verbose=False):
+        hist_bar_style=None, hist_plot_style=None, model_plot_style=None,
+        kde_plot_style=None, verbose=False):
     """Plot burst_data (i.e. E, S, etc...) histogram and KDE.
 
     This a generic function to plot histograms for any burst data.
@@ -1022,8 +1025,8 @@ def hist_fret(
         show_fit_stats=False, show_fit_value=False, fit_from='kde',
         show_kde=False, bandwidth=0.03, show_kde_peak=False,  # kde args
         show_model=False, show_model_peaks=True,
-        hist_bar_style={}, hist_plot_style={}, model_plot_style={},
-        kde_plot_style={}, verbose=False):
+        hist_bar_style=None, hist_plot_style=None, model_plot_style=None,
+        kde_plot_style=None, verbose=False):
     """Plot FRET histogram and KDE.
 
     The most used argument is `binwidth` that sets the histogram bin width.
@@ -1050,8 +1053,8 @@ def hist_S(
         show_fit_stats=False, show_fit_value=False, fit_from='kde',
         show_kde=False, bandwidth=0.03, show_kde_peak=False,  # kde args
         show_model=False, show_model_peaks=True,
-        hist_bar_style={}, hist_plot_style={}, model_plot_style={},
-        kde_plot_style={}, verbose=False):
+        hist_bar_style=None, hist_plot_style=None, model_plot_style=None,
+        kde_plot_style=None, verbose=False):
     """Plot S histogram and KDE.
 
     The most used argument is `binwidth` that sets the histogram bin width.
@@ -1197,7 +1200,7 @@ def get_ES_range():
 def hist_bg_single(d, i=0, period=0, binwidth=1e-4, bins=None, tmax=0.01,
                    ph_sel=Ph_sel('all'), show_fit=True, yscale='log',
                    manual_rate=None, manual_tau_th=500,
-                   xscale='linear', plot_style={}, fit_style={}):
+                   xscale='linear', plot_style=None, fit_style=None):
     """Plot histogram of photon interval for a single photon streams.
 
     Optionally plots the fitted background.
@@ -1265,7 +1268,7 @@ def hist_bg_single(d, i=0, period=0, binwidth=1e-4, bins=None, tmax=0.01,
 
 def hist_bg(d, i=0, period=0, binwidth=1e-4, bins=None, tmax=0.01,
             show_da=False, show_fit=True, yscale='log', xscale='linear',
-            plot_style={}, fit_style={}, legend=True):
+            plot_style=None, fit_style=None, legend=True):
     """Plot histogram of photon interval for different photon streams.
 
     Optionally plots the fitted background.
@@ -1393,7 +1396,7 @@ def hist_mdelays(d, i=0, m=10, bins_s=(0, 10, 0.02), period=0,
 
 
 def hist_mrates(d, i=0, m=10, bins=(0, 4000, 100), yscale='log', pdf=False,
-                dense=True, plot_style={}):
+                dense=True, plot_style=None):
     """Histogram of m-photons rates. See also :func:`hist_mdelays`.
     """
     ph = d.get_ph_times(ich=i)
@@ -1496,7 +1499,7 @@ def scatter_rate_da(d, i=0):
     legend(frameon=False)
 
 def scatter_fret_size(d, i=0, which='all', gamma=1, add_naa=False,
-                      plot_style={}):
+                      plot_style=None):
     """Scatterplot of FRET efficiency versus burst size.
     """
     if which == 'all':
