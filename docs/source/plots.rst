@@ -25,11 +25,18 @@ Timetrace and ratetrace plots
 1D Histograms
 -------------
 
+Bursts: ratiometric quantities
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. autofunction:: hist_fret
 
 .. autofunction:: hist_S
 
 .. autofunction:: hist_burst_data
+
+
+Bursts: tail distributions
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: hist_size
 
@@ -37,13 +44,19 @@ Timetrace and ratetrace plots
 
 .. autofunction:: hist_width
 
+.. autofunction:: hist_brightness
+
 .. autofunction:: hist_sbr
+
+.. autofunction:: hist_burst_phrate
+
+
+Others
+~~~~~~
 
 .. autofunction:: hist_bg_single
 
 .. autofunction:: hist_bg
-
-.. autofunction:: hist_rate_in_burst
 
 .. autofunction:: hist_burst_delays
 

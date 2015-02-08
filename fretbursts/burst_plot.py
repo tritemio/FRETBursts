@@ -686,7 +686,7 @@ def hist_width(d, i=0, bins=(0, 10, 0.025), pdf=True, yscale='log',
 def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, yscale='log',
                     gamma=1, add_naa=False, label_prefix=None,
                     color=None, plot_style=None):
-    """Plot histogram of burst brightness, i.e. burst size / duration).
+    """Plot histogram of burst brightness, i.e. burst size / duration.
 
     Parameters:
         d (Data): Data object
