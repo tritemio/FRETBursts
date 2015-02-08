@@ -637,18 +637,28 @@ def _bins_array(bins):
         bins = np.arange(*bins)
     return bins
 
-def _hist_bursts(data, bins, pdf, user_plot_style, default_plot_style=None):
+def _hist_burst_taildist(data, bins, pdf, yscale='log', color=None,
+                         user_plot_style=None, default_plot_style=None):
     hist = HistData(*np.histogram(data, bins=_bins_array(bins)))
     ydata = hist.pdf if pdf else hist.counts
+
     if default_plot_style is None:
         default_plot_style = dict(marker='o')
+    if user_plot_style is None:
+        user_plot_style = {}
+    if color is not None:
+        user_plot_style['color'] = color
     default_plot_style.update(_normalize_kwargs(user_plot_style,
                                                 kind='line2d'))
-    plot(hist.bincenters, ydata, **default_plot_style)
-    plt.ylabel('# Bursts')
+    plt.plot(hist.bincenters, ydata, **default_plot_style)
+    plt.yscale(yscale)
+    if pdf:
+        plt.ylabel('PDF')
+    else:
+        plt.ylabel('# Bursts')
 
 def hist_width(d, i=0, bins=(0, 10, 0.025), pdf=True, yscale='log',
-               color=None, plot_style={}):
+               color=None, plot_style=None):
     """Plot histogram of burst durations.
 
     Parameters:
@@ -662,18 +672,52 @@ def hist_width(d, i=0, bins=(0, 10, 0.025), pdf=True, yscale='log',
     """
     burst_widths = bl.b_width(d.mburst[i])*d.clk_p*1e3
 
-    if color is not None:
-        plot_style['color'] = color
-    _hist_bursts(burst_widths, bins, pdf, plot_style)
-
-    plt.gca().set_yscale(yscale)
+    _hist_burst_taildist(burst_widths, bins, pdf, yscale=yscale,
+                         color=color, user_plot_style=plot_style)
     plt.xlabel('Burst width (ms)')
     plt.xlim(xmin=0)
-    plt.ylim(ymin=0)
+    #plt.ylim(ymin=0)
+
+def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, yscale='log',
+                    gamma=1, add_naa=False, label_prefix=None,
+                    color=None, plot_style=None):
+    """Plot histogram of burst brightness, i.e. burst size / duration).
+
+    Parameters:
+        d (Data): Data object
+        i (int): channel index
+        bins (array or None): array of bin edges. If len(bins) == 3
+            then is interpreted as (start, stop, step) values.
+        add_naa (bool): if True `naa` is added to the burst size, if False
+            the burst size is `nd*gamma + na`.
+        gamma (float): gamma factor used to compute the corrected burst
+            size `nd*gamma + na`.
+        label_prefix (string or None): prefix to add to the legend.
+        pdf (bool): if True, normalize the histogram to obtain a PDF.
+        yscale (string): 'log' or 'linear', sets the plot y scale.
+        plot_style (dict): dict of matplotlib line style passed to `plot`.
+    """
+    burst_widths = bl.b_width(d.mburst[i])*d.clk_p*1e3
+    sizes = d.burst_sizes_ich(ich=i, gamma=gamma, add_naa=add_naa)
+    brightness = sizes / burst_widths
+    label = 'nd + na'
+    if gamma != 1:
+        label = "%.2f %s" % (gamma, label)
+    if add_naa:
+        label += " + naa"
+    label = '(' + label + ')/w'
+    if label_prefix is not None:
+        label = label_prefix + ' ' + label
+
+    _hist_burst_taildist(brightness, bins, pdf, yscale=yscale,
+                         color=color, user_plot_style=plot_style,
+                         default_plot_style={'label': label})
+    plt.xlabel('Burst brightness (kHz)')
+    plt.legend(loc='best')
 
 def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False,
               yscale='log', gamma=1, add_naa=False, label_prefix=None,
-              legend=True, color=None, plot_style={}):
+              legend=True, color=None, plot_style=None):
     """Plot histogram of burst sizes.
 
     Parameters:
@@ -682,8 +726,13 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False,
         bins (array or None): array of bin edges. If len(bins) == 3
             then is interpreted as (start, stop, step) values.
         which (string): which counts to consider. 'all' all-photon size
-            computed with `d.burst_sizes()`; 'nd', 'na', 'naa' get counts from
-            `d.nd`, `d.na`, `d.naa` (respectively Dex-Dem, Dex-Aem, Aex-Aem).
+            computed with `d.burst_sizes()`; 'nd', 'na', 'naa' get counts
+            from `d.nd`, `d.na`, `d.naa` (respectively Dex-Dem, Dex-Aem,
+            Aex-Aem).
+        add_naa (bool): if True `naa` is added to the burst size, if False
+            the burst size is `nd + na`. Ignored when `which` != 'all'.
+        gamma (float): gamma factor used to compute the corrected burst
+            size `nd*gamma + na`. Ignored when `which` != 'all'.
         pdf (bool): if True, normalize the histogram to obtain a PDF.
         yscale (string): 'log' or 'linear', sets the plot y scale.
         legend (bool): if True add legend to plot
@@ -704,18 +753,17 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False,
 
     if label_prefix is not None:
         label = label_prefix + ' ' + label
-
-    if color is None:
+    # Use default color only if not specified in `color` or `plot_style`
+    if color is None and (plot_style is None or 'color' not in plot_style):
         color = which_dict[which]
 
     default_plot_style = dict(linewidth=2, label=label)
-    plot_style['color'] = color
-    _hist_bursts(sizes, bins, pdf, plot_style, default_plot_style)
-
-    plt.gca().set_yscale(yscale)
+    _hist_burst_taildist(sizes, bins, pdf, yscale=yscale, color=color,
+                         user_plot_style=plot_style,
+                         default_plot_style=default_plot_style)
     plt.xlabel('Burst size')
     if legend:
-        gca().legend(loc='best')
+        plt.legend(loc='best')
 
 def hist_size_all(d, i=0, **kwargs):
     """Plot burst sizes for all the combinations of photons.
