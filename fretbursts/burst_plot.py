@@ -763,7 +763,7 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False,
         color = which_dict[which]
 
     _hist_burst_taildist(sizes, bins, pdf, yscale=yscale, color=color,
-                         plot_style=plot_style)
+                         label=label, plot_style=plot_style)
     plt.xlabel('Burst size')
     if legend:
         plt.legend(loc='best')
