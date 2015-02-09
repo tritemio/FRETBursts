@@ -21,7 +21,7 @@ requirements:
     - libpython    [win64]
     - setuptools
     - future
-    - cython 0.20*
+    - cython
     - numpy
     - scipy
     - matplotlib
