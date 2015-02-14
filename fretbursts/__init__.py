@@ -88,7 +88,7 @@ __all_local_names = [
         "hdf5", "fretmath", "mfit", "citation", "git",
 
         # Classes, functions, variables
-        "Data", "Sel", "Sel_mask", "Sel_mask_apply", "gui_fname", "Ph_sel",
+        "Data", "Sel", "gui_fname", "Ph_sel",
         "download_file", "init_notebook",
 
         # Standalone plots or plots as a function of ch
@@ -129,7 +129,7 @@ from . import background as bg
 from . import burstlib as bl
 
 # Import objects
-from .burstlib import Data, Sel, Sel_mask, Sel_mask_apply
+from .burstlib import Data, Sel
 from .ph_sel import Ph_sel
 
 

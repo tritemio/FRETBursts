@@ -97,96 +97,14 @@ def isarray(obj):
 #  BURST SELECTION FUNCTIONS
 #
 
-def Select_bursts(d_orig, filter_fun, negate=False, nofret=False, **kwargs):
+def Sel(d_orig, filter_fun, negate=False, nofret=False, **kwargs):
     """Uses `filter_fun` to select a sub-set of bursts from `d_orig`.
 
-    Arguments:
-        d_orig (Data object): the original Data() object to filter
-        filter_fun (fuction): function used for burst selection
-        negate (boolean): If True, negates (i.e. take the complementary)
-            of the selection returned by `filter_fun`. Default `False`.
-        nofret (boolean): If True do not recompute burst correction and FRET
-            efficiencies in the new retuerned object. Default `False`.
-
-    Kwargs:
-        Any additional keyword argument is passed to `filter_fun()`.
-
-    Returns:
-        d_new: a new Data() object containing the selected bursts.
-
-    Warning:
-        This function is also avaliable with the shortcut name `Sel`.
-
-    Note:
-        In order to save RAM `ph_times_m` is shared between `d_orig` and
-        `d_new`. However, all the bursts data (`mburst`, `nd`, `na`, etc...)
-        are new objects.
+    This function is deprecated. Use :meth:`Data.select_bursts` instead.
     """
-    Masks, str_sel = Sel_mask(d_orig, filter_fun, negate=negate,
-                              return_str=True, **kwargs)
-    d_sel = Sel_mask_apply(d_orig, Masks, nofret=nofret, str_sel=str_sel)
+    d_sel = d_orig.select_bursts(filter_fun, negate=negate,
+                                 return_str=True, **kwargs)
     return d_sel
-
-# Alias for :func:`Select_bursts`
-Sel = Select_bursts
-
-def Sel_mask(d_orig, filter_fun, negate=False, return_str=False, **kwargs):
-    """Returns a list of nch masks to select bursts according to filter_fun.
-    The passed 'filter_fun' is used to compute the mask for each channel.
-
-    Use this function only if you want to apply a selection from one object
-    to a second object. Otherwise use :func:`Select_bursts`.
-
-    See also:
-        :func:`Select_bursts`, :func:`Sel_mask_apply`
-    """
-    ## Create the list of bool masks for the bursts selection
-    M = [filter_fun(d_orig, i, **kwargs) for i in range(d_orig.nch)]
-    assert np.all([isinstance(m[1], str) for m in M])
-    Masks = [-m[0] if negate else m[0] for m in M]
-    str_sel = M[0][1]
-    if return_str:
-        return Masks, str_sel
-    else:
-        return Masks
-
-def Sel_mask_apply(d_orig, Masks, nofret=False, str_sel=''):
-    """Returns a new Data object with bursts select according to Masks.
-    Note that 'ph_times_m' is shared to save RAM, but `mburst`, `nd`, `na`,
-    `nt`, `bp` (and `naa` if ALEX) are new objects.
-
-    Use this function only if you want to apply a selection from one object
-    to a second object. Otherwise use :func:`Select_bursts`.
-
-    See also:
-        :func:`Select_bursts`, :func:`Sel_mask`,
-    """
-    ## Attributes of ds point to the same objects of d_orig
-    ds = Data(**d_orig)
-
-    ## Copy the per-burst fields that must be filtered
-    used_fields = [field for field in Data.burst_fields if field in d_orig]
-    for name in used_fields:
-
-        # Recreate the current attribute as a new list to avoid modifying
-        # the old list that is also in the original object.
-        # The list is initialized with empty arrays because this is the valid
-        # value when a ch has no bursts.
-        ds.add(**{name: [np.array([])]*d_orig.nch})
-
-        # Assign the new data
-        for ich, mask in enumerate(Masks):
-            if d_orig[name][ich].size == 0: continue # -> no bursts in ch
-            # Note that boolean masking implies numpy array copy
-            # On the contrary slicing only makes a new view of the array
-            ds[name][ich] = d_orig[name][ich][mask]
-
-    # Recompute E and S
-    if not nofret:
-        ds.calc_fret(count_ph=False)
-    # Add the annotation about the filter function
-    ds.s = list(d_orig.s+[str_sel]) # using append would modify also d_orig
-    return ds
 
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1306,7 +1224,7 @@ class Data(DataContainer):
     def _clean_bg_data(self):
         """Remove background fields specific of only one fit type.
 
-        Computing background with manual or 'auto' threshold resut in
+        Computing background with manual or 'auto' threshold results in
         different sets of attributes being saved. This method removes these
         attributes and should be called before recomputing the background
         to avoid having old stale attributes of a previous background fit.
@@ -1827,8 +1745,143 @@ class Data(DataContainer):
             pprint("   [DONE Counting D/A and FRET]\n", mute)
         return new_d
 
+
     ##
-    # Corrections methods
+    # Burst selection and filtering
+    #
+    def select_bursts(self, filter_fun, negate=False, nofret=False, **kwargs):
+        """Return an object with bursts filtered according to `filter_fun`.
+
+        This is the main method to use to select bursts according to different
+        criteria. The selection rule is defined by the selection function
+        `filter_fun` passed as an argument. FRETBursts provides a several
+        predefined selection functions in :mod:`select_bursts`. New selection
+        functions can be defined and passed to this method to implement
+        arbitrary selection rules.
+
+        Arguments:
+            filter_fun (fuction): function used for burst selection
+            negate (boolean): If True, negates (i.e. take the complementary)
+                of the selection returned by `filter_fun`. Default `False`.
+            nofret (boolean): If True do not recompute FRET quantities
+                (i.e. E, S) in the new returned object. Default `False`.
+
+        kwargs:
+            Any additional keyword argument is passed to `filter_fun()`.
+
+        Returns:
+            A new Data() object containing only the selected bursts.
+
+        Note:
+            In order to save RAM, the timestamp arrays (`ph_times_m`)
+            of the new Data() points to the same arrays of the original
+            Data(). Conversely, all the bursts data (`mburst`, `nd`, `na`,
+            etc...) are new distinct objects.
+        """
+        Masks, str_sel = self.select_bursts_mask(filter_fun, negate=negate,
+                                                 return_str=True, **kwargs)
+        d_sel = self.select_bursts_mask_apply(Masks, nofret=nofret,
+                                              str_sel=str_sel)
+        return d_sel
+
+    def select_bursts_mask(self, filter_fun, negate=False, return_str=False,
+                           **kwargs):
+        """Returns mask arrays to select bursts according to `filter_fun`.
+
+        The function `filter_fun` is called to compute the mask arrays for
+        each channel.
+
+        This method is useful when you want to apply a selection from one
+        object to a second object. Otherwise use :meth:`Data.select_bursts`.
+
+        Arguments:
+            filter_fun (fuction): function used for burst selection
+            negate (boolean): If True, negates (i.e. take the complementary)
+                of the selection returned by `filter_fun`. Default `False`.
+            return_str: if True return, for each channel, a tuple with
+                a bool array and a string that can be added to the measurement
+                name to indicate the selection. If False returns only
+                the bool array. Default False.
+
+        kwargs:
+            Any additional keyword argument is passed to `filter_fun()`.
+
+        Returns:
+            A list of boolean arrays (one per channel) that define the burst
+            selection. If `return_str` is True returns a list of tuples, where
+            each tuple is a bool array and a string.
+
+        See also:
+            :meth:`Data.select_bursts`, :meth:`Data.select_mask_apply`
+        """
+        ## Create the list of bool masks for the bursts selection
+        M = [filter_fun(self, i, **kwargs) for i in range(self.nch)]
+        # Make sure the selection function has the right return signature
+        assert np.all([isinstance(m[1], str) for m in M])
+        Masks = [-m[0] if negate else m[0] for m in M]
+        str_sel = M[0][1]
+        if return_str:
+            return Masks, str_sel
+        else:
+            return Masks
+
+    def select_bursts_mask_apply(self, masks, nofret=False, str_sel=''):
+        """Returns a new Data object with bursts selected according to `masks`.
+
+        This method select bursts using a list of boolean arrays as input.
+        Since the user needs to create the boolean arrays first, this method
+        is useful when experimenting with new selection criteria that don't
+        have a dedicated selection function. Usually, however, it is easier
+        to select bursts through :meth:`Data.select_bursts` (using a
+        selection function).
+
+        Arguments:
+            masks (list of arrays): each element in this list is a boolean
+                array that selects bursts in a channel.
+            nofret (boolean): If True do not recompute FRET quantities
+                (i.e. E, S) in the new returned object. Default `False`.
+
+        Returns:
+            A new Data() object containing only the selected bursts.
+
+        Note:
+            In order to save RAM, the timestamp arrays (`ph_times_m`)
+            of the new Data() points to the same arrays of the original
+            Data(). Conversely, all the bursts data (`mburst`, `nd`, `na`,
+            etc...) are new distinct objects.
+
+        See also:
+            :meth:`Data.select_bursts`, :meth:`Data.select_mask`
+        """
+        ## Attributes of ds point to the same objects of self
+        ds = Data(**self)
+
+        ## Copy the per-burst fields that must be filtered
+        used_fields = [field for field in Data.burst_fields if field in self]
+        for name in used_fields:
+
+            # Recreate the current attribute as a new list to avoid modifying
+            # the old list that is also in the original object.
+            # The list is initialized with empty arrays because this is the
+            # valid value when a ch has no bursts.
+            ds.add(**{name: [np.array([])]*self.nch})
+
+            # Assign the new data
+            for ich, mask in enumerate(masks):
+                if self[name][ich].size == 0: continue # -> no bursts in ch
+                # Note that boolean masking implies numpy array copy
+                # On the contrary slicing only makes a new view of the array
+                ds[name][ich] = self[name][ich][mask]
+
+        # Recompute E and S
+        if not nofret:
+            ds.calc_fret(count_ph=False)
+        # Add the annotation about the filter function
+        ds.s = list(self.s + [str_sel]) # using append would modify also self
+        return ds
+
+    ##
+    # Burst corrections
     #
     def background_correction(self, relax_nt=False, mute=False):
         """Apply background correction to burst sizes (nd, na,...)
