@@ -4,12 +4,15 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-Functions to select bursts according to different criteria.
 
-These functions are usually passed to the :func:`burstlib.Sel` as a second
-parameter. For example::
+The module :mod:`select_bursts` defines functions to select
+bursts according to different criteria.
 
-    ds = Sel(d, select_bursts.E, th1=0.2, th2=0.6)
+These functions are usually passed to
+:meth:`Data.select_bursts() <fretbursts.burstlib.Data.select_bursts>`.
+For example::
+
+    ds = d.select_bursts(select_bursts.E, th1=0.2, th2=0.6)
 
 returns a new object `ds` containing only the bursts of `d` that pass the
 specified selection criterium (`E` between 0.2 and 0.6 in this case).

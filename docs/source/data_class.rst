@@ -114,6 +114,21 @@ List of :class:`Data` methods used to apply burst corrections.
     .. automethod:: dither
 
 
+Burst selection methods
+-----------------------
+
+:class:`Data` methods that allow to filter bursts according to different rules.
+See also :ref:`burst_selection`.
+
+.. class:: Data
+
+    .. automethod:: select_bursts
+
+    .. automethod:: select_bursts_mask
+
+    .. automethod:: select_bursts_mask_apply
+
+
 Fitting methods
 -------------------
 

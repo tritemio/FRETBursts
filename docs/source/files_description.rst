@@ -72,7 +72,7 @@ The script options are:
 ``select_bursts.py``
 --------------------
 
-.. automodule:: fretbursts.select_bursts
+See :mod:`fretbursts.select_bursts`.
 
 
 ``burstsearch`` (folder)

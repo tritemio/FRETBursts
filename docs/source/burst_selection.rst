@@ -1,3 +1,5 @@
+.. _burst_selection:
+
 Burst selection
 ===============
 
@@ -6,11 +8,11 @@ Burst selection
 After performing a burst search is common to select bursts according to
 different criteria (burst size, FRET efficiency, etc...).
 
-In FRETBursts this can be easily accomplished using the function
-:func:`Select_bursts` (or its alias :func:`Sel`). This function requires a
-:class:`Data` object and a :ref:`selection function <selection_functions>`
-as parameters. :func:`Select_bursts` returns a new :class:`Data` object
-containing only the new sub-set of bursts. A new selection can be applied 
+In FRETBursts this can be easily accomplished using the method
+:meth:`Data.select_bursts`. This method takes
+a :ref:`selection function <selection_functions>`
+as parameters. :meth:`Data.select_bursts` returns a new :class:`Data` object
+containing only the new sub-set of bursts. A new selection can be applied
 to this new object as well. In this way, different
 selection criteria can be freely combined in order to obtain a
 burst population satisfying arbitrary constrains.
@@ -18,27 +20,21 @@ burst population satisfying arbitrary constrains.
 FRETBursts provides a large number of
 :ref:`selection functions <selection_functions>`. Moreover, creating a new
 selection function is extremely simple, requiring (usually) 2-3 lines of code.
-You can just start from one of the functions in `select_bursts.py` and modify
-it to obtain a different criterium.
+You can take the functions in `select_bursts.py` as examples to create your
+own selection rule.
 
-The reference documentation for the selection functions follows.
+In the next section we list all the selection functions. You may also want
+to check the :class:`Data` methods that deal with burst selection:
 
-.. autofunction:: Select_bursts
-
-.. function:: Sel()
-
-    Alias for :func:`Select_bursts`
-
-
-.. autofunction:: Sel_mask
-
-.. autofunction:: Sel_mask_apply
+- :meth:`Data.select_bursts`
+- :meth:`Data.select_bursts_mask`
+- :meth:`Data.select_bursts_mask_apply`
 
 
 .. _selection_functions:
 
-List of selection functions
----------------------------
+Selection functions
+-------------------
 
 .. automodule:: fretbursts.select_bursts
     :members:

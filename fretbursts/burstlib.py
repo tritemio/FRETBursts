@@ -1752,10 +1752,10 @@ class Data(DataContainer):
     def select_bursts(self, filter_fun, negate=False, nofret=False, **kwargs):
         """Return an object with bursts filtered according to `filter_fun`.
 
-        This is the main method to use to select bursts according to different
+        This is the main method to select bursts according to different
         criteria. The selection rule is defined by the selection function
-        `filter_fun` passed as an argument. FRETBursts provides a several
-        predefined selection functions in :mod:`select_bursts`. New selection
+        `filter_fun`. FRETBursts provides a several predefined selection
+        functions see :ref:`burst_selection`. New selection
         functions can be defined and passed to this method to implement
         arbitrary selection rules.
 
@@ -1770,7 +1770,7 @@ class Data(DataContainer):
             Any additional keyword argument is passed to `filter_fun()`.
 
         Returns:
-            A new Data() object containing only the selected bursts.
+            A new :class:`Data` object containing only the selected bursts.
 
         Note:
             In order to save RAM, the timestamp arrays (`ph_times_m`)
@@ -1812,7 +1812,7 @@ class Data(DataContainer):
             each tuple is a bool array and a string.
 
         See also:
-            :meth:`Data.select_bursts`, :meth:`Data.select_mask_apply`
+            :meth:`Data.select_bursts`, :meth:`Data.select_bursts_mask_apply`
         """
         ## Create the list of bool masks for the bursts selection
         M = [filter_fun(self, i, **kwargs) for i in range(self.nch)]
@@ -1842,7 +1842,7 @@ class Data(DataContainer):
                 (i.e. E, S) in the new returned object. Default `False`.
 
         Returns:
-            A new Data() object containing only the selected bursts.
+            A new :class:`Data` object containing only the selected bursts.
 
         Note:
             In order to save RAM, the timestamp arrays (`ph_times_m`)
