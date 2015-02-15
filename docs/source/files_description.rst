@@ -2,7 +2,57 @@
 Description of the files
 ========================
 
-Here a brief list of the main FRETBursts files.
+Here a brief descriprion of the main FRETBursts files.
+
+
+``burstlib.py``
+---------------
+
+.. automodule:: fretbursts.burstlib
+
+
+``loader.py``
+--------------
+
+.. automodule:: fretbursts.loader
+
+
+``select_bursts.py``
+--------------------
+
+See :mod:`fretbursts.select_bursts`.
+
+
+``burst_plot.py``
+-----------------
+
+.. automodule:: fretbursts.burst_plot
+
+
+``background.py``
+-----------------
+
+.. automodule:: fretbursts.background
+
+
+``burstsearch`` (folder)
+---------------------------
+
+.. automodule:: fretbursts.burstsearch
+
+
+``dataload`` (folder)
+---------------------
+
+.. automodule:: fretbursts.dataload
+
+
+``fit`` (folder)
+----------------
+
+.. automodule:: fretbursts.fit
+
+See :ref:`fit-section`.
 
 
 .. _load_fretbursts:
@@ -45,52 +95,4 @@ The script options are:
   installation is found
 
 
-``burstlib.py``
----------------
-
-.. automodule:: fretbursts.burstlib
-
-
-``loader.py``
---------------
-
-.. automodule:: fretbursts.loader
-
-
-``burst_plot.py``
------------------
-
-.. automodule:: fretbursts.burst_plot
-
-
-``background.py``
------------------
-
-.. automodule:: fretbursts.background
-
-
-``select_bursts.py``
---------------------
-
-See :mod:`fretbursts.select_bursts`.
-
-
-``burstsearch`` (folder)
----------------------------
-
-.. automodule:: fretbursts.burstsearch
-
-
-``dataload`` (folder)
----------------------
-
-.. automodule:: fretbursts.dataload
-
-
-``fit`` (folder)
-----------------
-
-.. automodule:: fretbursts.fit
-
-See :ref:`fit-section`.
 
