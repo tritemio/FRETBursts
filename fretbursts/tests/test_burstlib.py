@@ -546,7 +546,7 @@ def test_burst_selection(data):
                               kind='first')
     M2 = d.select_bursts_mask(select_bursts.consecutive, sep1=1e-3, sep2=1e4,
                               kind='second')
-    Mb = d.select_bursts_mask(d, select_bursts.consecutive, sep1=1e-3, sep2=1e4,
+    Mb = d.select_bursts_mask(select_bursts.consecutive, sep1=1e-3, sep2=1e4,
                               kind='both')
     Mb2 = [m1 + m2 for m1, m2 in zip(M1, M2)]
     assert list_array_equal(Mb, Mb2)
