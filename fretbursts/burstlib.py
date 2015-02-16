@@ -102,8 +102,8 @@ def Sel(d_orig, filter_fun, negate=False, nofret=False, **kwargs):
 
     This function is deprecated. Use :meth:`Data.select_bursts` instead.
     """
-    d_sel = d_orig.select_bursts(filter_fun, negate=negate,
-                                 return_str=True, **kwargs)
+    d_sel = d_orig.select_bursts(filter_fun, negate=negate, nofret=nofret,
+                                 **kwargs)
     return d_sel
 
 
