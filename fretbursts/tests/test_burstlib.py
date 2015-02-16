@@ -539,8 +539,8 @@ def test_burst_selection(data):
     """Smoke test for burst selection functions.
     """
     d = data
-    bl.Sel(d, select_bursts.size, th1=20, th2=100, add_naa=True)
-    bl.Sel(d, select_bursts.size, th1=20, th2=100, gamma=0.5)
+    d.select_bursts(select_bursts.size, th1=20, th2=100, add_naa=True)
+    d.select_bursts(select_bursts.size, th1=20, th2=100, gamma=0.5)
 
     M1 = d.select_bursts_mask(select_bursts.consecutive, sep1=1e-3, sep2=1e4,
                               kind='first')
