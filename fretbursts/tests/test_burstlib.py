@@ -542,11 +542,11 @@ def test_burst_selection(data):
     d.select_bursts(select_bursts.size, th1=20, th2=100, add_naa=True)
     d.select_bursts(select_bursts.size, th1=20, th2=100, gamma=0.5)
 
-    M1 = d.select_bursts_mask(select_bursts.consecutive, sep1=1e-3, sep2=1e4,
+    M1 = d.select_bursts_mask(select_bursts.consecutive, th1=1e-3, th2=1e4,
                               kind='first')
-    M2 = d.select_bursts_mask(select_bursts.consecutive, sep1=1e-3, sep2=1e4,
+    M2 = d.select_bursts_mask(select_bursts.consecutive, th1=1e-3, th2=1e4,
                               kind='second')
-    Mb = d.select_bursts_mask(select_bursts.consecutive, sep1=1e-3, sep2=1e4,
+    Mb = d.select_bursts_mask(select_bursts.consecutive, th1=1e-3, th2=1e4,
                               kind='both')
     Mb2 = [m1 + m2 for m1, m2 in zip(M1, M2)]
     assert list_array_equal(Mb, Mb2)
