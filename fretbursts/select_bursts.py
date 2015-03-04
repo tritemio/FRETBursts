@@ -166,7 +166,7 @@ def topN_max_rate(d, ich=0, N=500):
     burst_mask[index_sorted[-N:]] = True
     return burst_mask, 'topN_MaxRate%d' % N
 
-def width(d, ich=0, th1=0.5, th2=1):
+def width(d, ich=0, th1=0.5, th2=np.inf):
     """Select bursts with width between th1 and th2 (ms)."""
     th1, th2 = th1*1e-3/d.clk_p, th2*1e-3/d.clk_p
     burst_width = bslib.b_width(d.mburst[ich])
