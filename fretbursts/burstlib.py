@@ -2304,7 +2304,7 @@ class Data(DataContainer):
 
             However `fit_E_minimize()` does not provide a model curve.
         """
-        Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
+        Mask = self.select_bursts_mask(select_bursts.E, E1=E1, E2=E2)
 
         fit_res, fit_model_F = zeros((self.nch, 2)), zeros(self.nch)
         for ich, (nd, na, E, mask) in enumerate(zip(
@@ -2332,7 +2332,7 @@ class Data(DataContainer):
         assert method in [1, 2, 3]
         fit_fun = {1: fret_fit.fit_E_poisson_na, 2: fret_fit.fit_E_poisson_nt,
                    3: fret_fit.fit_E_poisson_nd}
-        Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
+        Mask = self.select_bursts_mask(select_bursts.E, E1=E1, E2=E2)
         fit_res = zeros(self.nch)
         for ich, mask in zip(range(self.nch), Mask):
             nd, na, bg_d, bg_a = self.expand(ich)
@@ -2347,7 +2347,7 @@ class Data(DataContainer):
     def fit_E_ML_binom(self, E1=-1, E2=2, **kwargs):
         """ML fit for E modeling na ~ Binomial, using bursts in [E1,E2] range.
         """
-        Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
+        Mask = self.select_bursts_mask(select_bursts.E, E1=E1, E2=E2)
         fit_res = np.array([fret_fit.fit_E_binom(_d[mask], _a[mask], **kwargs)
                             for _d, _a, mask in zip(self.nd, self.na, Mask)])
         self.add(fit_E_res=fit_res, fit_E_name='MLE: na ~ Binomial',
@@ -2365,7 +2365,7 @@ class Data(DataContainer):
         # Build a dictionary fun_d so we'll call the function fun_d[kind]
         fun_d = dict(slope=fret_fit.fit_E_slope,
                      E_size=fret_fit.fit_E_E_size)
-        Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
+        Mask = self.select_bursts_mask(select_bursts.E, E1=E1, E2=E2)
         fit_res = np.array([fun_d[kind](nd[mask], na[mask], **kwargs)
                             for nd, na, mask in
                             zip(self.nd, self.na, Mask)])
@@ -2430,7 +2430,7 @@ class Data(DataContainer):
         else:
             raise ValueError("Fitting function not recognized.")
 
-        Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
+        Mask = self.select_bursts_mask(select_bursts.E, E1=E1, E2=E2)
 
         fit_res, fit_model_F = zeros((self.nch, nparam)), zeros(self.nch)
         for ich, (nd, na, E, mask) in enumerate(zip(
@@ -2494,7 +2494,7 @@ class Data(DataContainer):
         assert size(E_fit) == self.nch
 
         E_sel = [Ei[(Ei > E1)*(Ei < E2)] for Ei in self.E]
-        Mask = Sel_mask(self, select_bursts.E, E1=E1, E2=E2)
+        Mask = self.select_bursts_mask(select_bursts.E, E1=E1, E2=E2)
 
         E_var, E_var_bu, E_var_ph = \
                 zeros(self.nch), zeros(self.nch), zeros(self.nch)
