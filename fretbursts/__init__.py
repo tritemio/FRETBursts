@@ -29,7 +29,7 @@ __version__ = get_versions()['version']
 del get_versions
 
 ## Citation information
-_CITATION = ('   FRETBursts - An opensource single-molecule FRET burst '
+_CITATION = ('   FRETBursts - An opensource single-molecule FRET bursts '
              'analysis toolkit.\n   A. Ingargiola 2014. '
              'https://github.com/tritemio/FRETBursts')
 
