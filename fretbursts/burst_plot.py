@@ -631,10 +631,9 @@ def time_ph(d, i=0, num_ph=1e4, ph_istart=0):
 ##
 #  Histogram plots
 #
-
 def _bins_array(bins):
-    """In case bins is a 3-element sequence returns an array of bin edges.
-    Otherwise returns the input unchaged.
+    """When `bins` is a 3-element sequence returns an array of bin edges.
+    Otherwise returns the `bins` unchaged.
     """
     if np.size(bins) == 3:
         bins = np.arange(*bins)
@@ -672,6 +671,7 @@ def hist_width(d, i=0, bins=(0, 10, 0.025), pdf=True, yscale='log',
         bins (array or None): array of bin edges. If len(bins) == 3
             then is interpreted as (start, stop, step) values.
         pdf (bool): if True, normalize the histogram to obtain a PDF.
+        color (string or tuple or None): matplotlib color used for the plot.
         yscale (string): 'log' or 'linear', sets the plot y scale.
         plot_style (dict): dict of matplotlib line style passed to `plot`.
     """
@@ -697,11 +697,15 @@ def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, yscale='log',
             the burst size is `nd*gamma + na`.
         gamma (float): gamma factor used to compute the corrected burst
             size `nd*gamma + na`.
-        label_prefix (string or None): prefix to add to the legend.
+        label_prefix (string or None): a custom prefix for the legend label.
+        color (string or tuple or None): matplotlib color used for the plot.
         pdf (bool): if True, normalize the histogram to obtain a PDF.
         yscale (string): 'log' or 'linear', sets the plot y scale.
         plot_style (dict): dict of matplotlib line style passed to `plot`.
     """
+    if plot_style is None:
+        plot_style = {}
+
     burst_widths = bl.b_width(d.mburst[i])*d.clk_p*1e3
     sizes = d.burst_sizes_ich(ich=i, gamma=gamma, add_naa=add_naa)
     brightness = sizes / burst_widths
@@ -714,8 +718,15 @@ def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, yscale='log',
     if label_prefix is not None:
         label = label_prefix + ' ' + label
 
+    # Use default label (with optional prefix) only if not explicitly
+    # specified in `plot_style`
+    if 'label' not in plot_style:
+        if label_prefix is not None:
+            label = label_prefix + ' ' + label
+        plot_style['label'] = label
+
     _hist_burst_taildist(brightness, bins, pdf, yscale=yscale,
-                         color=color, label=label, plot_style=plot_style)
+                         color=color, plot_style=plot_style)
     plt.xlabel('Burst brightness (kHz)')
     plt.legend(loc='best')
 
@@ -738,11 +749,16 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False,
             the burst size is `nd + na`. Ignored when `which` != 'all'.
         gamma (float): gamma factor used to compute the corrected burst
             size `nd*gamma + na`. Ignored when `which` != 'all'.
+        label_prefix (string or None): a custom prefix for the legend label.
+        color (string or tuple or None): matplotlib color used for the plot.
         pdf (bool): if True, normalize the histogram to obtain a PDF.
         yscale (string): 'log' or 'linear', sets the plot y scale.
         legend (bool): if True add legend to plot
         plot_style (dict): dict of matplotlib line style passed to `plot`.
     """
+    if plot_style is None:
+        plot_style = {}
+
     which_dict = {'all': 'k', 'nd': green, 'na': red, 'naa': purple}
     assert which in which_dict
     if which == 'all':
@@ -756,14 +772,19 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False,
         sizes = d[which][i]
         label = which
 
-    if label_prefix is not None:
-        label = label_prefix + ' ' + label
-    # Use default color only if not specified in `color` or `plot_style`
-    if color is None and (plot_style is None or 'color' not in plot_style):
-        color = which_dict[which]
+    # Use default label (with optional prefix) only if not explicitly
+    # specified in `plot_style`
+    if 'label' not in plot_style:
+        if label_prefix is not None:
+            label = label_prefix + ' ' + label
+        plot_style['label'] = label
 
-    _hist_burst_taildist(sizes, bins, pdf, yscale=yscale, color=color,
-                         label=label, plot_style=plot_style)
+    # Use default color only if not specified in `color` or `plot_style`
+    if color is None and 'color' not in plot_style:
+        plot_style['color'] = which_dict[which]
+
+    _hist_burst_taildist(sizes, bins, pdf, yscale=yscale,
+                         plot_style=plot_style)
     plt.xlabel('Burst size')
     if legend:
         plt.legend(loc='best')
