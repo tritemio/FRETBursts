@@ -2248,8 +2248,9 @@ class Data(DataContainer):
                 s += " BS_%s L%d m%d MR%d" % (self.ph_sel, self.L, self.m,
                                               np.mean(self.min_rate_cps*1e-3))
             else:
-                s += " BS_%s L%d m%d P%s F%.1f" % \
-                        (self.ph_sel, self.L, self.m, self.P, np.mean(self.F))
+                P_str = '' if self.P is None else ' P%s' % self.P
+                s += " BS_%s L%d m%d F%.1f%s" % \
+                        (self.ph_sel, self.L, self.m, np.mean(self.F), P_str)
         s += " G%.3f" % np.mean(self.gamma)
         if 'bg_fun' in self: s += " BG%s" % self.bg_fun.__name__[:-4]
         if 'bg_time_s' in self: s += "-%ds" % self.bg_time_s
