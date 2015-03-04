@@ -47,6 +47,7 @@ Finally a few functions deal with burst timestamps:
 from __future__ import division, print_function, absolute_import
 from builtins import range, zip
 
+from collections import OrderedDict
 import numpy as np
 from scipy.stats import erlang
 from scipy.optimize import leastsq
@@ -59,10 +60,37 @@ from . import background as bg
 from .utils.misc import pprint, HistData, _is_list_of_arrays
 
 from . import burstlib
+from . import select_bursts
 from . import fret_fit
 from . import mfit
 
 from .burstlib import isarray
+
+
+def slice_time_list(dx, seconds):
+    """Slice a class:`Data` object in a series of consecutive chunks of time.
+
+    This function returns a list of class:`Data` objects, each one containing
+    bursts in a single time slice.
+    """
+    return [dx.select_bursts(select_bursts.time,
+                             time_s1=t1, time_s2=t1 + seconds)
+            for t1 in range(0, dx.time_max, seconds)]
+
+def slice_time_dict(dx, seconds):
+    """Slice a class:`Data` object in a series of consecutive chunks of time.
+
+    This function returns an OrderedDict in which keys are strings 'XX-YYs'
+    (where XX and YY are the start and end in seconds), and values are
+    class:`Data` objects containing bursts in a specific time slice.
+    """
+    data_slices = OrderedDict()
+    for t1 in range(0, dx.time_max, seconds):
+        t2 = t1 + seconds
+        name = '%d-%ds' % (t1, t2)
+        data_slices[name] = dx.select_bursts(select_bursts.time,
+                                             time_s1=t1, time_s2=t1 + seconds)
+    return data_slices
 
 
 def calc_mean_lifetime(dx, t1=0, t2=np.inf, ph_sel=Ph_sel('all')):
