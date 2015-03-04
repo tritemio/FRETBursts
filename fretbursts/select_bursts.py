@@ -215,7 +215,7 @@ def single(d, ich=0, th=1):
     return bursts_mask, ''
 
 def consecutive(d, ich=0, th1=0, th2=np.inf, kind='both'):
-    """Select consecutive bursts with sep1 <= separation <= sep2 (in sec.).
+    """Select consecutive bursts with th1 <= separation <= th2 (in sec.).
 
     Arguments:
         kind (string): valid values are 'first' to select the first burst
