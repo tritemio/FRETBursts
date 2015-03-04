@@ -27,7 +27,6 @@ from scipy import stats
 
 import fretbursts.burstsearch.burstsearchlib as bslib
 from .utils.misc import clk_to_s as _clk_to_s
-#from .utils.misc import deprecate as _deprecate
 
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -43,10 +42,12 @@ def str_G(gamma, gamma1):
 ## Selection on E or S values
 def E(d, ich=0, E1=-np.inf, E2=np.inf):
     """Select bursts with E between E1 and E2."""
+    assert E1 <= E2, 'Threshold E1 (%.2f) must be <= of E2 (%.2f)' % (E1, E2)
     burst_mask = (d.E[ich] >= E1)*(d.E[ich] <= E2)
     return burst_mask, ''
 
 def S(d, ich=0, S1=-np.inf, S2=np.inf):
+    assert S1 <= S2, 'Threshold S1 (%.2f) must be <= of S2 (%.2f)' % (S1, S2)
     """Select bursts with S between S1 and S2."""
     burst_mask = (d.S[ich] >= S1)*(d.S[ich] <= S2)
     return burst_mask, ''
@@ -56,6 +57,8 @@ def ES(d, ich=0, E1=-np.inf, E2=np.inf, S1=-np.inf, S2=np.inf, rect=True):
 
     When `rect` is True the selection is rectangular otherwise is elliptical.
     """
+    assert E1 <= E2, 'Threshold E1 (%.2f) must be <= of E2 (%.2f)' % (E1, E2)
+    assert S1 <= S2, 'Threshold S1 (%.2f) must be <= of S2 (%.2f)' % (S1, S2)
     if rect:
         return ES_rect(d, ich, E1=E1, E2=E2, S1=S1, S2=S2)
     else:
@@ -78,8 +81,6 @@ def ES_ellips(d, ich=0, E1=-1e3, E2=1e3, S1=-1e3, S2=1e3):
     burst_mask = (ellips(d.E[ich], d.S[ich], E1, E2, S1, S2) <= 1)
     return burst_mask, ''
 
-#ESe = _deprecate(ES_ellips, "select_bursts.ESe", "select_bursts.ES_ellips")
-
 ## Selection on static burst size, width or period
 def period(d, ich=0, bp1=0, bp2=None):
     """Select bursts from period bp1 to period bp2 (included)."""
@@ -93,21 +94,22 @@ def time(d, ich=0, time_s1=0, time_s2=None):
     if time_s2 is None: time_s2 = burst_start.max()
     burst_mask = (burst_start >= time_s1)*(burst_start <= time_s2)
     return burst_mask, ''
-#select_bursts_time = _deprecate(time, "select_bursts_time", "select_bursts.time")
-
 
 def nd(d, ich=0, th1=20, th2=np.inf):
     """Select bursts with (nd >= th1) and (nd <= th2)."""
+    assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
     bursts_mask = (d.nd[ich] >= th1)*(d.nd[ich] <= th2)
     return bursts_mask, ''
 
 def na(d, ich=0, th1=20, th2=np.inf):
     """Select bursts with (na >= th1) and (na <= th2)."""
+    assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
     bursts_mask = (d.na[ich] >= th1)*(d.na[ich] <= th2)
     return bursts_mask, ''
 
 def naa(d, ich=0, th1=20, th2=np.inf):
     """Select bursts with (naa >= th1) and (naa <= th2)."""
+    assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
     bursts_mask = (d.naa[ich] >= th1)*(d.naa[ich] <= th2)
     return bursts_mask, ''
 
@@ -118,6 +120,7 @@ def size(d, ich=0, th1=20, th2=np.inf, gamma=1., gamma1=None,
     The parameters `gamma`, `gamma1` and `add_naa` are passed to
     :meth:`fretbursts.burstlib.Data.burst_sizes_ich` to compute the burst size.
     """
+    assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
     burst_size = d.burst_sizes_ich(ich, gamma, gamma1, add_naa)
     if d.nch > 1 and (np.size(th1) == d.nch): th1 = th1[ich]
     if d.nch > 1 and (np.size(th2) == d.nch): th2 = th2[ich]
@@ -168,6 +171,7 @@ def topN_max_rate(d, ich=0, N=500):
 
 def width(d, ich=0, th1=0.5, th2=np.inf):
     """Select bursts with width between th1 and th2 (ms)."""
+    assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
     th1, th2 = th1*1e-3/d.clk_p, th2*1e-3/d.clk_p
     burst_width = bslib.b_width(d.mburst[ich])
     bursts_mask = (burst_width >= th1)*(burst_width <= th2)
@@ -175,6 +179,7 @@ def width(d, ich=0, th1=0.5, th2=np.inf):
 
 def sbr(d, ich=0, th1=0, th2=np.inf):
     """Select bursts with SBR between `th1` and `th2`."""
+    assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
     if 'sbr' not in d:
         d.calc_sbr()
     sbr_ich = d.sbr[ich]
@@ -209,7 +214,7 @@ def single(d, ich=0, th=1):
     bursts_mask = np.hstack([gap_mask,False])*np.hstack([False,gap_mask])
     return bursts_mask, ''
 
-def consecutive(d, ich=0, sep1=0, sep2=np.inf, kind='both'):
+def consecutive(d, ich=0, th1=0, th2=np.inf, kind='both'):
     """Select consecutive bursts with sep1 <= separation <= sep2 (in sec.).
 
     Arguments:
@@ -217,12 +222,13 @@ def consecutive(d, ich=0, sep1=0, sep2=np.inf, kind='both'):
             of each pair, 'second' to select the second burst of each pair
             and 'both' to select both bursts in each pair.
     """
+    assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
     kind_valids = ['first', 'second', 'both']
     assert kind in kind_valids, \
         "Invalid value for 'kind'. Valid values are %s" % str(kind_valids)
 
     bseparation = bslib.b_separation(d.mburst[ich])*d.clk_p
-    pair_mask = (bseparation >= sep1)*(bseparation <= sep2)
+    pair_mask = (bseparation >= th1)*(bseparation <= th2)
 
     bursts_mask = np.zeros(d.num_bursts[ich], dtype=bool)
     if kind in ['first', 'both']:
@@ -313,13 +319,6 @@ def nt_bg_p(d, ich=0, P=0.05, F=1.):
 #    skew_index,_,_ = bleaching(d, ich=ich, **kwargs)
 #    bursts_mask = (skew_index <= th2)*(skew_index >= th1)
 #    return bursts_mask
-
-def for_bt_fit(d, ich=0, BT=None):
-    """Select bursts for more accurate BT fitting (select before BG corr.)"""
-    assert np.size(BT) == d.nch
-    # Selection to be applied as a second-step fit after a first BT fit.
-    bursts_mask = (d.na[ich] <= 2*BT[ich]*d.nd[ich])
-    return bursts_mask, ''
 
 def size_noise(d, ich=0, th=2):
     """Select bursts w/ size th times above the noise on both D and A ch."""
