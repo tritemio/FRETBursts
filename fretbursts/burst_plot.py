@@ -721,8 +721,6 @@ def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, yscale='log',
     # Use default label (with optional prefix) only if not explicitly
     # specified in `plot_style`
     if 'label' not in plot_style:
-        if label_prefix is not None:
-            label = label_prefix + ' ' + label
         plot_style['label'] = label
 
     _hist_burst_taildist(brightness, bins, pdf, yscale=yscale,
