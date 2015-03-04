@@ -782,6 +782,8 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False,
     # Use default color only if not specified in `color` or `plot_style`
     if color is None and 'color' not in plot_style:
         plot_style['color'] = which_dict[which]
+    elif color is not None:
+        plot_style['color'] = color
 
     _hist_burst_taildist(sizes, bins, pdf, yscale=yscale,
                          plot_style=plot_style)
