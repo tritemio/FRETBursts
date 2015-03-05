@@ -640,9 +640,10 @@ def _bins_array(bins):
     return bins
 
 
-def _hist_burst_taildist(data, bins, pdf, yscale='log', color=None,
-                         label=None, plot_style=None):
-    hist = HistData(*np.histogram(data, bins=_bins_array(bins)))
+def _hist_burst_taildist(data, bins, pdf,  weights=None, yscale='log',
+                         color=None, label=None, plot_style=None):
+    hist = HistData(*np.histogram(data, bins=_bins_array(bins),
+                                  weights=weights))
     ydata = hist.pdf if pdf else hist.counts
 
     default_plot_style = dict(marker='o')
@@ -661,8 +662,8 @@ def _hist_burst_taildist(data, bins, pdf, yscale='log', color=None,
         plt.ylabel('# Bursts')
 
 
-def hist_width(d, i=0, bins=(0, 10, 0.025), pdf=True, yscale='log',
-               color=None, plot_style=None):
+def hist_width(d, i=0, bins=(0, 10, 0.025), pdf=True, weights=None,
+               yscale='log', color=None, plot_style=None):
     """Plot histogram of burst durations.
 
     Parameters:
@@ -677,14 +678,14 @@ def hist_width(d, i=0, bins=(0, 10, 0.025), pdf=True, yscale='log',
     """
     burst_widths = bl.b_width(d.mburst[i])*d.clk_p*1e3
 
-    _hist_burst_taildist(burst_widths, bins, pdf, yscale=yscale,
-                         color=color, plot_style=plot_style)
+    _hist_burst_taildist(burst_widths, bins, pdf, weights=weights,
+                         yscale=yscale, color=color, plot_style=plot_style)
     plt.xlabel('Burst width (ms)')
     plt.xlim(xmin=0)
 
 
-def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, yscale='log',
-                    gamma=1, add_naa=False, label_prefix=None,
+def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, weights=None,
+                    yscale='log', gamma=1, add_naa=False, label_prefix=None,
                     color=None, plot_style=None):
     """Plot histogram of burst brightness, i.e. burst size / duration.
 
@@ -723,13 +724,13 @@ def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, yscale='log',
     if 'label' not in plot_style:
         plot_style['label'] = label
 
-    _hist_burst_taildist(brightness, bins, pdf, yscale=yscale,
-                         color=color, plot_style=plot_style)
+    _hist_burst_taildist(brightness, bins, pdf, weights=weights,
+                         yscale=yscale, color=color, plot_style=plot_style)
     plt.xlabel('Burst brightness (kHz)')
     plt.legend(loc='best')
 
 
-def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False,
+def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
               yscale='log', gamma=1, add_naa=False, label_prefix=None,
               legend=True, color=None, plot_style=None):
     """Plot histogram of burst sizes.
@@ -783,7 +784,7 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False,
     elif color is not None:
         plot_style['color'] = color
 
-    _hist_burst_taildist(sizes, bins, pdf, yscale=yscale,
+    _hist_burst_taildist(sizes, bins, pdf, weights=weights, yscale=yscale,
                          plot_style=plot_style)
     plt.xlabel('Burst size')
     if legend:
@@ -1435,34 +1436,35 @@ def hist_mrates(d, i=0, m=10, bins=(0, 4000, 100), yscale='log', pdf=False,
     xlabel("Rates (kcps)")
 
 ## Bursts stats
-def hist_sbr(d, i=0, bins=(0, 30, 1), pdf=True, color=None, plot_style=None):
+def hist_sbr(d, i=0, bins=(0, 30, 1), pdf=True, weights=None, color=None,
+             plot_style=None):
     """Histogram of per-burst Signal-to-Background Ratio (SBR).
     """
     if 'sbr' not in d:
         d.calc_sbr()
-    _hist_burst_taildist(d.sbr[i], bins, pdf, color=color,
+    _hist_burst_taildist(d.sbr[i], bins, pdf, weights=weights, color=color,
                          plot_style=plot_style)
     plt.xlabel('SBR')
 
 
-def hist_burst_phrate(d, i=0, bins=(0, 1000, 20), pdf=True, color=None,
-                      plot_style=None):
+def hist_burst_phrate(d, i=0, bins=(0, 1000, 20), pdf=True, weights=None,
+                      color=None, plot_style=None):
     """Histogram of max photon rate in each burst.
     """
     if 'max_rate' not in d:
         d.calc_max_rate(m=10)
-    _hist_burst_taildist(d.max_rate[i]*1e-3, bins, pdf, color=color,
-                         plot_style=plot_style)
+    _hist_burst_taildist(d.max_rate[i]*1e-3, bins, pdf, weights=weights,
+                         color=color, plot_style=plot_style)
     plt.xlabel('Peak rate (kcps)')
 
 
-def hist_burst_delays(d, i=0, bins=(0, 10, 0.2), pdf=False, color=None,
-                      plot_style=None):
+def hist_burst_delays(d, i=0, bins=(0, 10, 0.2), pdf=False, weights=None,
+                      color=None, plot_style=None):
     """Histogram of waiting times between bursts.
     """
     bdelays = np.diff(bl.b_start(d.mburst[i])*d.clk_p)
 
-    _hist_burst_taildist(bdelays, bins, pdf, color=color,
+    _hist_burst_taildist(bdelays, bins, pdf, weights=weights, color=color,
                          plot_style=plot_style)
     plt.xlabel('Delays between bursts (s)')
 
