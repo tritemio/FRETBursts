@@ -98,8 +98,10 @@ def decode_header(data):
     return decoder.cursor, ch_labels
 
 
-def load_sm(fname, return_labels=False):
+def load_sm(fname, return_labels=False, start=None, stop=None):
     """Read an SM data file.
+
+    start, stop indicate the range of timestamps to return.
 
     Return
         timestamps, detectors and optionally a list of detectors labels
@@ -120,7 +122,8 @@ def load_sm(fname, return_labels=False):
     sm_dtype = np.dtype([('timestamp', '>i8'), ('detector', '>u4')])
 
     # View of the binary data as an array (no copy performed)
-    data = np.frombuffer(rawdata[:valid_size], dtype=sm_dtype)
+    selection = slice(start, stop)
+    data = np.frombuffer(rawdata[:valid_size], dtype=sm_dtype)[selection]
 
     # Swap byte order inplace to little endian
     data.setflags(write=True)

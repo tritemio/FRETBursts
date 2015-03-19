@@ -546,7 +546,8 @@ def _select_range(times, period, edges):
     return _select_inner_range(times, period, edges) if edges[0] < edges[1] \
             else _select_outer_range(times, period, edges)
 
-def usalex(fname, leakage=0, gamma=1., header=None, bytes_to_read=-1, BT=None):
+def usalex(fname, leakage=0, gamma=1., header=None, start=None, stop=None,
+           BT=None):
     """Load a usALEX file and return a Data() object.
 
     This function returns a Data() object to which you need to apply
@@ -573,7 +574,8 @@ def usalex(fname, leakage=0, gamma=1., header=None, bytes_to_read=-1, BT=None):
         print('WARNING: `header` argument ignored. '
               '         The header length is now computed automatically.')
     print(" - Loading '%s' ... " % fname)
-    ph_times_t, det_t, labels = load_sm(fname, return_labels=True)
+    ph_times_t, det_t, labels = load_sm(fname, start=start, stop=stop,
+                                        return_labels=True)
     print(" [DONE]\n")
 
     DONOR_ON = (2850, 580)
