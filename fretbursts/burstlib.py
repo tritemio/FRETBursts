@@ -991,20 +991,18 @@ class Data(DataContainer):
     def slice_ph(self, time_s1=0, time_s2=None, s='slice'):
         """Return a new Data object with ph in [`time_s1`,`time_s2`] (seconds)
         """
-        if time_s2 is None: time_s2 = self.time_max
+        if time_s2 is None:
+            time_s2 = self.time_max
         if time_s2 >= self.time_max and time_s1 <= 0:
             return self.copy()
+        assert time_s1 < self.time_max
 
         t1_clk, t2_clk = time_s1/self.clk_p, time_s2/self.clk_p
-        assert np.array([t1_clk < ph.max() for ph in self.ph_times_m]).all()
-
         masks = [(ph >= t1_clk)*(ph <= t2_clk) for ph in self.iter_ph_times()]
 
         new_d = Data(**self)
         for name in self.ph_fields:
             if name in self:
-                #if name == 'A_em':
-                #    raise ValueError
                 new_d[name] = [a[mask] for a, mask in zip(self[name], masks)]
                 setattr(new_d, name, new_d[name])
         new_d.delete_burst_data()
