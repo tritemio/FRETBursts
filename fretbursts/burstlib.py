@@ -631,6 +631,11 @@ class Data(DataContainer):
     burst_fields = ['E', 'S', 'mburst', 'nd', 'na', 'nt', 'bp', 'nda', 'naa',
                     'max_rate', 'sbr']
 
+    # Quantities (scalars or arrays) defining the current set of bursts
+    burst_metadata = ['m', 'L', 'T', 'TT', 'F', 'FF', 'P', 'PP', 'rate_th',
+                      'bg_bs', 'ph_sel', 'bg_corrected', 'leakage_corrected',
+                      'dir_ex_corrected', 'dithering', 'fuse', 'lsb']
+
     # List of photon selections on which the background is computed
     _ph_streams = [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem'),
                    Ph_sel(Aex='Dem'), Ph_sel(Aex='Aem')]
@@ -981,9 +986,9 @@ class Data(DataContainer):
 
     def delete_burst_data(self):
         """Erase all the burst data"""
-        for k in self.burst_fields + ['fuse', 'lsb']:
-            if k in self:
-                self.delete(k)
+        for name in self.burst_fields + self.burst_metadata:
+            if name in self:
+                self.delete(name)
 
     ##
     # Methods for high-level data transformation
@@ -1508,9 +1513,6 @@ class Data(DataContainer):
             mb = bsearch(ph, L, m, t_clk, label=label, verbose=verbose)
             mburst.append(mb)
         self.add(mburst=mburst, rate_th=Min_rate_cps, T=T_clk*self.clk_p)
-        for key in ['TT', 'bg_bs', 'FF', 'PP', 'F', 'P']:
-            if key in self:
-                self.delete(key)
 
     def _burst_search_TT(self, m, L, ph_sel=Ph_sel('all'), verbose=True,
                          pure_python=False, mute=False):
