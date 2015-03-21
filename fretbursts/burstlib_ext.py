@@ -654,7 +654,8 @@ def join_data(d_list, gap=1):
 
     return new_d
 
-def burst_search_and_gate(dx, F=6, m=10, ph_sel1=Ph_sel(Dex='DAem'),
+def burst_search_and_gate(dx, F=6, m=10, min_rate_cps=None,
+                          ph_sel1=Ph_sel(Dex='DAem'),
                           ph_sel2=Ph_sel(Aex='Aem'), mute=False):
     """Return a Data object containing bursts obtained by and-gate burst-search.
 
@@ -685,8 +686,10 @@ def burst_search_and_gate(dx, F=6, m=10, ph_sel1=Ph_sel(Dex='DAem'),
     dx_a = dx.copy(mute=mute)
     dx_and = dx.copy(mute=mute)
 
-    dx_d.burst_search(L=m, m=m, F=F, ph_sel=ph_sel1, mute=mute)
-    dx_a.burst_search(L=m, m=m, F=F, ph_sel=ph_sel2, mute=mute)
+    dx_d.burst_search(L=m, m=m, F=F, min_rate_cps=min_rate_cps,
+                      ph_sel=ph_sel1, mute=mute)
+    dx_a.burst_search(L=m, m=m, F=F, min_rate_cps=min_rate_cps,
+                      ph_sel=ph_sel2, mute=mute)
 
     mburst_and = []
     for mburst_d, mburst_a in zip(dx_d.mburst, dx_a.mburst):
@@ -699,7 +702,8 @@ def burst_search_and_gate(dx, F=6, m=10, ph_sel1=Ph_sel(Dex='DAem'),
     pprint("[DONE]\n", mute)
 
     # Note: dx_and.bg_bs will not be meaningful
-    dx_and.add(m=m, L=m, F=F, P=None, ph_sel='AND-gate')
+    dx_and.add(m=m, L=m, F=F, P=None, min_rate_cps=min_rate_cps,
+               ph_sel='AND-gate')
     dx_and.add(bg_corrected=False, leakage_corrected=False,
                dir_ex_corrected=False, dithering=False)
 
