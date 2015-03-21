@@ -673,6 +673,9 @@ def burst_search_and_gate(dx, F=6, m=10, min_rate_cps=None,
             search. Background estimation must be performed before the search.
         F (float): Burst search parameter F.
         m (int): Burst search parameter m.
+        min_rate (float or list/array): min. rate in cps for burst detection.
+            If not None has the precedence over `F`.
+            If non-scalar, it must contain one rate per each channel.
         ph_sel1 (Ph_sel object): photon selections used for bursts search 1.
         ph_sel2 (Ph_sel object): photon selections used for bursts search 2.
         mute (bool): if True nothing is printed. Default: False.
