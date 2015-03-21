@@ -1501,13 +1501,16 @@ class Data(DataContainer):
 
         Min_rate_cps = self._param_as_mch_array(min_rate_cps)
         mburst = []
-        T_clk = (1.*m/Min_rate_cps)/self.clk_p
+        T_clk = (m/Min_rate_cps)/self.clk_p
         for ich, (ph, t_clk) in enumerate(zip(self.iter_ph_times(ph_sel),
                                               T_clk)):
             label = '%s CH%d' % (ph_sel, ich+1) if verbose else None
             mb = bsearch(ph, L, m, t_clk, label=label, verbose=verbose)
             mburst.append(mb)
-        self.add(mburst=mburst, min_rate_cps=Min_rate_cps, T=T_clk*self.clk_p)
+        self.add(mburst=mburst, rate_th=Min_rate_cps, T=T_clk*self.clk_p)
+        for key in ['TT', 'bg_bs', 'FF', 'PP', 'F', 'P']:
+            if key in self:
+                self.delete(key)
 
     def _burst_search_TT(self, m, L, ph_sel=Ph_sel('all'), verbose=True,
                          pure_python=False, mute=False):
