@@ -150,7 +150,7 @@ def peak_phrate(d, ich=0, th1=0, th2=np.inf):
     """Select bursts with peak phtotons rate between th1 and th2 (ms).
 
     Note that this function requires to compute the peak photon rate
-    first using :method:`frebursts.burstlib.Data.calc_max_rate`.
+    first using :meth:`frebursts.burstlib.Data.calc_max_rate`.
     """
     rate = d.max_rate[ich]
     mask = (rate >= th1)*(rate <= th2)
