@@ -129,11 +129,41 @@ def size(d, ich=0, th1=20, th2=np.inf, gamma=1., gamma1=None,
     if th2 < 1000: s +="_th2_%d" % th2
     return bursts_mask, s+str_G(gamma, gamma1)
 
-# Name used before 2014-07
-#nda = _deprecate(size, 'select_bursts.nda', 'select_bursts.size')
+def width(d, ich=0, th1=0.5, th2=np.inf):
+    """Select bursts with width between th1 and th2 (ms)."""
+    assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
+    th1, th2 = th1*1e-3/d.clk_p, th2*1e-3/d.clk_p
+    burst_width = bslib.b_width(d.mburst[ich])
+    bursts_mask = (burst_width >= th1)*(burst_width <= th2)
+    return bursts_mask, ''
 
-# Name used before the 2014-04 refactoring
-#select_bursts_nda = deprecate(size, 'select_bursts_nda', 'select_bursts.size')
+def sbr(d, ich=0, th1=0, th2=np.inf):
+    """Select bursts with SBR between `th1` and `th2`."""
+    assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
+    if 'sbr' not in d:
+        d.calc_sbr()
+    sbr_ich = d.sbr[ich]
+    bursts_mask = (sbr_ich >= th1)*(sbr_ich <= th2)
+    return bursts_mask, ''
+
+def peak_phrate(d, ich=0, th1=0, th2=np.inf):
+    """Select bursts with peak phtotons rate between th1 and th2 (ms).
+
+    Note that this function requires to compute the peak photon rate
+    first using :method:`frebursts.burstlib.Data.calc_max_rate`.
+    """
+    rate = d.max_rate[ich]
+    mask = (rate >= th1)*(rate <= th2)
+    return mask, ''
+
+def brightness(d, ich=0, th1=0, th2=np.inf, add_naa=False, gamma=1):
+    """Select bursts with size/width between th1 and th2 (ms).
+    """
+    sizes = d.burst_sizes(gamma=gamma, add_naa=add_naa)[ich]
+    brightness = sizes/d.burst_widths[ich]
+    mask = (brightness >= th1)*(brightness <= th2)
+    return mask, ''
+
 
 def nda_percentile(d, ich=0, q=50, low=False, gamma=1., gamma1=None,
                    add_naa=False):
@@ -169,23 +199,6 @@ def topN_max_rate(d, ich=0, N=500):
     burst_mask[index_sorted[-N:]] = True
     return burst_mask, 'topN_MaxRate%d' % N
 
-def width(d, ich=0, th1=0.5, th2=np.inf):
-    """Select bursts with width between th1 and th2 (ms)."""
-    assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
-    th1, th2 = th1*1e-3/d.clk_p, th2*1e-3/d.clk_p
-    burst_width = bslib.b_width(d.mburst[ich])
-    bursts_mask = (burst_width >= th1)*(burst_width <= th2)
-    return bursts_mask, ''
-
-def sbr(d, ich=0, th1=0, th2=np.inf):
-    """Select bursts with SBR between `th1` and `th2`."""
-    assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
-    if 'sbr' not in d:
-        d.calc_sbr()
-    sbr_ich = d.sbr[ich]
-    bursts_mask = (sbr_ich >= th1)*(sbr_ich <= th2)
-    return bursts_mask, ''
-
 def topN_sbr(d, ich=0, N=200):
     """Select the top `N` bursts with hightest SBR."""
     if 'sbr' not in d:
@@ -196,12 +209,6 @@ def topN_sbr(d, ich=0, N=200):
     burst_mask[index_sorted[-N:]] = True
     return burst_mask, 'top%d_sbr' % N
 
-
-# Selection on burst rate
-def max_rate(d, ich=0, min_rate_p=0.1):
-    min_rate = d.max_rate[ich].max()*min_rate_p
-    mask = (d.max_rate[ich] >= min_rate)
-    return mask, ''
 
 
 ## Selection on burst time (nearby, overlapping or isolated bursts)
