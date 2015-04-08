@@ -153,11 +153,6 @@ def _photon_hdf5_multich(h5data, data, ondisk=True):
 
     ph_times_dict = phc.hdf5.photon_data_mapping(h5data)
     nch = np.max(ph_times_dict.keys()) + 1
-#    ph_times_m = [np.array([], dtype='int64') for _ in range(nch)]
-#    for ch in ph_times_dict.keys():
-#        ph_times_m[ch] = ph_times_dict[ch]
-#        if not ondisk:
-#            ph_times_m[ch] = ph_times_m[ch].read()
 
     data.add(nch=nch)
     for ich in range(data.nch):
@@ -175,6 +170,7 @@ def _photon_hdf5_multich(h5data, data, ondisk=True):
             _load_from_group(data, ph_data, name='timestamps',
                              dest_name='ph_times_m', allow_missing=False,
                              ich=ich, ondisk=ondisk)
+            data.add(clk_p=ph_data.timestamps_specs.timestamps_unit.read())
 
             if 'detectors' not in ph_data:
                 a_em = slice(None)
@@ -198,10 +194,10 @@ def _photon_hdf5_multich(h5data, data, ondisk=True):
                     assert not (a_em*d_em).any()
                     assert (a_em + d_em).all()
 
-                _append_data_ch(data, 'A_em', a_em)
+            _append_data_ch(data, 'A_em', a_em)
 
 
-def photon_hdf5(filename, ondisk=False):
+def photon_hdf5(filename, ondisk=False, strict=False):
     """Load a data file saved in Photon-HDF5 format version 0.3 or higher.
 
     Any :class:`fretbursts.burstlib.Data` object can be saved in HDF5 format
@@ -217,7 +213,7 @@ def photon_hdf5(filename, ondisk=False):
     Returns:
         A :class:`fretbursts.burstlib.Data` object containing the data.
     """
-    h5data = phc.hdf5.load_photon_hdf5(filename)
+    h5data = phc.hdf5.load_photon_hdf5(filename, strict=strict)
     d = Data(fname=filename, data_file=h5data._v_file)
 
     for grp_name in ['setup', 'sample', 'provenance', 'identity']:
