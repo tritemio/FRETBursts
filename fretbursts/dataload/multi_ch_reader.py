@@ -58,26 +58,26 @@ def swap_donor_acceptor(detectors, nch=4):
     return detectors
 
 def load_data_ordered16(fname, n_bytes_to_read=-1, nch=8, swap_D_A=False,
-                        remap_D=False, remap_A=False):
+                        remap_D=False, remap_A=False, mute=False):
     """Load data, unroll the 32bit overflow and order in increasing order."""
-    pprint(' - Loading data "%s" ... ' % fname)
+    pprint(' - Loading data "%s" ... ' % fname, mute)
     ph_times, detector = read_int32_int32_file(fname, n_bytes_to_read)
-    pprint(" [DONE]\n")
-    pprint(" - Processing data ... ")
+    pprint(" [DONE]\n", mute)
+    pprint(" - Processing data ... ", mute)
     if remap_D:
-        pprint("\n   - Inverting DONOR pixels order ... ")
+        pprint("\n   - Inverting DONOR pixels order ... ", mute)
         detector[detector <= nch] = nch+1-detector[detector <= nch]
-        pprint(" [DONE]\n")
+        pprint(" [DONE]\n", mute)
     if remap_A:
-        pprint("\n   - Inverting ACCEPTOR pixels order ... ")
+        pprint("\n   - Inverting ACCEPTOR pixels order ... ", mute)
         detector[detector > nch] = 2*nch+1-(detector[detector > nch] - nch)
-        pprint(" [DONE]\n")
+        pprint(" [DONE]\n", mute)
     if swap_D_A:
-        pprint("\n   - Swapping D and A channels ... ")
+        pprint("\n   - Swapping D and A channels ... ", mute)
         detector = swap_donor_acceptor(detector, nch=8)
-        pprint(" [DONE]\n")
+        pprint(" [DONE]\n", mute)
     ph_times_m, red, ph_times_ma = unwind_uni(ph_times, detector)
-    pprint("   [DONE Processing]\n")
+    pprint("   [DONE Processing]\n", mute)
 
     return ph_times_m, red, ph_times_ma
 
