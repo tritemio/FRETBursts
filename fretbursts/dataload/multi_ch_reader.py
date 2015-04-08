@@ -1,12 +1,14 @@
 #
 # FRETBursts - A single-molecule FRET burst analysis toolkit.
 #
-# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+# Copyright (C) 2014-2015 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-This library contains routines to load and preprocess timestamp data.
+This module contains routines to load and preprocess timestamp data
+saved by the NI board (multi-ch data) using two 32bit words (timestamp
+and detector) for each photon.
 
-To run the burst search see burst.py
+This data is produced by the 4 and 8-spot smFRET setup, first generation.
 """
 
 from __future__ import absolute_import
@@ -89,7 +91,7 @@ def unwind_uni(times, det, nch=8, times_nbit=28, debug=True):
     for i, t in enumerate(times_ma):
         ## This debug check is a tautology (cumsum of a bool mask >= 0)
         #if debug: assert (cumsum((diff(t) < 0)) >= 0).all()
-        t[1:] += np.cumsum((diff(t) < 0), dtype='int64')*(2**times_nbit)
+        t[1:] += np.cumsum((diff(t) < 0), dtype='int64')*ts_max
         if debug: assert (np.diff(t) > 0).all()
         #print i, (t < 0).sum(), (diff(t) < 0).sum(), "\n"
 
@@ -117,7 +119,7 @@ def unwind_uni_c(times, det, nch=8, times_nbit=28, debug=True):
     bzeros = lambda n: np.zeros(n, dtype=bool)
 
     num_spad = nch*2
-    ts_max = (2**times_nbit)
+    ts_max = 2**times_nbit
     ph_times_m, A_det = [[]]*nch, [[]]*nch
     for ich in range(nch):
         det_d, det_a = ich+1, ich+1+nch
