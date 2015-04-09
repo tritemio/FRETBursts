@@ -74,7 +74,7 @@ def _is_multich(h5data):
         msg = 'Cannot find a photon_data group.'
         raise phc.hdf5.Invalid_PhotonHDF5(msg)
 
-def _photon_hdf5_1ch(h5data, data):
+def _photon_hdf5_1ch(h5data, data, ondisk=False):
     data.add(nch=1)
 
     ph_data = h5data.photon_data
@@ -100,7 +100,8 @@ def _photon_hdf5_1ch(h5data, data):
         ich = None  # don't warp the arrays in a list
 
     for name, dest_name in mapping.items():
-        _load_from_group(data, ph_data, name, dest_name=dest_name, ich=ich)
+        _load_from_group(data, ph_data, name, dest_name=dest_name, ich=ich,
+                         ondisk=ondisk)
 
     ## Load the other parameters
     donor = meas_specs.detectors_specs.spectral_ch1.read(),
@@ -231,7 +232,7 @@ def photon_hdf5(filename, ondisk=False, strict=False):
     if _is_multich(h5data):
         _photon_hdf5_multich(h5data, d, ondisk=ondisk)
     else:
-        _photon_hdf5_1ch(h5data, d)
+        _photon_hdf5_1ch(h5data, d, ondisk=ondisk)
 
     return d
 
