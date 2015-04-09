@@ -52,11 +52,14 @@ def _append_data_ch(d, name, value):
     else:
         d[name].append(value)
 
-def _load_from_group(d, group, name, dest_name, ich=None, allow_missing=True):
+def _load_from_group(d, group, name, dest_name, ich=None,
+                     ondisk=False, allow_missing=True):
     if name not in group:
         return
 
-    node_value = group._f_get_child(name).read()
+    node_value = group._f_get_child(name)
+    if not ondisk:
+        node_value.read()
     if ich is None:
         d.add(**{dest_name: node_value})
     else:
@@ -180,8 +183,8 @@ def _photon_hdf5_multich(h5data, data, ondisk=True):
                 assert 'detectors_specs' in meas_specs
                 det_specs = meas_specs.detectors_specs
 
-                donor = det_specs.spectra_ch1.read()
-                accept = det_specs.spectra_ch2.read()
+                donor = det_specs.spectral_ch1.read()
+                accept = det_specs.spectral_ch2.read()
 
                 det = ph_data.detectors.read()
                 if det.dtype.itemsize == 1 and donor == 0:
