@@ -59,7 +59,7 @@ def _load_from_group(d, group, name, dest_name, ich=None,
 
     node_value = group._f_get_child(name)
     if not ondisk:
-        node_value.read()
+        node_value = node_value.read()
     if ich is None:
         d.add(**{dest_name: node_value})
     else:
