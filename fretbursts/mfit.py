@@ -254,18 +254,18 @@ def factory_two_asym_gaussians(add_bridge=False, p1_center=0.1, p2_center=0.9,
     model.set_param_hint('p2_amplitude', value=1, min=0.01)
 
     model.set_param_hint('pos_delta', value=0.3, min=0)
-    model.set_param_hint('p2_center', expr='p1_center + pos_delta')
+    model.set_param_hint('p2_center', min=-1, expr='p1_center + pos_delta')
 
     name = '2-asym-gaussians'
 
     if add_bridge:
         bridge = lmfit.model.Model(bridge_function, prefix='br_')
         model += bridge
-        bridge.set_param_hint('amplitude', value=0.0001, min=0)
-        model.set_params_hint('br_center1', expr='p1_center')
-        model.set_params_hint('br_center2', expr='p2_center')
-        model.set_params_hint('br_sigma1', expr='p1_sigma2')
-        model.set_params_hint('br_sigma2', expr='p2_sigma1')
+        model.set_param_hint('br_amplitude', value=0.0001, min=0)
+        model.set_params_hint('br_center1', min=-1, expr='p1_center')
+        model.set_params_hint('br_center2', min=-1, expr='p2_center')
+        model.set_params_hint('br_sigma1', min=0.01, expr='p1_sigma2')
+        model.set_params_hint('br_sigma2', min=0.01, expr='p2_sigma1')
         name += '-bridge'
     model.name = name
     return model
