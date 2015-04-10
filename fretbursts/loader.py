@@ -41,11 +41,6 @@ from phconvert.hdf5 import dict_from_group
 import phconvert as phc
 
 
-# Obsolete: This used for reading Photon-HDF5 version 0.2.
-mandatory_root_fields = ['timestamps_unit', 'num_spots', 'num_detectors',
-                         'num_spectral_ch', 'num_polariz_ch',
-                         'alex', 'lifetime',]
-
 def _append_data_ch(d, name, value):
     if name not in d:
         d.add(**{name: [value]})
@@ -217,6 +212,12 @@ def photon_hdf5(filename, ondisk=False, strict=False):
     Returns:
         A :class:`fretbursts.burstlib.Data` object containing the data.
     """
+    version = phc.hdf5._check_version(filename)
+    if version == '0.2':
+        print('WARNING: You are using Photon-HDF5 version 0.2 which is '
+              'obsolete. Please update you file to version 0.3 or higher.')
+        return hdf5(filename)
+
     h5data = phc.hdf5.load_photon_hdf5(filename, strict=strict)
     d = Data(fname=filename, data_file=h5data._v_file)
 
@@ -299,6 +300,11 @@ def hdf5(fname, ondisk=False):
     Returns:
         A :class:`fretbursts.burstlib.Data` object containing the data.
     """
+    # This used for reading Photon-HDF5 version 0.2.
+    mandatory_root_fields = ['timestamps_unit', 'num_spots', 'num_detectors',
+                             'num_spectral_ch', 'num_polariz_ch',
+                             'alex', 'lifetime',]
+
     if not os.path.isfile(fname):
         raise IOError('File not found.')
     data_file = tables.open_file(fname, mode="r")
