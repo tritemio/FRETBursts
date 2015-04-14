@@ -130,21 +130,22 @@ def bg_load_hdf5(dx, group_name):
         pprint(attr + ', ')
         bg_attrs[attr] = bg_group._v_attrs[attr]
     dx.add(**bg_attrs)
+    pprint('\n')
 
     if 'bg_da' not in dx:
-        pprint('\n   WARNING: Adding missing bg_da as zeros.\n')
+        pprint('   WARNING: Adding missing bg_da as zeros.\n')
         dx.add(bg_da=[np.zeros(bg.shape) for bg in dx.bg_dd])
     if 'bg_ph_sel' not in dx:
-        pprint('\n   WARNING: Adding missing bg_ph_sel.\n')
+        pprint('   WARNING: Adding missing bg_ph_sel.\n')
         dx.add(bg_ph_sel=Ph_sel('all'))
 
-    pprint('\n - Generating additional fields: ')
+    pprint(' - Generating additional fields: ')
     in_map = ['', '_dd', '_ad', '_da', '_aa']
     out_map = ['_m', '_dd', '_ad', '_da', '_aa']
     new_attrs = {}
     for in_s, out_s in zip(in_map, out_map):
         assert 'bg' + in_s in dx
-        pprint('bg' + in_s + ', ')
+        pprint('rate' + out_s + ', ')
         new_attrs['rate' + out_s] = [bg.mean() for bg in dx['bg' + in_s]]
     dx.add(**new_attrs)
     pprint('\n')
