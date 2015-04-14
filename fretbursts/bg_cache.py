@@ -18,6 +18,7 @@ import os
 import numpy as np
 
 from .utils.misc import pprint
+from .ph_sel import Ph_sel
 
 
 def remove_cache(dx):
@@ -131,8 +132,11 @@ def bg_load_hdf5(dx, group_name):
     dx.add(**bg_attrs)
 
     if 'bg_da' not in dx:
-        pprint('WARNING: Adding missing bg_da as zeros.')
+        pprint('\n   WARNING: Adding missing bg_da as zeros.\n')
         dx.add(bg_da=[np.zeros(bg.shape) for bg in dx.bg_dd])
+    if 'bg_ph_sel' not in dx:
+        pprint('\n   WARNING: Adding missing bg_ph_sel.\n')
+        dx.add(bg_ph_sel=Ph_sel('all'))
 
     pprint('\n - Generating additional fields: ')
     in_map = ['', '_dd', '_ad', '_da', '_aa']
