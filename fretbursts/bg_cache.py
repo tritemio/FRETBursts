@@ -130,6 +130,10 @@ def bg_load_hdf5(dx, group_name):
         bg_attrs[attr] = bg_group._v_attrs[attr]
     dx.add(**bg_attrs)
 
+    if 'bg_da' not in dx:
+        pprint('WARNING: Adding missing bg_da as zeros.')
+        dx.add(bg_da=[np.zeros(bg.shape) for bg in dx.bg_dd])
+
     pprint('\n - Generating additional fields: ')
     in_map = ['', '_dd', '_ad', '_da', '_aa']
     out_map = ['_m', '_dd', '_ad', '_da', '_aa']
