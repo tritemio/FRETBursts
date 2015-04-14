@@ -1606,8 +1606,8 @@ class Data(DataContainer):
                 probability is not physically meaningful.
             F (float): if `P` is None: min.rate/bg.rate ratio for burst search
                 else: `P` refers to a Poisson rate = bg_rate*F
-            min_rate (float or list/array): min. rate in cps for burst start.
-                If not None has the precedence over `P` and `F`.
+            min_rate_cps (float or list/array): min. rate in cps for burst
+                start. If not None has the precedence over `P` and `F`.
                 If non-scalar, contains one rate per each channel.
             ph_sel (Ph_sel object): object defining the photon selection
                 used for burst search. Default: all photons.
@@ -1630,11 +1630,12 @@ class Data(DataContainer):
         self.delete_burst_data()
         if L is None: L = m
         if min_rate_cps is not None:
+            # Saves rate_th in self
             self._burst_search_rate(m=m, L=L, min_rate_cps=min_rate_cps,
                                     ph_sel=ph_sel, verbose=verbose,
                                     pure_python=pure_python)
         else:
-            # Compute TT
+            # Compute TT, saves P and F in self
             self._calc_T(m=m, P=P, F=F, ph_sel=ph_sel)
             # Use TT and compute mburst
             self._burst_search_TT(L=L, m=m, ph_sel=ph_sel, verbose=verbose,
@@ -1645,7 +1646,8 @@ class Data(DataContainer):
         self._calc_burst_period()                       # writes bp
         pprint("[DONE]\n", mute)
 
-        self.add(m=m, L=L, ph_sel=ph_sel)  # P and F are saved in _calc_T()
+        # (P, F) or rate_th are saved in _calc_T() or _burst_search_rate()
+        self.add(m=m, L=L, ph_sel=ph_sel)
 
         # The correction flags are both set here and in calc_ph_num() so that
         # they are always consistent. Case 1: we perform only burst search
@@ -2247,9 +2249,9 @@ class Data(DataContainer):
         name = "" if noname else self.name
         s = name
         if 'L' in self: # burst search has been done
-            if 'min_rate_cps' in self:
+            if 'rate_th' in self:
                 s += " BS_%s L%d m%d MR%d" % (self.ph_sel, self.L, self.m,
-                                              np.mean(self.min_rate_cps*1e-3))
+                                              np.mean(self.rate_th*1e-3))
             else:
                 P_str = '' if self.P is None else ' P%s' % self.P
                 s += " BS_%s L%d m%d F%.1f%s" % \
