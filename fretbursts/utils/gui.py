@@ -3,6 +3,9 @@
 #
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
+# Credit for the out-of-process trick to Mikkel (github @mkrog):
+# https://github.com/ipython/ipython/issues/5798#issuecomment-93851739
+#
 """
 GUI related helper functions.
 """
