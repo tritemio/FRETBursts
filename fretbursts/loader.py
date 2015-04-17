@@ -214,8 +214,6 @@ def photon_hdf5(filename, ondisk=False, strict=False):
     """
     version = phc.hdf5._check_version(filename)
     if version == '0.2':
-        print('WARNING: You are using Photon-HDF5 version 0.2 which is '
-              'obsolete. Please update you file to version 0.3 or higher.')
         return hdf5(filename)
 
     h5data = phc.hdf5.load_photon_hdf5(filename, strict=strict)
@@ -300,6 +298,9 @@ def hdf5(fname, ondisk=False):
     Returns:
         A :class:`fretbursts.burstlib.Data` object containing the data.
     """
+    print('WARNING: You are using Photon-HDF5 version 0.2 which is '
+          'obsolete. Please update you file to version 0.3 or higher.')
+
     # This used for reading Photon-HDF5 version 0.2.
     mandatory_root_fields = ['timestamps_unit', 'num_spots', 'num_detectors',
                              'num_spectral_ch', 'num_polariz_ch',

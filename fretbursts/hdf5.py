@@ -54,6 +54,9 @@ def store(d, compression=dict(complevel=6, complib='zlib'), h5_fname=None,
     For description and specs of the Photon-HDF5 format see:
     http://photon-hdf5.readthedocs.org/
     """
+    print('DEPRECATED: This function saves the Photon-HDF5 0.2 format '
+          'which is deprecated. \n            Please use '
+          '`save_photon_hdf5()` in `phconvert` to save version >=0.3.')
     #comp_filter = tables.Filters(**compression)
     if 'lifetime' not in d:
         # Test on different fields for ALEX and non-ALEX
