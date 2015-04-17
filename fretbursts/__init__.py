@@ -88,7 +88,7 @@ __all_local_names = [
         "hdf5", "fretmath", "mfit", "citation", "git",
 
         # Classes, functions, variables
-        "Data", "Sel", "gui_fname", "Ph_sel",
+        "Data", "Sel", "OpenFileDialog", "Ph_sel",
         "download_file", "init_notebook",
 
         # Standalone plots or plots as a function of ch
@@ -157,7 +157,7 @@ if has_matplotlib and has_pandas and has_lmfit:
             dplot, dplot_48ch, dplot_8ch, dplot_1ch,
             )
 
-from .utils.gui import gui_fname
+from .utils.gui import OpenFileDialog
 from .utils.misc import download_file
 from .utils import git
 

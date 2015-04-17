@@ -7,26 +7,34 @@
 GUI related helper functions.
 """
 
-from __future__ import print_function
+from sys import executable
+from subprocess import check_output
 
-try:
-    from PyQt4 import QtGui, QtCore
-except ImportError:
-    from PySide import QtGui, QtCore
 
+def OpenFileDialog():
+    file = check_output([executable, __file__])
+    return file.strip()
 
 def gui_fname(dir=None):
-    """Select a file via a dialog and returns the file name.
     """
-    if dir is None: dir ='./'
-    fname = QtGui.QFileDialog.getOpenFileName(None, "Select data file...",
-            dir, filter="All files (*);; SM Files (*.sm)")
+    Select a file via a dialog and return the file name.
+    """
+    try:
+        from PySide import QtGui
+    except ImportError:
+        from PyQt4 import QtGui
 
-    if type(fname) is tuple:
-        fname = fname[0]
-    elif type(fname) is QtCore.QString:
-        fname = str(fname)
+    if dir is None:
+        dir ='./'
 
-    print(fname)
-    return fname
+    app = QtGui.QApplication([dir])
+    fname = QtGui.QFileDialog.getOpenFileName(None, "Select a file...",
+            dir, filter="All files (*)")
 
+    if isinstance(fname, tuple):
+        return fname[0]
+    else:
+        return str(fname)
+
+if __name__ == "__main__":
+    print(gui_fname())
