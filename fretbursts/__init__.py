@@ -161,7 +161,8 @@ from .utils.gui import OpenFileDialog
 from .utils.misc import download_file
 from .utils import git
 
-def init_notebook(fs=13, savefig_dpi=65, seaborn_style='darkgrid'):
+def init_notebook(fs=13, savefig_dpi=65, seaborn_style='darkgrid',
+                  mpl_backend='inline'):
     """
     Set the default plot style for inline plots using the seaborn library.
 
@@ -178,8 +179,9 @@ def init_notebook(fs=13, savefig_dpi=65, seaborn_style='darkgrid'):
         The imported seaborn library. By saving the return value you
         don't need to import seaborn again.
     """
-    ip = get_ipython()
-    ip.enable_matplotlib('inline')
+    if mpl_backend is not None:
+        ip = get_ipython()
+        ip.enable_matplotlib(mpl_backend)
 
     import seaborn as sns
 
