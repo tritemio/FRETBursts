@@ -2251,7 +2251,7 @@ class Data(DataContainer):
         if 'L' in self: # burst search has been done
             if 'rate_th' in self:
                 s += " BS_%s L%d m%d MR%d" % (self.ph_sel, self.L, self.m,
-                                              np.mean(self.rate_th*1e-3))
+                                              np.mean(self.rate_th)*1e-3)
             else:
                 P_str = '' if self.P is None else ' P%s' % self.P
                 s += " BS_%s L%d m%d F%.1f%s" % \
