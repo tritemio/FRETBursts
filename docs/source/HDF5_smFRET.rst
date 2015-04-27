@@ -18,10 +18,10 @@ Read and write HDF5 smFRET files
 --------------------------------
 
 To load a smFRET data contained in HDF5-Ph-Data use the
-function :func:`loader.hdf5`.
+function :func:`loader.photon_hdf5`.
 
 Any measurements data loaded in a :class:`burstlib.Data` object can be saved
-in HDF5-Ph-Data format by using the :func:`hdf5.store` function.
+in Photon-HDF5 format by using the :func:`hdf5.store` function.
 
 FRETBursts `hdf5` module
 ------------------------

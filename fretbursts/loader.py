@@ -283,10 +283,11 @@ class H5Loader():
                 self.data[dest_name].append(node_value)
 
 def hdf5(fname, ondisk=False):
-    """Load a data file saved in Photon-HDF5 format version 0.2.
+    """Load a data file saved in Photon-HDF5 format, version 0.2 only.
 
-    This format version is obsolete, please convert the data to
-    Photon-HDF5 version 0.3 or higher.
+    The format version 0.2 is obsolete, please use :func:`photon_hdf5`
+    for Photon-HDF5 version 0.3 or higher. If you have files in
+    Photon-HDF5 format 0.2 please convert them to version 0.3 or higher.
 
     For description and specs of the Photon-HDF5 format see:
     http://photon-hdf5.readthedocs.org/
