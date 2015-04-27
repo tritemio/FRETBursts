@@ -79,7 +79,7 @@ def _photon_hdf5_1ch(h5data, data, ondisk=False):
 
     assert 'measurement_type' in ph_data.measurement_specs
     meas_specs = ph_data.measurement_specs
-    meas_type = meas_specs.measurement_type.read()
+    meas_type = meas_specs.measurement_type.read().decode()
     if meas_type not in ['smFRET', 'smFRET-usALEX', 'smFRET-nsALEX']:
         raise NotImplementedError('Meaurement type "%s" not supported'
                                   ' by FRETBursts.' % meas_type)
