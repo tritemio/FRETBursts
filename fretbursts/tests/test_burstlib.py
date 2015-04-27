@@ -33,7 +33,7 @@ def _alex_process(d):
 def load_dataset_1ch(process=True):
     fn = "0023uLRpitc_NTP_20dT_0.5GndCl.hdf5"
     fname = DATASETS_DIR + fn
-    d = loader.hdf5(fname=fname)
+    d = loader.photon_hdf5(fname)
     d.add(det_donor_accept=(0, 1), alex_period=4000,
           D_ON=(2850, 580), A_ON=(900, 2580))
     if process:
@@ -43,7 +43,7 @@ def load_dataset_1ch(process=True):
 def load_dataset_8ch():
     fn = "12d_New_30p_320mW_steer_3.hdf5"
     fname = DATASETS_DIR + fn
-    d = loader.hdf5(fname=fname)
+    d = loader.photon_hdf5(fname)
     d.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
     d.burst_search(L=10, m=10, F=7)
     return d
