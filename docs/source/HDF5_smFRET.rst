@@ -20,15 +20,7 @@ Read and write HDF5 smFRET files
 To load a smFRET data contained in HDF5-Ph-Data use the
 function :func:`loader.photon_hdf5`.
 
-Any measurements data loaded in a :class:`burstlib.Data` object can be saved
-in Photon-HDF5 format by using the :func:`hdf5.store` function.
+You can convert files from any format to Photon-HDF5 by using
+`phconvert <https://github.com/tritemio/phconvert>
+(already pre-installed with FRETBursts).
 
-FRETBursts `hdf5` module
-------------------------
-
-The module :mod:`fretbursts.hdf5` provides the :func:`hdf5.store` function
-and other utility functions to quickly print structure (hierarchy)
-and attributes (metadata) of HDF5 files.
-
-.. automodule:: fretbursts.hdf5
-    :members:
