@@ -710,6 +710,7 @@ def nsalex(fname):
     dx = Data(fname=fname, clk_p=50e-9, nch=1, ALEX=True, lifetime=True,
               D_ON=DONOR_ON, A_ON=ACCEPT_ON,
               nanotimes_nbins=nanotimes_nbins,
+              nanotimes_params = {'tcspc_num_bins': nanotimes_nbins},
               ph_times_t=ph_times_t, det_t=det_t, nanotimes_t=nanotimes,
               det_donor_accept=(4, 6))
     return dx
