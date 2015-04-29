@@ -17,8 +17,9 @@ the function :func:`usalex` and single-spot ns-ALEX measurement stored in SPC fi
 To load data from arbitrary format see :ref:`manual-data-load`.
 
 Note that regardless of the format, for alternated excitation data,
-you need to apply the alternation parameters using
-:func:`alex_apply_period`.
+after loading the data you need to apply the alternation parameters using
+:func:`alex_apply_period`. After the parameters are applied you can
+proceed to background estimation and burst search.
 
 .. contents::
 

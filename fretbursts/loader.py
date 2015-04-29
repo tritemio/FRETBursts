@@ -199,18 +199,17 @@ def _photon_hdf5_multich(h5data, data, ondisk=True):
 def photon_hdf5(filename, ondisk=False, strict=False):
     """Load a data file saved in Photon-HDF5 format version 0.3 or higher.
 
-    Any :class:`fretbursts.burstlib.Data` object can be saved in HDF5 format
-    using :func:`fretbursts.hdf5.store` .
+    Photon-HDF5 is a format for a wide range of timestamp-based
+    single molecule data. For more info please see:
 
-    For description and specs of the Photon-HDF5 format see:
     http://photon-hdf5.readthedocs.org/
 
     Arguments:
         ondisk (bool): if True do not load in the timestamp arrays, just
-            load the array reference. Multi-spot only. Default False.
+            load the array reference. Default False.
 
     Returns:
-        A :class:`fretbursts.burstlib.Data` object containing the data.
+        :class:`fretbursts.burstlib.Data` object containing the data.
     """
     version = phc.hdf5._check_version(filename)
     if version == '0.2':
@@ -297,7 +296,7 @@ def hdf5(fname, ondisk=False):
             load the array reference. Multi-spot only. Default False.
 
     Returns:
-        A :class:`fretbursts.burstlib.Data` object containing the data.
+        :class:`fretbursts.burstlib.Data` object containing the data.
     """
     print('WARNING: You are using Photon-HDF5 version 0.2 which is '
           'obsolete. Please update you file to version 0.3 or higher.')
@@ -562,7 +561,7 @@ def _select_range(times, period, edges):
 
 def usalex(fname, leakage=0, gamma=1., header=None, start=None, stop=None,
            BT=None):
-    """Load a usALEX file and return a Data() object.
+    """Load usALEX data from a SM file and return a Data() object.
 
     This function returns a Data() object to which you need to apply
     an alternation selection before performing further analysis (background
@@ -611,7 +610,7 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
 
     The typical pattern for loading ALEX data is the following::
 
-        d = loader.hdf5(fname=fname)
+        d = loader.photon_hdf5(fname=fname)
         d.add(D_ON=(2850, 580), A_ON=(900, 2580))
         alex_plot_alternation(d)
 
@@ -682,7 +681,7 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
 #
 
 def nsalex(fname):
-    """Load a nsALEX file and return a Data() object.
+    """Load nsALEX data from a SPC file and return a Data() object.
 
     This function returns a Data() object to which you need to apply
     an alternation selection before performing further analysis (background
@@ -723,7 +722,7 @@ def nsalex_apply_period(d, delete_ph_t=True):
 
     The typical pattern for loading ALEX data is the following::
 
-        d = loader.hdf5(fname=fname)
+        d = loader.photon_hdf5(fname=fname)
         d.add(D_ON=(2850, 580), A_ON=(900, 2580))
         alex_plot_alternation(d)
 
@@ -788,7 +787,7 @@ def alex_apply_period(d, delete_ph_t=True):
 
     The typical pattern for loading ALEX data is the following::
 
-        d = loader.hdf5(fname=fname)
+        d = loader.photon_hdf5(fname=fname)
         d.add(D_ON=(2850, 580), A_ON=(900, 2580))
         alex_plot_alternation(d)
 
