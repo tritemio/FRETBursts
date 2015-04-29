@@ -1,8 +1,10 @@
+.. currentmodule:: fretbursts.loader
+
 Loader functions
 ================
 
 While FRETBursts can load data files from different file formats, we
-advocate using `Photon-HDF5 <http://photon-hdf5.readthedocs.org/>`_.,
+advocate using `Photon-HDF5 <http://photon-hdf5.readthedocs.org/>`_,
 a file format specifically designed for freely-diffusing single-molecule
 spectroscopy data.
 
@@ -13,9 +15,9 @@ Single-spot μs-ALEX measurement stored in SM files can be loaded via
 :func:`usalex` and single-spot ns-ALEX measurement stored in SPC files
 (Beckr & Hickl) can be loaded via :func:`nsalex`.
 
-Note that regardelss of the format, for alternated excitation data,
-you need to apply the alternation paramenters using
-:func:`apply_alex_period`.
+Note that regardless of the format, for alternated excitation data,
+you need to apply the alternation parameters using
+:func:`alex_apply_period`.
 
 .. contents::
 

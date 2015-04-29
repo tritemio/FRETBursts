@@ -40,7 +40,7 @@ Then install FRETBursts with::
 
 The previous command will upgrade to the newest FRETBursts version
 whenever available. See also the
-`Release Notes (What's new?)<https://github.com/tritemio/FRETBursts/releases>`_
+`Release Notes (What's new?) <https://github.com/tritemio/FRETBursts/releases>`_
 to stay updated on new features and changes.
 
 Package installation (PIP)
