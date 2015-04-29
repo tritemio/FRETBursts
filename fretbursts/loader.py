@@ -4,11 +4,11 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-This module contains functions to load each supported data format.
+The `loader` module contains functions to load each supported data format.
 The loader functions load data from a specific format and
 return a new :class:`fretbursts.burstlib.Data()` object containing the data.
 
-This file contains the high-level function to load a data-file and
+This module contains the high-level function to load a data-file and
 to return a `Data()` object. The low-level functions that perform the binary
 loading and preprocessing can be found in the `dataload` folder.
 """
