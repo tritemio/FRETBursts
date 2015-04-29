@@ -17,7 +17,7 @@ The latest FRETBursts release can be installed via conda or PIP (see :ref:`getti
 
 The `GitHub repository <https://github.com/tritemio/FRETBursts>`_ contains
 both the full source code and the
-`Release Notes (What's new?)<https://github.com/tritemio/FRETBursts/releases>`_.
+`Release Notes (What's new?) <https://github.com/tritemio/FRETBursts/releases>`_.
 
 FRETBursts includes a set of Jupyter Notebook tutorials that can be either
 `viewed online <http://nbviewer.ipython.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/FRETBursts%20-%20us-ALEX%20smFRET%20burst%20analysis.ipynb>`_

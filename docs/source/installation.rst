@@ -18,7 +18,7 @@ After installing FRETBursts, it is recommended that you download and run the
 to get started. See :ref:`running_fretbursts`.
 
 For updates the latest version please refer to the
-`Release Notes (What's new?)<https://github.com/tritemio/FRETBursts/releases>`_.
+`Release Notes (What's new?) <https://github.com/tritemio/FRETBursts/releases>`_.
 
 .. _package_install:
 
