@@ -12,8 +12,9 @@ Photon-HDF5 files can be loaded with the function :func:`photon_hdf5`,
 regardless of the type of excitation or number of spots.
 
 Single-spot μs-ALEX measurement stored in SM files can be loaded via
-:func:`usalex` and single-spot ns-ALEX measurement stored in SPC files
-(Beckr & Hickl) can be loaded via :func:`nsalex`.
+the function :func:`usalex` and single-spot ns-ALEX measurement stored in SPC files
+(Beckr & Hickl) can be loaded via the function :func:`nsalex`.
+To load data from arbitrary format see :ref:`manual-data-load`.
 
 Note that regardless of the format, for alternated excitation data,
 you need to apply the alternation parameters using
@@ -28,6 +29,8 @@ List of loader functions
 .. automodule:: fretbursts.loader
     :members:
 
+
+.. _manual-data-load:
 
 Load data manually
 ------------------
