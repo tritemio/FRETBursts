@@ -21,6 +21,6 @@ To load a smFRET data contained in HDF5-Ph-Data use the
 function :func:`loader.photon_hdf5`.
 
 You can convert files from any format to Photon-HDF5 by using
-`phconvert <https://github.com/tritemio/phconvert>
+`phconvert <https://github.com/tritemio/phconvert>`_
 (already pre-installed with FRETBursts).
 
