@@ -38,7 +38,7 @@ produced by the Jupyter Notebook application that contains both code and
 and rich text (paragraph, equations, figures, links, etc...).
 Notebooks are both human-readable documents containing the analysis
 description and the results (figures, tables, etc..) and executable documents
-that can be run to reproduce some analysis.
+that can be run to perform a data analysis.
 
 Launching Jupyter Notebook
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
