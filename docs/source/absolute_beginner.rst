@@ -148,7 +148,7 @@ Then follow these steps:
 - You can run the notebooks step-by-step (one cell a time) by hitting
   *shift + enter*.
 
-- You can run the notebook in a single step by clicking on the menu
+- You can run the whole notebook in a single step by clicking on the menu
   *Cell -> Run All*.
 
 - To restart the notebook computations (the component performing the
@@ -158,7 +158,7 @@ Then follow these steps:
 .. note::
 
     Modifications to the notebooks are automatically saved every
-    1 or a few minutes. It is suggested that you make a copy of the
+    few minutes. It is suggested that you make a copy of the
     original tutorial (menu *File -> Make a copy ...*) and make
     modifications on the copy.
 
@@ -167,9 +167,10 @@ Then follow these steps:
     Closing the browser will not shut down the notebook computational kernel.
     The notebook can be reopened and it will be still running.
     To close a notebook and shut-down the kernel use the menu
-    *File -> Close and Halt*.
+    *File -> Close and Halt*. A this point the notebook is closed,
+    Jupyther Notebook is still running and can open new notebooks.
 
-.. note::
+.. warning::
 
     Please pay attention that if you open the **same** notebook on many
     tabs and do edits, the edits on different tabs can overwrite each other.
