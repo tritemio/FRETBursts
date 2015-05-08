@@ -168,7 +168,7 @@ Then follow these steps:
     The notebook can be reopened and it will be still running.
     To close a notebook and shut-down the kernel use the menu
     *File -> Close and Halt*. A this point the notebook is closed,
-    Jupyther Notebook is still running and can open new notebooks.
+    Jupyter Notebook is still running and can open new notebooks.
 
 .. warning::
 
