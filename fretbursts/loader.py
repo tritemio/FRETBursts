@@ -212,7 +212,7 @@ def photon_hdf5(filename, ondisk=False, strict=False):
         :class:`fretbursts.burstlib.Data` object containing the data.
     """
     version = phc.hdf5._check_version(filename)
-    if version == '0.2':
+    if version == u'0.2':
         return hdf5(filename)
 
     h5data = phc.hdf5.load_photon_hdf5(filename, strict=strict)
