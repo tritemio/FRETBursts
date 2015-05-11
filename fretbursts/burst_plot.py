@@ -179,10 +179,10 @@ def plot_alternation_hist_usalex(d, bins=None, ax=None,
     ph_times_t, det_t, period = d.ph_times_t, d.det_t, d.alex_period
     d_ch, a_ch = d.det_donor_accept
     d_em_t = (det_t == d_ch)
-    hist_style_ = dict(bins=bins, alpha=0.2)
+    hist_style_ = dict(bins=bins, alpha=0.5, histtype='stepfilled', lw=1.3)
     hist_style_.update(hist_style)
 
-    span_style_ = dict(alpha=0.1)
+    span_style_ = dict(alpha=0.2)
     span_style_.update(span_style)
 
     D_label = 'Donor: %d-%d' % (d.D_ON[0], d.D_ON[1])
@@ -204,7 +204,7 @@ def plot_alternation_hist_usalex(d, bins=None, ax=None,
     else:
         plt.axvspan(0, d.A_ON[1], color=red, **span_style_)
         plt.axvspan(d.A_ON[0], period, color=red, **span_style_)
-    legend(loc='best')
+    plt.legend(loc='best')
 
 def plot_alternation_hist_nsalex(d, bins=None, ax=None):
     """Plot the ns-ALEX alternation histogram for the variable `d`.
@@ -228,7 +228,7 @@ def plot_alternation_hist_nsalex(d, bins=None, ax=None):
     plt.yscale('log')
     plt.axvspan(d.D_ON[0], d.D_ON[1], color=green, alpha=0.1)
     plt.axvspan(d.A_ON[0], d.A_ON[1], color=red, alpha=0.1)
-    legend(loc='best')
+    plt.legend(loc='best')
 
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
