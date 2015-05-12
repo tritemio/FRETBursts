@@ -1792,7 +1792,7 @@ def _calc_vmin(vmax, vmax_threshold, vmin_default):
         vmin = vmin_default
     return vmin
 
-def alex_jointplot(d, i=0, gridsize=50, cmap='YlGnBu_crop',
+def alex_jointplot(d, i=0, gridsize=50, cmap='alex_light',
                    vmax_fret=True, vmax_threshold=10,
                    vmin_default=0, vmin=None, cmap_compensate=False,
                    joint_kws=None, marginal_kws=None):
@@ -1811,9 +1811,9 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='YlGnBu_crop',
             the number of bursts in channel `i` (d.num_bursts[i]).
             Passed to matplotlib hexbin().
         cmap (string): name of the colormap for the 2D histogram. In
-            addition to all the matplotlib colormaps, FRETbursts defines
-            two custom colormaps 'YlGnBu_crop' and 'alex_lv'.
-            Default 'YlGnBu_crop'.
+            addition to matplotlib colormaps, FRETbursts defines
+            these custom colormaps: 'alex_light', 'alex_dark' and 'alex_lv'.
+            Default 'alex_light'.
         vmax_fret (bool): if True, the colormap max value is equal to the
             max bin counts in the FRET region (S < 0.8). If False the
             colormap max is equal to the max bin counts.
@@ -1869,9 +1869,10 @@ def _register_colormaps():
     mpl.cm.register_cmap(name='alex_lv', cmap=cmap)
 
     c = sns.color_palette('YlGnBu', 64)[16:]
-    cmap = mpl.colors.LinearSegmentedColormap.from_list('YlGnBu_crop', c)
+    cmap = mpl.colors.LinearSegmentedColormap.from_list('alex', c)
     cmap.set_under(alpha=0)
-    mpl.cm.register_cmap(name='YlGnBu_crop', cmap=cmap)
+    mpl.cm.register_cmap(name='alex_light', cmap=cmap)
+    mpl.cm.register_cmap(name='alex_dark', cmap=mpl.cm.GnBu_r)
 
 def alex_jointplot_stub(*args):
     """Stub function used whens eaborn is not installed."""
