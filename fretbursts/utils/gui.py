@@ -12,11 +12,29 @@ GUI related helper functions.
 
 from sys import executable
 from subprocess import check_output
+import contextlib
+import os
 
 
-def OpenFileDialog():
-    file = check_output([executable, __file__])
+@contextlib.contextmanager
+def chdir(dirname=None):
+    """
+    Source: http://www.astropython.org/snippet/2009/10/chdir-context-manager
+    """
+    curdir = os.getcwd()
+    try:
+        if dirname is not None:
+            os.chdir(dirname)
+        yield
+    finally:
+        os.chdir(curdir)
+
+
+def OpenFileDialog(dirname=None):
+    with chdir(dirname):
+        file = check_output([executable, __file__])
     return file.strip()
+
 
 def gui_fname(dir=None):
     """
