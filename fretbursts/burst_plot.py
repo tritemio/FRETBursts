@@ -1872,6 +1872,7 @@ def _register_colormaps():
     cmap = mpl.colors.LinearSegmentedColormap.from_list('alex', c)
     cmap.set_under(alpha=0)
     mpl.cm.register_cmap(name='alex_light', cmap=cmap)
+    mpl.cm.register_cmap(name='YlGnBu_crop', cmap=cmap)
     mpl.cm.register_cmap(name='alex_dark', cmap=mpl.cm.GnBu_r)
 
 def alex_jointplot_stub(*args):
