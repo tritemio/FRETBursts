@@ -67,29 +67,43 @@ from . import mfit
 from .burstlib import isarray
 
 
-def slice_time_list(dx, seconds):
+def slice_time_list(dx, period, start_time=0):
     """Slice a class:`Data` object in a series of consecutive chunks of time.
 
-    This function returns a list of class:`Data` objects, each one containing
-    bursts in a single time slice.
+    Arguments:
+        dx (Data): the Data() object to be sliced
+        period (float): the time period (in seconds) for each slice
+        start_time (float): the time (in seconds) when the first slice starts.
+            Default 0.
+
+    Returns:
+        A list of class:`Data` objects, each one containing bursts
+        in a single time slice.
     """
     return [dx.select_bursts(select_bursts.time,
-                             time_s1=t1, time_s2=t1 + seconds)
-            for t1 in range(0, dx.time_max, seconds)]
+                             time_s1=t1, time_s2=t1 + period)
+            for t1 in range(start_time, dx.time_max, period)]
 
-def slice_time_dict(dx, seconds):
+def slice_time_dict(dx, period, start_time=0):
     """Slice a class:`Data` object in a series of consecutive chunks of time.
 
-    This function returns an OrderedDict in which keys are strings 'XX-YYs'
-    (where XX and YY are the start and end in seconds), and values are
-    class:`Data` objects containing bursts in a specific time slice.
+    Arguments:
+        dx (Data): the Data() object to be sliced
+        period (float): the time period (in seconds) for each slice
+        start_time (float): the time (in seconds) when the first slice starts.
+            Default 0.
+
+    Returns:
+        An OrderedDict in which keys are strings 'XX-YYs' (where XX and YY
+        are the start and end in seconds), and values are class:`Data`
+        objects containing bursts in a specific time slice.
     """
     data_slices = OrderedDict()
-    for t1 in range(0, dx.time_max, seconds):
-        t2 = t1 + seconds
+    for t1 in range(start_time, dx.time_max, period):
+        t2 = t1 + period
         name = '%d-%ds' % (t1, t2)
         data_slices[name] = dx.select_bursts(select_bursts.time,
-                                             time_s1=t1, time_s2=t1 + seconds)
+                                             time_s1=t1, time_s2=t1 + period)
     return data_slices
 
 
