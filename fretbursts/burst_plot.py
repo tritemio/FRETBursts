@@ -206,7 +206,8 @@ def plot_alternation_hist_usalex(d, bins=None, ax=None,
         plt.axvspan(d.A_ON[0], period, color=red, **span_style_)
     plt.legend(loc='best')
 
-def plot_alternation_hist_nsalex(d, bins=None, ax=None):
+def plot_alternation_hist_nsalex(d, bins=None, ax=None,
+                                 hist_style={}, span_style={}):
     """Plot the ns-ALEX alternation histogram for the variable `d`.
 
     This function must be called on ns-ALEX data **before** calling
@@ -219,15 +220,19 @@ def plot_alternation_hist_nsalex(d, bins=None, ax=None):
     if bins is None:
         bins = np.arange(d.nanotimes_params['tcspc_num_bins'])
 
+    hist_style_ = dict(bins=bins, alpha=0.8, histtype='step', lw=1.3)
+    hist_style_.update(hist_style)
+
+    span_style_ = dict(alpha=0.2)
+    span_style_.update(span_style)
+
     nanotimes_d = d.nanotimes_t[d.det_t == d.det_donor_accept[0]]
     nanotimes_a = d.nanotimes_t[d.det_t == d.det_donor_accept[1]]
-    hist(nanotimes_d, bins=bins, histtype='step', label='Donor', lw=1.2,
-         alpha=0.5, color=green)
-    hist(nanotimes_a, bins=bins, histtype='step', label='Acceptor', lw=1.2,
-         alpha=0.5, color=red)
+    hist(nanotimes_d, label='Donor', color=green, **hist_style_)
+    hist(nanotimes_a, label='Acceptor', color=red, **hist_style_)
     plt.yscale('log')
-    plt.axvspan(d.D_ON[0], d.D_ON[1], color=green, alpha=0.1)
-    plt.axvspan(d.A_ON[0], d.A_ON[1], color=red, alpha=0.1)
+    plt.axvspan(d.D_ON[0], d.D_ON[1], color=green, **span_style_)
+    plt.axvspan(d.A_ON[0], d.A_ON[1], color=red, **span_style_)
     plt.legend(loc='best')
 
 
