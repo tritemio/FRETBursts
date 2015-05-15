@@ -30,6 +30,8 @@ For more examples refer to the `FRETBurst notebooks <http://nbviewer.ipython.org
 """
 
 from __future__ import division, print_function, absolute_import
+from builtins import range
+
 import warnings
 
 # Numeric imports
@@ -602,7 +604,7 @@ def timetrace_bg(d, i=0, nolegend=False, ncol=2, plot_style={}):
 def timetrace_b_rate(d, i=0):
     """Timetrace of bursts-per-second in each period."""
     t = arange(d.bg[i].size)*d.bg_time_s
-    b_rate = r_[[(d.bp[i] == p).sum() for p in xrange(d.bp[i].max()+1)]]
+    b_rate = r_[[(d.bp[i] == p).sum() for p in range(d.bp[i].max()+1)]]
     b_rate /= d.bg_time_s
     if t.size == b_rate.size+1:
         t = t[:-1] # assuming last period without bursts
@@ -1604,7 +1606,7 @@ def dplot_48ch(d, func, sharex=True, sharey=True,
     """Plot wrapper for 48-spot measurements. Use `dplot` instead."""
     global gui_status
     if ich is None:
-        iter_ch = xrange(d.nch)
+        iter_ch = range(d.nch)
         if d.nch == 48:
             top_adjust = 0.95
             ax_ny, ax_nx = 6, 8
@@ -1678,7 +1680,7 @@ def dplot_8ch(d, func, sharex=True, sharey=True,
     else:
         fig = AX[0, 0].figure
         old_ax = True
-    for i in xrange(d.nch):
+    for i in range(d.nch):
         b = d.mburst[i] if 'mburst' in d else None
         if (func not in [timetrace, ratetrace, timetrace_single,
                          ratetrace_single, hist_bg_single, hist_bg,

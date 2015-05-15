@@ -95,12 +95,15 @@ def download_file(url, save_dir='./'):
     The destination dir can be set using `save_dir`
     (Default: the current dir).
     """
-    import urllib, urllib2
+    from future.standard_library import install_aliases
+    install_aliases()
+    from urllib.request import urlopen, urlretrieve
+    from urllib.error import HTTPError
 
     ## Check if the URL is valid
     try:
-        urllib2.urlopen(url)
-    except urllib2.HTTPError:
+        urlopen(url)
+    except HTTPError:
         print('URL not found: ' + url)
         return
 
@@ -120,5 +123,5 @@ def download_file(url, save_dir='./'):
         sys.stdout.write(
             "\rDownloaded {0:4.1f} / {1:4.1f} MB".format(current, size/2**20))
     mkdir_p(save_dir)
-    urllib.urlretrieve(url, path, _report)
+    urlretrieve(url, path, _report)
 
