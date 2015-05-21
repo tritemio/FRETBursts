@@ -227,11 +227,14 @@ def plot_alternation_hist_nsalex(d, bins=None, ax=None,
     span_style_ = dict(alpha=0.2)
     span_style_.update(span_style)
 
+    D_label = 'Donor: %d-%d' % (d.D_ON[0], d.D_ON[1])
+    A_label = 'Accept: %d-%d' % (d.A_ON[0], d.A_ON[1])
+
     nanotimes_d = d.nanotimes_t[d.det_t == d.det_donor_accept[0]]
     nanotimes_a = d.nanotimes_t[d.det_t == d.det_donor_accept[1]]
 
-    ax.hist(nanotimes_d, label='Donor', color=green, **hist_style_)
-    ax.hist(nanotimes_a, label='Acceptor', color=red, **hist_style_)
+    ax.hist(nanotimes_d, label=D_label, color=green, **hist_style_)
+    ax.hist(nanotimes_a, label=A_label, color=red, **hist_style_)
     ax.set_xlabel('Nanotime bin')
     ax.set_yscale('log')
     ax.axvspan(d.D_ON[0], d.D_ON[1], color=green, **span_style_)
