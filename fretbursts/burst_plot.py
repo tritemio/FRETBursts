@@ -172,8 +172,7 @@ def plot_alternation_hist_usalex(d, bins=None, ax=None,
     :func:`fretbursts.loader.alex_apply_period`.
     """
     if ax is None:
-        plt.figure()
-        ax = plt.gca()
+        _, ax = plt.subplots()
 
     if bins is None:
         bins = 100
@@ -189,24 +188,25 @@ def plot_alternation_hist_usalex(d, bins=None, ax=None,
 
     D_label = 'Donor: %d-%d' % (d.D_ON[0], d.D_ON[1])
     A_label = 'Accept: %d-%d' % (d.A_ON[0], d.A_ON[1])
-    hist(ph_times_t[d_em_t] % period, color=green, label=D_label,
-         **hist_style_)
-    hist(ph_times_t[~d_em_t] % period, color=red, label=A_label,
-         **hist_style_)
-    plt.xlabel('Timestamp MODULO Alternation period')
+
+    ax.hist(ph_times_t[d_em_t] % period, color=green, label=D_label,
+            **hist_style_)
+    ax.hist(ph_times_t[~d_em_t] % period, color=red, label=A_label,
+            **hist_style_)
+    ax.set_xlabel('Timestamp MODULO Alternation period')
 
     if d.D_ON[0] < d.D_ON[1]:
-        plt.axvspan(d.D_ON[0], d.D_ON[1], color=green, **span_style_)
+        ax.axvspan(d.D_ON[0], d.D_ON[1], color=green, **span_style_)
     else:
-        plt.axvspan(0, d.D_ON[1], color=green, **span_style_)
-        plt.axvspan(d.D_ON[0], period, color=green, **span_style_)
+        ax.axvspan(0, d.D_ON[1], color=green, **span_style_)
+        ax.axvspan(d.D_ON[0], period, color=green, **span_style_)
 
     if d.A_ON[0] < d.A_ON[1]:
-        plt.axvspan(d.A_ON[0], d.A_ON[1], color=red, **span_style_)
+        ax.axvspan(d.A_ON[0], d.A_ON[1], color=red, **span_style_)
     else:
-        plt.axvspan(0, d.A_ON[1], color=red, **span_style_)
-        plt.axvspan(d.A_ON[0], period, color=red, **span_style_)
-    plt.legend(loc='best')
+        ax.axvspan(0, d.A_ON[1], color=red, **span_style_)
+        ax.axvspan(d.A_ON[0], period, color=red, **span_style_)
+    ax.legend(loc='best')
 
 def plot_alternation_hist_nsalex(d, bins=None, ax=None,
                                  hist_style={}, span_style={}):
@@ -216,8 +216,7 @@ def plot_alternation_hist_nsalex(d, bins=None, ax=None,
     :func:`fretbursts.loader.alex_apply_period`.
     """
     if ax is None:
-        plt.figure()
-        ax = plt.gca()
+        _, ax = plt.subplots()
 
     if bins is None:
         bins = np.arange(d.nanotimes_params['tcspc_num_bins'])
@@ -230,12 +229,14 @@ def plot_alternation_hist_nsalex(d, bins=None, ax=None,
 
     nanotimes_d = d.nanotimes_t[d.det_t == d.det_donor_accept[0]]
     nanotimes_a = d.nanotimes_t[d.det_t == d.det_donor_accept[1]]
-    hist(nanotimes_d, label='Donor', color=green, **hist_style_)
-    hist(nanotimes_a, label='Acceptor', color=red, **hist_style_)
-    plt.yscale('log')
-    plt.axvspan(d.D_ON[0], d.D_ON[1], color=green, **span_style_)
-    plt.axvspan(d.A_ON[0], d.A_ON[1], color=red, **span_style_)
-    plt.legend(loc='best')
+
+    ax.hist(nanotimes_d, label='Donor', color=green, **hist_style_)
+    ax.hist(nanotimes_a, label='Acceptor', color=red, **hist_style_)
+    ax.set_xlabel('Nanotime bin')
+    ax.set_yscale('log')
+    ax.axvspan(d.D_ON[0], d.D_ON[1], color=green, **span_style_)
+    ax.axvspan(d.A_ON[0], d.A_ON[1], color=red, **span_style_)
+    ax.legend(loc='best')
 
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
