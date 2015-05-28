@@ -1256,7 +1256,7 @@ class Data(DataContainer):
         return int(nperiods)
 
     def calc_bg(self, fun, time_s=60, tail_min_us=500, F_bg=2,
-                error_metrics='KS'):
+                error_metrics=None):
         """Compute time-dependent background rates for all the channels.
 
         Compute background rates for donor, acceptor and both detectors.

@@ -41,10 +41,11 @@ def raw_fit(ph, clk_p=12.5e-9, residuals=False, tail_min_us=None):
 
 
 def _compute_error(residuals, x_residuals, error_metrics):
-    assert error_metrics in ['KS', 'CM']
+    assert error_metrics in ['KS', 'CM', None]
+    error = None
     if error_metrics == 'KS':
         error = np.abs(residuals).max()*100
-    else:
+    elif error_metrics == 'CM':
         error = np.trapz(residuals**2, x=x_residuals)
     return error
 
@@ -65,14 +66,16 @@ def _exp_fit_generic(ph, fit_fun, tail_min_us=None, tail_min_p=0.1,
         tail_min_p (int): min threshold in percentace. ONly used when
             `tail_min_us` is None. Deprecated.
         clk_p (float): unit of timestamps in `ph` (seconds).
-        error_metrics (string): Valid values are 'KS' or 'CM'.
+        error_metrics (string or None): Valid values are 'KS' or 'CM'.
             'KS' (Kolmogorov-Smirnov statistics) computes the error as the
             max of deviation of the empirical CDF from the fitted CDF.
             'CM' (Crames-von Mises) uses the L^2 distance.
+            If None, no error metric is computed (returns None).
 
     Returns:
-        Estimated background rate in cps and a quality of fit index
-        the lower the better according to the chosen metric.
+        2-Tuple: Estimated background rate in cps, and a "quality of fit"
+        index (the lower the better) according to the chosen metric.
+        If error_metrics==None, the returned "quality of fit" is None.
     """
     dph = np.diff(ph)
     if tail_min_us is None:
@@ -81,7 +84,6 @@ def _exp_fit_generic(ph, fit_fun, tail_min_us=None, tail_min_p=0.1,
         tail_min = tail_min_us*1e-6/clk_p
     Lambda, residuals, x_residuals, s_size = fit_fun(dph, s_min=tail_min)
     Lambda /= clk_p
-    #pprint(s_size)
     error = _compute_error(residuals, x_residuals, error_metrics)
     return Lambda, error
 
@@ -99,13 +101,16 @@ def exp_fit(ph, tail_min_us=None, clk_p=12.5e-9, error_metrics='KS'):
         ph (array): timestamps array from which to extract the background
         tail_min_us (float): minimum waiting-time in micro-secs
         clk_p (float): clock period for timestamps in `ph`
-        error_metrics (string): Valid values are 'KS' or 'CM'.
+        error_metrics (string or None): Valid values are 'KS' or 'CM'.
             'KS' (Kolmogorov-Smirnov statistics) computes the error as the
             max of deviation of the empirical CDF from the fitted CDF.
             'CM' (Crames-von Mises) uses the L^2 distance.
+            If None, no error metric is computed (returns None).
 
     Returns:
-        Estimated background rate in cps.
+        2-Tuple: Estimated background rate in cps, and a "quality of fit"
+        index (the lower the better) according to the chosen metric.
+        If error_metrics==None, the returned "quality of fit" is None.
 
     See also:
         :func:`exp_cdf_fit`, :func:`exp_hist_fit`
@@ -127,13 +132,16 @@ def exp_cdf_fit(ph, tail_min_us=None, clk_p=12.5e-9, error_metrics='KS'):
         ph (array): timestamps array from which to extract the background
         tail_min_us (float): minimum waiting-time in micro-secs
         clk_p (float): clock period for timestamps in `ph`
-        error_metrics (string): Valid values are 'KS' or 'CM'.
+        error_metrics (string or None): Valid values are 'KS' or 'CM'.
             'KS' (Kolmogorov-Smirnov statistics) computes the error as the
             max of deviation of the empirical CDF from the fitted CDF.
             'CM' (Crames-von Mises) uses the L^2 distance.
+            If None, no error metric is computed (returns None).
 
     Returns:
-        Estimated background rate in cps.
+        2-Tuple: Estimated background rate in cps, and a "quality of fit"
+        index (the lower the better) according to the chosen metric.
+        If error_metrics==None, the returned "quality of fit" is None.
 
     See also:
         :func:`exp_fit`, :func:`exp_hist_fit`
@@ -161,13 +169,16 @@ def exp_hist_fit(ph, tail_min_us, binw=50e-6, clk_p=12.5e-9,
         weights (None or string): if None no weights is applied.
             if is 'hist_counts', each bin has a weight equal to its counts
             if is 'inv_hist_counts', the weight is the inverse of the counts.
-        error_metrics (string): Valid values are 'KS' or 'CM'.
+        error_metrics (string or None): Valid values are 'KS' or 'CM'.
             'KS' (Kolmogorov-Smirnov statistics) computes the error as the
             max of deviation of the empirical CDF from the fitted CDF.
             'CM' (Crames-von Mises) uses the L^2 distance.
+            If None, no error metric is computed (returns None).
 
     Returns:
-        Estimated background rate in cps.
+        2-Tuple: Estimated background rate in cps, and a "quality of fit"
+        index (the lower the better) according to the chosen metric.
+        If error_metrics==None, the returned "quality of fit" is None.
 
     See also:
         :func:`exp_fit`, :func:`exp_cdf_fit`
