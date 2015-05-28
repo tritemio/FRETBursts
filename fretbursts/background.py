@@ -82,8 +82,10 @@ def _exp_fit_generic(ph, fit_fun, tail_min_us=None, tail_min_p=0.1,
         tail_min = dph.max()*tail_min_p
     else:
         tail_min = tail_min_us*1e-6/clk_p
-    Lambda, residuals, x_residuals, s_size = fit_fun(
-            dph, s_min=tail_min, calc_residuals=error_metrics is not None)
+
+    res = fit_fun(dph, s_min=tail_min, calc_residuals=error_metrics is not None)
+    Lambda, residuals, x_residuals, s_size = res
+
     error = _compute_error(residuals, x_residuals, error_metrics)
     Lambda /= clk_p
     return Lambda, error
