@@ -50,7 +50,7 @@ def _compute_error(residuals, x_residuals, error_metrics):
     return error
 
 def _exp_fit_generic(ph, fit_fun, tail_min_us=None, tail_min_p=0.1,
-                     clk_p=12.5e-9, error_metrics='KS'):
+                     clk_p=12.5e-9, error_metrics=None):
     """Computes BG rates on timestamp delays above a min. value.
 
     Compute a background rate, selecting waiting-times (delays) larger than a
@@ -82,13 +82,14 @@ def _exp_fit_generic(ph, fit_fun, tail_min_us=None, tail_min_p=0.1,
         tail_min = dph.max()*tail_min_p
     else:
         tail_min = tail_min_us*1e-6/clk_p
-    Lambda, residuals, x_residuals, s_size = fit_fun(dph, s_min=tail_min)
-    Lambda /= clk_p
+    Lambda, residuals, x_residuals, s_size = fit_fun(
+            dph, s_min=tail_min, calc_residuals=error_metrics is not None)
     error = _compute_error(residuals, x_residuals, error_metrics)
+    Lambda /= clk_p
     return Lambda, error
 
 
-def exp_fit(ph, tail_min_us=None, clk_p=12.5e-9, error_metrics='KS'):
+def exp_fit(ph, tail_min_us=None, clk_p=12.5e-9, error_metrics=None):
     """Return a background rate using the MLE of mean waiting-times.
 
     Compute the background rate, selecting waiting-times (delays) larger
@@ -119,7 +120,7 @@ def exp_fit(ph, tail_min_us=None, clk_p=12.5e-9, error_metrics='KS'):
                             tail_min_us=tail_min_us, clk_p=clk_p,
                             error_metrics=error_metrics)
 
-def exp_cdf_fit(ph, tail_min_us=None, clk_p=12.5e-9, error_metrics='KS'):
+def exp_cdf_fit(ph, tail_min_us=None, clk_p=12.5e-9, error_metrics=None):
     """Return a background rate fitting the empirical CDF of waiting-times.
 
     Compute the background rate, selecting waiting-times (delays) larger
@@ -152,7 +153,7 @@ def exp_cdf_fit(ph, tail_min_us=None, clk_p=12.5e-9, error_metrics='KS'):
 
 
 def exp_hist_fit(ph, tail_min_us, binw=50e-6, clk_p=12.5e-9,
-                 weights='hist_counts', error_metrics='KS'):
+                 weights='hist_counts', error_metrics=None):
     """Compute background rate with WLS histogram fit of waiting-times.
 
     Compute the background rate, selecting waiting-times (delays) larger
@@ -191,7 +192,7 @@ def exp_hist_fit(ph, tail_min_us, binw=50e-6, clk_p=12.5e-9,
 
     res = exp_fitting.expon_fit_hist(dph, bins=bins, s_min=tail_min,
                                      weights=weights,
-                                     error_metrics=error_metrics)
+                                     calc_residuals=error_metrics is not None)
 
     Lambda, residuals, x_residuals, s_size = res
     error = _compute_error(residuals, x_residuals, error_metrics)

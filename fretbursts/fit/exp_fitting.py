@@ -54,7 +54,7 @@ def get_residuals(s, tau_fit, offset=0.5):
     residuals = y - ye
     return x, residuals
 
-def expon_fit(s, s_min=0, offset=0.5):
+def expon_fit(s, s_min=0, offset=0.5, calc_residuals=True):
     """Fit sample `s` to an exponential distribution using the ML estimator.
 
     This function computes the rate (Lambda) using the maximum likelihood (ML)
@@ -65,9 +65,13 @@ def expon_fit(s, s_min=0, offset=0.5):
         s (array): array of exponetially-distributed samples
         s_min (float): all samples < `s_min` are discarded
             (`s_min` must be >= 0).
+        offset (float): offset for computing the CDF. See :func:`get_ecdf`.
+        calc_residuals (bool): it True compute the residuals of the fitted
+            exponential versus the empirical CDF.
 
     Returns:
-        The lambda parameter (1/life-time) of the exponential.
+        A 4-tuple of the fitted rate (1/life-time), residuals array,
+        residuals x-axis array, sample size after threshold.
     """
     if s_min > 0: s = s[s >= s_min] - s_min
     assert s.size > 10
@@ -75,10 +79,13 @@ def expon_fit(s, s_min=0, offset=0.5):
     # Maximum likelihood estimator of the waiting-time
     Lambda = 1./s.mean()
 
-    x_residuals, residuals = get_residuals(s, tau_fit=1./Lambda, offset=offset)
+    x_residuals, residuals = None, None
+    if calc_residuals:
+        x_residuals, residuals = get_residuals(s, tau_fit=1./Lambda,
+                                               offset=offset)
     return Lambda, residuals, x_residuals, s.size
 
-def expon_fit_cdf(s, s_min=0, offset=0.5):
+def expon_fit_cdf(s, s_min=0, offset=0.5, calc_residuals=True):
     """Fit of an exponential model to the empirical CDF of `s`.
 
     This function computes the rate (Lambda) fitting a line (linear
@@ -88,9 +95,13 @@ def expon_fit_cdf(s, s_min=0, offset=0.5):
         s (array): array of exponetially-distributed samples
         s_min (float): all samples < `s_min` are discarded
             (`s_min` must be >= 0).
+        offset (float): offset for computing the CDF. See :func:`get_ecdf`.
+        calc_residuals (bool): it True compute the residuals of the fitted
+            exponential versus the empirical CDF.
 
     Returns:
-        The lambda parameter (1/life-time) of the exponential.
+        A 4-tuple of the fitted rate (1/life-time), residuals array,
+        residuals x-axis array, sample size after threshold.
     """
     if s_min > 0: s = s[s >= s_min] - s_min
     assert s.size > 10
@@ -101,11 +112,15 @@ def expon_fit_cdf(s, s_min=0, offset=0.5):
     L = linregress(ecdf[0], decr_line)
     Lambda = -L[0]
 
-    x_residuals, residuals = get_residuals(s, tau_fit=1./Lambda, offset=offset)
+    x_residuals, residuals = None, None
+    if calc_residuals:
+        x_residuals, residuals = get_residuals(s, tau_fit=1./Lambda,
+                                               offset=offset)
     return Lambda, residuals, x_residuals, s.size
 
 
-def expon_fit_hist(s, bins, s_min=0, weights=None, offset=0.5):
+def expon_fit_hist(s, bins, s_min=0, weights=None, offset=0.5,
+                   calc_residuals=True):
     """Fit of an exponential model to the histogram of `s` using least squares.
 
     Arguments:
@@ -117,9 +132,13 @@ def expon_fit_hist(s, bins, s_min=0, weights=None, offset=0.5):
         weights (None or string): if None no weights is applied.
             if is 'hist_counts', each bin has a weight equal to its counts
             if is 'inv_hist_counts', the weight is the inverse of the counts.
+        offset (float): offset for computing the CDF. See :func:`get_ecdf`.
+        calc_residuals (bool): it True compute the residuals of the fitted
+            exponential versus the empirical CDF.
 
     Returns:
-        The lambda parameter (1/life-time) of the exponential.
+        A 4-tuple of the fitted rate (1/life-time), residuals array,
+        residuals x-axis array, sample size after threshold.
     """
     if s_min > 0: s = s[s >= s_min] - s_min
     assert s.size > 10
@@ -146,6 +165,8 @@ def expon_fit_hist(s, bins, s_min=0, weights=None, offset=0.5):
     res = leastsq(err_fun, x0=1./(s.mean()), args=(x, y, w))
     Lambda = res[0]
 
-    x_residuals, residuals = get_residuals(s, tau_fit=1./Lambda, offset=offset)
+    x_residuals, residuals = None, None
+    if calc_residuals:
+        x_residuals, residuals = get_residuals(s, tau_fit=1./Lambda,
+                                               offset=offset)
     return Lambda, residuals, x_residuals, s.size
-
