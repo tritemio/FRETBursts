@@ -66,7 +66,7 @@ def expon_fit(s, s_min=0, offset=0.5, calc_residuals=True):
         s_min (float): all samples < `s_min` are discarded
             (`s_min` must be >= 0).
         offset (float): offset for computing the CDF. See :func:`get_ecdf`.
-        calc_residuals (bool): it True compute the residuals of the fitted
+        calc_residuals (bool): if True compute the residuals of the fitted
             exponential versus the empirical CDF.
 
     Returns:
@@ -96,7 +96,7 @@ def expon_fit_cdf(s, s_min=0, offset=0.5, calc_residuals=True):
         s_min (float): all samples < `s_min` are discarded
             (`s_min` must be >= 0).
         offset (float): offset for computing the CDF. See :func:`get_ecdf`.
-        calc_residuals (bool): it True compute the residuals of the fitted
+        calc_residuals (bool): if True compute the residuals of the fitted
             exponential versus the empirical CDF.
 
     Returns:
@@ -133,7 +133,7 @@ def expon_fit_hist(s, bins, s_min=0, weights=None, offset=0.5,
             if is 'hist_counts', each bin has a weight equal to its counts
             if is 'inv_hist_counts', the weight is the inverse of the counts.
         offset (float): offset for computing the CDF. See :func:`get_ecdf`.
-        calc_residuals (bool): it True compute the residuals of the fitted
+        calc_residuals (bool): if True compute the residuals of the fitted
             exponential versus the empirical CDF.
 
     Returns:
