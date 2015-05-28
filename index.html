@@ -1,47 +1,45 @@
 <!DOCTYPE html>
 <html>
-
   <head>
     <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="description" content="Fretbursts : Burst analysis toolkit for single and multi-spot smFRET data.">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
 
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
 
-    <title>Fretbursts</title>
+    <title>FRETBursts by tritemio</title>
   </head>
 
   <body>
+    <header>
+      <div class="inner">
+        <h1>FRETBursts</h1>
+        <h2>Burst analysis for single and multi-spot smFRET experiments.</h2>
+        <a href="https://github.com/tritemio/FRETBursts" class="button"><small>View project on</small> GitHub</a>
+      </div>
+    </header>
 
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/tritemio/FRETBursts">View on GitHub</a>
-
-          <h1 id="project_title">Fretbursts</h1>
-          <h2 id="project_tagline">Burst analysis toolkit for single and multi-spot smFRET data.</h2>
-
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/tritemio/FRETBursts/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/tritemio/FRETBursts/tarball/master">Download this project as a tar.gz file</a>
-            </section>
-        </header>
-    </div>
-
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
-        <h1>
-<a name="fretbursts" class="anchor" href="#fretbursts"><span class="octicon octicon-link"></span></a>FRETBursts</h1>
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>
+<a id="fretbursts" class="anchor" href="#fretbursts" aria-hidden="true"><span class="octicon octicon-link"></span></a>FRETBursts</h1>
 
 <blockquote>
 <p><em>Quick links: <a href="http://fretbursts.readthedocs.org/index.html">Reference documentation</a>, <a href="https://github.com/tritemio/FRETBursts_notebooks">FRETBursts tutorials</a></em></p>
 </blockquote>
 
 <h2>
-<a name="project-description" class="anchor" href="#project-description"><span class="octicon octicon-link"></span></a>Project description</h2>
+<a id="project-description" class="anchor" href="#project-description" aria-hidden="true"><span class="octicon octicon-link"></span></a>Project description</h2>
 
-<p><strong><a href="https://github.com/tritemio/FRETBursts">FRETBursts</a></strong> is a
+<p><img src="https://camo.githubusercontent.com/ca1b8d3056ca116015ea7e89d616d459c05c81d4/687474703a2f2f692e696d6775722e636f6d2f4d7937725763322e706e67" alt="ALEX jointplot">
+<strong><a href="https://github.com/tritemio/FRETBursts">FRETBursts</a></strong> is a
 software toolkit for burst analysis of confocal
 <a href="http://en.wikipedia.org/wiki/Single-molecule_FRET">single-molecule FRET</a>
 (smFRET) measurements.</p>
@@ -86,7 +84,9 @@ criterium requires only a couple of lines of code.</li>
 <a href="http://fretbursts.readthedocs.org/data_class.html#fretbursts.burstlib.Data.fit_E_m">weighted least squares models</a>,
 <a href="http://fretbursts.readthedocs.org/data_class.html#fretbursts.burstlib.Data.fit_E_two_gauss_EM">weighted expectation maximization</a>, 
 etc...)</li>
-</ul><p>Moreover FRETBursts includes 
+</ul>
+
+<p>Moreover FRETBursts includes 
 <a href="https://github.com/tritemio/FRETBursts/blob/master/fretbursts/burst_plot.py">a large set</a> of modular 
 <a href="http://fretbursts.readthedocs.org/files_description.html#module-fretbursts.burst_plot">plot functions</a> for
 background, time-traces, rate-traces, E, S, ALEX histograms, weighted kernel
@@ -95,7 +95,7 @@ and more. Thanks to the excellent <a href="http://matplotlib.org/">Matplotlib</a
 FRETBursts can produce publication-quality plots out of the box.</p>
 
 <h2>
-<a name="motivations" class="anchor" href="#motivations"><span class="octicon octicon-link"></span></a>Motivations</h2>
+<a id="motivations" class="anchor" href="#motivations" aria-hidden="true"><span class="octicon octicon-link"></span></a>Motivations</h2>
 
 <p>This software aims to be a reference implementation for both established
 and novel algorithms related to bursts analysis of smFRET data.</p>
@@ -114,7 +114,7 @@ for smFRET experimenters, and as a benchmark for advanced users willing
 to explore new algorithms or to compare alternative implementations.</p>
 
 <h2>
-<a name="software-environment" class="anchor" href="#software-environment"><span class="octicon octicon-link"></span></a>Software Environment</h2>
+<a id="software-environment" class="anchor" href="#software-environment" aria-hidden="true"><span class="octicon octicon-link"></span></a>Software Environment</h2>
 
 <p>FRETBursts is written in the <a href="http://www.python.org/">python programming language</a>
 using the standard scientific-python stack of libraries (Numpy, Scipy, Matplotlib, IPython).
@@ -134,21 +134,25 @@ viewed online, edited and re-executed. The
 is generated by Sphinx extracting the docstring from the source.</p>
 
 <h3>
-<a name="external-resources" class="anchor" href="#external-resources"><span class="octicon octicon-link"></span></a>External resources</h3>
+<a id="external-resources" class="anchor" href="#external-resources" aria-hidden="true"><span class="octicon octicon-link"></span></a>External resources</h3>
 
 <p>For a comprehensive tutorial on using python for scientific computing:</p>
 
 <ul>
 <li><a href="http://scipy-lectures.github.io/">Python Scientific Lecture Notes</a></li>
-</ul><p>IPython Notebook is an interactive web-based environment that allows mixing
+</ul>
+
+<p>IPython Notebook is an interactive web-based environment that allows mixing
 rich text, math and graphics with (live) code. For more info please visit:</p>
 
 <ul>
 <li><a href="http://ipython.org/ipython-doc/stable/interactive/notebook.html">The IPython Notebook Homepage</a></li>
 <li><a href="http://nbviewer.ipython.org/github/ipython/ipython/blob/master/examples/Notebook/Index.ipynb">Notebook examples</a></li>
 <li><a href="https://github.com/ipython/ipython/wiki/A-gallery-of-interesting-IPython-Notebooks">A gallery of interesting IPython Notebooks</a></li>
-</ul><h2>
-<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
+</ul>
+
+<h2>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation</h2>
 
 <p>Briefly, the installation consist in installing a scientific python
 distribution, downloading FRETBursts sources, and setting up a folder for the
@@ -164,14 +168,18 @@ containing FRETBursts's source folder.</p>
 
 <ul>
 <li><a href="http://fretbursts.readthedocs.org/getting_started.html">FRETBursts documentation: Getting started</a></li>
-</ul><h2>
-<a name="how-to-use" class="anchor" href="#how-to-use"><span class="octicon octicon-link"></span></a>How to use</h2>
+</ul>
+
+<h2>
+<a id="how-to-use" class="anchor" href="#how-to-use" aria-hidden="true"><span class="octicon octicon-link"></span></a>How to use</h2>
 
 <p>The official FRETBursts documentation is built and hosted by ReadTheDocs:</p>
 
 <ul>
 <li><a href="http://fretbursts.readthedocs.org/">FRETBursts Documentation</a></li>
-</ul><p>We provide a list of IPython notebooks showing typical workflows
+</ul>
+
+<p>We provide a list of IPython notebooks showing typical workflows
 for smFRET analysis and illustrating FRETBursts functionalities.
 These notebooks can be either viewed online or downloaded and executed locally
 using publically available datasets (see below). You can read the tutorials
@@ -183,7 +191,9 @@ online at the following locations:</p>
 </li>
 <li><a href="http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%2520-%25208-spot%2520smFRET%2520burst%2520analysis.ipynb">FRETBursts - 8-spot smFRET burst analysis</a></li>
 <li><a href="http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%20-%20ns-ALEX%20example.ipynb">FRETBursts - ns-ALEX example</a></li>
-</ul><p>You can download the tutorials from the <a href="https://github.com/tritemio/FRETBursts_notebooks">FRETBursts_notebooks</a>
+</ul>
+
+<p>You can download the tutorials from the <a href="https://github.com/tritemio/FRETBursts_notebooks">FRETBursts_notebooks</a>
 repository.</p>
 
 <blockquote>
@@ -199,7 +209,7 @@ functionalities. These dataset files are needed to re-run the tutorials.</p>
 software. <a href="http://dx.doi.org/10.6084/m9.figshare.1019906">DOI 10.6084/m9.figshare.1019906</a></p>
 
 <h2>
-<a name="development" class="anchor" href="#development"><span class="octicon octicon-link"></span></a>Development</h2>
+<a id="development" class="anchor" href="#development" aria-hidden="true"><span class="octicon octicon-link"></span></a>Development</h2>
 
 <p>The documentation is built using <a href="http://sphinx-doc.org/">Sphinx</a> (1.2.2 or
 later) and the <a href="https://pypi.python.org/pypi/sphinxcontrib-napoleon">napoleon extension</a>.
@@ -212,12 +222,12 @@ Notebooks that execute the unit tests can be found in
 In the same folder a notebook for regression testing is provided.</p>
 
 <h2>
-<a name="acknowledgements" class="anchor" href="#acknowledgements"><span class="octicon octicon-link"></span></a>Acknowledgements</h2>
+<a id="acknowledgements" class="anchor" href="#acknowledgements" aria-hidden="true"><span class="octicon octicon-link"></span></a>Acknowledgements</h2>
 
 <p>This work was supported by NIH grants R01 GM069709 and R01 GM095904.</p>
 
 <h2>
-<a name="license-and-copyrights" class="anchor" href="#license-and-copyrights"><span class="octicon octicon-link"></span></a>License and Copyrights</h2>
+<a id="license-and-copyrights" class="anchor" href="#license-and-copyrights" aria-hidden="true"><span class="octicon octicon-link"></span></a>License and Copyrights</h2>
 
 <p>FRETBursts - A bursts analysis toolkit for single and multi-spot smFRET data.</p>
 
@@ -233,18 +243,26 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.</p>
 
 <p>You can find a full copy of the license in the file LICENSE.txt</p>
-      </section>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/tritemio/FRETBursts/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/tritemio/FRETBursts/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/tritemio/FRETBursts"></a> is maintained by <a href="https://github.com/tritemio">tritemio</a>.</p>
+
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
     </div>
 
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
-        <p class="copyright">Fretbursts maintained by <a href="https://github.com/tritemio">tritemio</a></p>
-        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
-      </footer>
-    </div>
-
-              <script type="text/javascript">
+            <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
             document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
           </script>
@@ -254,7 +272,6 @@ GNU General Public License for more details.</p>
             pageTracker._trackPageview();
             } catch(err) {}
           </script>
-
 
   </body>
 </html>
