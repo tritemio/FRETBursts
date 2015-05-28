@@ -1245,11 +1245,13 @@ class Data(DataContainer):
         # Take the ceil to have at least 1 periods
         # Take the min to avoid having ch with 0 photons in the last period
         nperiods = np.ceil(t_max_mch*self.clk_p/time_s).min().astype('int32')
-        # Discard last period if shorter than 0.1s
+        # Discard last period if negligibly small to avoid problems with
+        # background fit with very few photons.
         if nperiods > 1:
-            t_last_period = [t_max_i*self.clk_p - (nperiods - 1)*time_s
-                             for t_max_i in t_max_mch]
-            if np.min(t_last_period) < 0.1:
+            last_period = np.min([t_max_i*self.clk_p - (nperiods - 1)*time_s
+                                  for t_max_i in t_max_mch])
+            # Discard last period if smaller than 3% of the bg period
+            if last_period < time_s*0.03:
                 nperiods -= 1
         return int(nperiods)
 
