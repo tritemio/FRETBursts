@@ -924,7 +924,8 @@ class Data(DataContainer):
         """
         return [b_width(mb)*self.clk_p for mb in self.mburst]
 
-    def burst_sizes_ich(self, ich=0, gamma=1., gamma1=None, add_naa=False):
+    def burst_sizes_ich(self, ich=0, gamma=1., gamma1=None, add_naa=False,
+                        beta=None):
         """Return gamma corrected burst sizes for channel `ich`.
 
         The gamma corrected size is computed as::
@@ -934,7 +935,10 @@ class Data(DataContainer):
             bursts)
 
         If `gamma1` is not None, the definition (2) is used.
-        If `d.ALEX` and `add_naa` are True, `naa` is added to the burst size.
+        If `d.ALEX` and `add_naa` are True::
+
+            1) if beta is None: add `naa` to burst size.
+            2) if beta is not None: add `naa/(gamma*beta)` to burst size.
 
         Returns
             Array of burst sizes for channel `ich`.
@@ -944,10 +948,13 @@ class Data(DataContainer):
         else:
             burst_size = self.nd[ich] + 1.*self.na[ich]/gamma
         if self.ALEX and add_naa:
-            burst_size += self.naa[ich]
+            naa = self.naa[ich]
+            if beta is not None:
+                naa = naa/(gamma*beta)
+            burst_size += naa
         return burst_size
 
-    def burst_sizes(self, gamma=1., gamma1=None, add_naa=False):
+    def burst_sizes(self, gamma=1., gamma1=None, add_naa=False, beta=None):
         """Return gamma corrected burst sizes for all the channel.
 
         Compute burst sizes by calling :meth:`burst_sizes_ich` for each
@@ -956,7 +963,7 @@ class Data(DataContainer):
         Returns
             List of arrays of burst sizes, one array per channel.
         """
-        kwargs = dict(gamma=gamma, gamma1=gamma1, add_naa=add_naa)
+        kwargs = dict(gamma=gamma, gamma1=gamma1, add_naa=add_naa, beta=beta)
         bsize_list = [self.burst_sizes_ich(ich, **kwargs) for ich in
                       range(self.nch)]
         return np.array(bsize_list)

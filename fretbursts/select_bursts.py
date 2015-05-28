@@ -114,14 +114,14 @@ def naa(d, ich=0, th1=20, th2=np.inf):
     return bursts_mask, ''
 
 def size(d, ich=0, th1=20, th2=np.inf, gamma=1., gamma1=None,
-         add_naa=False):
+         add_naa=False, beta=None):
     """Select bursts with burst sizes between th1 and th2.
 
-    The parameters `gamma`, `gamma1` and `add_naa` are passed to
+    The parameters `gamma`, `gamma1`, `add_naa` and `beta` are passed to
     :meth:`fretbursts.burstlib.Data.burst_sizes_ich` to compute the burst size.
     """
     assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
-    burst_size = d.burst_sizes_ich(ich, gamma, gamma1, add_naa)
+    burst_size = d.burst_sizes_ich(ich, gamma, gamma1, add_naa, beta)
     if d.nch > 1 and (np.size(th1) == d.nch): th1 = th1[ich]
     if d.nch > 1 and (np.size(th2) == d.nch): th2 = th2[ich]
     bursts_mask = (burst_size >= th1)*(burst_size <= th2)
