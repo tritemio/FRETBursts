@@ -1,45 +1,39 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-us">
   <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <meta charset="UTF-8">
+    <title>FRETBursts by tritemio</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
     <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
-
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-
-    <title>FRETBursts by tritemio</title>
   </head>
-
   <body>
-    <header>
-      <div class="inner">
-        <h1>FRETBursts</h1>
-        <h2>Burst analysis for single and multi-spot smFRET experiments.</h2>
-        <a href="https://github.com/tritemio/FRETBursts" class="button"><small>View project on</small> GitHub</a>
-      </div>
-    </header>
+    <section class="page-header">
+      <h1 class="project-name">FRETBursts</h1>
+      <h2 class="project-tagline">Burst analysis for single and multi-spot smFRET experiments.</h2>
+      <a href="https://github.com/tritemio/FRETBursts" class="btn">View on GitHub</a>
+      <a href="https://github.com/tritemio/FRETBursts/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/tritemio/FRETBursts/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
 
-    <div id="content-wrapper">
-      <div class="inner clearfix">
-        <section id="main-content">
-          <h1>
+    <section class="main-content">
+      <h1>
 <a id="fretbursts" class="anchor" href="#fretbursts" aria-hidden="true"><span class="octicon octicon-link"></span></a>FRETBursts</h1>
 
+<p><a href="http://dx.doi.org/10.5281/zenodo.12784"><img src="https://zenodo.org/badge/doi/10.5281/zenodo.12784.png" alt="DOI"></a>
+<a href="https://travis-ci.org/tritemio/FRETBursts"><img src="https://travis-ci.org/tritemio/FRETBursts.svg?branch=master" alt="Build Status"></a></p>
+
 <blockquote>
-<p><em>Quick links: <a href="http://fretbursts.readthedocs.org/index.html">Reference documentation</a>, <a href="https://github.com/tritemio/FRETBursts_notebooks">FRETBursts tutorials</a></em></p>
+<p><em>Quick links: <a href="http://fretbursts.readthedocs.org/">Reference documentation</a>, <a href="https://github.com/tritemio/FRETBursts_notebooks">FRETBursts tutorials</a></em></p>
 </blockquote>
 
 <h2>
 <a id="project-description" class="anchor" href="#project-description" aria-hidden="true"><span class="octicon octicon-link"></span></a>Project description</h2>
 
-<div style="float: right; margin-left: 30px;">
-  <img src="http://i.imgur.com/l3uUhWx.png" alt="ALEX jointplot" width="400">
+<div>
+<img title="FRETBurst generated ALEX histogram" src="http://i.imgur.com/My7rWc2.png" align="right" height="340">
 </div>
 
 <p><strong><a href="https://github.com/tritemio/FRETBursts">FRETBursts</a></strong> is a
@@ -54,6 +48,9 @@ a standard implementation of state-of-the-art algorithms
 for confocal smFRET analysis.
 FRETBursts is opensource and contributions are welcome.
 The authors are committed to promptly fix bugs whenever discovered.</p>
+
+<p>Together with FRETBursts we promote the open file format
+<a href="http://photon-hdf5.readthedocs.org/">Photon-HDF5</a>.</p>
 
 <p>Issues can be reported and discussed on the
 <a href="https://github.com/tritemio/FRETBursts/issues?state=open">issue tracker</a>.
@@ -74,24 +71,24 @@ scheme is supported.</p>
 <li>burst corrections: background, D-spectral leakage (bleed-through), A-direct excitation,
 gamma-factor</li>
 <li>per-burst statistics (# photons, burst duration, E, S, peak rate in burst, etc...)</li>
-<li>post-burst-search <a href="http://fretbursts.readthedocs.org/burst_selection.html">selection functions</a> 
-(for ex.: <a href="http://fretbursts.readthedocs.org/burst_selection.html#fretbursts.select_bursts.size">burst size</a>, 
-<a href="http://fretbursts.readthedocs.org/burst_selection.html#fretbursts.select_bursts.width">burst width</a>, 
-<a href="http://fretbursts.readthedocs.org/burst_selection.html#fretbursts.select_bursts.ES">E, S</a>, ...). 
+<li>post-burst-search <a href="http://fretbursts.readthedocs.org/en/latest/burst_selection.html">selection functions</a>
+(for ex.: <a href="http://fretbursts.readthedocs.org/en/latest/burst_selection.html#fretbursts.select_bursts.size">burst size</a>,
+<a href="http://fretbursts.readthedocs.org/en/latest/burst_selection.html#fretbursts.select_bursts.width">burst width</a>,
+<a href="http://fretbursts.readthedocs.org/en/latest/burst_selection.html#fretbursts.select_bursts.ES">E, S</a>, ...).
 Defining a new burst selection
 criterium requires only a couple of lines of code.</li>
 <li>
-<a href="http://fretbursts.readthedocs.org/fit.html">fit routines</a> for FRET efficiency 
-(<a href="http://fretbursts.readthedocs.org/data_class.html#fretbursts.burstlib.Data.fit_E_generic">1 and 2-gaussians histogram fit</a>,
-<a href="http://fretbursts.readthedocs.org/data_class.html#fretbursts.burstlib.Data.fit_E_ML_poiss">MLE Poisson models</a>, 
-<a href="http://fretbursts.readthedocs.org/data_class.html#fretbursts.burstlib.Data.fit_E_m">weighted least squares models</a>,
-<a href="http://fretbursts.readthedocs.org/data_class.html#fretbursts.burstlib.Data.fit_E_two_gauss_EM">weighted expectation maximization</a>, 
+<a href="http://fretbursts.readthedocs.org/en/latest/fit.html">fit routines</a> for FRET efficiency
+(<a href="http://fretbursts.readthedocs.org/en/latest/fit.html#fitting-e-or-s-histograms">multi-model histogram fit</a>,
+<a href="http://fretbursts.readthedocs.org/en/latest/data_class.html#fretbursts.burstlib.Data.fit_E_ML_poiss">MLE Poisson models</a>,
+<a href="http://fretbursts.readthedocs.org/en/latest/data_class.html#fretbursts.burstlib.Data.fit_E_m">weighted least squares models</a>,
+<a href="http://fretbursts.readthedocs.org/en/latest/data_class.html#fretbursts.burstlib.Data.fit_E_two_gauss_EM">weighted expectation maximization</a>,
 etc...)</li>
 </ul>
 
-<p>Moreover FRETBursts includes 
-<a href="https://github.com/tritemio/FRETBursts/blob/master/fretbursts/burst_plot.py">a large set</a> of modular 
-<a href="http://fretbursts.readthedocs.org/files_description.html#module-fretbursts.burst_plot">plot functions</a> for
+<p>Moreover FRETBursts includes
+<a href="https://github.com/tritemio/FRETBursts/blob/master/fretbursts/burst_plot.py">a large set</a> of modular
+<a href="http://fretbursts.readthedocs.org/en/latest/files_description.html#module-fretbursts.burst_plot">plot functions</a> for
 background, time-traces, rate-traces, E, S, ALEX histograms, weighted kernel
 density estimation (<a href="http://en.wikipedia.org/wiki/Kernel_density_estimation">KDE</a>)
 and more. Thanks to the excellent <a href="http://matplotlib.org/">Matplotlib</a> library,
@@ -131,10 +128,10 @@ to ensure robustness and reproducibility of the results. For example,
 when loading FRETBursts in an ipython notebook, the current commit ID is always
 displayed and saved.</p>
 
-<p>We provide a <a href="#how-to-use">list of tutorials</a> (IPython notebooks) that can be
-viewed online, edited and re-executed. The
+<p>We provide a <a href="#getting-started">list of tutorials</a> (IPython notebooks) that
+can be viewed online, edited and re-executed. The
 <a href="http://fretbursts.readthedocs.org/">reference documentation</a>
-is generated by Sphinx extracting the docstring from the source.</p>
+is generated by Sphinx extracting the docstrings from the source code.</p>
 
 <h3>
 <a id="external-resources" class="anchor" href="#external-resources" aria-hidden="true"><span class="octicon octicon-link"></span></a>External resources</h3>
@@ -157,24 +154,18 @@ rich text, math and graphics with (live) code. For more info please visit:</p>
 <h2>
 <a id="installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation</h2>
 
-<p>Briefly, the installation consist in installing a scientific python
-distribution, downloading FRETBursts sources, and setting up a folder for the
-FRETBursts notebooks.</p>
+<p>Briefly, the installation requires installing a scientific python distribution
+(such as <a href="https://store.continuum.io/cshop/anaconda/">Continuum Anaconda</a>)
+and then installing the <code>fretbursts</code> python package.</p>
 
-<p>FRETBursts is loaded running a small script (<code>load_fretbursts.py</code>) placed
-in the notebooks folder. The first time you download FRETBursts, you need to
-run the <a href="http://nbviewer.ipython.org/github/tritemio/FRETBursts/blob/master/notebooks/Installation.ipynb">Installation.ipynb</a>
-notebook that will write a configuration file
-containing FRETBursts's source folder.</p>
-
-<p>A detailed description of the installation can be found in:</p>
+<p>For detailed installation instructions see:</p>
 
 <ul>
-<li><a href="http://fretbursts.readthedocs.org/getting_started.html">FRETBursts documentation: Getting started</a></li>
+<li><a href="http://fretbursts.readthedocs.org/en/latest/getting_started.html">FRETBursts documentation: Getting started</a></li>
 </ul>
 
 <h2>
-<a id="how-to-use" class="anchor" href="#how-to-use" aria-hidden="true"><span class="octicon octicon-link"></span></a>How to use</h2>
+<a id="getting-started" class="anchor" href="#getting-started" aria-hidden="true"><span class="octicon octicon-link"></span></a>Getting started</h2>
 
 <p>The official FRETBursts documentation is built and hosted by ReadTheDocs:</p>
 
@@ -206,7 +197,8 @@ sources in the
 </blockquote>
 
 <p>We provide a public dataset [1] to test and demonstrate FRETBursts
-functionalities. These dataset files are needed to re-run the tutorials.</p>
+functionalities. These dataset files will be automatically downloaded
+when running the tutorials.</p>
 
 <p>[1] A. Ingargiola, S. Chung (2014): smFRET example datasets for the FRETBursts
 software. <a href="http://dx.doi.org/10.6084/m9.figshare.1019906">DOI 10.6084/m9.figshare.1019906</a></p>
@@ -246,24 +238,14 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.</p>
 
 <p>You can find a full copy of the license in the file LICENSE.txt</p>
-        </section>
 
-        <aside id="sidebar">
-          <a href="https://github.com/tritemio/FRETBursts/zipball/master" class="button">
-            <small>Download</small>
-            .zip file
-          </a>
-          <a href="https://github.com/tritemio/FRETBursts/tarball/master" class="button">
-            <small>Download</small>
-            .tar.gz file
-          </a>
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/tritemio/FRETBursts">FRETBursts</a> is maintained by <a href="https://github.com/tritemio">tritemio</a>.</span>
 
-          <p class="repo-owner"><a href="https://github.com/tritemio/FRETBursts"></a> is maintained by <a href="https://github.com/tritemio">tritemio</a>.</p>
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
 
-          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
-        </aside>
-      </div>
-    </div>
+    </section>
 
             <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
@@ -278,3 +260,4 @@ GNU General Public License for more details.</p>
 
   </body>
 </html>
+
