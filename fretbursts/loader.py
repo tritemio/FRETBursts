@@ -550,10 +550,10 @@ def multispot48(fname, leakage=0, gamma=1., reprocess=False,
 
 # Build masks for the alternating periods
 def _select_outer_range(times, period, edges):
-    return ((times % period) > edges[0]) + ((times % period) < edges[1])
+    return ((times % period) >= edges[0]) + ((times % period) < edges[1])
 
 def _select_inner_range(times, period, edges):
-    return ((times % period) > edges[0]) * ((times % period) < edges[1])
+    return ((times % period) >= edges[0]) * ((times % period) < edges[1])
 
 def _select_range(times, period, edges):
     return _select_inner_range(times, period, edges) if edges[0] < edges[1] \
