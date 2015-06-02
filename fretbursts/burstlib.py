@@ -925,30 +925,25 @@ class Data(DataContainer):
         else:
             return self.A_ON[0] - self.A_ON[1]
 
-    @property
-    def ph_times_dex_compact(self):
-        """D_ex timestamps compacted by removing the A_ex gaps.
-        """
-        assert self.alex, "Property defined only for us-ALEX data."
-        if not hasattr(self, '_ph_times_dex_compact'):
-            self._ph_times_dex_compact = []
-            for ph in self.iter_ph_times(ph_sel=Ph_sel(Dex='DAem')):
-                ph -= (ph // self.alex_period)*self.Dex_void
-                self._ph_times_dex_compact.append(ph)
-        return self._ph_times_dex_compact
+    def ph_times_compact(self, period, ich=0):
+        """Return timestamps during excitation `period` with "gaps" removed.
 
-    @property
-    def ph_times_aex_compact(self):
-        """A_ex timestamps compacted by removing the D_ex gaps.
-        """
-        assert self.alex, "Property defined only for us-ALEX data."
-        if not hasattr(self, '_ph_times_aex_compact'):
-            self._ph_times_dex_compact = []
-            for ph in self.iter_ph_times(ph_sel=Ph_sel(Aex='DAem')):
-                ph -= (ph // self.alex_period)*self.Aex_void
-                self._ph_times_dex_compact.append(ph)
-        return self._ph_times_dex_compact
+        It takes timestamps in the specified alternation period and removes
+        gaps due to time intervals outside the alternation period selection.
+        This allows to correct the photon rates distorsion due to alternation.
 
+        Arguments:
+            period (string): valid values 'Dex' or 'Aex'.
+            ich (int): channel number. Default 0.
+
+        Returns:
+            Array of timestamps in one excitation periods with "gaps" removed.
+        """
+        assert period in ['Dex', 'Aex']
+        assert self.alex, "Property defined only for us-ALEX data."
+        ph = self.get_ph_times(ich=ich, ph_sel=Ph_sel(**{period: 'DAem'}))
+        ph -= (ph // self.alex_period)*self.Dex_void
+        return ph
 
     ##
     # Methods and properties for burst-data access
