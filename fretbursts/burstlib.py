@@ -909,7 +909,7 @@ class Data(DataContainer):
     def Dex_void(self):
         """Duration of the alternation period outside donor excitation.
         """
-        assert self.alex, "Property defined only for us-ALEX data."
+        assert self.ALEX, "Property defined only for us-ALEX data."
         if self.D_ON[1] > self.D_ON[0]:
             return self.alex_period - self.D_ON[0] + self.D_ON[1]
         else:
@@ -919,7 +919,7 @@ class Data(DataContainer):
     def Aex_void(self):
         """Duration of the alternation period outside acceptor excitation.
         """
-        assert self.alex, "Property defined only for us-ALEX data."
+        assert self.ALEX, "Property defined only for us-ALEX data."
         if self.A_ON[1] > self.A_ON[0]:
             return self.alex_period - self.A_ON[0] + self.A_ON[1]
         else:
@@ -939,8 +939,8 @@ class Data(DataContainer):
         Returns:
             Array of timestamps in one excitation periods with "gaps" removed.
         """
+        assert self.ALEX, "Property defined only for us-ALEX data."
         assert period in ['Dex', 'Aex']
-        assert self.alex, "Property defined only for us-ALEX data."
         ph = self.get_ph_times(ich=ich, ph_sel=Ph_sel(**{period: 'DAem'}))
         ph -= (ph // self.alex_period)*self.Dex_void
         return ph
