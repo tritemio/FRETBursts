@@ -34,8 +34,10 @@ def load_dataset_1ch(process=True):
     fn = "0023uLRpitc_NTP_20dT_0.5GndCl.hdf5"
     fname = DATASETS_DIR + fn
     d = loader.photon_hdf5(fname)
+    o = 700
     d.add(det_donor_accept=(0, 1), alex_period=4000,
-          D_ON=(2850, 580), A_ON=(900, 2580))
+          D_ON=(2850 - o, d.alex_period + 580 - o), A_ON=(900 - o, 2580 - o),
+          offset=o)
     if process:
         _alex_process(d)
     return d
@@ -91,6 +93,30 @@ def list_array_allclose(list1, list2):
 ##
 # Test functions
 #
+
+def test_ph_times_compact(data_1ch):
+    """Test calculation of ph_times_compact."""
+    def isinteger(x):
+        return np.equal(np.mod(x, 1), 0)
+    d = data_1ch
+    # Test valid Dex_void and Aex_void
+    assert 0 < d.Dex_void < d.alex_period
+    assert 0 < d.Aex_void < d.alex_period
+
+    ph_d = d.get_ph_times(ph_sel=Ph_sel(Dex='DAem'))
+    ph_a = d.get_ph_times(ph_sel=Ph_sel(Aex='DAem'))
+    ph_dc = d.ph_times_compact('Dex')
+    ph_ac = d.ph_times_compact('Aex')
+    # Test that the difference of ph and ph_compact is multiple of D/A_ex_void
+    assert isinteger((ph_d - ph_dc)/d.Dex_void).all()
+    assert isinteger((ph_a - ph_ac)/d.Aex_void).all()
+    # Test that alternation histogram does not have "gaps" for ph_compact
+    bins = np.linspace(0, d.alex_period, num=101)
+    hist_dc, _ = np.histogram(ph_dc % d.alex_period , bins=bins)
+    hist_ac, _ = np.histogram(ph_ac % d.alex_period, bins=bins)
+    assert (hist_dc > 0).all()
+    assert (hist_ac > 0).all()
+
 
 def test_time_min_max():
     """Test time_min and time_max for ALEX data."""
