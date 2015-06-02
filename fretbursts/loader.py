@@ -660,6 +660,8 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
         d_ex = d_ex[mask]
         a_ex = a_ex[mask]
 
+    if 'offset' in d:
+        ph_times -= d.offset
     assert d_em.sum() + a_em.sum() == ph_times.size
     assert (d_em * a_em).any() == False
     assert a_ex.size == a_em.size == d_ex.size == d_em.size == ph_times.size
