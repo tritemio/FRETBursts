@@ -905,6 +905,50 @@ class Data(DataContainer):
             ph_times_period = ph_times[period_slice][mask[period_slice]]
         return ph_times_period
 
+    @property
+    def Dex_void(self):
+        """Duration of the alternation period outside donor excitation.
+        """
+        assert self.alex, "Property defined only for us-ALEX data."
+        if self.D_ON[1] > self.D_ON[0]:
+            return self.alex_period - self.D_ON[0] + self.D_ON[1]
+        else:
+            return self.D_ON[0] - self.D_ON[1]
+
+    @property
+    def Aex_void(self):
+        """Duration of the alternation period outside acceptor excitation.
+        """
+        assert self.alex, "Property defined only for us-ALEX data."
+        if self.A_ON[1] > self.A_ON[0]:
+            return self.alex_period - self.A_ON[0] + self.A_ON[1]
+        else:
+            return self.A_ON[0] - self.A_ON[1]
+
+    @property
+    def ph_times_dex_compact(self):
+        """D_ex timestamps compacted by removing the A_ex gaps.
+        """
+        assert self.alex, "Property defined only for us-ALEX data."
+        if not hasattr(self, '_ph_times_dex_compact'):
+            self._ph_times_dex_compact = []
+            for ph in self.iter_ph_times(ph_sel=Ph_sel(Dex='DAem')):
+                ph -= (ph // self.alex_period)*self.Dex_void
+                self._ph_times_dex_compact.append(ph)
+        return self._ph_times_dex_compact
+
+    @property
+    def ph_times_aex_compact(self):
+        """A_ex timestamps compacted by removing the D_ex gaps.
+        """
+        assert self.alex, "Property defined only for us-ALEX data."
+        if not hasattr(self, '_ph_times_aex_compact'):
+            self._ph_times_dex_compact = []
+            for ph in self.iter_ph_times(ph_sel=Ph_sel(Aex='DAem')):
+                ph -= (ph // self.alex_period)*self.Aex_void
+                self._ph_times_dex_compact.append(ph)
+        return self._ph_times_dex_compact
+
 
     ##
     # Methods and properties for burst-data access
