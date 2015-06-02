@@ -177,6 +177,7 @@ def plot_alternation_hist_usalex(d, bins=None, ax=None,
     if bins is None:
         bins = 100
 
+    offset = d.get('offset', 0)
     ph_times_t, det_t, period = d.ph_times_t, d.det_t, d.alex_period
     d_ch, a_ch = d.det_donor_accept
     d_em_t = (det_t == d_ch)
@@ -189,9 +190,9 @@ def plot_alternation_hist_usalex(d, bins=None, ax=None,
     D_label = 'Donor: %d-%d' % (d.D_ON[0], d.D_ON[1])
     A_label = 'Accept: %d-%d' % (d.A_ON[0], d.A_ON[1])
 
-    ax.hist(ph_times_t[d_em_t] % period, color=green, label=D_label,
+    ax.hist((ph_times_t[d_em_t] - offset) % period, color=green, label=D_label,
             **hist_style_)
-    ax.hist(ph_times_t[~d_em_t] % period, color=red, label=A_label,
+    ax.hist((ph_times_t[~d_em_t] - offset) % period, color=red, label=A_label,
             **hist_style_)
     ax.set_xlabel('Timestamp MODULO Alternation period')
 
