@@ -905,25 +905,24 @@ class Data(DataContainer):
             ph_times_period = ph_times[period_slice][mask[period_slice]]
         return ph_times_period
 
+    def _complementary_period(self, period):
+        assert self.ALEX, "Property defined only for us-ALEX data."
+        if period[1] > period[0]:
+            return self.alex_period - period[1] + period[0]
+        elif period[1] < period[0]:
+            return period[0] - period[1]
+
     @property
     def Dex_void(self):
         """Duration of the alternation period outside donor excitation.
         """
-        assert self.ALEX, "Property defined only for us-ALEX data."
-        if self.D_ON[1] > self.D_ON[0]:
-            return self.alex_period - self.D_ON[0] + self.D_ON[1]
-        else:
-            return self.D_ON[0] - self.D_ON[1]
+        return self._complementary_period(self.D_ON)
 
     @property
     def Aex_void(self):
         """Duration of the alternation period outside acceptor excitation.
         """
-        assert self.ALEX, "Property defined only for us-ALEX data."
-        if self.A_ON[1] > self.A_ON[0]:
-            return self.alex_period - self.A_ON[0] + self.A_ON[1]
-        else:
-            return self.A_ON[0] - self.A_ON[1]
+        return self._complementary_period(self.A_ON)
 
     def ph_times_compact(self, period, ich=0):
         """Return timestamps during excitation `period` with "gaps" removed.
