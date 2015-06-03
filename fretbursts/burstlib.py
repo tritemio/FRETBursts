@@ -803,15 +803,14 @@ class Data(DataContainer):
         else:
             raise ValueError('Selection not implemented.')
 
-    def iter_ph_times(self, ph_sel=Ph_sel('all')):
+    def iter_ph_times(self, ph_sel=Ph_sel('all'), compact=False):
         """Iterator that returns the arrays of timestamps in `.ph_times_m`.
 
         Arguments:
-            ph_sel (Ph_sel object): object defining the photon selection.
-                See :mod:`fretbursts.ph_sel` for details.
+            Same arguments as :meth:`get_ph_mask` except for `ich`.
         """
         for ich in range(self.nch):
-            yield self.get_ph_times(ich, ph_sel=ph_sel)
+            yield self.get_ph_times(ich, ph_sel=ph_sel, compact=compact)
 
     def get_ph_times(self, ich=0, ph_sel=Ph_sel('all'), compact=False):
         """Returns the timestamps array for channel `ich`.
