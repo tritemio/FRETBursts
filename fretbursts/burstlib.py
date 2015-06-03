@@ -15,7 +15,7 @@ Furthermore it loads all the remaining **FRETBursts** modules (except for
 For usage example see the IPython Notebooks in sub-folder "notebooks".
 """
 
-from __future__ import print_function, absolute_import
+from __future__ import print_function, absolute_import, division
 from builtins import range, zip
 
 import os
@@ -46,7 +46,7 @@ from .burstsearch.burstsearchlib import (
 
 from . import background as bg
 from . import select_bursts
-from  . import fit
+from . import fit
 from .fit.gaussian_fitting import (gaussian_fit_hist,
                                    gaussian_fit_cdf,
                                    two_gaussian_fit_hist,
@@ -115,9 +115,9 @@ def get_alex_fraction(on_range, alex_period):
     """
     assert len(on_range) == 2
     if on_range[0] < on_range[1]:
-        fraction = 1.*(on_range[1] - on_range[0])/alex_period
+        fraction = (on_range[1] - on_range[0])/alex_period
     else:
-        fraction = 1.*(alex_period + on_range[1] - on_range[0])/alex_period
+        fraction = (alex_period + on_range[1] - on_range[0])/alex_period
     return fraction
 
 def top_tail(nx, a=0.1):
@@ -130,7 +130,7 @@ def top_tail(nx, a=0.1):
 # Quick functions to calculate rate-trace from ph_times
 def ph_rate(m, ph):
     """Return an array of m-photons rates of size ph.size - m + 1."""
-    return 1.*m/(ph[m-1:] - ph[:ph.size-m+1])   # rate
+    return m/(ph[m-1:] - ph[:ph.size-m+1])   # rate
 
 def ph_rate_t(m, ph):
     """Return the mean time for each rate computed by `ph_rate`."""
@@ -944,9 +944,9 @@ class Data(DataContainer):
             Array of burst sizes for channel `ich`.
         """
         if gamma1 is not None:
-            burst_size = 1.*self.nd[ich]*gamma1 + self.na[ich]
+            burst_size = self.nd[ich]*gamma1 + self.na[ich]
         else:
-            burst_size = self.nd[ich] + 1.*self.na[ich]/gamma
+            burst_size = self.nd[ich] + self.na[ich]/gamma
         if self.ALEX and add_naa:
             naa = self.naa[ich]
             if beta is not None:
@@ -1486,7 +1486,7 @@ class Data(DataContainer):
         FF = self._param_as_mch_array(F)
         PP = self._param_as_mch_array(P)
         if P is None:
-            find_T = lambda m, Fi, Pi, bg: 1.*m/(bg*Fi) # NOTE: ignoring P_i
+            find_T = lambda m, Fi, Pi, bg: m/(bg*Fi) # NOTE: ignoring P_i
         else:
             if F != 1:
                 print("WARNING: BS prob. th. with modified BG rate (F=%.1f)" \
@@ -2158,7 +2158,7 @@ class Data(DataContainer):
             background = {Ph_sel('all'): bg_d + bg_a,
                           Ph_sel(Dex='Dem'): bg_d, Ph_sel(Dex='Aem'): bg_a}
 
-            sbr.append(1.*signal[ph_sel]/background[ph_sel])
+            sbr.append(signal[ph_sel]/background[ph_sel])
         self.add(sbr=sbr)
         return sbr
 
@@ -2227,13 +2227,13 @@ class Data(DataContainer):
     def calculate_fret_eff(self):
         """Compute FRET efficiency (`E`) for each burst."""
         G = self.get_gamma_array()
-        E = [1.*na/(g*nd+na) for nd, na, g in zip(self.nd, self.na, G)]
+        E = [na/(g*nd + na) for nd, na, g in zip(self.nd, self.na, G)]
         self.add(E=E)
 
     def calculate_stoich(self):
         """Compute "stoichiometry" (the `S` parameter) for each burst."""
         G = self.get_gamma_array()
-        S = [1.0*(g*d+a)/(g*d+a+aa) for d, a, aa, g in
+        S = [(g*d + a)/(g*d + a + aa) for d, a, aa, g in
              zip(self.nd, self.na, self.naa, G)]
         self.add(S=S)
 
@@ -2337,7 +2337,7 @@ class Data(DataContainer):
             # Compute weighted variance
             fit_res[ich, 1] = np.sqrt(
                 np.dot(w, (E[mask] - fit_res[ich, 0])**2)/w.sum())
-            fit_model_F[ich] = 1.*mask.sum()/mask.size
+            fit_model_F[ich] = mask.sum()/mask.size
 
         fit_model = lambda x, p: SS.norm.pdf(x, p[0], p[1])
         self.add(fit_E_res=fit_res, fit_E_name='Moments',
@@ -2466,7 +2466,7 @@ class Data(DataContainer):
             else:
                 # Non-histogram fits (PDF/CDF) do not support weights
                 fit_res[ich, :] = fit_fun(E[mask], **fit_kwargs)
-            fit_model_F[ich] = 1.*mask.sum()/mask.size
+            fit_model_F[ich] = mask.sum()/mask.size
 
         # Save enough info to generate a fit plot (see hist_fret in burst_plot)
         self.add(fit_E_res=fit_res, fit_E_name=fit_fun.__name__,
@@ -2489,7 +2489,7 @@ class Data(DataContainer):
                 self[name] = D[name]
                 setattr(self, name, self[name])
         # Deal with the normalization to the number of bursts
-        self.add(fit_model_F=r_[[1.*old_E.size/new_E.size \
+        self.add(fit_model_F=r_[[old_E.size/new_E.size \
                                  for old_E, new_E in zip(D.E, self.E)]])
 
     def fit_E_calc_variance(self, weights='sqrt', dist='DeltaE',
