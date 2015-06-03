@@ -906,25 +906,14 @@ class Data(DataContainer):
         return ph_times_period
 
     def _complementary_period(self, period):
-        assert self.ALEX, "Property defined only for us-ALEX data."
+        """Duration of alternation period duration outside selected excitation.
+        """
         if period[1] > period[0]:
             return self.alex_period - period[1] + period[0]
         elif period[1] < period[0]:
             return period[0] - period[1]
 
-    @property
-    def Dex_void(self):
-        """Duration of the alternation period outside donor excitation.
-        """
-        return self._complementary_period(self.D_ON)
-
-    @property
-    def Aex_void(self):
-        """Duration of the alternation period outside acceptor excitation.
-        """
-        return self._complementary_period(self.A_ON)
-
-    def ph_times_compact(self, period, ich=0):
+    def ph_times_compact(self, ph_sel, ich=0):
         """Return timestamps during excitation `period` with "gaps" removed.
 
         It takes timestamps in the specified alternation period and removes
@@ -932,16 +921,24 @@ class Data(DataContainer):
         This allows to correct the photon rates distorsion due to alternation.
 
         Arguments:
-            period (string): valid values 'Dex' or 'Aex'.
+            ph_sel (Ph_sel object): photon selection to be compacted.
+                Note that only one excitation must be specified, but the
+                emission can be 'Dem', 'Aem' or 'DAem'.
+                See :mod:`fretbursts.ph_sel` for details.
             ich (int): channel number. Default 0.
 
         Returns:
             Array of timestamps in one excitation periods with "gaps" removed.
         """
-        assert self.ALEX, "Property defined only for us-ALEX data."
-        assert period in ['Dex', 'Aex']
-        complementary_duration = getattr(self, period + '_void')
-        ph = self.get_ph_times(ich=ich, ph_sel=Ph_sel(**{period: 'DAem'}))
+        assert self.ALEX, "ph_times_compact() is only defined for us-ALEX data."
+        assert ph_sel.Dex is None or ph_sel.Aex is None
+        if ph_sel.Aex is None:
+            period_range = self.D_ON
+        elif ph_sel.Dex is None:
+            period_range = self.A_ON
+
+        complementary_duration = self._complementary_period(period_range)
+        ph = self.get_ph_times(ich=ich, ph_sel=ph_sel)
         ph -= (ph // self.alex_period)*complementary_duration
         return ph
 

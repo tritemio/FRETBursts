@@ -100,17 +100,17 @@ def test_ph_times_compact(data_1ch):
     def isinteger(x):
         return np.equal(np.mod(x, 1), 0)
     d = data_1ch
-    # Test valid Dex_void and Aex_void
-    assert 0 < d.Dex_void < d.alex_period
-    assert 0 < d.Aex_void < d.alex_period
 
     ph_d = d.get_ph_times(ph_sel=Ph_sel(Dex='DAem'))
     ph_a = d.get_ph_times(ph_sel=Ph_sel(Aex='DAem'))
-    ph_dc = d.ph_times_compact('Dex')
-    ph_ac = d.ph_times_compact('Aex')
-    # Test that the difference of ph and ph_compact is multiple of D/A_ex_void
-    assert isinteger((ph_d - ph_dc)/d.Dex_void).all()
-    assert isinteger((ph_a - ph_ac)/d.Aex_void).all()
+    ph_dc = d.ph_times_compact(Ph_sel(Dex='DAem'))
+    ph_ac = d.ph_times_compact(Ph_sel(Aex='DAem'))
+    # Test that the difference of ph and ph_compact is multiple of
+    # the complementary excitation period duration
+    Dex_void = d._complementary_period(d.D_ON)
+    Aex_void = d._complementary_period(d.A_ON)
+    assert isinteger((ph_d - ph_dc)/Dex_void).all()
+    assert isinteger((ph_a - ph_ac)/Aex_void).all()
     # Test that alternation histogram does not have "gaps" for ph_compact
     bins = np.linspace(0, d.alex_period, num=101)
     hist_dc, _ = np.histogram(ph_dc % d.alex_period , bins=bins)
