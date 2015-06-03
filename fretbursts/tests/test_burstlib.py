@@ -103,8 +103,8 @@ def test_ph_times_compact(data_1ch):
 
     ph_d = d.get_ph_times(ph_sel=Ph_sel(Dex='DAem'))
     ph_a = d.get_ph_times(ph_sel=Ph_sel(Aex='DAem'))
-    ph_dc = d.ph_times_compact(Ph_sel(Dex='DAem'))
-    ph_ac = d.ph_times_compact(Ph_sel(Aex='DAem'))
+    ph_dc = d.get_ph_times(ph_sel=Ph_sel(Dex='DAem'), compact=True)
+    ph_ac = d.get_ph_times(ph_sel=Ph_sel(Aex='DAem'), compact=True)
     # Test that the difference of ph and ph_compact is multiple of
     # the complementary excitation period duration
     Dex_void = d._complementary_period(d.D_ON)

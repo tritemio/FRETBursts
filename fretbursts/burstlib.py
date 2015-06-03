@@ -813,7 +813,7 @@ class Data(DataContainer):
         for ich in range(self.nch):
             yield self.get_ph_times(ich, ph_sel=ph_sel)
 
-    def get_ph_times(self, ich=0, ph_sel=Ph_sel('all')):
+    def get_ph_times(self, ich=0, ph_sel=Ph_sel('all'), compact=False):
         """Returns the timestamps array for channel `ich`.
 
         This method always returns in-memory arrays, even when ph_times_m
@@ -822,6 +822,10 @@ class Data(DataContainer):
         Arguments:
             ph_sel (Ph_sel object): object defining the photon selection.
                 See :mod:`fretbursts.ph_sel` for details.
+            compact (bool): if True, a photon selection of only one
+                excitation period is required and the timestamps are
+                "compacted" removing the "gaps" between each excitation
+                period.
         """
         ph = self.ph_times_m[ich]
 
@@ -834,7 +838,10 @@ class Data(DataContainer):
                 self._ph_cache = ph
                 self._ph_cache_ich = ich
 
-        return ph[self.get_ph_mask(ich, ph_sel=ph_sel)]
+        ph = ph[self.get_ph_mask(ich, ph_sel=ph_sel)]
+        if compact:
+            self._ph_times_compact(ph, ph_sel)
+        return ph
 
     def _get_ph_mask_single(self, ich, mask_name, negate=False):
         """Get the bool array `mask_name` for channel `ich`.
@@ -913,19 +920,20 @@ class Data(DataContainer):
         elif period[1] < period[0]:
             return period[0] - period[1]
 
-    def ph_times_compact(self, ph_sel, ich=0):
-        """Return timestamps during excitation `period` with "gaps" removed.
+    def _ph_times_compact(self, ph, ph_sel):
+        """Return timestamps in one excitation period with "gaps" removed.
 
         It takes timestamps in the specified alternation period and removes
         gaps due to time intervals outside the alternation period selection.
         This allows to correct the photon rates distorsion due to alternation.
 
         Arguments:
+            ph (array): timestamps array from which gaps have to be removed.
+                This array **is modified in-place**.
             ph_sel (Ph_sel object): photon selection to be compacted.
                 Note that only one excitation must be specified, but the
                 emission can be 'Dem', 'Aem' or 'DAem'.
                 See :mod:`fretbursts.ph_sel` for details.
-            ich (int): channel number. Default 0.
 
         Returns:
             Array of timestamps in one excitation periods with "gaps" removed.
@@ -936,11 +944,8 @@ class Data(DataContainer):
             period_range = self.D_ON
         elif ph_sel.Dex is None:
             period_range = self.A_ON
-
         complementary_duration = self._complementary_period(period_range)
-        ph = self.get_ph_times(ich=ich, ph_sel=ph_sel)
         ph -= (ph // self.alex_period)*complementary_duration
-        return ph
 
     ##
     # Methods and properties for burst-data access
