@@ -9,6 +9,7 @@ Module containing automated unit tests for FRETBursts.
 Running the tests requires `py.test`.
 """
 
+from __future__ import division
 from builtins import range, zip
 
 import pytest

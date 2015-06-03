@@ -940,8 +940,9 @@ class Data(DataContainer):
         """
         assert self.ALEX, "Property defined only for us-ALEX data."
         assert period in ['Dex', 'Aex']
+        complementary_duration = getattr(self, period + '_void')
         ph = self.get_ph_times(ich=ich, ph_sel=Ph_sel(**{period: 'DAem'}))
-        ph -= (ph // self.alex_period)*self.Dex_void
+        ph -= (ph // self.alex_period)*complementary_duration
         return ph
 
     ##
