@@ -2212,7 +2212,7 @@ class Data(DataContainer):
                 See :mod:`fretbursts.ph_sel` for details.
         """
         msg = ('Compact timestamps only possible only with a single \n'
-               'excitation (either Dex or Aex). %s was specified.') % ph_sel
+               'excitation (either Dex or Aex). %s was specified.') % (ph_sel,)
         if compact:
             if ph_sel.Dex is not None and ph_sel.Aex is not None:
                 raise ValueError(msg)
