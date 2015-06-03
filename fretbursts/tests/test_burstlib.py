@@ -462,14 +462,6 @@ def test_burst_fuse_separation(data):
         separation = bl.b_separation(mb)*df.clk_p
         assert separation.min() >= fuse_ms*1e-3
 
-def test_burst_sizes(data):
-    """Test that Data.burst_sizes_ich() returns nd + na when gamma = 1.
-    """
-    d = data
-    for ich, (nd, na) in enumerate(zip(d.nd, d.na)):
-        burst_size = d.burst_sizes_ich(ich)
-        assert (burst_size == nd + na).all()
-
 def test_calc_sbr(data):
     """Smoke test Data.calc_sbr()"""
     data.calc_sbr()
