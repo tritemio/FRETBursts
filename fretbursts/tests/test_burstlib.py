@@ -107,8 +107,8 @@ def test_ph_times_compact(data_1ch):
     ph_ac = d.get_ph_times(ph_sel=Ph_sel(Aex='DAem'), compact=True)
     # Test that the difference of ph and ph_compact is multiple of
     # the complementary excitation period duration
-    Dex_void = d._complementary_period(d.D_ON)
-    Aex_void = d._complementary_period(d.A_ON)
+    Dex_void = bl._excitation_width(d.D_ON, d.alex_period)
+    Aex_void = bl._excitation_width(d.A_ON, d.alex_period)
     assert isinteger((ph_d - ph_dc)/Dex_void).all()
     assert isinteger((ph_a - ph_ac)/Aex_void).all()
     # Test that alternation histogram does not have "gaps" for ph_compact
@@ -477,6 +477,7 @@ def test_calc_sbr(data):
 def test_calc_max_rate(data):
     """Smoke test Data.calc_max-rate()"""
     data.calc_max_rate(m=10)
+    data.calc_max_rate(m=10, ph_sel=Ph_sel(Dex='DAem'), compact=True)
 
 def test_burst_data(data):
     """Smoke test Data.calc_max-rate()"""

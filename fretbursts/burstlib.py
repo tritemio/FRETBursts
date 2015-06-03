@@ -139,6 +139,36 @@ def ph_rate_t(m, ph):
 ##
 # Per-burst quatitites from ph-data arrays (timestamps, lifetime, etc..)
 #
+
+def _excitation_width(excitation_range, alex_period):
+    """Returns duration of alternation period outside selected excitation.
+    """
+    if excitation_range[1] > excitation_range[0]:
+        return alex_period - excitation_range[1] + excitation_range[0]
+    elif excitation_range[1] < excitation_range[0]:
+        return excitation_range[0] - excitation_range[1]
+
+def _ph_times_compact(ph_times_sel, alex_period, excitation_width):
+    """Compact ph_times inplace by removing gaps between alternation periods.
+
+    Arguments:
+        ph_times_sel (array): array of timestamps from one alternation period.
+        excitation_range (2-tuple): start,stop values for the excitation period
+        alex_period (int or float): period of alternation in timestamp units.
+
+    Returns nothing, ph_times is modified in-place.
+    """
+    # The formula is
+    #
+    #   gaps = (ph_times_sel // alex_period)*excitation_width
+    #   ph_times_sel = ph_times_sel - gaps
+    #
+    # As a memory optimization the `-gaps` array is reused inplace
+    times_minusgaps = (ph_times_sel // alex_period)*(-1 * excitation_width)
+    # The formula is ph_times_sel = ph_times_sel - "gaps"
+    times_minusgaps += ph_times_sel
+    return times_minusgaps
+
 def iter_bursts_start_stop(bursts):
     """Iterate over (start, stop) indexes to slice photons for each burst.
     """
@@ -147,14 +177,20 @@ def iter_bursts_start_stop(bursts):
     for istart, istop in zip(arr_istart, arr_iend):
         yield istart, istop
 
-def iter_bursts_ph(ph_data, bursts, mask=None):
+def iter_bursts_ph(ph_data, bursts, mask=None, compact=False,
+                   alex_period=None, excitation_width=None):
     """Iterate over arrays of photon-data for each burst.
     """
+    if compact:
+        assert alex_period is not None
+        assert excitation_width is not None
     for start, stop in iter_bursts_start_stop(bursts):
-        if mask is None:
-            yield ph_data[start:stop]
-        else:
-            yield ph_data[start:stop][mask[start:stop]]
+        ph = ph_data[start:stop]
+        if mask is not None:
+            ph = ph[mask[start:stop]]
+            if compact:
+                ph = _ph_times_compact(ph, alex_period, excitation_width)
+        yield ph
 
 def bursts_ph_list(ph_data, bursts, mask=None):
     """Returna list of ph-data for each burst.
@@ -180,14 +216,15 @@ def ph_in_bursts_mask(ph_data_size, bursts):
         mask[start:stop] = True
     return mask
 
-def b_rate_max(ph_data, bursts, m, mask=None):
+def b_rate_max(ph_data, bursts, m, mask=None, compact=False,
+               alex_period=None, excitation_width=None):
     """Returns the max m-photons rate reached inside each burst.
 
     Arguments
-        ph (1D array): array of photons timestamps
+        ph_data (1D array): array of photons timestamps
+        bursts (2D array): array of burst data as returned by the burst search
+            function.
         m (int): number of timestamps to use to compute the rate
-        mburst (2D array): array of burst data as returned by the burst search
-            function
         mask (boolean mask or None): if not None, is a boolean mask
             to select photons in `ph` (for example Donor-ch photons).
 
@@ -195,7 +232,9 @@ def b_rate_max(ph_data, bursts, m, mask=None):
         Array of max photon rate reached inside each burst.
     """
     burst_rates = []
-    for burst_ph in iter_bursts_ph(ph_data, bursts, mask=mask):
+    for burst_ph in iter_bursts_ph(ph_data, bursts, mask=mask, compact=compact,
+                                   excitation_width=excitation_width,
+                                   alex_period=alex_period):
         if burst_ph.size < m:
             burst_rates.append(None)
         else:
@@ -839,7 +878,7 @@ class Data(DataContainer):
 
         ph = ph[self.get_ph_mask(ich, ph_sel=ph_sel)]
         if compact:
-            self._ph_times_compact(ph, ph_sel)
+            ph = self._ph_times_compact(ph, ph_sel)
         return ph
 
     def _get_ph_mask_single(self, ich, mask_name, negate=False):
@@ -911,13 +950,16 @@ class Data(DataContainer):
             ph_times_period = ph_times[period_slice][mask[period_slice]]
         return ph_times_period
 
-    def _complementary_period(self, period):
-        """Duration of alternation period duration outside selected excitation.
+    def _excitation_width(self, ph_sel):
+        """Returns duration of alternation period outside selected excitation.
         """
-        if period[1] > period[0]:
-            return self.alex_period - period[1] + period[0]
-        elif period[1] < period[0]:
-            return period[0] - period[1]
+        assert self.ALEX, "ph_times_compact() is only defined for us-ALEX data."
+        assert ph_sel.Dex is None or ph_sel.Aex is None
+        if ph_sel.Aex is None:
+            excitation_range = self.D_ON
+        elif ph_sel.Dex is None:
+            excitation_range = self.A_ON
+        return _excitation_width(excitation_range, self.alex_period)
 
     def _ph_times_compact(self, ph, ph_sel):
         """Return timestamps in one excitation period with "gaps" removed.
@@ -937,14 +979,8 @@ class Data(DataContainer):
         Returns:
             Array of timestamps in one excitation periods with "gaps" removed.
         """
-        assert self.ALEX, "ph_times_compact() is only defined for us-ALEX data."
-        assert ph_sel.Dex is None or ph_sel.Aex is None
-        if ph_sel.Aex is None:
-            period_range = self.D_ON
-        elif ph_sel.Dex is None:
-            period_range = self.A_ON
-        complementary_duration = self._complementary_period(period_range)
-        ph -= (ph // self.alex_period)*complementary_duration
+        excitation_width = self._excitation_width(ph_sel)
+        return _ph_times_compact(ph, self.alex_period, excitation_width)
 
     ##
     # Methods and properties for burst-data access
@@ -2222,9 +2258,13 @@ class Data(DataContainer):
                         for ph, mb in
                         zip(self.iter_ph_times(), self.mburst)]
         else:
-            Max_Rate = [b_rate_max(ph_data=ph, m=m, bursts=mb, mask=mask)
+            compact_kw = dict(compact=compact, alex_period=self.alex_period)
+            if compact:
+                compact_kw['excitation_width'] = self._excitation_width(ph_sel)
+            Max_Rate = [b_rate_max(ph_data=ph, m=m, bursts=mb, mask=mask,
+                                   **compact_kw)
                         for ph, mask, mb in
-                        zip(self.iter_ph_times(compact=compact),
+                        zip(self.iter_ph_times(),
                             self.iter_ph_masks(ph_sel=ph_sel),
                             self.mburst)]
 
