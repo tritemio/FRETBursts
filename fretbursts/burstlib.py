@@ -2203,7 +2203,7 @@ class Data(DataContainer):
         return sbr
 
 
-    def calc_max_rate(self, m, ph_sel=Ph_sel('all')):
+    def calc_max_rate(self, m, ph_sel=Ph_sel('all'), compact=False):
         """Compute the max m-photon rate reached in each burst.
 
         Arguments:
@@ -2211,6 +2211,12 @@ class Data(DataContainer):
             ph_sel (Ph_sel object): object defining the photon selection.
                 See :mod:`fretbursts.ph_sel` for details.
         """
+        msg = ('Compact timestamps only possible only with a single \n'
+               'excitation (either Dex or Aex). %s was specified.') % ph_sel
+        if compact:
+            if ph_sel.Dex is not None and ph_sel.Aex is not None:
+                raise ValueError(msg)
+
         if ph_sel == Ph_sel('all'):
             Max_Rate = [b_rate_max(ph_data=ph, m=m, bursts=mb)
                         for ph, mb in
@@ -2218,13 +2224,14 @@ class Data(DataContainer):
         else:
             Max_Rate = [b_rate_max(ph_data=ph, m=m, bursts=mb, mask=mask)
                         for ph, mask, mb in
-                        zip(self.iter_ph_times(),
+                        zip(self.iter_ph_times(compact=compact),
                             self.iter_ph_masks(ph_sel=ph_sel),
                             self.mburst)]
 
         Max_Rate = [mr/self.clk_p - bg[bp] for bp, bg, mr in
                     zip(self.bp, self.bg_from(ph_sel), Max_Rate)]
-        self.add(max_rate=Max_Rate)
+        params = dict(m=m, ph_sel=ph_sel, compact=compact)
+        self.add(max_rate=Max_Rate, max_rate_params=params)
 
 
     def calc_fret(self, count_ph=False, corrections=True, dither=False,
