@@ -230,8 +230,7 @@ def burst_and(bursts_d, bursts_a):
     by :func:`bsearch_py`.
 
     Arguments:
-        bursts_d (array): burst-array 1
-        bursts_a (array): burst array 2. The number of burst in each of the
+def _recompute_bstart_bstop(self, mburst)        bursts_a (array): burst array 2. The number of burst in each of the
             input array can be different.
 
     Returns:
@@ -278,3 +277,69 @@ def burst_and(bursts_d, bursts_a):
         bursts.append(burst)
 
     return np.vstack(bursts)
+
+def recompute_burst_times(bursts, times):
+    """Recomputes start, stop and width applying index data to `times`.
+
+    This function computes burst start, stop and width using the index of
+    timestamps in `bursts` and and using `times` as timestamps array.
+
+    Arguments:
+        bursts (array): input burst array
+        times (array): array of photon timestamps
+
+    Returns:
+        A new burst array with recomputed "time" data.
+    """
+    newbursts = np.zeros(6, dtype=np.int64)
+    for i, burst in enumerate(bursts):
+        newbursts[i] = burst
+        newbursts[i, itstart] = times[burst[iistart]]
+        newbursts[i, itend] = times[burst[iiend]]
+        newbursts[i, iwidth] = newbursts[i, itend] - newbursts[i, itstart]
+    return newbursts
+
+class Bursts():
+    i_istart, i_istop, i_tstart, i_tstop = 0, 1, 2, 3
+
+    def __init__(self, data):
+        assert data.shape[1] == 4
+        self.data = np.atleast_2d(data)
+
+    @property
+    def start(self):
+        """Time of 1st ph in each burst"""
+        return self.data[:, Bursts.i_tstart]
+
+    @property
+    def stop(self):
+        """Time of last ph in each burst"""
+        return self.data[:, Bursts.i_tstop]
+
+    @property
+    def istart(self):
+        """Index of 1st ph in each burst"""
+        return self.data[:, Bursts.i_istart]
+
+    @property
+    def istop(self):
+        """Index of last ph in each burst"""
+        return self.data[:, Bursts.i_istop]
+
+    @property
+    def width(self):
+        return self.stop - self.start
+
+    @property
+    def size(self):
+        return self.istop - self.istart + 1
+
+    @property
+    def ph_rate(self):
+        """Photon rate in burst (tot size/duration)"""
+        return self.size / self.width
+
+    @property
+    def separation(self):
+        """Separation between nearby bursts"""
+        return self.start[1:] - self.stop[:-1]

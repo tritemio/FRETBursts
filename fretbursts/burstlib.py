@@ -1580,7 +1580,7 @@ class Data(DataContainer):
                  rate_th=rate_th)
 
     def _burst_search_rate(self, m, L, min_rate_cps, ph_sel=Ph_sel('all'),
-                           verbose=True, pure_python=False):
+                           compact=compact, verbose=True, pure_python=False):
         """Compute burst search using a fixed minimum photon rate.
 
         Arguments:
@@ -1592,8 +1592,8 @@ class Data(DataContainer):
         Min_rate_cps = self._param_as_mch_array(min_rate_cps)
         mburst = []
         T_clk = (m/Min_rate_cps)/self.clk_p
-        for ich, (ph, t_clk) in enumerate(zip(self.iter_ph_times(ph_sel),
-                                              T_clk)):
+        for ich, (ph, t_clk) in enumerate(zip(
+                self.iter_ph_times(ph_sel, compact=compact), T_clk)):
             label = '%s CH%d' % (ph_sel, ich+1) if verbose else None
             mb = bsearch(ph, L, m, t_clk, label=label, verbose=verbose)
             mburst.append(mb)
@@ -1668,7 +1668,7 @@ class Data(DataContainer):
     def burst_search(self, L=None, m=10, P=None, F=6., min_rate_cps=None,
                      nofret=False, max_rate=False, dither=False,
                      ph_sel=Ph_sel('all'), verbose=False, mute=False,
-                     pure_python=False):
+                     pure_python=False, compact=False):
         """Performs a burst search with specified parameters.
 
         This method performs a sliding-window burst search without
