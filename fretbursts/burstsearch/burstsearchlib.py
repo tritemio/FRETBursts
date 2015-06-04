@@ -230,7 +230,8 @@ def burst_and(bursts_d, bursts_a):
     by :func:`bsearch_py`.
 
     Arguments:
-def _recompute_bstart_bstop(self, mburst)        bursts_a (array): burst array 2. The number of burst in each of the
+        bursts_d (array): burst array-1
+        bursts_a (array): burst array 2. The number of burst in each of the
             input array can be different.
 
     Returns:
