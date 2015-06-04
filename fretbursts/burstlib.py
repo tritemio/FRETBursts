@@ -2247,9 +2247,11 @@ class Data(DataContainer):
             ph_sel (Ph_sel object): object defining the photon selection.
                 See :mod:`fretbursts.ph_sel` for details.
         """
-        msg = ('Compact timestamps only possible only with a single \n'
-               'excitation (either Dex or Aex). %s was specified.') % (ph_sel,)
+        msg = ('Option compact=True requires a photon selections \n'
+               'from a single excitation period (either Dex or Aex).')
         if compact:
+            if not self.ALEX:
+                raise ValueError('Option compact=True requires ALEX data.')
             if ph_sel.Dex is not None and ph_sel.Aex is not None:
                 raise ValueError(msg)
 
