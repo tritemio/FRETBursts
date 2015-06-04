@@ -469,7 +469,8 @@ def test_calc_sbr(data):
 def test_calc_max_rate(data):
     """Smoke test Data.calc_max-rate()"""
     data.calc_max_rate(m=10)
-    data.calc_max_rate(m=10, ph_sel=Ph_sel(Dex='DAem'), compact=True)
+    if data.ALEX:
+        data.calc_max_rate(m=10, ph_sel=Ph_sel(Dex='DAem'), compact=True)
 
 def test_burst_data(data):
     """Smoke test Data.calc_max-rate()"""
