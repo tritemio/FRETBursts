@@ -1669,6 +1669,21 @@ class Data(DataContainer):
             assert (mb[:, inum_ph] >= old_mb[:, inum_ph]).all()
         pprint('[DONE]\n', mute)
 
+    def _fix_mburst_from2(self, ph_sel, mute=False):
+        """Convert burst data from any ph_sel to 'all' timestamps selection.
+        """
+        assert isinstance(ph_sel, Ph_sel) and ph_sel != Ph_sel('all')
+        pprint(' - Fixing  burst data to refer to ph_times_m ... ', mute)
+        new_mbursts = []
+        for bursts, mask in zip(self.mbursts,
+                                self.iter_ph_masks(ph_sel=ph_sel)):
+            new_mbursts.append(bursts.recompute_index(mask))
+
+        for old_bursts, new_bursts in zip(self.mbursts, new_mbursts):
+            assert (new_bursts.istart >= old_bursts.istart).all()
+            assert (new_bursts.istop >= old_bursts.istop).all()
+        pprint('[DONE]\n', mute)
+
     def burst_search_t(self, **kwargs):
         """Deprecated: replaced by :meth:`burst_search`.
         """
