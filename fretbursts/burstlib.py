@@ -1509,8 +1509,8 @@ class Data(DataContainer):
     # Burst analysis methods
     #
     def _calc_burst_period(self):
-        """Compute for each burst the "period" `bp`.
-        Periods are times intervals on which the BG is computed.
+        """Compute for each burst the "background period" `bp`.
+        Background periods are the time intervals on which the BG is computed.
         """
         P = []
         for b, lim in zip(self.mburst, self.Lim):
