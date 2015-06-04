@@ -670,7 +670,7 @@ def join_data(d_list, gap=1):
 
 def burst_search_and_gate(dx, F=6, m=10, min_rate_cps=None,
                           ph_sel1=Ph_sel(Dex='DAem'),
-                          ph_sel2=Ph_sel(Aex='Aem'), mute=False):
+                          ph_sel2=Ph_sel(Aex='Aem'), compact=False, mute=False):
     """Return a Data object containing bursts obtained by and-gate burst-search.
 
     The and-gate burst search is a composition of 2 burst searches performed
@@ -704,9 +704,9 @@ def burst_search_and_gate(dx, F=6, m=10, min_rate_cps=None,
     dx_and = dx.copy(mute=mute)
 
     dx_d.burst_search(L=m, m=m, F=F, min_rate_cps=min_rate_cps,
-                      ph_sel=ph_sel1, mute=mute)
+                      ph_sel=ph_sel1, compact=compact, mute=mute)
     dx_a.burst_search(L=m, m=m, F=F, min_rate_cps=min_rate_cps,
-                      ph_sel=ph_sel2, mute=mute)
+                      ph_sel=ph_sel2, compact=compact, mute=mute)
 
     mburst_and = []
     for mburst_d, mburst_a in zip(dx_d.mburst, dx_a.mburst):
