@@ -1580,7 +1580,7 @@ class Data(DataContainer):
                  rate_th=rate_th)
 
     def _burst_search_rate(self, m, L, min_rate_cps, ph_sel=Ph_sel('all'),
-                           verbose=True, pure_python=False):
+                           compact=False, verbose=True, pure_python=False):
         """Compute burst search using a fixed minimum photon rate.
 
         Arguments:
@@ -1592,15 +1592,21 @@ class Data(DataContainer):
         Min_rate_cps = self._param_as_mch_array(min_rate_cps)
         mburst = []
         T_clk = (m/Min_rate_cps)/self.clk_p
-        for ich, (ph, t_clk) in enumerate(zip(self.iter_ph_times(ph_sel),
-                                              T_clk)):
+        for ich, t_clk in enumerate(T_clk):
+            ph_bs = ph = self.get_ph_times(ich=ich, ph_sel=ph_sel)
+            if compact:
+                ph_bs = self._ph_times_compact(ph, ph_sel)
             label = '%s CH%d' % (ph_sel, ich+1) if verbose else None
-            mb = bsearch(ph, L, m, t_clk, label=label, verbose=verbose)
+            mb = bsearch(ph_bs, L, m, t_clk, label=label, verbose=verbose)
+            if compact:
+                mb = bslib.recompute_burst_times(mb, ph)
             mburst.append(mb)
         self.add(mburst=mburst, rate_th=Min_rate_cps, T=T_clk*self.clk_p)
+        if ph_sel != Ph_sel('all'):
+            self._fix_mburst_from(ph_sel=ph_sel)
 
     def _burst_search_TT(self, m, L, ph_sel=Ph_sel('all'), verbose=True,
-                         pure_python=False, mute=False):
+                         compact=False, pure_python=False, mute=False):
         """Compute burst search with params `m`, `L` on ph selection `ph_sel`
 
         Requires the list of arrays `self.TT` with the max time-thresholds in
@@ -1611,21 +1617,26 @@ class Data(DataContainer):
         self.recompute_bg_lim_ph_p(ph_sel=ph_sel, mute=mute)
         MBurst = []
         label = ''
-        for ich, (ph, T) in enumerate(zip(self.iter_ph_times(ph_sel),
-                                          self.TT)):
+        for ich, T in enumerate(self.TT):
+            ph_bs = ph = self.get_ph_times(ich=ich, ph_sel=ph_sel)
+            if compact:
+                ph_bs = self._ph_times_compact(ph, ph_sel)
             MB = []
             Tck = T/self.clk_p
             for ip, (l0, l1) in enumerate(self.Lim[ich]):
                 if verbose:
                     label = '%s CH%d-%d' % (ph_sel, ich+1, ip)
-                mb = bsearch(ph[l0:l1+1], L, m, Tck[ip], label=label,
+                mb = bsearch(ph_bs[l0:l1+1], L, m, Tck[ip], label=label,
                              verbose=verbose)
                 if mb.size > 0: # if we found at least one burst
                     mb[:, iistart] += l0
                     mb[:, iiend] += l0
                     MB.append(mb)
             if len(MB) > 0:
-                MBurst.append(np.vstack(MB))
+                bursts = np.vstack(MB)
+                if compact:
+                    bursts = bslib.recompute_burst_times(bursts, ph)
+                MBurst.append(bursts)
             else:
                 MBurst.append(np.array([]))
         self.add(mburst=MBurst)
@@ -1668,7 +1679,7 @@ class Data(DataContainer):
     def burst_search(self, L=None, m=10, P=None, F=6., min_rate_cps=None,
                      nofret=False, max_rate=False, dither=False,
                      ph_sel=Ph_sel('all'), verbose=False, mute=False,
-                     pure_python=False):
+                     pure_python=False, compact=False):
         """Performs a burst search with specified parameters.
 
         This method performs a sliding-window burst search without

@@ -230,8 +230,7 @@ def burst_and(bursts_d, bursts_a):
     by :func:`bsearch_py`.
 
     Arguments:
-        bursts_d (array): burst-array 1
-        bursts_a (array): burst array 2. The number of burst in each of the
+def _recompute_bstart_bstop(self, mburst)        bursts_a (array): burst array 2. The number of burst in each of the
             input array can be different.
 
     Returns:
@@ -278,3 +277,24 @@ def burst_and(bursts_d, bursts_a):
         bursts.append(burst)
 
     return np.vstack(bursts)
+
+def recompute_burst_times(bursts, times):
+    """Recomputes start, stop and width applying index data to `times`.
+
+    This function computes burst start, stop and width using the index of
+    timestamps in `bursts` and and using `times` as timestamps array.
+
+    Arguments:
+        bursts (array): input burst array
+        times (array): array of photon timestamps
+
+    Returns:
+        A new burst array with recomputed "time" data.
+    """
+    newbursts = np.zeros(6, dtype=np.int64)
+    for i, burst in enumerate(bursts):
+        newbursts[i] = burst
+        newbursts[i, itstart] = times[burst[iistart]]
+        newbursts[i, itend] = times[burst[iiend]]
+        newbursts[i, iwidth] = newbursts[i, itend] - newbursts[i, itstart]
+    return newbursts
