@@ -299,3 +299,168 @@ def recompute_burst_times(bursts, times):
         newbursts[i, itend] = times[burst[iiend]]
         newbursts[i, iwidth] = newbursts[i, itend] - newbursts[i, itstart]
     return newbursts
+
+class Bursts():
+    _i_istart, _i_istop, _i_tstart, _i_tstop = 0, 1, 2, 3
+
+    def __init__(self, data):
+        assert data.shape[1] == 4
+        self.data = np.atleast_2d(data)
+
+    def copy(self):
+        return Bursts(self.data.copy())
+
+    @property
+    def num_bursts(self):
+        return self.data.shape[0]
+
+    def __getitem__(self, i):
+        return Bursts(self.data[i])
+
+    def __iter__(self):
+        for i in range(self.num_bursts):
+            yield self[i]
+
+    @property
+    def start(self):
+        """Time of 1st ph in each burst"""
+        return self.data[:, Bursts._i_tstart]
+
+    @start.setter
+    def start(self, value):
+        self.data[:, Bursts._i_tstart] = value
+
+    @property
+    def stop(self):
+        """Time of last ph in each burst"""
+        return self.data[:, Bursts._i_tstop]
+
+    @stop.setter
+    def stop(self, value):
+        self.data[:, Bursts._i_tstop] = value
+
+    @property
+    def istart(self):
+        """Index of 1st ph in each burst"""
+        return self.data[:, Bursts._i_istart]
+
+    @istart.setter
+    def istart(self, value):
+        self.data[:, Bursts._i_istart] = value
+
+    @property
+    def istop(self):
+        """Index of last ph in each burst"""
+        return self.data[:, Bursts._i_istop]
+
+    @istop.setter
+    def istop(self, value):
+        self.data[:, Bursts._i_istop] = value
+
+    @property
+    def width(self):
+        return self.stop - self.start
+
+    @property
+    def size(self):
+        return self.istop - self.istart + 1
+
+    @property
+    def ph_rate(self):
+        """Photon rate in burst (tot size/duration)"""
+        return self.size / self.width
+
+    @property
+    def separation(self):
+        """Separation between nearby bursts"""
+        return self.start[1:] - self.stop[:-1]
+
+    def recompute_times(self, times):
+        """Recomputes start, stop times applying index data to `times`.
+
+        This method computes burst start, stop using the index of
+        timestamps in `bursts` and and using `times` as timestamps array.
+
+        Arguments:
+            times (array): array of photon timestamps
+
+        Returns:
+            A new Bursts object with recomputed start/stop times.
+        """
+        newbursts = self.copy()
+        newbursts.start = times[self.istart]
+        newbursts.stop = times[self.istart]
+        return newbursts
+
+    def recompute_index(self, mask):
+        """Recompute burst start and stop index using the boolen array `mask`.
+
+        This method returns a new Bursts object with same start and stop times
+        and recomputed istart and istop. Assuming that the original
+        index were computed from a timestamps selection defined by `mask`,
+        the new index refer to the full tinestamp array (same size as mask).
+
+        Arguments:
+            mask (bool array): boolean mask used to extract a timestamp
+                selection on which burst search was computed.
+
+        Returns:
+            A new Bursts object with recomputed start/stop times.
+        """
+        newbursts = self.copy()
+        index = np.arange(mask.size, dtype=np.int32)
+        newbursts.istart = index[mask][self.istart]
+        newbursts.istop = index[mask][self.istop]
+
+    def and_gate(self, bursts2):
+        """From 2 burst arrays return bursts defined as intersection (AND rule).
+
+        The two input burst-arrays come from 2 different burst searches.
+        Returns new bursts representing the overlapping bursts in the 2 inputs
+        with start and stop defined as intersection (or AND) operator.
+
+        The format of both input and output arrays is "burst-array" as returned
+        by :func:`bsearch_py`.
+
+        Arguments:
+            bursts_a (array): burst array 2. The number of burst in each of the
+                input array can be different.
+
+        Returns:
+            Bursts object containing intersections (AND) of overlapping bursts.
+        """
+        bstart_d, bend_d = self.start, self.end
+        bstart_a, bend_a = bursts2.start, bursts2.end
+
+        bursts = []
+        i_d, i_a = 0, 0
+        while i_d < self.num_bursts and i_a < bursts2.num_bursts:
+            # Skip any disjoint burst
+            if bend_a[i_a] < bstart_d[i_d]:
+                i_a += 1
+                continue
+            if bend_d[i_d] < bstart_a[i_a]:
+                i_d += 1
+                continue
+
+            # Assign start and stop according the AND rule
+            if bstart_a[i_a] < bstart_d[i_d] < bend_a[i_a]:
+                start_burst = self[i_d]
+            elif bstart_d[i_d] < bstart_a[i_a] < bend_d[i_d]:
+                start_burst = bursts2[i_a]
+
+            if bend_d[i_d] < bend_a[i_a]:
+                end_burst = self[i_d]
+                i_d += 1
+            else:
+                end_burst = bursts2[i_a]
+                i_a += 1
+
+            burst = start_burst.copy()
+            burst.stop = end_burst.stop
+            burst.istop = end_burst.istop
+
+            bursts.append(burst)
+
+        return Bursts(np.vstack(bursts.data))
+
