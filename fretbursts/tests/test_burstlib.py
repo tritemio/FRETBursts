@@ -280,6 +280,7 @@ def test_burst_search(data):
                           ph_sel=Ph_sel(Dex='Aem', Aex='Aem'))
         bg_Aem = [b1 + b2 for b1, b2 in zip(data.bg_ad, data.bg_aa)]
         assert list_equal(data.bg_bs, bg_Aem)
+        data.burst_search(m=10, F=7, ph_sel=Ph_sel(Dex='DAem'), compact=True)
 
     data.burst_search(L=10, m=10, F=7)
 
