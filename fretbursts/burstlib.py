@@ -1569,7 +1569,7 @@ class Data(DataContainer):
         FF = self._param_as_mch_array(F)
         PP = self._param_as_mch_array(P)
         if P is None:
-            find_T = lambda m, Fi, Pi, bg: m/(bg*Fi) # NOTE: ignoring P_i
+            find_T = lambda m, Fi, Pi, bg: m/(bg*Fi)  # NOTE: ignoring P_i
         else:
             if F != 1:
                 print("WARNING: BS prob. th. with modified BG rate (F=%.1f)" \
@@ -1676,13 +1676,6 @@ class Data(DataContainer):
             assert (mb[:, inum_ph] >= old_mb[:, inum_ph]).all()
         pprint('[DONE]\n', mute)
 
-    def burst_search_t(self, **kwargs):
-        """Deprecated: replaced by :meth:`burst_search`.
-        """
-        print('WARNING: This method is deprecated, '
-              'please use `Data.burst_search()` instead.')
-        self.burst_search(**kwargs)
-
     def burst_search(self, L=None, m=10, P=None, F=6., min_rate_cps=None,
                      nofret=False, max_rate=False, dither=False,
                      ph_sel=Ph_sel('all'), verbose=False, mute=False,
@@ -1788,22 +1781,24 @@ class Data(DataContainer):
         mch_count_ph_in_bursts = _get_mch_count_ph_in_bursts_func(pure_python)
 
         if not self.ALEX:
-            nt = [b_size(b).astype(float) if b.size > 0 else np.array([])\
-                        for b in self.mburst]
+            nt = [b_size(b).astype(float) if b.size > 0 else np.array([])
+                  for b in self.mburst]
             A_em = [self.get_A_em(ich) for ich in range(self.nch)]
             if isinstance(A_em[0], slice):
-                # This to support the case of A-only or D-only data
+                # This is to support the case of A-only or D-only data
                 n0 = [np.zeros(mb.shape[0]) for mb in self.mburst]
                 if A_em[0] == slice(None):
                     nd, na = n0, nt    # A-only case
                 elif A_em[0] == slice(0):
                     nd, na = nt, n0    # D-only case
             else:
-                # This is the usual case with photons in both D and A channel
+                # This is the usual case with photons in both D and A channels
                 na = mch_count_ph_in_bursts(self.mburst, Mask=A_em)
                 nd = [t - a for t, a in zip(nt, na)]
             assert (nt[0] == na[0] + nd[0]).all()
         if self.ALEX:
+            # The "new style" would be:
+            #Mask = [m for m in self.iter_ph_masks(Ph_sel(Dex='Dem'))]
             Mask = [d_em*d_ex for d_em, d_ex in zip(self.D_em, self.D_ex)]
             nd = mch_count_ph_in_bursts(self.mburst, Mask)
 
@@ -2016,13 +2011,6 @@ class Data(DataContainer):
                 if 'nda' in self:
                     self.nda[ich] -= self.bg_da[ich][period] * width
                 self.nt[ich] += self.naa[ich]
-
-    def background_correction_t(self, relax_nt=False, mute=False):
-        """Deprecated: replaced by :meth:`background_correction`.
-        """
-        print('WARNING: This method is deprecated, '
-              'please use `Data.background_correction()` instead.')
-        self.background_correction(relax_nt=relax_nt, mute=mute)
 
     def leakage_correction(self, mute=False):
         """Apply leakage correction to burst sizes (nd, na,...)
