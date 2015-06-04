@@ -950,11 +950,18 @@ class Data(DataContainer):
             ph_times_period = ph_times[period_slice][mask[period_slice]]
         return ph_times_period
 
+    def _assert_compact(self, ph_sel):
+        msg = ('Option compact=True requires a photon selection \n'
+               'from a single excitation period (either Dex or Aex).')
+        if not self.ALEX:
+            raise ValueError('Option compact=True requires ALEX data.')
+        if ph_sel.Dex is not None and ph_sel.Aex is not None:
+            raise ValueError(msg)
+
     def _excitation_width(self, ph_sel):
         """Returns duration of alternation period outside selected excitation.
         """
-        assert self.ALEX, "ph_times_compact() is only defined for us-ALEX data."
-        assert ph_sel.Dex is None or ph_sel.Aex is None
+        self._assert_compact(ph_sel)
         if ph_sel.Aex is None:
             excitation_range = self.D_ON
         elif ph_sel.Dex is None:
@@ -1721,6 +1728,8 @@ class Data(DataContainer):
         Returns:
             None, all the results are saved in the object.
         """
+        if compact:
+            self._assert_compact(ph_sel)
         pprint(" - Performing burst search (verbose=%s) ..." % verbose, mute)
         # Erase any previous burst data
         self.delete_burst_data()
@@ -1728,14 +1737,15 @@ class Data(DataContainer):
         if min_rate_cps is not None:
             # Saves rate_th in self
             self._burst_search_rate(m=m, L=L, min_rate_cps=min_rate_cps,
-                                    ph_sel=ph_sel, verbose=verbose,
-                                    pure_python=pure_python)
+                                    ph_sel=ph_sel, compact=compact,
+                                    verbose=verbose, pure_python=pure_python)
         else:
             # Compute TT, saves P and F in self
             self._calc_T(m=m, P=P, F=F, ph_sel=ph_sel)
             # Use TT and compute mburst
-            self._burst_search_TT(L=L, m=m, ph_sel=ph_sel, verbose=verbose,
-                                  pure_python=pure_python, mute=mute)
+            self._burst_search_TT(L=L, m=m, ph_sel=ph_sel, compact=compact,
+                                  verbose=verbose, pure_python=pure_python,
+                                  mute=mute)
         pprint("[DONE]\n", mute)
 
         pprint(" - Calculating burst periods ...", mute)
@@ -2258,14 +2268,8 @@ class Data(DataContainer):
             ph_sel (Ph_sel object): object defining the photon selection.
                 See :mod:`fretbursts.ph_sel` for details.
         """
-        msg = ('Option compact=True requires a photon selections \n'
-               'from a single excitation period (either Dex or Aex).')
         if compact:
-            if not self.ALEX:
-                raise ValueError('Option compact=True requires ALEX data.')
-            if ph_sel.Dex is not None and ph_sel.Aex is not None:
-                raise ValueError(msg)
-
+            self._assert_compact(ph_sel)
         if ph_sel == Ph_sel('all'):
             Max_Rate = [b_rate_max(ph_data=ph, m=m, bursts=mb)
                         for ph, mb in

@@ -292,7 +292,7 @@ def recompute_burst_times(bursts, times):
     Returns:
         A new burst array with recomputed "time" data.
     """
-    newbursts = np.zeros(6, dtype=np.int64)
+    newbursts = bursts.copy()
     for i, burst in enumerate(bursts):
         newbursts[i] = burst
         newbursts[i, itstart] = times[burst[iistart]]
