@@ -642,14 +642,17 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
     # Safety check: each ph is either D or A ex (not both)
     assert not (d_ex_mask_val * a_ex_mask_val).any()
 
-    mask = d_ex_mask_val + a_ex_mask_val  # Removes alternation transients
+    # Select alternation periods, removing transients
+    DexAex_mask = d_ex_mask_val + a_ex_mask_val
 
-    # Assign the new ph selection mask
-    ph_times = ph_times_val[mask]
-    d_em = d_ch_mask_val[mask]
-    a_em = a_ch_mask_val[mask]
-    d_ex = d_ex_mask_val[mask]
-    a_ex = a_ex_mask_val[mask]
+    # Reduce timestamps and masks to the DexAex_mask selection
+    ph_times = ph_times_val[DexAex_mask]
+    d_em = d_ch_mask_val[DexAex_mask]
+    a_em = a_ch_mask_val[DexAex_mask]
+    d_ex = d_ex_mask_val[DexAex_mask]
+    a_ex = a_ex_mask_val[DexAex_mask]
+    assert d_ex.sum() == d_ex_mask_val.sum()
+    assert a_ex.sum() == a_ex_mask_val.sum()
 
     if remove_d_em_a_ex:
         # Removes donor-ch photons during acceptor excitation
