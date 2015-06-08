@@ -313,7 +313,7 @@ def _gui_timetrace_scroll(fig):
 def timetrace_single(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
                      ph_sel=Ph_sel('all'), invert=False, bursts=False,
                      burst_picker=True, scroll=False, cache_bins=True,
-                     plot_style={}, show_rate_th=True, F=None,
+                     plot_style=None, show_rate_th=True, F=None,
                      rate_th_style={}, set_ax_limits=True,
                      burst_color='#BBBBBB'):
     """Plot the timetrace (histogram) of timestamps for a photon selection.
@@ -411,7 +411,7 @@ def timetrace(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
               bursts=False, burst_picker=True, scroll=False,
               show_rate_th=True, F=None, rate_th_style={'label': None},
               show_aa=True, legend=False, set_ax_limits=True,
-              burst_color='#BBBBBB',
+              burst_color='#BBBBBB', plot_style=None,
               #dd_plot_style={}, ad_plot_style={}, aa_plot_style={}
              ):
     """Plot the timetraces (histogram) of photon timestamps.
@@ -440,7 +440,8 @@ def timetrace(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
                 burst_picker=burst_picker_list[ix],
                 scroll=scroll_list[ix], cache_bins=True,
                 show_rate_th=show_rate_th, F=F,
-                rate_th_style=rate_th_style, set_ax_limits=set_ax_limits)
+                rate_th_style=rate_th_style, set_ax_limits=set_ax_limits,
+                plot_style=plot_style)
     if legend:
         plt.legend(loc='best', fancybox=True)
 
