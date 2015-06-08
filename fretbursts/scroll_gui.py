@@ -200,9 +200,9 @@ class ScrollingToolQT(object):
         if self.debug: pprint('ScrollingToolQT set_spinbox\n')
         self.spinb = QtGui.QDoubleSpinBox(parent=parent)
         self.spinb.setDecimals(3)
-        self.spinb.setRange(0.001,3600.)
-        self.spinb.setSuffix(" s")
-        self.spinb.setValue(self.width)   # set the initial width
+        self.spinb.setRange(0.001, 60e3)
+        self.spinb.setSuffix(" ms")
+        self.spinb.setValue(self.width*1e3)   # set the initial width
         self.spinb.valueChanged.connect(self.xwidth_changed)
         parent.addWidget(self.spinb)
 
@@ -215,7 +215,7 @@ class ScrollingToolQT(object):
     def xwidth_changed(self, width):
         if self.debug: pprint("Width (axis units) %f\n" % width)
         if width <= 0: return
-        self.width = width
+        self.width = width*1e-3
         self.slider.setSingleStep(self.width*self.scale/5.)
         self.slider.setPageStep(self.scroll_step*self.width*self.scale)
         old_xlim = self.ax.get_xlim()
