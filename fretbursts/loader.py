@@ -134,9 +134,14 @@ def _photon_hdf5_1ch(h5data, data, ondisk=False):
         data.add(nanotimes_params=nanotimes_params)
 
     if 'ALEX' in meas_type:
-        data.add(
-            D_ON = meas_specs.alex_period_spectral_ch1.read(),
-            A_ON = meas_specs.alex_period_spectral_ch2.read())
+        try:
+            # Try to load alex period definitions
+            data.add(
+                D_ON = meas_specs.alex_period_excitation1.read(),
+                A_ON = meas_specs.alex_period_excitation2.read())
+        except tables.NoSuchNodeError:
+            # But if it fails it's OK, those fields are optional
+            pass
 
     if meas_type == 'smFRET':
         data.add(ALEX=False, lifetime=False)
