@@ -138,7 +138,8 @@ def _photon_hdf5_1ch(h5data, data, ondisk=False):
             # Try to load alex period definitions
             data.add(
                 D_ON = meas_specs.alex_period_excitation1.read(),
-                A_ON = meas_specs.alex_period_excitation2.read())
+                A_ON = meas_specs.alex_period_excitation2.read(),
+                offset = meas_specs.alex_offset.read())
         except tables.NoSuchNodeError:
             # But if it fails it's OK, those fields are optional
             pass
