@@ -11,7 +11,7 @@ and detector) for each photon.
 This data is produced by the 4 and 8-spot smFRET setup, first generation.
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 from builtins import range, zip
 
 import os
@@ -32,11 +32,13 @@ def read_int32_int32_file(fname, n_bytes_to_read=-1):
     ## Reading the header
     l1 = f.readline(); l2 = f.readline(); l3 = f.readline()
     words_per_photon = l2.split()[-1]
-    assert words_per_photon == '2'
+    assert words_per_photon == b'2'
 
     ##  Reading data in int32
     bytes_in_file = os.path.getsize(fname) - f.tell()
-    N_bytes = (int(min(n_bytes_to_read, bytes_in_file))/4)*4
+    if n_bytes_to_read < 4:
+        n_bytes_to_read = bytes_in_file
+    N_bytes = (int(min(n_bytes_to_read, bytes_in_file))//4)*4
     data = np.ndarray(shape=(N_bytes/4,), dtype='>i4', buffer=f.read(N_bytes))
     detector = data[::2]+1
     ph_times = (data[1::2]-data[1])
