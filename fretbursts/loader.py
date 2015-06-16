@@ -137,8 +137,8 @@ def _photon_hdf5_1ch(h5data, data, ondisk=False):
         try:
             # Try to load alex period definitions
             data.add(
-                D_ON = meas_specs.alex_period_excitation1.read(),
-                A_ON = meas_specs.alex_period_excitation2.read(),
+                D_ON = meas_specs.alex_excitation_period1.read(),
+                A_ON = meas_specs.alex_excitation_period2.read(),
                 offset = meas_specs.alex_offset.read())
         except tables.NoSuchNodeError:
             # But if it fails it's OK, those fields are optional
@@ -151,7 +151,7 @@ def _photon_hdf5_1ch(h5data, data, ondisk=False):
                  alex_period=meas_specs.alex_period.read())
     elif meas_type == 'smFRET-nsALEX':
         data.add(ALEX=True, lifetime=True,
-                 alex_period=meas_specs.laser_pulse_rate.read())
+                 alex_period=meas_specs.laser_repetition_rate.read())
 
 
 def _photon_hdf5_multich(h5data, data, ondisk=True):
