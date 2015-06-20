@@ -229,7 +229,7 @@ def photon_hdf5(filename, ondisk=False, strict=False):
             d.add(**{grp_name:
                      phc.hdf5.dict_from_group(h5data._f_get_child(grp_name))})
 
-    for field_name in ['comment', 'acquisition_time']:
+    for field_name in ['description', 'acquisition_duration']:
         if field_name in h5data:
             d.add(**{field_name: h5data._f_get_child(field_name).read()})
 
