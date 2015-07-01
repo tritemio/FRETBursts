@@ -207,7 +207,7 @@ def plot_alternation_hist_usalex(d, bins=None, ax=None,
     else:
         ax.axvspan(0, d.A_ON[1], color=red, **span_style_)
         ax.axvspan(d.A_ON[0], period, color=red, **span_style_)
-    ax.legend(loc='best')
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), frameon=False)
 
 def plot_alternation_hist_nsalex(d, bins=None, ax=None,
                                  hist_style={}, span_style={}):
@@ -240,7 +240,7 @@ def plot_alternation_hist_nsalex(d, bins=None, ax=None,
     ax.set_yscale('log')
     ax.axvspan(d.D_ON[0], d.D_ON[1], color=green, **span_style_)
     ax.axvspan(d.A_ON[0], d.A_ON[1], color=red, **span_style_)
-    ax.legend(loc='best')
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), frameon=False)
 
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
