@@ -133,16 +133,23 @@ def _photon_hdf5_1ch(h5data, data, ondisk=False):
                     nanotimes_params.update(**{name: value})
         data.add(nanotimes_params=nanotimes_params)
 
+    # Load alternation definition both for ns-ALEX and us-ALEX
     if 'ALEX' in meas_type:
         try:
             # Try to load alex period definitions
             data.add(
                 D_ON = meas_specs.alex_excitation_period1.read(),
-                A_ON = meas_specs.alex_excitation_period2.read(),
-                offset = meas_specs.alex_offset.read())
+                A_ON = meas_specs.alex_excitation_period2.read())
         except tables.NoSuchNodeError:
             # But if it fails it's OK, those fields are optional
             print('WARNING: No alternation defintion found.')
+        if meas_type == 'smFRET-usALEX':
+            try:
+                offset = meas_specs.alex_offset.read()
+            except tables.NoSuchNodeError:
+                print('WARNING: No offset found, assuming offset = 0.')
+                offset = 0
+            data.add(offset = offset)
 
     if meas_type == 'smFRET':
         data.add(ALEX=False, lifetime=False)
