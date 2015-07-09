@@ -92,7 +92,7 @@ def _photon_hdf5_1ch(h5data, data, ondisk=False):
     else:
         mapping = {'timestamps': 'ph_times_t', 'detectors': 'det_t',
                    'nanotimes': 'nanotimes_t', 'particles': 'particles_t'}
-        ich = None  # don't warp the arrays in a list
+        ich = None  # don't wrap the arrays in a list
 
     for name, dest_name in mapping.items():
         _load_from_group(data, ph_data, name, dest_name=dest_name, ich=ich,
@@ -142,7 +142,7 @@ def _photon_hdf5_1ch(h5data, data, ondisk=False):
                 offset = meas_specs.alex_offset.read())
         except tables.NoSuchNodeError:
             # But if it fails it's OK, those fields are optional
-            pass
+            print('WARNING: No alternation defintion found.')
 
     if meas_type == 'smFRET':
         data.add(ALEX=False, lifetime=False)
