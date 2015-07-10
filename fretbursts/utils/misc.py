@@ -95,18 +95,6 @@ def download_file(url, save_dir='./'):
     The destination dir can be set using `save_dir`
     (Default: the current dir).
     """
-    from future.standard_library import install_aliases
-    install_aliases()
-    from urllib.request import urlopen, urlretrieve
-    from urllib.error import HTTPError
-
-    ## Check if the URL is valid
-    try:
-        urlopen(url)
-    except HTTPError:
-        print('URL not found: ' + url)
-        return
-
     ## Check if local path already exist
     fname = url.split('/')[-1]
     print('URL:  %s' % url)
@@ -115,6 +103,20 @@ def download_file(url, save_dir='./'):
     path = '/'.join([os.path.abspath(save_dir), fname])
     if os.path.exists(path):
         print('File already on disk: %s \nDelete it to re-download.' % path)
+        return
+
+    from future.standard_library import install_aliases
+    install_aliases()
+    from urllib.request import urlopen, urlretrieve
+    from urllib.error import HTTPError, URLError
+
+    ## Check if the URL is valid
+    try:
+        urlopen(url)
+    except URLError as e:
+        print('Wrong URL or no connection.\n\nError:\n%s\n' % e)
+    except HTTPError:
+        print('URL not found: ' + url)
         return
 
     ## Donwload the file
