@@ -24,9 +24,11 @@ requirements:
     - cython
     - numpy
     - scipy
+    - mock
+    - nose
     - matplotlib
-    - lmfit
     - seaborn
+    - lmfit
     - phconvert
 
   run:
@@ -34,13 +36,17 @@ requirements:
     - future
     - numpy
     - scipy
+    - mock
+    - nose
     - matplotlib
-    - lmfit
     - seaborn
     - pyqt
     - pytables
     - pandas
+    - seaborn
+    - lmfit
     - phconvert
+
 
 test:
   # Python imports
@@ -63,18 +69,6 @@ about:
   home: http://github.com/tritemio/FRETBursts/
   license: GPLv2
   summary: 'Burst analysis toolkit for single and multi-spot smFRET data.'
-
-# If the app key is present, the package will be an app, meaning it will
-# appear in the Anaconda launcher.
-app:
-  # The command that is called to launch the app
-  entry: ipython notebook
-  # Icon file contained in the recipe
-  #icon: icon_64x64.png
-  summary: 'Burst analysis toolkit for single and multi-spot smFRET data.'
-  # If own_environment is true, installing the app through the launcher
-  # will install into its own environment. The default is false.
-  #own_environment: true
 
 # See
 # http://docs.continuum.io/conda/build.html for
