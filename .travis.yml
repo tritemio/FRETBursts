@@ -12,7 +12,8 @@ before_install:
     - conda config --add channels tritemio
 
 install:
-    - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy pandas matplotlib pytables pytest pyqt seaborn lmfit phconvert cython
+    - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy pandas matplotlib pytables pytest pyqt seaborn lmfit cython
+    - pip install phconvert
     - python setup.py build
     - python setup.py install
     - rm -rf build
@@ -20,8 +21,8 @@ install:
 before_script:
     - mkdir notebooks/data
     - cd notebooks/data
-    - wget -N http://files.figshare.com/2040496/12d_New_30p_320mW_steer_3.hdf5
-    - wget -N http://files.figshare.com/2040497/0023uLRpitc_NTP_20dT_0.5GndCl.hdf5
+    - wget -N http://files.figshare.com/2172260/12d_New_30p_320mW_steer_3.hdf5
+    - wget -N http://files.figshare.com/2152218/0023uLRpitc_NTP_20dT_0.5GndCl.hdf5
     - cd ../..
 
 script:
