@@ -28,21 +28,21 @@ from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
 
-## Citation information
-_CITATION = ('   FRETBursts - An opensource single-molecule FRET bursts '
-             'analysis toolkit.\n   A. Ingargiola 2014. '
-             'https://github.com/tritemio/FRETBursts')
 
-_INFO_CITATION = (' You are running FRETBursts (version {}).\n'
-                  '\n If you use this software in a publication, please '
-                  'cite it as:\n\n{}\n').format(__version__, _CITATION)
+## Citation information
+_CITATION = """
+   FRETBursts - An opensource single-molecule FRET bursts analysis toolkit.
+   A. Ingargiola 2014. http://tritemio.github.io/FRETBursts"""
+
+_INFO_CITATION = (' You are running FRETBursts (version {}).\n\n'
+                  ' If you use this software in a publication, please '
+                  'cite it as:\n{}\n\n').format(__version__, _CITATION)
 
 def citation(bar=True):
+    cit = _INFO_CITATION
     if bar:
-        print('-------------------------------------------------------------')
-    print(_INFO_CITATION)
-    if bar:
-        print('-------------------------------------------------------------')
+        cit = ('-' * 62) + '\n' + _INFO_CITATION +  ('-' * 62)
+    print(cit)
 
 
 import warnings
