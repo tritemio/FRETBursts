@@ -35,10 +35,6 @@ def load_dataset_1ch(process=True):
     fn = "0023uLRpitc_NTP_20dT_0.5GndCl.hdf5"
     fname = DATASETS_DIR + fn
     d = loader.photon_hdf5(fname)
-    o = 700
-    d.add(det_donor_accept=(0, 1), alex_period=4000,
-          D_ON=(2850 - o, d.alex_period + 580 - o), A_ON=(900 - o, 2580 - o),
-          offset=o)
     if process:
         _alex_process(d)
     return d
