@@ -163,7 +163,7 @@ def _photon_hdf5_1ch(h5data, data, ondisk=False):
 
 def _photon_hdf5_multich(h5data, data, ondisk=True):
 
-    ph_times_dict = phc.hdf5.photon_data_mapping(h5data)
+    ph_times_dict = phc.hdf5.photon_data_mapping(h5data._v_file)
     nch = np.max(list(ph_times_dict.keys())) + 1
 
     data.add(nch=nch)
