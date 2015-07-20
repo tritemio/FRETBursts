@@ -228,7 +228,9 @@ def photon_hdf5(filename, ondisk=False, strict=False):
     if version == u'0.2':
         return hdf5(filename)
 
-    h5data = phc.hdf5.load_photon_hdf5(filename, strict=strict)
+    assert os.path.isfile(filename)
+    h5file = tables.open_file(filename)
+    h5data = h5file.root
     d = Data(fname=filename, data_file=h5data._v_file)
 
     for grp_name in ['setup', 'sample', 'provenance', 'identity']:
