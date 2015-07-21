@@ -99,8 +99,8 @@ def _photon_hdf5_1ch(h5data, data, ondisk=False):
                          ondisk=ondisk)
 
     ## Load the other parameters
-    donor = meas_specs.detectors_specs.spectral_ch1.read(),
-    accept = meas_specs.detectors_specs.spectral_ch2.read(),
+    donor = np.asscalar(meas_specs.detectors_specs.spectral_ch1.read()),
+    accept = np.asscalar(meas_specs.detectors_specs.spectral_ch2.read()),
 
     data.add(
         clk_p = ph_data.timestamps_specs.timestamps_unit.read(),
@@ -192,8 +192,8 @@ def _photon_hdf5_multich(h5data, data, ondisk=True):
                 assert 'detectors_specs' in meas_specs
                 det_specs = meas_specs.detectors_specs
 
-                donor = det_specs.spectral_ch1.read()
-                accept = det_specs.spectral_ch2.read()
+                donor = np.asscalar(det_specs.spectral_ch1.read())
+                accept = np.asscalar(det_specs.spectral_ch2.read())
 
                 det = ph_data.detectors.read()
                 if det.dtype.itemsize == 1 and donor == 0:
