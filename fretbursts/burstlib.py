@@ -1416,13 +1416,17 @@ class Data(DataContainer):
                 da_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Aex='Dem'))
                 aa_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Aex='Aem'))
 
+            bins = np.arange(nperiods + 1)*bg_time_clk
+            # Note: histogram bins are half-open, e.g. [a, b)
+            counts, _ = np.histogram(ph_ch, bins=bins)
             lim, ph_p = [], []
             bg, bg_dd, bg_ad, bg_da, bg_aa = [zeros(nperiods) for _ in range(5)]
             zeros_list = [zeros(nperiods) for _ in range(5)]
             bg_err, bg_dd_err, bg_ad_err, bg_da_err, bg_aa_err = zeros_list
+            i1 = 0
             for ip in range(nperiods):
-                i0 = 0 if ip == 0 else i1           # pylint: disable=E0601
-                i1 = (ph_ch < (ip+1)*bg_time_clk).sum()
+                i0 = i1
+                i1 += counts[ip]
                 lim.append((i0, i1-1))
                 ph_p.append((ph_ch[i0], ph_ch[i1-1]))
 
@@ -1494,10 +1498,14 @@ class Data(DataContainer):
         bg_time_clk = self.bg_time_s/self.clk_p
         Lim, Ph_p = [], []
         for ph_ch, lim in zip(self.iter_ph_times(ph_sel), self.Lim):
+            bins = np.arange(self.nperiods + 1)*bg_time_clk
+            # Note: histogram bins are half-open, e.g. [a, b)
+            counts, _ = np.histogram(ph_ch, bins=bins)
             lim, ph_p = [], []
+            i1 = 0
             for ip in range(self.nperiods):
-                i0 = 0 if ip == 0 else i1  # pylint: disable=E0601
-                i1 = (ph_ch < (ip+1)*bg_time_clk).sum()
+                i0 = i1
+                i1 += counts[ip]
                 lim.append((i0, i1-1))
                 ph_p.append((ph_ch[i0], ph_ch[i1-1]))
             Lim.append(lim)
