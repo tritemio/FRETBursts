@@ -377,13 +377,44 @@ class Bursts():
     def istop(self, value):
         self.data[:, Bursts._i_istop] = value
 
+    ## Note: gaps add a status to the Bursts object that may become
+    ##       inconsistent when calling methods like `recompute_index_*`
+    ##       or in general when changing start/stop times or index.
+    @property
+    def gap(self):
+        """Time gap inside each burst."""
+        if not hasattr(self, '_gap'):
+            self._gap = None
+        return self._gap
+
+    @gap.setter
+    def gap(self, value):
+        self._gap = value
+
+    @property
+    def size_gap(self):
+        """Size reduction due to gap inside each burst."""
+        if not hasattr(self, '_size_gap'):
+            self._size_gap = None
+        return self._size_gap
+
+    @size_gap.setter
+    def size_gap(self, value):
+        self._size_gap = value
+
     @property
     def width(self):
-        return self.stop - self.start
+        width = self.stop - self.start
+        if self.gap is not None:
+            width -= self.gap
+        return width
 
     @property
     def size(self):
-        return self.istop - self.istart + 1
+        size = self.istop - self.istart + 1
+        if self.size_gap is not None:
+            size -= self.size_gap
+        return size
 
     @property
     def ph_rate(self):
