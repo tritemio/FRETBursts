@@ -49,8 +49,6 @@ def bsearch_c(np.int64_t[:] t, np.int16_t L, np.int16_t m, np.float64_t T,
     """
     cdef int i, i_start, i_end
     cdef np.int64_t burst_start, burst_end, t1, t2
-    cdef np.int8_t[:] above_min_rate = np.empty(t.size - m + 1,
-                                                dtype=np.int8)
     cdef np.int8_t in_burst = False
 
     if verbose: pprint('C Burst search: %s\n' % label)
