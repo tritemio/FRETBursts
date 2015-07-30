@@ -301,6 +301,26 @@ def recompute_burst_times(bursts, times):
     return newbursts
 
 class Bursts():
+    """A container for burst data.
+
+    This class provides a container for burst data. It provides a large
+    set of attributes (`start`, `stop`, `size`, etc...) that can be
+    accessed to obtain burst data. Only a few fundamental attributes are
+    stored, the others are comuputed on-fly using python properties.
+
+    Some basic methods for burst manipulation are provided.
+    `recompute_times` recompute start and stop times using the current
+    start and stop index and a new timestamps array passed as argument.
+    `recompute_index_*` recompute start and stop index to refer to an expanded
+    or reduced timestamp selection.
+
+    Other methods are:
+
+    - `and_gate` computing burst intersection
+    - `or_gate` (TODO, should it be added?): computing burst union
+    - `fuse_bursts` (TODO, should it be added?)
+
+    """
     _i_istart, _i_istop, _i_tstart, _i_tstop = 0, 1, 2, 3
 
     def __init__(self, data):
@@ -396,16 +416,17 @@ class Bursts():
         """Recompute burst start and stop index using the boolen array `mask`.
 
         This method returns a new Bursts object with same start and stop times
-        and recomputed istart and istop. Assuming that the original
-        index were computed from a timestamps selection defined by `mask`,
-        the new index refer to the full tinestamp array (same size as mask).
+        and recomputed istart and istop. Old istart, istop are assumed to
+        be index of a reduced array `timestamps[mask]`. New istart, istop
+        are computed to be index of a "full" timestamps array of size
+        `mask.size`.
 
         Arguments:
-            mask (bool array): boolean mask used to extract a timestamp
-                selection on which burst search was computed.
+            mask (bool array): boolean mask defining the timestamp selection
+                on which the old istart and istop were computed.
 
         Returns:
-            A new Bursts object with recomputed start/stop times.
+            A new Bursts object with recomputed istart/istop.
         """
         newbursts = self.copy()
         index = np.arange(mask.size, dtype=np.int32)
@@ -419,12 +440,12 @@ class Bursts():
         Returns new bursts representing the overlapping bursts in the 2 inputs
         with start and stop defined as intersection (or AND) operator.
 
-        The format of both input and output arrays is "burst-array" as returned
-        by :func:`bsearch_py`.
+        Both input and output are Bursts objects.
 
         Arguments:
-            bursts_a (array): burst array 2. The number of burst in each of the
-                input array can be different.
+            bursts_a (Bursts object): second set of bursts to be intersected
+                with bursts in self. The number of bursts in self and
+                `bursts_a` can be different.
 
         Returns:
             Bursts object containing intersections (AND) of overlapping bursts.
