@@ -412,8 +412,8 @@ class Bursts():
         newbursts.stop = times[self.istart]
         return newbursts
 
-    def recompute_index(self, mask):
-        """Recompute burst start and stop index using the boolen array `mask`.
+    def recompute_index_expand(self, mask):
+        """Recompute istart and istop from selection `mask` to full timestamps.
 
         This method returns a new Bursts object with same start and stop times
         and recomputed istart and istop. Old istart, istop are assumed to
@@ -432,6 +432,36 @@ class Bursts():
         index = np.arange(mask.size, dtype=np.int32)
         newbursts.istart = index[mask][self.istart]
         newbursts.istop = index[mask][self.istop]
+        return newbursts
+
+    def recompute_index_reduce(self, mask):
+        """Recompute istart and istop on reduced timestamps selection `mask`.
+
+        This method returns a new Bursts object with same start and stop times
+        and recomputed istart and istop. Old istart, istop are assumed to
+        be index of a "full" timestamps array of size `mask.size`. New istart,
+        istop are computed to be index of a reduced array `timestamps[mask]`.
+
+        Note that it is required that all the start and stop times are
+        also contained in the reduced timestamps selection.
+
+        Arguments:
+            mask (bool array): boolean mask defining the timestamp selection
+                on which the new istart and istop are computed.
+
+        Returns:
+            A new Bursts object with recomputed istart/istop times.
+        """
+        newbursts = self.copy()
+        ## Untested, to be checked
+        newbursts.istart = np.nonzero(mask[self.istart])[0]
+        newbursts.istop = np.nonzero(mask[self.istop])[0]
+
+        # Check that we are not missing any start or stop index
+        assert newbursts.istart.size == self.istart.size
+        assert newbursts.istop.size == self.istop.size
+
+        return newbursts
 
     def and_gate(self, bursts2):
         """From 2 burst arrays return bursts defined as intersection (AND rule).
