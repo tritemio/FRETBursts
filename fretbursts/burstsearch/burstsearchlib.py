@@ -327,12 +327,11 @@ class Bursts():
         assert data.shape[1] == 4
         self.data = np.atleast_2d(data)
 
+    ##
+    ## Basic interface
+    ##
     def copy(self):
         return Bursts(self.data.copy())
-
-    @property
-    def num_bursts(self):
-        return self.data.shape[0]
 
     def __getitem__(self, i):
         return Bursts(self.data[i])
@@ -342,13 +341,25 @@ class Bursts():
             yield self[i]
 
     @property
+    def num_bursts(self):
+        return self.data.shape[0]
+
+    ##
+    ## Burst data attributes/properties
+    ##
+    def _set_data(self, column, values):
+        """This method allows subclasses to easily extend the setters.
+        """
+        self.data[:, column] = values
+
+    @property
     def start(self):
         """Time of 1st ph in each burst"""
         return self.data[:, Bursts._i_tstart]
 
     @start.setter
     def start(self, value):
-        self.data[:, Bursts._i_tstart] = value
+        self._set_data(Bursts._i_tstart, value)
 
     @property
     def stop(self):
@@ -357,7 +368,7 @@ class Bursts():
 
     @stop.setter
     def stop(self, value):
-        self.data[:, Bursts._i_tstop] = value
+        self._set_data(Bursts._i_tstop, value)
 
     @property
     def istart(self):
@@ -366,7 +377,7 @@ class Bursts():
 
     @istart.setter
     def istart(self, value):
-        self.data[:, Bursts._i_istart] = value
+        self._set_data(Bursts._i_istart, value)
 
     @property
     def istop(self):
@@ -375,46 +386,15 @@ class Bursts():
 
     @istop.setter
     def istop(self, value):
-        self.data[:, Bursts._i_istop] = value
-
-    ## Note: gaps add a status to the Bursts object that may become
-    ##       inconsistent when calling methods like `recompute_index_*`
-    ##       or in general when changing start/stop times or index.
-    @property
-    def gap(self):
-        """Time gap inside each burst."""
-        if not hasattr(self, '_gap'):
-            self._gap = None
-        return self._gap
-
-    @gap.setter
-    def gap(self, value):
-        self._gap = value
-
-    @property
-    def size_gap(self):
-        """Size reduction due to gap inside each burst."""
-        if not hasattr(self, '_size_gap'):
-            self._size_gap = None
-        return self._size_gap
-
-    @size_gap.setter
-    def size_gap(self, value):
-        self._size_gap = value
+        self._set_data(Bursts._i_istop, value)
 
     @property
     def width(self):
-        width = self.stop - self.start
-        if self.gap is not None:
-            width -= self.gap
-        return width
+        return self.stop - self.start
 
     @property
     def size(self):
-        size = self.istop - self.istart + 1
-        if self.size_gap is not None:
-            size -= self.size_gap
-        return size
+        return self.istop - self.istart + 1
 
     @property
     def ph_rate(self):
@@ -426,6 +406,9 @@ class Bursts():
         """Separation between nearby bursts"""
         return self.start[1:] - self.stop[:-1]
 
+    ##
+    ## Burst manipulation methods
+    ##
     def recompute_times(self, times):
         """Recomputes start, stop times applying index data to `times`.
 
@@ -545,4 +528,38 @@ class Bursts():
             bursts.append(burst)
 
         return Bursts(np.vstack(bursts.data))
+
+
+class BurstsGap(Bursts):
+    """A container for bursts with optional gaps.
+
+    This class extend Bursts adding the attributes/properties `gap`
+    (a duration) and `gap_counts` (counts in gap) that allow accounting
+    for gaps inside bursts.
+
+    """
+    def __init__(self, *args, **kwargs):
+        super(BurstsGap, self).__init__(*args, **kwargs)
+        self.gap = None
+        self.gap_counts = None
+
+    def _set_data(self, column, values):
+        super(BurstsGap, self)._set_data(column, values)
+        if hasattr(self, '_gap'):
+            print('WARNING: Resetting gap data.')
+            self._gap_reset()
+
+    @property
+    def width(self):
+        width = self.stop - self.start
+        if self.gap is not None:
+            width -= self.gap
+        return width
+
+    @property
+    def size(self):
+        size = self.istop - self.istart + 1
+        if self.gap_counts is not None:
+            size -= self.gap_counts
+        return size
 
