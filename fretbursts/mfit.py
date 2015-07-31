@@ -490,8 +490,8 @@ def plot_mfit(fitter, ich=0, residuals=False, ax=None, plot_kde=False,
             for component in fit_res.model.components:
                 ax.plot(x, component.eval(x=x, **fit_res.values), '--k',
                         alpha=0.8)
-        for param in ['center', 'p1_center', 'p2_center']:
-            if param in fitter.params:
+        for param in fitter.params:
+            if param.endswith('center'):
                 ax.axvline(fitter.params[param][ich], ls='--', color=red)
 
         if residuals:
