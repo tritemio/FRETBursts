@@ -321,7 +321,7 @@ class Bursts():
     - `fuse_bursts` (TODO, should it be added?)
 
     """
-    _i_istart, _i_istop, _i_tstart, _i_tstop = 0, 1, 2, 3
+    _i_istart, _i_istop, _i_start, _i_stop = 0, 1, 2, 3
 
     def __init__(self, data):
         assert data.shape[1] == 4
@@ -355,20 +355,20 @@ class Bursts():
     @property
     def start(self):
         """Time of 1st ph in each burst"""
-        return self.data[:, Bursts._i_tstart]
+        return self.data[:, Bursts._i_start]
 
     @start.setter
     def start(self, value):
-        self._set_data(Bursts._i_tstart, value)
+        self._set_data(Bursts._i_start, value)
 
     @property
     def stop(self):
         """Time of last ph in each burst"""
-        return self.data[:, Bursts._i_tstop]
+        return self.data[:, Bursts._i_stop]
 
     @stop.setter
     def stop(self, value):
-        self._set_data(Bursts._i_tstop, value)
+        self._set_data(Bursts._i_stop, value)
 
     @property
     def istart(self):
