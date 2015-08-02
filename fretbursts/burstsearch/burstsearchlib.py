@@ -434,6 +434,17 @@ class Bursts():
         This method computes burst start, stop using the index of
         timestamps in `bursts` and and using `times` as timestamps array.
 
+        This is useful when the timestamps are transformed/mapped.
+        Realistically, it is a linear transformation (i.e. an offset,
+        when joining measurements and maybe a multiplicative factor
+        for simulations). A linear tranformation could be applied much more
+        efficiently without this method, e.g.:
+
+            bursts.start += offset
+            bursts.stop += offset
+
+        which is also an in-place operation.
+
         Arguments:
             times (array): array of photon timestamps
 
@@ -454,8 +465,12 @@ class Bursts():
         are computed to be index of a "full" timestamps array of size
         `mask.size`.
 
+        This is useful when performing burst search on a timestamps selection
+        and we want to tranform the burst data to use the index of the "full"
+        timestamps array.
+
         Arguments:
-            mask (bool array): boolean mask defining the timestamp selection
+            mask (bool array): boolean mask defining the timestamps selection
                 on which the old istart and istop were computed.
 
         Returns:
@@ -468,7 +483,10 @@ class Bursts():
         return newbursts
 
     def recompute_index_reduce(self, mask):
-        """Recompute istart and istop on reduced timestamps selection `mask`.
+        """Recompute istart and istop on reduced timestamps selected by `mask`.
+
+        This is useful probably only for testing the inverse tranformation
+        of :meth:`recompute_index_expand`.
 
         This method returns a new Bursts object with same start and stop times
         and recomputed istart and istop. Old istart, istop are assumed to
