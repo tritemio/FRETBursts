@@ -42,6 +42,9 @@ from __future__ import division, print_function
 from builtins import range, zip
 
 import numpy as np
+import pandas as pd
+pd.set_option('display.max_rows', 10)
+
 from fretbursts.utils.misc import pprint
 
 
@@ -345,6 +348,16 @@ class Bursts():
     def __eq__(self, other_bursts):
         return (self.data == other_bursts.data).all()
 
+    @property
+    def dataframe(self):
+        return pd.DataFrame(self.data,
+                            columns=['istart', 'istop', 'start', 'stop'])
+
+    def __repr__(self):
+        return self.dataframe.__repr__()
+
+    def _repr_html_(self):
+        return self.dataframe._repr_html_()
 
     @property
     def num_bursts(self):
