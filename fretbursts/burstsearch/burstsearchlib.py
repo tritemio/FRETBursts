@@ -41,6 +41,7 @@ To obtain the burst size (number of photons) for the 10-th to 20-th burst::
 from __future__ import division, print_function
 from builtins import range, zip
 
+from collections import namedtuple
 import numpy as np
 import pandas as pd
 pd.set_option('display.max_rows', 10)
@@ -304,6 +305,22 @@ def recompute_burst_times(bursts, times):
     return newbursts
 
 
+class Burst(namedtuple('Burst', ['istart', 'istop', 'start', 'stop'])):
+    __slots__ = ()
+    @property
+    def width(self):
+        return self.stop - self.start
+
+    @property
+    def size(self):
+        return self.istop - self.istart + 1
+
+    @property
+    def ph_rate(self):
+        """Photon rate in burst (tot size/duration)"""
+        return self.size / self.width
+
+
 class Bursts():
     """A container for burst data.
 
@@ -343,7 +360,15 @@ class Bursts():
 
     def __iter__(self):
         for bdata in self.data:
-            yield Bursts(bdata)
+            # Bursts has a fast __init__() but relatively slow
+            # attribute access:
+            #yield Bursts(bdata)
+
+            # Burst (namedtuple) has fast attribute access (>10x faster)
+            # and __init__ as fast as Bursts.__init__ when avoiding the *bdata
+            # syntax (which creates an additional tuple).
+            #yield Burst(*bdata)
+            yield Burst(bdata[0], bdata[1], bdata[2], bdata[3])
 
     def __eq__(self, other_bursts):
         return (self.data == other_bursts.data).all()
