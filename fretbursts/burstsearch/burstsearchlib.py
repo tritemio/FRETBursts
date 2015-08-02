@@ -300,6 +300,7 @@ def recompute_burst_times(bursts, times):
         newbursts[i, iwidth] = newbursts[i, itend] - newbursts[i, itstart]
     return newbursts
 
+
 class Bursts():
     """A container for burst data.
 
@@ -324,8 +325,9 @@ class Bursts():
     _i_istart, _i_istop, _i_start, _i_stop = 0, 1, 2, 3
 
     def __init__(self, data):
-        assert data.shape[1] == 4
-        self.data = np.atleast_2d(data)
+        if data.ndim == 1:
+            data = data[np.newaxis, :]
+        self.data = data
 
     ##
     ## Basic interface
@@ -337,8 +339,12 @@ class Bursts():
         return Bursts(self.data[i])
 
     def __iter__(self):
-        for i in range(self.num_bursts):
-            yield self[i]
+        for bdata in self.data:
+            yield Bursts(bdata)
+
+    def __eq__(self, other_bursts):
+        return (self.data == other_bursts.data).all()
+
 
     @property
     def num_bursts(self):
