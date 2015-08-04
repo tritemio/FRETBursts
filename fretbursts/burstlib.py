@@ -34,12 +34,8 @@ from .fretmath import gamma_correct_E, gamma_uncorrect_E
 
 from .burstsearch import burstsearchlib as bslib
 from .burstsearch.burstsearchlib import (
-    itstart, iwidth, inum_ph, iistart, iiend, itend,
     # Burst search function
     bsearch,
-    # Burst data functions
-    b_start, b_end, b_width, b_istart, b_iend, b_size,
-    b_ph_rate, b_separation,
     # Photon counting function,
     mch_count_ph_in_bursts
     )

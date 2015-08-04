@@ -101,7 +101,7 @@ def bsearch_py_old(times, L, m, T, label='Burst search', verbose=True):
                                i_end-i_start, i_start, i_end-1, burst_end])
     return np.array(bursts, dtype=np.int64)
 
-def bsearch_py(times, L, m, T, slice_=None,
+def bsearch(times, L, m, T, slice_=None,
                  label='Burst search', verbose=True, out=None):
     """Sliding window burst search. Pure python implementation.
 
@@ -215,13 +215,13 @@ def mch_count_ph_in_bursts_py(Mburst, Mask):
 #  Try to import the optimized Cython functions
 #
 
-try:
-    from burstsearchlib_c import bsearch_c
-    bsearch = bsearch_c
-    print(" - Optimized (cython) burst search loaded.")
-except ImportError:
-    bsearch = bsearch_py
-    print(" - Fallback to pure python burst search.")
+#try:
+#    from burstsearchlib_c import bsearch_c
+#    bsearch = bsearch_c
+#    print(" - Optimized (cython) burst search loaded.")
+#except ImportError:
+#    bsearch = bsearch_py
+#    print(" - Fallback to pure python burst search.")
 
 try:
     from burstsearchlib_c import mch_count_ph_in_bursts_c

@@ -16,7 +16,6 @@ import numpy as np
 from matplotlib.patches import Rectangle, Ellipse
 
 from .utils.misc import pprint
-from .burstsearch.burstsearchlib import b_start, b_end, b_width
 from . import burstlib_ext as bext
 
 
