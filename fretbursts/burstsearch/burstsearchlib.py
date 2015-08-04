@@ -156,32 +156,6 @@ def bsearch(times, L, m, T, slice_=None,
 #  Functions to count D and A photons in bursts
 #
 
-def count_ph_in_bursts_py(bursts, mask):
-    """Counts number of photons in each burst counting only photons in `mask`.
-
-    This function takes a burst-array and a boolean mask (photon selection)
-    and computes the number of photons selected by the mask.
-    It is used, for example, to count donor and acceptor photons
-    in each burst.
-
-    This is a reference implementation. In practice the multi-channel
-    is always used instead (see :func:`mch_count_ph_in_bursts_py`).
-
-    Arguments:
-        bursts (2D array, int64): the burst-array.
-        mask (1D boolean array): the photon mask. The boolean mask must be
-            of the same size of the timestamp array used for burst search.
-
-    Returns:
-        A 1D array containing the number of photons in each burst
-        counting only photons in the selection mask.
-    """
-    num_ph = np.zeros(bursts.shape[0], dtype=np.int16)
-    for i, burst in enumerate(bursts):
-        # Counts photons between start and end of current `burst`
-        num_ph[i] = mask[burst[iistart] : burst[iiend]+1].sum()
-    return num_ph
-
 def mch_count_ph_in_bursts_py(Mburst, Mask):
     """Counts number of photons in each burst counting only photons in `Mask`.
 
@@ -200,15 +174,8 @@ def mch_count_ph_in_bursts_py(Mburst, Mask):
         A list of 1D array, each containing the number of photons
         in each burst counting only photons in the selection mask.
     """
-    Num_ph = []
-    for bursts, mask in zip(Mburst, Mask):
-        num_ph = np.zeros(bursts.shape[0], dtype=np.int16)
-        for i, burst in enumerate(bursts):
-            # Counts photons between start and end of current `burst`
-            num_ph[i] = mask[burst[iistart] : burst[iiend]+1].sum()
-            #count_ph_in_bursts(bursts, mask).astype(float)
-        Num_ph.append(num_ph.astype(float))
-    return Num_ph
+    return [bursts.count_ph_in_bursts(mask).astype(float)
+            for bursts, mask in zip(Mburst, Mask)]
 
 
 ##
@@ -464,6 +431,32 @@ class Bursts():
     ##
     ## Burst manipulation methods
     ##
+    def count_ph_in_bursts(self, mask):
+        """Counts number of photons in each burst counting only photons in `mask`.
+
+        This function takes a burst-array and a boolean mask (photon selection)
+        and computes the number of photons selected by the mask.
+        It is used, for example, to count donor and acceptor photons
+        in each burst.
+
+        This is a reference implementation. In practice the multi-channel
+        is always used instead (see :func:`mch_count_ph_in_bursts_py`).
+
+        Arguments:
+            bursts (2D array, int64): the burst-array.
+            mask (1D boolean array): the photon mask. The boolean mask must be
+                of the same size of the timestamp array used for burst search.
+
+        Returns:
+            A 1D array containing the number of photons in each burst
+            counting only photons in the selection mask.
+        """
+        num_ph = np.zeros(self.num_bursts, dtype=np.int16)
+        for i, burst in enumerate(self):
+            # Counts photons between start and end of current `burst`
+            num_ph[i] = mask[burst.istart : burst.istop+1].sum()
+        return num_ph
+
     def recompute_times(self, times):
         """Recomputes start, stop times applying index data to `times`.
 
