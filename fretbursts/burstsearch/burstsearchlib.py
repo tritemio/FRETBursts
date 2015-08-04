@@ -141,7 +141,7 @@ def bsearch(times, L, m, T, slice_=None,
         i_start = i
         for i, above_min_rate_ in it:
             if not above_min_rate_: break
-        i_stop = i + m - 1
+        i_stop = i + m - 2  # index of last ph in burst
 
         start = times[i_start]
         stop = times[i_stop]
