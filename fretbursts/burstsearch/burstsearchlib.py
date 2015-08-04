@@ -49,46 +49,6 @@ pd.set_option('display.max_rows', 10)
 from fretbursts.utils.misc import pprint
 
 
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#  GLOBAL VARIABLES
-#
-
-# Define name for the 6 column indexes in the Nx6 array containing the bursts
-itstart, iwidth, inum_ph, iistart, iiend, itend = 0, 1, 2, 3, 4, 5
-
-# Quick functions for burst data (burst array)
-def b_start(bursts):
-    """Time of 1st ph in burst"""
-    return bursts[:, itstart]
-
-def b_end(bursts):
-    """Time of last ph in burst"""
-    return bursts[:, itend]
-
-def b_width(bursts):
-    """Burst width in clk cycles"""
-    return bursts[:, iwidth]
-
-def b_istart(bursts):
-    """Index of 1st ph in burst"""
-    return bursts[:, iistart]
-
-def b_iend(bursts):
-    """Index of last ph in burst"""
-    return bursts[:, iiend]
-
-def b_size(bursts):
-    """Number of ph in the burst"""
-    return bursts[:, inum_ph]
-
-def b_ph_rate(bursts):
-    """Photon rate in burst (tot size/duration)"""
-    return b_size(bursts) / b_width(bursts)
-
-def b_separation(bursts):
-    """Separation between nearby bursts"""
-    return b_start(bursts)[1:] - b_end(bursts)[:-1]
-
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  LOW-LEVEL BURST SEARCH FUNCTIONS
 #
