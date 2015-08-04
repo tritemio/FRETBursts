@@ -53,7 +53,7 @@ from fretbursts.utils.misc import pprint
 #  LOW-LEVEL BURST SEARCH FUNCTIONS
 #
 
-def bsearch_py(times, L, m, T, label='Burst search', verbose=True):
+def bsearch_py_old(times, L, m, T, label='Burst search', verbose=True):
     """Sliding window burst search. Pure python implementation.
 
     Finds bursts in the array `t` (int64). A burst starts when the photon rate
@@ -101,7 +101,7 @@ def bsearch_py(times, L, m, T, label='Burst search', verbose=True):
                                i_end-i_start, i_start, i_end-1, burst_end])
     return np.array(bursts, dtype=np.int64)
 
-def bsearch_py2(times, L, m, T, slice_=None,
+def bsearch_py(times, L, m, T, slice_=None,
                  label='Burst search', verbose=True, out=None):
     """Sliding window burst search. Pure python implementation.
 
