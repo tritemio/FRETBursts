@@ -1636,24 +1636,23 @@ class Data(DataContainer):
             ph_bs = ph = self.get_ph_times(ich=ich, ph_sel=ph_sel)
             if compact:
                 ph_bs = self._ph_times_compact(ph, ph_sel)
-            MB = []
+            burst_ch_list = []
             Tck = T/self.clk_p
+
             for ip, (l0, l1) in enumerate(self.Lim[ich]):
                 if verbose:
                     label = '%s CH%d-%d' % (ph_sel, ich+1, ip)
-                mb = bsearch(ph_bs[l0:l1+1], L, m, Tck[ip], label=label,
-                             verbose=verbose)
-                if mb.size > 0: # if we found at least one burst
-                    mb[:, iistart] += l0
-                    mb[:, iiend] += l0
-                    MB.append(mb)
-            if len(MB) > 0:
-                bursts = np.vstack(MB)
+                bsearch(ph_bs, L, m, Tck[ip], label=label, slice_=(l0, l1+1),
+                        verbose=verbose, out=burst_ch_list)
+
+            if len(burst_ch_list) > 0:
+                bursts = bslib.Bursts(np.vstack(burst_ch_list))
                 if compact:
-                    bursts = bslib.recompute_burst_times(bursts, ph)
-                MBurst.append(bursts)
+                    bursts = bursts.recompute_burst_times(bursts, ph)
             else:
-                MBurst.append(np.array([]))
+                bursts = bslib.Bursts(np.array([[]]))
+            MBurst.append(bursts)
+
         self.add(mburst=MBurst)
         if ph_sel != Ph_sel('all'):
             # Convert the burst data to be relative to ph_times_m.

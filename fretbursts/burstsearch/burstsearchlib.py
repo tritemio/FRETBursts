@@ -101,6 +101,56 @@ def bsearch_py(times, L, m, T, label='Burst search', verbose=True):
                                i_end-i_start, i_start, i_end-1, burst_end])
     return np.array(bursts, dtype=np.int64)
 
+def bsearch_py2(times, L, m, T, slice_=None,
+                 label='Burst search', verbose=True, out=None):
+    """Sliding window burst search. Pure python implementation.
+
+    Finds bursts in the array `t` (int64). A burst starts when the photon rate
+    is above a minimum threshold, and ends when the rate falls below the same
+    threshold. The rate-threshold is defined by the ratio `m`/`T` (`m` photons
+    in a time interval `T`). A burst is discarded if it has less than `L`
+    photons.
+
+    Arguments:
+        t (array, int64): array of timestamps on which to perform the search
+        L (int): minimum number of photons in a bursts. Bursts with size
+            (or counts) < L are discarded.
+        m (int): number of consecutive photons used to compute the rate.
+        T (float): max time separation of `m` photons to be inside a burst
+        label (string): a label printed when the function is called
+        verbose (bool): if False, the function does not print anything.
+
+    Returns:
+        List of burst data tuples, one 4-tuple per burst, type int64.
+    """
+    if verbose:
+        pprint('Python search (v): %s\n' % label)
+    if slice_ is not None:
+        times = times[slice_]
+        i_time0 = slice_[0]
+    if out is None:
+        out = []
+
+    max_index = times.size-m+1
+    above_min_rate = ((times[m-1:] - times[:max_index]) <= T)[:max_index]
+
+    it = enumerate(above_min_rate)
+    for i, above_min_rate_ in it:
+        if not above_min_rate_: continue
+
+        i_start = i
+        for i, above_min_rate_ in it:
+            if not above_min_rate_: break
+        i_stop = i + m - 1
+
+        start = times[i_start]
+        stop = times[i_stop]
+        if slice_ is not None:
+            i_start += i_time0
+            i_stop += i_time0
+        out.append((i_start, i_stop, start, stop))
+
+    return out
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  Functions to count D and A photons in bursts
