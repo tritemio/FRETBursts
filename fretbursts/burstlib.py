@@ -168,9 +168,9 @@ def _ph_times_compact(ph_times_sel, alex_period, excitation_width):
 def iter_bursts_start_stop(bursts):
     """Iterate over (start, stop) indexes to slice photons for each burst.
     """
-    arr_istart = b_istart(bursts)
-    arr_iend = b_iend(bursts) + 1
-    for istart, istop in zip(arr_istart, arr_iend):
+    arr_istart = bursts.istart
+    arr_istop = bursts.istop + 1
+    for istart, istop in zip(arr_istart, arr_istop):
         yield istart, istop
 
 def iter_bursts_ph(ph_data, bursts, mask=None, compact=False,
@@ -988,20 +988,16 @@ class Data(DataContainer):
     ##
     # Methods and properties for burst-data access
     #
-    def num_bu(self):
-        """Old shortcut for `num_bursts`."""
-        return self.num_bursts
-
     @property
     def num_bursts(self):
         """Array of number of bursts in each channel."""
-        return np.array([mb.shape[0] for mb in self.mburst])
+        return np.array([bursts.num_bursts for bursts in self.mburst])
 
     @property
     def burst_widths(self):
         """List of arrays of burst duration in seconds. One array per channel.
         """
-        return [b_width(mb)*self.clk_p for mb in self.mburst]
+        return [bursts.width*self.clk_p for bursts in self.mburst]
 
     def burst_sizes_ich(self, ich=0, gamma=1., gamma1=None, add_naa=False,
                         beta=None):
@@ -1061,7 +1057,8 @@ class Data(DataContainer):
         if np.isscalar(N2): N2 = [N2]*self.nch
         assert len(N1) == len(N2) == self.nch
         d = Data(**self)
-        d.add(mburst=[b[n1:n2, :] for b, n1, n2 in zip(d.mburst, N1, N2)])
+        d.add(mburst=[bslib.Bursts(b.data[n1:n2])
+                      for b, n1, n2 in zip(d.mburst, N1, N2)])
         d.add(nt=[nt[n1:n2] for nt, n1, n2 in zip(d.nt, N1, N2)])
         d.add(nd=[nd[n1:n2] for nd, n1, n2 in zip(d.nd, N1, N2)])
         d.add(na=[na[n1:n2] for na, n1, n2 in zip(d.na, N1, N2)])
@@ -1176,7 +1173,7 @@ class Data(DataContainer):
             element.
         """
         period = self.bp[ich]
-        w = b_width(self.mburst[ich])*self.clk_p
+        w = self.mburst[ich].width*self.clk_p
         bg_a = self.bg_ad[ich][period]*w
         bg_d = self.bg_dd[ich][period]*w
         res = [self.nd[ich], self.na[ich]]
@@ -1518,11 +1515,11 @@ class Data(DataContainer):
         """
         P = []
         for b, lim in zip(self.mburst, self.Lim):
-            p = zeros(b.shape[0], dtype=np.int16)
-            if b.size > 0:
-                bis = b_istart(b)
+            p = zeros(b.num_bursts, dtype=np.int16)
+            if b.num_bursts > 0:
+                istart = b.istart
                 for i, (l0, l1) in enumerate(lim):
-                    p[(bis >= l0)*(bis <= l1)] = i
+                    p[(istart >= l0)*(istart <= l1)] = i
             P.append(p)
         self.add(bp=P)
 
@@ -2013,8 +2010,8 @@ class Data(DataContainer):
         if self.bg_corrected: return -1
         pprint("   - Applying background correction.\n", mute)
         self.add(bg_corrected=True)
-        for ich, mb in enumerate(self.mburst):
-            if mb.size == 0: continue  # if no bursts skip this ch
+        for ich, bursts in enumerate(self.mburst):
+            if bursts.num_bursts == 0: continue  # if no bursts skip this ch
             period = self.bp[ich]
             nd, na, bg_d, bg_a, width = self.expand(ich, width=True)
             nd -= bg_d
