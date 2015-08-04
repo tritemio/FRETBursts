@@ -126,7 +126,7 @@ def bsearch(times, L, m, T, slice_=None,
     if verbose:
         pprint('Python search (v): %s\n' % label)
     if slice_ is not None:
-        times = times[slice_]
+        times = times[slice_[0]:slice_[1]]
         i_time0 = slice_[0]
     if out is None:
         out = []
