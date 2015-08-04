@@ -93,7 +93,7 @@ def b_separation(bursts):
 #  LOW-LEVEL BURST SEARCH FUNCTIONS
 #
 
-def bsearch_py(t, L, m, T, label='Burst search', verbose=True):
+def bsearch_py(times, L, m, T, label='Burst search', verbose=True):
     """Sliding window burst search. Pure python implementation.
 
     Finds bursts in the array `t` (int64). A burst starts when the photon rate
@@ -119,10 +119,11 @@ def bsearch_py(t, L, m, T, label='Burst search', verbose=True):
         `b_*` (i.e. :func:`b_start`, :func:`b_size`, :func:`b_width`, etc...).
     """
     if verbose: pprint('Python search (v): %s\n' % label)
+
     bursts = []
     in_burst = False
-    above_min_rate = (t[m-1:] - t[:t.size-m+1]) <= T
-    for i in range(t.size-m+1):
+    above_min_rate = (times[m-1:] - times[:times.size-m+1]) <= T
+    for i in range(times.size-m+1):
         if above_min_rate[i]:
             if not in_burst:
                 i_start = i
@@ -135,7 +136,7 @@ def bsearch_py(t, L, m, T, label='Burst search', verbose=True):
             in_burst = False
             i_end = i + m - 1
             if i_end - i_start >= L:
-                burst_start, burst_end = t[i_start], t[i_end-1]
+                burst_start, burst_end = times[i_start], times[i_end-1]
                 bursts.append([burst_start, burst_end-burst_start,
                                i_end-i_start, i_start, i_end-1, burst_end])
     return np.array(bursts, dtype=np.int64)
