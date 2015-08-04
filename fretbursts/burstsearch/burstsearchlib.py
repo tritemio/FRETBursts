@@ -459,16 +459,10 @@ class Bursts():
         This method computes burst start, stop using the index of
         timestamps in `bursts` and and using `times` as timestamps array.
 
-        This is useful when the timestamps are transformed/mapped.
-        Realistically, it is a linear transformation (i.e. an offset,
-        when joining measurements and maybe a multiplicative factor
-        for simulations). A linear tranformation could be applied much more
-        efficiently without this method, e.g.:
-
-            bursts.start += offset
-            bursts.stop += offset
-
-        which is also an in-place operation.
+        This is useful, for example, when burst search is computed on a
+        "compacted" timestamps array (i.e. removing the gaps outside the
+        alternation period in usALEX experiments) and the "read" start and
+        stop times need to be recomputed.
 
         Arguments:
             times (array): array of photon timestamps
