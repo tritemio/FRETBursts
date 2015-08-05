@@ -90,13 +90,11 @@ def count_ph_in_bursts_c(np.int64_t[:,:] burstdata, np.uint8_t[:] mask):
         photon selection mask.
     """
     cdef np.int64_t i, ii
-    cdef np.int64_t[:] burst
     cdef np.int32_t[:] num_ph
-    #cdef np.int32_t num_phi
 
     num_ph = np.zeros(burstdata.shape[0], dtype=np.int32)
-    for i, burst in enumerate(burstdata):
-        for ii in range(burst[0], burst[1]+1):
+    for i in range(burstdata.shape[0]):
+        for ii in range(burstdata[i, 0], burstdata[i, 1]+1):
             num_ph[i] += mask[ii]
     return num_ph
 
@@ -121,5 +119,4 @@ def mch_count_ph_in_bursts_c(mburst, masks):
     for bursts, mask in zip(mburst, masks):
         num_ph_list.append(
             np.asfarray(count_ph_in_bursts_c(bursts.data, mask.view(np.uint8))))
-
     return num_ph_list

@@ -2305,7 +2305,7 @@ class Data(DataContainer):
         self.calculate_fret_eff()
         if self.ALEX:
             self.calculate_stoich()
-            self.calc_alex_hist()
+            #self.calc_alex_hist()
         for fitter in ['E_fitter', 'S_fitter']:
             if fitter in self:
                 self.delete(fitter)
