@@ -37,7 +37,7 @@ from .burstsearch.burstsearchlib import (
     # Burst search function
     bsearch,
     # Photon counting function,
-    #mch_count_ph_in_bursts
+    mch_count_ph_in_bursts
     )
 
 from . import background as bg
@@ -65,7 +65,7 @@ def _get_bsearch_func(pure_python=False):
         return bslib.bsearch_py
     else:
         # or what is available
-        return bslib.bsearch_c
+        return bsearch
 
 def _get_mch_count_ph_in_bursts_func(pure_python=False):
     if pure_python:
@@ -73,7 +73,7 @@ def _get_mch_count_ph_in_bursts_func(pure_python=False):
         return bslib.mch_count_ph_in_bursts_py
     else:
         # or what is available
-        return bslib.mch_count_ph_in_bursts_c
+        return mch_count_ph_in_bursts
 
 def isarray(obj):
     """Test if the object support the array interface.

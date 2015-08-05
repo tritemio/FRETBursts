@@ -96,7 +96,7 @@ def count_ph_in_bursts_c(np.int64_t[:,:] burstdata, np.uint8_t[:] mask):
 
     num_ph = np.zeros(burstdata.shape[0], dtype=np.int32)
     for i, burst in enumerate(burstdata):
-        for ii in xrange(burst[0], burst[1]+1):
+        for ii in range(burst[0], burst[1]+1):
             num_ph[i] += mask[ii]
     return num_ph
 
