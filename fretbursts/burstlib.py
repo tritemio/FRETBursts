@@ -37,7 +37,7 @@ from .burstsearch.burstsearchlib import (
     # Burst search function
     bsearch,
     # Photon counting function,
-    mch_count_ph_in_bursts
+    #mch_count_ph_in_bursts
     )
 
 from . import background as bg
@@ -65,7 +65,7 @@ def _get_bsearch_func(pure_python=False):
         return bslib.bsearch_py
     else:
         # or what is available
-        return bsearch
+        return bslib.bsearch_c
 
 def _get_mch_count_ph_in_bursts_func(pure_python=False):
     if pure_python:
@@ -73,7 +73,7 @@ def _get_mch_count_ph_in_bursts_func(pure_python=False):
         return bslib.mch_count_ph_in_bursts_py
     else:
         # or what is available
-        return mch_count_ph_in_bursts
+        return bslib.mch_count_ph_in_bursts_c
 
 def isarray(obj):
     """Test if the object support the array interface.
@@ -1635,8 +1635,9 @@ class Data(DataContainer):
             for ip, (l0, l1) in enumerate(self.Lim[ich]):
                 if verbose:
                     label = '%s CH%d-%d' % (ph_sel, ich+1, ip)
-                bsearch(ph_bs, L, m, Tck[ip], label=label, slice_=(l0, l1+1),
-                        verbose=verbose, out=burst_ch_list)
+                burst_ch_list.append(
+                    bsearch(ph_bs, L, m, Tck[ip], slice_=(l0, l1+1),
+                            label=label, verbose=verbose))
 
             if len(burst_ch_list) > 0:
                 bursts = bslib.Bursts(np.vstack(burst_ch_list))
@@ -1659,34 +1660,12 @@ class Data(DataContainer):
         """
         assert isinstance(ph_sel, Ph_sel) and ph_sel != Ph_sel('all')
         pprint(' - Fixing  burst data to refer to ph_times_m ... ', mute)
-        old_MBurst = [mb.copy() for mb in self.mburst]
-
-        # Note that mburst is modified in-place
-        it_ph_masks = self.iter_ph_masks(ph_sel=ph_sel)
-        ph_sizes = [ph.size for ph in self.iter_ph_times()]
-        for mburst, ph_size, mask in zip(self.mburst, ph_sizes, it_ph_masks):
-            index = np.arange(ph_size, dtype=np.int32)
-            mburst[:, iistart] = index[mask][mburst[:, iistart]]
-            mburst[:, iiend] = index[mask][mburst[:, iiend]]
-            mburst[:, inum_ph] = mburst[:, iiend] - mburst[:, iistart] + 1
-
-        for mb, old_mb in zip(self.mburst, old_MBurst):
-            assert (mb[:, iistart] >= old_mb[:, iistart]).all()
-            assert (mb[:, iiend] >= old_mb[:, iiend]).all()
-            assert (mb[:, inum_ph] >= old_mb[:, inum_ph]).all()
-        pprint('[DONE]\n', mute)
-
-    def _fix_mburst_from2(self, ph_sel, mute=False):
-        """Convert burst data from any ph_sel to 'all' timestamps selection.
-        """
-        assert isinstance(ph_sel, Ph_sel) and ph_sel != Ph_sel('all')
-        pprint(' - Fixing  burst data to refer to ph_times_m ... ', mute)
-        new_mbursts = []
-        for bursts, mask in zip(self.mbursts,
+        new_mburst = []
+        for bursts, mask in zip(self.mburst,
                                 self.iter_ph_masks(ph_sel=ph_sel)):
-            new_mbursts.append(bursts.recompute_index(mask))
+            new_mburst.append(bursts.recompute_index_expand(mask))
 
-        for old_bursts, new_bursts in zip(self.mbursts, new_mbursts):
+        for old_bursts, new_bursts in zip(self.mburst, new_mburst):
             assert (new_bursts.istart >= old_bursts.istart).all()
             assert (new_bursts.istop >= old_bursts.istop).all()
         pprint('[DONE]\n', mute)
@@ -1796,12 +1775,12 @@ class Data(DataContainer):
         mch_count_ph_in_bursts = _get_mch_count_ph_in_bursts_func(pure_python)
 
         if not self.ALEX:
-            nt = [b_size(b).astype(float) if b.size > 0 else np.array([])
+            nt = [b.size.astype(float) if b.num_bursts > 0 else np.array([])
                   for b in self.mburst]
             A_em = [self.get_A_em(ich) for ich in range(self.nch)]
             if isinstance(A_em[0], slice):
                 # This is to support the case of A-only or D-only data
-                n0 = [np.zeros(mb.shape[0]) for mb in self.mburst]
+                n0 = [np.zeros(mb.num_bursts) for mb in self.mburst]
                 if A_em[0] == slice(None):
                     nd, na = n0, nt    # A-only case
                 elif A_em[0] == slice(0):
@@ -2209,7 +2188,7 @@ class Data(DataContainer):
         Each element of the returned array is multiplied by `chi_ch`.
         """
         gamma = self.gamma
-        G = np.r_[[gamma]*self.nch] if np.size(gamma) == 1 else gamma
+        G = np.repeat(gamma, self.nch) if np.size(gamma) == 1 else gamma
         G *= self.chi_ch
         return G
 

@@ -47,13 +47,15 @@ import pandas as pd
 pd.set_option('display.max_rows', 10)
 
 from fretbursts.utils.misc import pprint
+from burstsearchlib_c import bsearch_c, count_ph_in_bursts_c, mch_count_ph_in_bursts_c
 
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  LOW-LEVEL BURST SEARCH FUNCTIONS
 #
 
-def bsearch_py_old(times, L, m, T, label='Burst search', verbose=True):
+def bsearch1(times, L, m, T, slice_=None,
+             label='Burst search', verbose=True):
     """Sliding window burst search. Pure python implementation.
 
     Finds bursts in the array `t` (int64). A burst starts when the photon rate
@@ -68,69 +70,20 @@ def bsearch_py_old(times, L, m, T, label='Burst search', verbose=True):
             (or counts) < L are discarded.
         m (int): number of consecutive photons used to compute the rate.
         T (float): max time separation of `m` photons to be inside a burst
+        slice (tuple): 2-element tuple used to slice times
         label (string): a label printed when the function is called
         verbose (bool): if False, the function does not print anything.
 
     Returns:
-        2D array of burst data, one row per burst, shape (N, 6), type int64.
-        Each row contains (in the order): time of burst start, burst duration,
-        number of photons, index of start time, time of burst end.
-        To extract burst information it's safer to use the utility functions
-        `b_*` (i.e. :func:`b_start`, :func:`b_size`, :func:`b_width`, etc...).
-    """
-    if verbose: pprint('Python search (v): %s\n' % label)
-
-    bursts = []
-    in_burst = False
-    above_min_rate = (times[m-1:] - times[:times.size-m+1]) <= T
-    for i in range(times.size-m+1):
-        if above_min_rate[i]:
-            if not in_burst:
-                i_start = i
-                in_burst = True
-        elif in_burst:
-            # Note that i_end is the index of the last ph in the current time
-            # window, while the last ph in a burst is (i_end-1).
-            # Note however that the number of ph in a burst is (i_end-i_start),
-            # not (i_end-1)-i_start as may erroneously appears at first glace.
-            in_burst = False
-            i_end = i + m - 1
-            if i_end - i_start >= L:
-                burst_start, burst_end = times[i_start], times[i_end-1]
-                bursts.append([burst_start, burst_end-burst_start,
-                               i_end-i_start, i_start, i_end-1, burst_end])
-    return np.array(bursts, dtype=np.int64)
-
-def bsearch(times, L, m, T, slice_=None,
-                 label='Burst search', verbose=True, out=None):
-    """Sliding window burst search. Pure python implementation.
-
-    Finds bursts in the array `t` (int64). A burst starts when the photon rate
-    is above a minimum threshold, and ends when the rate falls below the same
-    threshold. The rate-threshold is defined by the ratio `m`/`T` (`m` photons
-    in a time interval `T`). A burst is discarded if it has less than `L`
-    photons.
-
-    Arguments:
-        t (array, int64): array of timestamps on which to perform the search
-        L (int): minimum number of photons in a bursts. Bursts with size
-            (or counts) < L are discarded.
-        m (int): number of consecutive photons used to compute the rate.
-        T (float): max time separation of `m` photons to be inside a burst
-        label (string): a label printed when the function is called
-        verbose (bool): if False, the function does not print anything.
-
-    Returns:
-        List of burst data tuples, one 4-tuple per burst, type int64.
+        Array of burst data Nx4, type int64.
     """
     if verbose:
         pprint('Python search (v): %s\n' % label)
     if slice_ is not None:
         times = times[slice_[0]:slice_[1]]
         i_time0 = slice_[0]
-    if out is None:
-        out = []
 
+    bursts = []
     max_index = times.size-m+1
     above_min_rate = ((times[m-1:] - times[:max_index]) <= T)[:max_index]
 
@@ -143,14 +96,13 @@ def bsearch(times, L, m, T, slice_=None,
             if not above_min_rate_: break
         i_stop = i + m - 2  # index of last ph in burst
 
-        start = times[i_start]
-        stop = times[i_stop]
-        if slice_ is not None:
-            i_start += i_time0
-            i_stop += i_time0
-        out.append((i_start, i_stop, start, stop))
+        bursts.append((i_start, i_stop, times[i_start], times[i_stop]))
 
-    return out
+    bursts = np.array(bursts, dtype='int64')
+    bursts[:, :2] += i_time0
+    return bursts
+
+bsearch_py = bsearch
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  Functions to count D and A photons in bursts
@@ -174,7 +126,7 @@ def mch_count_ph_in_bursts_py(Mburst, Mask):
         A list of 1D array, each containing the number of photons
         in each burst counting only photons in the selection mask.
     """
-    return [bursts.count_ph_in_bursts(mask).astype(float)
+    return [bursts.count_ph_in_bursts(mask)
             for bursts, mask in zip(Mburst, Mask)]
 
 
@@ -190,13 +142,13 @@ def mch_count_ph_in_bursts_py(Mburst, Mask):
 #    bsearch = bsearch_py
 #    print(" - Fallback to pure python burst search.")
 
-try:
-    from burstsearchlib_c import mch_count_ph_in_bursts_c
-    mch_count_ph_in_bursts = mch_count_ph_in_bursts_c
-    print(" - Optimized (cython) photon counting loaded.")
-except ImportError:
-    mch_count_ph_in_bursts = mch_count_ph_in_bursts_py
-    print(" - Fallback to pure python photon counting.")
+#try:
+#    from burstsearchlib_c import mch_count_ph_in_bursts_c
+#    mch_count_ph_in_bursts = mch_count_ph_in_bursts_c
+#    print(" - Optimized (cython) photon counting loaded.")
+#except ImportError:
+#    mch_count_ph_in_bursts = mch_count_ph_in_bursts_py
+#    print(" - Fallback to pure python photon counting.")
 
 ##
 #  Additional functions processing burst data
