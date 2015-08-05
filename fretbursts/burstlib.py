@@ -412,7 +412,7 @@ def mch_fuse_bursts(MBurst, ms=0, clk_p=12.5e-9, verbose=True):
     for mb in mburst:
         ch += 1
         pprint(" - - - - - CHANNEL %2d - - - - \n" % ch, -verbose)
-        if mb.size == 0:
+        if mb.num_bursts == 0:
             continue
         new_bursts = fuse_bursts_iter(mb, ms=ms, clk_p=clk_p, verbose=verbose)
         new_mburst.append(new_bursts)
@@ -1775,7 +1775,7 @@ class Data(DataContainer):
         mch_count_ph_in_bursts = _get_mch_count_ph_in_bursts_func(pure_python)
 
         if not self.ALEX:
-            nt = [b.size.astype(float) if b.num_bursts > 0 else np.array([])
+            nt = [b.counts.astype(float) if b.num_bursts > 0 else np.array([])
                   for b in self.mburst]
             A_em = [self.get_A_em(ich) for ich in range(self.nch)]
             if isinstance(A_em[0], slice):
@@ -2225,7 +2225,7 @@ class Data(DataContainer):
         """
         sbr = []
         for ich, mb in enumerate(self.mburst):
-            if mb.size == 0:
+            if mb.num_bursts == 0:
                 sbr.append([])
                 continue  # if no bursts skip this ch
             nd, na, bg_d, bg_a = self.expand(ich)

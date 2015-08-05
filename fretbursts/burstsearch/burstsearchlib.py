@@ -391,13 +391,13 @@ class Bursts():
         return self.stop - self.start
 
     @property
-    def size(self):
+    def counts(self):
         return self.istop - self.istart + 1
 
     @property
     def ph_rate(self):
         """Photon rate in burst (tot size/duration)"""
-        return self.size / self.width
+        return self.counts / self.width
 
     @property
     def separation(self):
