@@ -300,15 +300,15 @@ def burst_data(dx, ich=0, include_bg=False, include_ph_index=False):
         nd, na, bg_d, bg_a, wid = dx.expand(ich=ich, width=True)
         nt = nd + na
 
-    size_raw = burstlib.b_size(dx.mburst[ich])
-    t_start = burstlib.b_start(dx.mburst[ich])*dx.clk_p
-    t_end = burstlib.b_end(dx.mburst[ich])*dx.clk_p
-    i_start = burstlib.b_istart(dx.mburst[ich])
-    i_end = burstlib.b_iend(dx.mburst[ich])
-    asym = asymmetry(dx, dropnan=False)
+    size_raw = dx.mburst[ich].counts
+    t_start = dx.mburst[ich].start*dx.clk_p
+    t_end = dx.mburst[ich].stop*dx.clk_p
+    i_start = dx.mburst[ich].istart
+    i_end = dx.mburst[ich].istop
+    #asym = asymmetry(dx, dropnan=False)
 
     data_dict = dict(size_raw=size_raw, nt=nt, width_ms=wid*1e3,
-                     t_start=t_start, t_end=t_end, asymmetry=asym)
+                     t_start=t_start, t_end=t_end)#, asymmetry=asym)
 
     if include_ph_index:
         data_dict.update(i_start=i_start, i_end=i_end)
@@ -749,7 +749,7 @@ def get_burst_photons(d, ich=0, ph_sel=Ph_sel('all')):
         A list of arrays of photon timestamps (one array per burst).
     """
     bursts = d.mburst[ich]
-    i_start, i_end = burstlib.b_istart(bursts), burstlib.b_iend(bursts)
+    i_start, i_end = bursts.istart, bursts.istop
 
     ph_times = d.get_ph_times(ich)
     burst_slices = [slice(i1, i2 + 1) for i1, i2 in zip(i_start, i_end)]
