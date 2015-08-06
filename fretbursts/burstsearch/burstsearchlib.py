@@ -342,6 +342,13 @@ class Bursts():
     def num_bursts(self):
         return self.data.shape[0]
 
+    def join(self, bursts, sort=False):
+        joindata = np.vstack([self.data, bursts.data])
+        if sort:
+            indexsort = joindata[:, 0].argsort()
+            joindata[indexsort]
+        return Bursts(joindata)
+
     ##
     ## Burst data attributes/properties
     ##
