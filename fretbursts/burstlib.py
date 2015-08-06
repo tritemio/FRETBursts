@@ -1660,14 +1660,11 @@ class Data(DataContainer):
         """
         assert isinstance(ph_sel, Ph_sel) and ph_sel != Ph_sel('all')
         pprint(' - Fixing  burst data to refer to ph_times_m ... ', mute)
-        new_mburst = []
+
         for bursts, mask in zip(self.mburst,
                                 self.iter_ph_masks(ph_sel=ph_sel)):
-            new_mburst.append(bursts.recompute_index_expand(mask))
+            bursts.recompute_index_expand(mask)
 
-        for old_bursts, new_bursts in zip(self.mburst, new_mburst):
-            assert (new_bursts.istart >= old_bursts.istart).all()
-            assert (new_bursts.istop >= old_bursts.istop).all()
         pprint('[DONE]\n', mute)
 
     def burst_search(self, L=None, m=10, P=None, F=6., min_rate_cps=None,

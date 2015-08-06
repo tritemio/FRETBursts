@@ -432,11 +432,11 @@ class Bursts():
     def recompute_index_expand(self, mask):
         """Recompute istart and istop from selection `mask` to full timestamps.
 
-        This method returns a new Bursts object with same start and stop times
-        and recomputed istart and istop. Old istart, istop are assumed to
-        be index of a reduced array `timestamps[mask]`. New istart, istop
-        are computed to be index of a "full" timestamps array of size
-        `mask.size`.
+        This modifies the Bursts object inplace recomputing istart and istop.
+        Old istart, istop are assumed to be index of a reduced array
+        `timestamps[mask]`.
+        New istart, istop are computed to be index of a "full" timestamps
+        array of size `mask.size`.
 
         This is useful when performing burst search on a timestamps selection
         and we want to tranform the burst data to use the index of the "full"
@@ -449,11 +449,10 @@ class Bursts():
         Returns:
             A new Bursts object with recomputed istart/istop.
         """
-        newbursts = self.copy()
         index = np.arange(mask.size, dtype=np.int32)
-        newbursts.istart = index[mask][self.istart]
-        newbursts.istop = index[mask][self.istop]
-        return newbursts
+        self.istart = index[mask][self.istart]
+        self.istop = index[mask][self.istop]
+        return self
 
     def recompute_index_reduce(self, mask):
         """Recompute istart and istop on reduced timestamps selected by `mask`.
