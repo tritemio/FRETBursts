@@ -174,89 +174,24 @@ except ImportError:
     mch_count_ph_in_bursts = mch_count_ph_in_bursts_py
     print(" - Fallback to pure python photon counting.")
 
-##
-#  Additional functions processing burst data
 
-def burst_and(bursts_d, bursts_a):
-    """From 2 burst arrays return bursts defined as intersection (AND rule).
 
-    The two input burst-arrays come from 2 different burst searches.
-    Returns new bursts representing the overlapping bursts in the 2 inputs
-    with start and stop defined as intersection (or AND) operator.
+def bursts_from_list(burst_list):
+    has_gap = hasattr(burst_list[0], 'gap')
 
-    The format of both input and output arrays is "burst-array" as returned
-    by :func:`bsearch_py`.
+    if has_gap:
+        bursts = BurstsGap(np.zeros((len(burst_list), 4), dtype=np.int64))
+        bursts.gap = np.zeros(len(burst_list), dtype=np.int32)
+        bursts.gap_counts = np.zeros(len(burst_list), dtype=np.int32)
+    else:
+        bursts = Bursts(np.zeros((len(burst_list), 4), dtype=np.int64))
 
-    Arguments:
-        bursts_d (array): burst array-1
-        bursts_a (array): burst array 2. The number of burst in each of the
-            input array can be different.
-
-    Returns:
-        Burst-array representing the intersection (AND) of overlapping bursts.
-    """
-    bstart_d, bend_d = b_start(bursts_d), b_end(bursts_d)
-    bstart_a, bend_a = b_start(bursts_a), b_end(bursts_a)
-
-    bursts = []
-    burst0 = np.zeros(6, dtype=np.int64)
-    i_d, i_a = 0, 0
-    while i_d < bursts_d.shape[0] and i_a < bursts_a.shape[0]:
-        # Skip any disjoint burst
-        if bend_a[i_a] < bstart_d[i_d]:
-            i_a += 1
-            continue
-        if bend_d[i_d] < bstart_a[i_a]:
-            i_d += 1
-            continue
-
-        # Assign start and stop according the AND rule
-        if bstart_a[i_a] < bstart_d[i_d] < bend_a[i_a]:
-            start_burst = bursts_d[i_d]
-        elif bstart_d[i_d] < bstart_a[i_a] < bend_d[i_d]:
-            start_burst = bursts_a[i_a]
-
-        if bend_d[i_d] < bend_a[i_a]:
-            end_burst = bursts_d[i_d]
-            i_d += 1
-        else:
-            end_burst = bursts_a[i_a]
-            i_a += 1
-
-        burst = burst0.copy()
-        burst[itstart] = start_burst[itstart]
-        burst[iistart] = start_burst[iistart]
-        burst[itend] = end_burst[itend]
-        burst[iiend] = end_burst[iiend]
-
-        # Compute new width and size
-        burst[iwidth] = burst[itend] - burst[itstart]
-        burst[inum_ph] = burst[iiend] - burst[iistart] + 1
-
-        bursts.append(burst)
-
-    return np.vstack(bursts)
-
-def recompute_burst_times(bursts, times):
-    """Recomputes start, stop and width applying index data to `times`.
-
-    This function computes burst start, stop and width using the index of
-    timestamps in `bursts` and and using `times` as timestamps array.
-
-    Arguments:
-        bursts (array): input burst array
-        times (array): array of photon timestamps
-
-    Returns:
-        A new burst array with recomputed "time" data.
-    """
-    newbursts = bursts.copy()
-    for i, burst in enumerate(bursts):
-        newbursts[i] = burst
-        newbursts[i, itstart] = times[burst[iistart]]
-        newbursts[i, itend] = times[burst[iiend]]
-        newbursts[i, iwidth] = newbursts[i, itend] - newbursts[i, itstart]
-    return newbursts
+    for i, burst in enumerate(burst_list):
+        bursts.istart[i], bursts.istop[i] = burst.istart, burst.istop
+        bursts.start[i], bursts.stop[i] = burst.start, burst.stop
+        if has_gap:
+            bursts.gap[i], bursts.gap_counts[i] = burst.gap, burst.gap_counts
+    return bursts
 
 
 class Burst(namedtuple('Burst', ['istart', 'istop', 'start', 'stop'])):
@@ -266,14 +201,31 @@ class Burst(namedtuple('Burst', ['istart', 'istop', 'start', 'stop'])):
         return self.stop - self.start
 
     @property
-    def size(self):
+    def counts(self):
         return self.istop - self.istart + 1
 
     @property
     def ph_rate(self):
         """Photon rate in burst (tot size/duration)"""
-        return self.size / self.width
+        return self.counts / self.width
 
+
+class BurstGap(namedtuple('BurstGap',
+                          'istart istop start stop gap gap_counts')):
+    __slots__ = ()
+    @staticmethod
+    def from_burst(burst):
+        return BurstGap(start=burst.start, stop=burst.stop,
+                        istart=burst.istart, istop=burst.istop,
+                        gap=0, gap_counts=0)
+
+    @property
+    def width(self):
+        return self.stop - self.start - self.gap
+
+    @property
+    def counts(self):
+        return self.istop - self.istart + 1 - self.gap_counts
 
 class Bursts():
     """A container for burst data.
@@ -348,6 +300,7 @@ class Bursts():
             indexsort = joindata[:, 0].argsort()
             joindata[indexsort]
         return Bursts(joindata)
+
 
     ##
     ## Burst data attributes/properties
@@ -573,9 +526,9 @@ class BurstsGap(Bursts):
         return width
 
     @property
-    def size(self):
-        size = self.istop - self.istart + 1
+    def counts(self):
+        counts = self.istop - self.istart + 1
         if self.gap_counts is not None:
-            size -= self.gap_counts
-        return size
+            counts -= self.gap_counts
+        return counts
 

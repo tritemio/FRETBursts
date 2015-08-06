@@ -432,9 +432,9 @@ def test_burst_fuse(data):
     """Test 2 independent implementations of fuse_bursts for consistency.
     """
     d = data
-    for mb in d.mburst:
-        new_mbursti = bl.fuse_bursts_iter(mb, ms=1)
-        new_mburstd = bl.fuse_bursts_direct(mb, ms=1)
+    for bursts in d.mburst:
+        new_mbursti = bl.fuse_bursts_iter(bursts, ms=1)
+        new_mburstd = bl.fuse_bursts_direct(bursts, ms=1)
         assert (new_mbursti == new_mburstd).all()
 
 def test_burst_fuse_0ms(data):
@@ -446,17 +446,17 @@ def test_burst_fuse_0ms(data):
     df = d.fuse_bursts(ms=0)
     for ich, bursts in enumerate(df.mburst):
         mask = bl.ph_in_bursts_mask(df.ph_data_sizes[ich], bursts)
-        assert mask.sum() == bl.b_size(bursts).sum()
+        assert mask.sum() == bursts.counts.sum()
 
 def test_burst_fuse_separation(data):
     """Test that after fusing bursts the minimum separation is equal
-    to the threshold usied during fusing.
+    to the threshold used during fusing.
     """
     d = data
     fuse_ms = 2
     df = d.fuse_bursts(ms=fuse_ms)
-    for mb in df.mburst:
-        separation = bl.b_separation(mb)*df.clk_p
+    for bursts in df.mburst:
+        separation = bursts.separation*df.clk_p
         assert separation.min() >= fuse_ms*1e-3
 
 def test_calc_sbr(data):

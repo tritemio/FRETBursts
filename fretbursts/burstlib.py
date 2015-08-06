@@ -239,7 +239,7 @@ def b_rate_max(ph_data, bursts, m, mask=None, compact=False,
     return np.asfarray(burst_rates)  # NOTE: np.asfarray converts None to nan
 
 
-def fuse_bursts_direct(mburst, ms=0, clk_p=12.5e-9, verbose=True):
+def fuse_bursts_direct(bursts, ms=0, clk_p=12.5e-9, verbose=True):
     """Fuse bursts separated by less than `ms` (milli-secs).
 
     This function is a direct implementation using a single loop.
@@ -259,47 +259,49 @@ def fuse_bursts_direct(mburst, ms=0, clk_p=12.5e-9, verbose=True):
     """
     max_delay_clk = (ms*1e-3)/clk_p
 
-    fused_bursts = []
+    fused_bursts_list = []
     fused_burst = None
-    for burst1, burst2 in zip(mburst[:-1], mburst[1:]):
+    for burst1, burst2 in zip(bursts[:-1], bursts[1:]):
         if fused_burst is not None:
             burst1c = fused_burst
         else:
-            burst1c = burst1
+            burst1c = bslib.BurstGap.from_burst(burst1)
 
         separation = burst2.start - burst1c.stop
         if separation <= max_delay_clk:
-            fb_tstart = burst1c.start
-            fb_istart = burst1c.istart
-            fb_tend = burst2.stop
-            fb_iend = burst2.istop
-            #fb_width = burst1c[iwidth] + burst2[iwidth]
-            #fb_num_ph = burst1c[inum_ph] + burst2[inum_ph]
+            gap = burst2.start - burst1c.stop
+            gap_counts = burst2.istart - burst1c.istop - 1
             if burst1c.istop >= burst2.istart:
-                n_overlap_ph = burst1c.istop - burst2.istart + 1
-                gap_counts = n_overlap_ph
-                t_overlap = burst1c.stop - burst2.start
-                gap =  t_overlap
-            fused_burst = [fb_tstart, gap, gap_counts,
-                           fb_istart, fb_iend, fb_tend]
+                gap = 0
+                gap_counts = 0
+
+            fused_burst = bslib.BurstGap(
+                start = burst1c.start,
+                istart = burst1c.istart,
+                stop = burst2.stop,
+                istop = burst2.istop,
+                gap = burst1c.gap + gap,
+                gap_counts = burst1c.gap_counts + gap_counts)
         else:
             if fused_burst is not None:
-                fused_bursts.append(fused_burst)
+                fused_bursts_list.append(fused_burst)
                 fused_burst = None
             else:
-                fused_bursts.append(burst1c)
+                fused_bursts_list.append(bslib.BurstGap.from_burst(burst1c))
 
     # Append the last bursts (either a fused one or isolated)
     if fused_burst is not None:
-        fused_bursts.append(fused_burst)
+        fused_bursts_list.append(fused_burst)
     else:
-        fused_bursts.append(burst2)
+        fused_bursts_list.append(bslib.BurstGap.from_burst(burst2))
 
-    init_nburst = mburst.num_bursts
-    delta_b = init_nburst - len(fused_bursts)
+    fused_bursts = bslib.bursts_from_list(fused_bursts_list)
+
+    init_num_bursts = bursts.num_bursts
+    delta_b = init_num_bursts - fused_bursts.num_bursts
     pprint(" --> END Fused %d bursts (%.1f%%)\n\n" %\
-            (delta_b, 100.*delta_b/init_nburst), mute=-verbose)
-    return np.array(fused_bursts)
+            (delta_b, 100.*delta_b/init_num_bursts), mute=not verbose)
+    return fused_bursts
 
 def fuse_bursts_iter(bursts, ms=0, clk_p=12.5e-9, verbose=True):
     """Fuse bursts separated by less than `ms` (milli-secs).
@@ -328,9 +330,9 @@ def fuse_bursts_iter(bursts, ms=0, clk_p=12.5e-9, verbose=True):
         nburst = bursts.num_bursts
         bursts = b_fuse(bursts, ms=ms, clk_p=clk_p)
         new_nburst = bursts.num_bursts
-    delta_b = init_nburst-nburst
+    delta_b = init_nburst - nburst
     pprint(" --> END Fused %d bursts (%.1f%%, %d iter)\n\n" %\
-            (delta_b, 100.*delta_b/init_nburst, z), mute=-verbose)
+            (delta_b, 100.*delta_b/init_nburst, z), mute=not verbose)
     return bursts
 
 def b_fuse(mburst, ms=0, clk_p=12.5e-9):
@@ -401,10 +403,10 @@ def mch_fuse_bursts(MBurst, ms=0, clk_p=12.5e-9, verbose=True):
     ch = 0
     for mb in mburst:
         ch += 1
-        pprint(" - - - - - CHANNEL %2d - - - - \n" % ch, -verbose)
+        pprint(" - - - - - CHANNEL %2d - - - - \n" % ch,  not verbose)
         if mb.num_bursts == 0:
             continue
-        new_bursts = fuse_bursts_iter(mb, ms=ms, clk_p=clk_p, verbose=verbose)
+        new_bursts = fuse_bursts_direct(mb, ms=ms, clk_p=clk_p, verbose=verbose)
         new_mburst.append(new_bursts)
     return new_mburst
 
