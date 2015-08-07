@@ -370,8 +370,8 @@ class Bursts():
 
         This is useful, for example, when burst search is computed on a
         "compacted" timestamps array (i.e. removing the gaps outside the
-        alternation period in usALEX experiments) and the "read" start and
-        stop times need to be recomputed.
+        alternation period in usALEX experiments), and afterwards the "real"
+        start and stop times need to be recomputed.
 
         Arguments:
             times (array): array of photon timestamps
@@ -420,7 +420,7 @@ class Bursts():
         be index of a "full" timestamps array of size `mask.size`. New istart,
         istop are computed to be index of a reduced array `timestamps[mask]`.
 
-        Note that it is required that all the start and stop times are
+        Note: it is required that all the start and stop times are
         also contained in the reduced timestamps selection.
 
         Arguments:
