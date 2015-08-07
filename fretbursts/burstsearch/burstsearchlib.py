@@ -179,12 +179,8 @@ except ImportError:
 def bursts_from_list(burst_list):
     has_gap = hasattr(burst_list[0], 'gap')
 
-    if has_gap:
-        bursts = BurstsGap(np.zeros((len(burst_list), 4), dtype=np.int64))
-        bursts.gap = np.zeros(len(burst_list), dtype=np.int32)
-        bursts.gap_counts = np.zeros(len(burst_list), dtype=np.int32)
-    else:
-        bursts = Bursts(np.zeros((len(burst_list), 4), dtype=np.int64))
+    ncols = 6 if has_gap else 4
+    bursts = BurstsGap(np.zeros((len(burst_list), ncols), dtype=np.int64))
 
     for i, burst in enumerate(burst_list):
         bursts.istart[i], bursts.istop[i] = burst.istart, burst.istop
@@ -259,10 +255,10 @@ class Bursts():
     ## Basic interface
     ##
     def copy(self):
-        return Bursts(self.data.copy())
+        return self.__class__(self.data.copy())
 
     def __getitem__(self, i):
-        return Bursts(self.data[i])
+        return self.__class__(self.data[i])
 
     def __iter__(self):
         for bdata in self.data:
@@ -299,8 +295,7 @@ class Bursts():
         if sort:
             indexsort = joindata[:, 0].argsort()
             joindata[indexsort]
-        return Bursts(joindata)
-
+        return self.__class__(joindata)
 
     ##
     ## Burst data attributes/properties
@@ -507,28 +502,43 @@ class BurstsGap(Bursts):
     for gaps inside bursts.
 
     """
-    def __init__(self, *args, **kwargs):
-        super(BurstsGap, self).__init__(*args, **kwargs)
-        self.gap = None
-        self.gap_counts = None
+    _i_gap, _i_gap_counts = 4, 5
 
-    def _set_data(self, column, values):
-        super(BurstsGap, self)._set_data(column, values)
-        if hasattr(self, '_gap'):
-            print('WARNING: Resetting gap data.')
-            self._gap_reset()
+    def __init__(self, data):
+        if data.shape[1] == 4:
+            datag = np.zeros((data.shape[0], 6), dtype=np.int64)
+            datag[:, :4] = data
+            data = datag
+        super(BurstsGap, self).__init__(data)
+
+    def __iter__(self):
+        for bdata in self.data:
+           yield BurstGap(bdata[0], bdata[1], bdata[2], bdata[3],
+                           bdata[4], bdata[5])
+
+    @property
+    def gap(self):
+        """Time gap inside a burst"""
+        return self.data[:, BurstsGap._i_gap]
+
+    @gap.setter
+    def gap(self, value):
+        self._set_data(BurstsGap._i_gap, value)
+
+    @property
+    def gap_counts(self):
+        """Time gap inside a burst"""
+        return self.data[:, BurstsGap._i_gap_counts]
+
+    @gap_counts.setter
+    def gap_counts(self, value):
+        self._set_data(BurstsGap._i_gap_counts, value)
 
     @property
     def width(self):
-        width = self.stop - self.start
-        if self.gap is not None:
-            width -= self.gap
-        return width
+        return self.stop - self.start - self.gap
 
     @property
     def counts(self):
-        counts = self.istop - self.istart + 1
-        if self.gap_counts is not None:
-            counts -= self.gap_counts
-        return counts
+        return self.istop - self.istart + 1 - self.gap_counts
 
