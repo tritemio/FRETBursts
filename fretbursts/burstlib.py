@@ -324,6 +324,7 @@ def fuse_bursts_iter(bursts, ms=0, clk_p=12.5e-9, verbose=True):
 
     z = 0
     init_nburst = bursts.num_bursts
+    bursts = bslib.BurstsGap(bursts.data)
     new_nburst, nburst = 0, 1  # starting condition
     while new_nburst < nburst:
         z += 1
@@ -335,7 +336,7 @@ def fuse_bursts_iter(bursts, ms=0, clk_p=12.5e-9, verbose=True):
             (delta_b, 100.*delta_b/init_nburst, z), mute=not verbose)
     return bursts
 
-def b_fuse(mburst, ms=0, clk_p=12.5e-9):
+def b_fuse(bursts, ms=0, clk_p=12.5e-9):
     """Fuse bursts separated by less than `ms` (milli-secs).
 
     This is a low-level function that only fuses 2 consecutive bursts
@@ -357,42 +358,29 @@ def b_fuse(mburst, ms=0, clk_p=12.5e-9):
     """
     max_delay_clk = (ms*1e-3)/clk_p
     # Nearby bursts masks
-    delays = (mburst.separation <= max_delay_clk)
-    first_burst = np.hstack([delays, (False,)])
-    second_burst = np.hstack([(False,), delays])
+    delays = (bursts.separation <= max_delay_clk)
+    first_bursts = np.hstack([delays, (False,)])
+    second_bursts = np.hstack([(False,), delays])
     # Maintain just the 1st in case there were more than 2 consecutive bursts
-    first_burst ^= (second_burst*first_burst)
-    second_burst = np.hstack([(False,), first_burst[:-1]])
-    both_burst = first_burst + second_burst
+    first_bursts ^= (second_bursts*first_bursts)
+    second_bursts = np.hstack([(False,), first_bursts[:-1]])
+    both_bursts = first_bursts + second_bursts
 
-    # istart is from the first bursts, iend is from the second burst
-    fused_burst1 = mburst[first_burst]
-    fused_burst2 = mburst[second_burst]
+    # istart is from the first bursts, istop is from the second burst
+    fused_bursts1 = bursts[first_bursts]
+    fused_bursts2 = bursts[second_bursts]
 
-    overlap = fused_burst1.istop - fused_burst2.istart + 1
-    # NOTE: overlap == 0 means touching but not overlapping bursts, if ph[i] is
-    #       the last ph of burst1 ph[i+1] is the first ph of burst2
-    overlap[overlap < 0] = 0
-
-    width = fused_burst1.width + fused_burst2.width
-    t_overlap = fused_burst1.stop - fused_burst2.start
-    #assert (t_overlap[overlap > 0] >= 0).all()
-    #assert (t_overlap[overlap == 1] == 0).all()
-    width[overlap > 0] -= t_overlap[overlap > 0]
-    #[2] width[overlap_non_neg] -= t_overlap[overlap_non_neg]
-    # NOTE for [2]: overlap_non_neg includes also cases of overlap==0 for which
-    #       t_overlap is negative, it's an arbitrary choice if in this case we
-    #       should add (s2-e1) = -t_overlap to the new width. See paper notes.
-    #assert (width <= (b_width(fused_burst1) + b_width(fused_burst2))).all()
+    gap = fused_bursts2.start - fused_bursts1.stop
+    gap_counts = fused_bursts2.istart - fused_bursts1.istop - 1
 
     # Assign the new burst data
-    # fused_burst1 has alredy the right tstart and istart
-    #fused_burst1[:, inum_ph] = num_ph
-    #fused_burst1[:, iwidth] = width
-    fused_burst1.istop = fused_burst2.istop
-    fused_burst1.stop = fused_burst2.stop
+    # fused_bursts1 has alredy the right start and istart
+    fused_bursts1.istop = fused_bursts2.istop
+    fused_bursts1.stop = fused_bursts2.stop
+    fused_bursts1.gap += gap
+    fused_bursts1.gap_counts += gap_counts
 
-    new_burst = fused_burst1.join(mburst[~both_burst], sort=True)
+    new_burst = fused_bursts1.join(bursts[~both_bursts], sort=True)
     return new_burst
 
 def mch_fuse_bursts(MBurst, ms=0, clk_p=12.5e-9, verbose=True):
