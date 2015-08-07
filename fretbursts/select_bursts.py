@@ -133,7 +133,7 @@ def width(d, ich=0, th1=0.5, th2=np.inf):
     """Select bursts with width between th1 and th2 (ms)."""
     assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
     th1, th2 = th1*1e-3/d.clk_p, th2*1e-3/d.clk_p
-    burst_width = bslib.b_width(d.mburst[ich])
+    burst_width = d.mburst[ich].width
     bursts_mask = (burst_width >= th1)*(burst_width <= th2)
     return bursts_mask, ''
 
@@ -215,9 +215,9 @@ def topN_sbr(d, ich=0, N=200):
 def single(d, ich=0, th=1):
     """Select bursts that are at least th millisec apart from the others."""
     th = th*1e-3/d.clk_p
-    burst_start = bslib.b_start(d.mburst[ich])
-    burst_end = bslib.b_end(d.mburst[ich])
-    gap_mask = (burst_start[1:] - burst_end[:-1]) >= th
+    burst_start = d.mburst[ich].start
+    burst_stop = d.mburst[ich].stop
+    gap_mask = (burst_start[1:] - burst_stop[:-1]) >= th
     bursts_mask = np.hstack([gap_mask,False])*np.hstack([False,gap_mask])
     return bursts_mask, ''
 
@@ -234,7 +234,7 @@ def consecutive(d, ich=0, th1=0, th2=np.inf, kind='both'):
     assert kind in kind_valids, \
         "Invalid value for 'kind'. Valid values are %s" % str(kind_valids)
 
-    bseparation = bslib.b_separation(d.mburst[ich])*d.clk_p
+    bseparation = d.mburst[ich].separation*d.clk_p
     pair_mask = (bseparation >= th1)*(bseparation <= th2)
 
     bursts_mask = np.zeros(d.num_bursts[ich], dtype=bool)
@@ -247,25 +247,25 @@ def consecutive(d, ich=0, th1=0, th2=np.inf, kind='both'):
 ## Selection on burst size vs BG
 def nd_bg(d, ich=0, F=5):
     """Select bursts with (nd >= bg_dd*F)."""
-    bg_burst = d.bg_dd[ich][d.bp[ich]]*bslib.b_width(d.mburst[ich])*d.clk_p
+    bg_burst = d.bg_dd[ich][d.bp[ich]] * d.mburst[ich].width * d.clk_p
     bursts_mask = (d.nd[ich] >= F*bg_burst)
     return bursts_mask, ''
 
 def na_bg(d, ich=0, F=5):
     """Select bursts with (na >= bg_ad*F)."""
-    bg_burst = d.bg_ad[ich][d.bp[ich]]*bslib.b_width(d.mburst[ich])*d.clk_p
+    bg_burst = d.bg_ad[ich][d.bp[ich]] * d.mburst[ich].width * d.clk_p
     bursts_mask = (d.na[ich] >= F*bg_burst)
     return bursts_mask, ''
 
 def naa_bg(d, ich=0, F=5):
     """Select bursts with (naa >= bg_aa*F)."""
-    bg_burst = d.bg_aa[ich][d.bp[ich]]*bslib.b_width(d.mburst[ich])*d.clk_p
+    bg_burst = d.bg_aa[ich][d.bp[ich]] * d.mburst[ich].width * d.clk_p
     bursts_mask = (d.naa[ich] >= F*bg_burst)
     return bursts_mask, ''
 
 def nt_bg(d, ich=0, F=5):
     """Select bursts with (nt >= bg*F)."""
-    bg_burst = d.bg[ich][d.bp[ich]]*bslib.b_width(d.mburst[ich])*d.clk_p
+    bg_burst = d.bg[ich][d.bp[ich]] * d.mburst[ich].width * d.clk_p
     bursts_mask = (d.nt[ich] > F*bg_burst)
     return bursts_mask, ''
 
@@ -273,7 +273,7 @@ def nt_bg(d, ich=0, F=5):
 def na_bg_p(d, ich=0, P=0.05, F=1.):
     """Select bursts w/ AD signal using P{F*BG>=na} < P."""
     accept_ch_bg_rate = d.rate_ad[ich]
-    bursts_width = _clk_to_s(bslib.b_width(d.mburst[ich]))
+    bursts_width = _clk_to_s(d.mburst[ich].width)
     max_num_bg_ph = stats.poisson(F*accept_ch_bg_rate*bursts_width).isf(P)
     #print("Min num. ph = ",  max_num_bg_ph)
     bursts_mask = (d.na[ich] >= max_num_bg_ph)
@@ -282,7 +282,7 @@ def na_bg_p(d, ich=0, P=0.05, F=1.):
 def nd_bg_p(d, ich=0, P=0.05, F=1.):
     """Select bursts w/ DD signal using P{F*BG>=nd} < P."""
     donor_ch_bg_rate = d.rate_dd[ich]
-    bursts_width = _clk_to_s(bslib.b_width(d.mburst[ich]))
+    bursts_width = _clk_to_s(d.mburst[ich].width)
     max_num_bg_ph = stats.poisson(F*donor_ch_bg_rate*bursts_width).isf(P)
     #print("Min num. ph = ", max_num_bg_ph)
     bursts_mask = (d.nd[ich] >= max_num_bg_ph)
@@ -291,7 +291,7 @@ def nd_bg_p(d, ich=0, P=0.05, F=1.):
 def naa_bg_p(d, ich=0, P=0.05, F=1.):
     """Select bursts w/ AA signal using P{F*BG>=naa} < P."""
     A_em_ex_bg_rate = d.rate_aa[ich]
-    bursts_width = _clk_to_s(bslib.b_width(d.mburst[ich]))
+    bursts_width = _clk_to_s(d.mburst[ich].width)
     max_num_bg_ph = stats.poisson(F*A_em_ex_bg_rate*bursts_width).isf(P)
     #print("Min num. ph = ", max_num_bg_ph)
     bursts_mask = (d.naa[ich] >= max_num_bg_ph)
@@ -300,7 +300,7 @@ def naa_bg_p(d, ich=0, P=0.05, F=1.):
 def nt_bg_p(d, ich=0, P=0.05, F=1.):
     """Select bursts w/ signal using P{F*BG>=nt} < P."""
     bg_rate = d.rate_m[ich]
-    bursts_width = _clk_to_s(bslib.b_width(d.mburst[ich]))
+    bursts_width = _clk_to_s(d.mburst[ich].width)
     max_num_bg_ph = stats.poisson(F*bg_rate*bursts_width).isf(P)
     #print("Min num. ph = ", max_num_bg_ph)
     #print("burst width (ms) = ", bursts_width*1e3)
@@ -329,14 +329,14 @@ def nt_bg_p(d, ich=0, P=0.05, F=1.):
 
 def size_noise(d, ich=0, th=2):
     """Select bursts w/ size th times above the noise on both D and A ch."""
-    burst_width = bslib.b_width(d.mburst[ich])
+    burst_width = d.mburst[ich].width
     noise_d, noise_a = burst_width*d.rate_dd[ich], burst_width*d.rate_ad[ich]
     bursts_mask = (d.nd[ich] >= th*noise_d)*(d.na[ich] >= th*noise_a)
     return bursts_mask, ''
 
 def size_noise_or(d, ich=0, th=2):
     """Select bursts w/ size th times above the noise on D or A ch."""
-    burst_width = bslib.b_width(d.mburst[ich])
+    burst_width = d.mburst[ich].width
     noise_d, noise_a = burst_width*d.rate_dd[ich], burst_width*d.rate_ad[ich]
     bursts_mask = (d.nd[ich] >= th*noise_d)+(d.na[ich] >= th*noise_a)
     return bursts_mask, ''
