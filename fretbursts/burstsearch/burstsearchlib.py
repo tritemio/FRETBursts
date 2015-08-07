@@ -179,8 +179,14 @@ except ImportError:
 def bursts_from_list(burst_list):
     has_gap = hasattr(burst_list[0], 'gap')
 
-    ncols = 6 if has_gap else 4
-    bursts = BurstsGap(np.zeros((len(burst_list), ncols), dtype=np.int64))
+    if has_gap:
+        ncols = 6
+        BurstsCls = BurstsGap
+    else:
+        ncols = 4
+        BurstsCls = Bursts
+
+    bursts = BurstsCls(np.zeros((len(burst_list), ncols), dtype=np.int64))
 
     for i, burst in enumerate(burst_list):
         bursts.istart[i], bursts.istop[i] = burst.istart, burst.istop
@@ -458,27 +464,27 @@ class Bursts():
         Returns:
             Bursts object containing intersections (AND) of overlapping bursts.
         """
-        bstart_d, bend_d = self.start, self.end
-        bstart_a, bend_a = bursts2.start, bursts2.end
+        start_d, stop_d = self.start, self.stop
+        start_a, stop_a = bursts2.start, bursts2.stop
 
         bursts = []
         i_d, i_a = 0, 0
         while i_d < self.num_bursts and i_a < bursts2.num_bursts:
             # Skip any disjoint burst
-            if bend_a[i_a] < bstart_d[i_d]:
+            if stop_a[i_a] < start_d[i_d]:
                 i_a += 1
                 continue
-            if bend_d[i_d] < bstart_a[i_a]:
+            if stop_d[i_d] < start_a[i_a]:
                 i_d += 1
                 continue
 
             # Assign start and stop according the AND rule
-            if bstart_a[i_a] < bstart_d[i_d] < bend_a[i_a]:
+            if start_a[i_a] < start_d[i_d] < stop_a[i_a]:
                 start_burst = self[i_d]
-            elif bstart_d[i_d] < bstart_a[i_a] < bend_d[i_d]:
+            elif start_d[i_d] < start_a[i_a] < stop_d[i_d]:
                 start_burst = bursts2[i_a]
 
-            if bend_d[i_d] < bend_a[i_a]:
+            if stop_d[i_d] < stop_a[i_a]:
                 end_burst = self[i_d]
                 i_d += 1
             else:
@@ -491,7 +497,7 @@ class Bursts():
 
             bursts.append(burst)
 
-        return Bursts(np.vstack(bursts.data))
+        return bursts_from_list(bursts)
 
 
 class BurstsGap(Bursts):

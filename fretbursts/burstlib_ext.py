@@ -709,8 +709,8 @@ def burst_search_and_gate(dx, F=6, m=10, min_rate_cps=None,
                       ph_sel=ph_sel2, compact=compact, mute=mute)
 
     mburst_and = []
-    for mburst_d, mburst_a in zip(dx_d.mburst, dx_a.mburst):
-        mburst_and.append(bslib.burst_and(mburst_d, mburst_a))
+    for bursts_d, bursts_a in zip(dx_d.mburst, dx_a.mburst):
+        mburst_and.append(bursts_d.and_gate(bursts_a))
 
     dx_and.add(mburst=mburst_and)
 
