@@ -479,7 +479,7 @@ def test_expand(data):
     for ich, mb in enumerate(d.mburst):
         if mb.size == 0: continue  # if no bursts skip this ch
         nd, na, bg_d, bg_a, width = d.expand(ich, width=True)
-        width2 = bl.b_width(mb)*d.clk_p
+        width2 = mb.width*d.clk_p
         period = d.bp[ich]
         bg_d2 = d.bg_dd[ich][period] * width2
         bg_a2 = d.bg_ad[ich][period] * width2
@@ -496,9 +496,9 @@ def test_burst_corrections(data):
     leakage = d.get_leakage_array()
 
     for ich, mb in enumerate(d.mburst):
-        if mb.size == 0: continue  # if no bursts skip this ch
+        if mb.num_bursts == 0: continue  # if no bursts skip this ch
         nd, na, bg_d, bg_a, width = d.expand(ich, width=True)
-        burst_size_raw = bl.b_size(mb)
+        burst_size_raw = mb.counts
 
         lk = leakage[ich]
         if d.ALEX:
@@ -518,24 +518,24 @@ def test_burst_search_consistency(data):
     """
     d = data
     for mb, ph in zip(d.mburst, d.iter_ph_times()):
-        tot_size = bl.b_size(mb)
-        istart, istop = bl.b_istart(mb), bl.b_iend(mb)
+        tot_size = mb.counts
+        istart, istop = mb.istart, mb.istop
         assert np.all(tot_size == istop - istart + 1)
-        start, stop, width = bl.b_start(mb), bl.b_end(mb), bl.b_width(mb)
+        start, stop, width = mb.start, mb.stop, mb.width
         assert np.all(width == stop - start)
     df = d.fuse_bursts(ms=0)
     for mb, ph in zip(df.mburst, df.iter_ph_times()):
-        tot_size = bl.b_size(mb)
-        istart, istop = bl.b_istart(mb), bl.b_iend(mb)
+        tot_size = mb.counts
+        istart, istop = mb.istart, mb.istop
         assert np.all(tot_size == istop - istart + 1)
-        start, stop, width = bl.b_start(mb), bl.b_end(mb), bl.b_width(mb)
+        start, stop, width = mb.start, mb.stop, mb.width
         assert np.all(width == stop - start)
     df = d.fuse_bursts(ms=1)
     for mb, ph in zip(df.mburst, df.iter_ph_times()):
-        tot_size = bl.b_size(mb)
-        istart, istop = bl.b_istart(mb), bl.b_iend(mb)
+        tot_size = mb.counts
+        istart, istop = mb.istart, mb.istop
         assert np.all(tot_size <= istop - istart + 1)
-        start, stop, width = bl.b_start(mb), bl.b_end(mb), bl.b_width(mb)
+        start, stop, width = mb.start, mb.stop, mb.width
         assert np.all(width <= stop - start)
 
 def test_burst_size_da(data):
@@ -545,12 +545,12 @@ def test_burst_size_da(data):
     d.calc_ph_num(alex_all=True)
     if d.ALEX:
         for mb, nd, na, naa, nda in zip(d.mburst, d.nd, d.na, d.naa, d.nda):
-            tot_size = bl.b_size(mb)
+            tot_size = mb.counts
             tot_size2 = nd + na + naa + nda
             assert np.allclose(tot_size, tot_size2)
     else:
         for mb, nd, na in zip(d.mburst, d.nd, d.na):
-            tot_size = bl.b_size(mb)
+            tot_size = mb.counts
             assert (tot_size == nd + na).all()
 
 def test_burst_selection(data):
