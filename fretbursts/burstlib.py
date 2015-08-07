@@ -295,7 +295,7 @@ def fuse_bursts_direct(bursts, ms=0, clk_p=12.5e-9, verbose=True):
     else:
         fused_bursts_list.append(bslib.BurstGap.from_burst(burst2))
 
-    fused_bursts = bslib.bursts_from_list(fused_bursts_list)
+    fused_bursts = bslib.BurstsGap.from_list(fused_bursts_list)
 
     init_num_bursts = bursts.num_bursts
     delta_b = init_num_bursts - fused_bursts.num_bursts

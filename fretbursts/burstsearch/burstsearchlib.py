@@ -175,27 +175,6 @@ except ImportError:
     print(" - Fallback to pure python photon counting.")
 
 
-
-def bursts_from_list(burst_list):
-    has_gap = hasattr(burst_list[0], 'gap')
-
-    if has_gap:
-        ncols = 6
-        BurstsCls = BurstsGap
-    else:
-        ncols = 4
-        BurstsCls = Bursts
-
-    bursts = BurstsCls(np.zeros((len(burst_list), ncols), dtype=np.int64))
-
-    for i, burst in enumerate(burst_list):
-        bursts.istart[i], bursts.istop[i] = burst.istart, burst.istop
-        bursts.start[i], bursts.stop[i] = burst.start, burst.stop
-        if has_gap:
-            bursts.gap[i], bursts.gap_counts[i] = burst.gap, burst.gap_counts
-    return bursts
-
-
 class Burst(namedtuple('Burst', ['istart', 'istop', 'start', 'stop'])):
     __slots__ = ()
     @property
@@ -256,6 +235,15 @@ class Bursts():
         if data.ndim == 1:
             data = data[np.newaxis, :]
         self.data = data
+
+    @staticmethod
+    def from_list(bursts_list):
+        bursts = Bursts(np.zeros((len(bursts_list), 4), dtype=np.int64))
+        for i, burst in enumerate(bursts_list):
+            bursts.istart[i], bursts.istop[i] = burst.istart, burst.istop
+            bursts.start[i], bursts.stop[i] = burst.start, burst.stop
+        return bursts
+
 
     ##
     ## Basic interface
@@ -497,7 +485,7 @@ class Bursts():
 
             bursts.append(burst)
 
-        return bursts_from_list(bursts)
+        return Bursts.from_list(bursts)
 
 
 class BurstsGap(Bursts):
@@ -509,6 +497,15 @@ class BurstsGap(Bursts):
 
     """
     _i_gap, _i_gap_counts = 4, 5
+
+    @staticmethod
+    def from_list(bursts_list):
+        bursts = BurstsGap(np.zeros((len(bursts_list), 6), dtype=np.int64))
+        for i, burst in enumerate(bursts_list):
+            bursts.istart[i], bursts.istop[i] = burst.istart, burst.istop
+            bursts.start[i], bursts.stop[i] = burst.start, burst.stop
+            bursts.gap[i], bursts.gap_counts[i] = burst.gap, burst.gap_counts
+        return bursts
 
     def __init__(self, data):
         if data.shape[1] == 4:
