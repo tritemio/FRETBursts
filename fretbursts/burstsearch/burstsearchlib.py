@@ -277,6 +277,18 @@ class Bursts():
         return (self.data == other_bursts.data).all()
 
     @property
+    def num_bursts(self):
+        """Number of bursts."""
+        return self.data.shape[0]
+
+    @property
+    def size(self):
+        """Number of bursts. Used for compatibility with ndarray.size.
+        When in doubt, use Bursts.num_bursts instead.
+        """
+        return self.num_bursts
+
+    @property
     def dataframe(self):
         return pd.DataFrame(self.data,
                             columns=['istart', 'istop', 'start', 'stop'])
@@ -286,10 +298,6 @@ class Bursts():
 
     def _repr_html_(self):
         return self.dataframe._repr_html_()
-
-    @property
-    def num_bursts(self):
-        return self.data.shape[0]
 
     def join(self, bursts, sort=False):
         joindata = np.vstack([self.data, bursts.data])
