@@ -231,11 +231,6 @@ class Bursts():
     """
     _i_istart, _i_istop, _i_start, _i_stop = 0, 1, 2, 3
 
-    def __init__(self, data):
-        if data.ndim == 1:
-            data = data[np.newaxis, :]
-        self.data = data
-
     @staticmethod
     def from_list(bursts_list):
         bursts = Bursts(np.zeros((len(bursts_list), 4), dtype=np.int64))
@@ -244,6 +239,18 @@ class Bursts():
             bursts.start[i], bursts.stop[i] = burst.start, burst.stop
         return bursts
 
+    @staticmethod
+    def merge(list_of_bursts, sort=False):
+        mergedata = np.vstack([b.data for b in list_of_bursts])
+        if sort:
+            indexsort = mergedata[:, 0].argsort()
+            mergedata[indexsort]
+        return Bursts(mergedata)
+
+    def __init__(self, data):
+        if data.ndim == 1:
+            data = data[np.newaxis, :]
+        self.data = data
 
     ##
     ## Basic interface
