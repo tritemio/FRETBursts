@@ -253,11 +253,11 @@ def plot_alternation_hist_nsalex(d, bins=None, ax=None,
 def _plot_bursts(d, i, t_max_clk, pmax=1e3, pmin=0, color="#999999"):
     """Highlights bursts in a timetrace plot."""
     b = d.mburst[i]
-    if np.size(b) == 0: return
+    if b.num_bursts == 0: return
     pprint("CH %d burst..." % (i+1))
-    bs = b[bl.b_start(b) < t_max_clk]
-    start = bl.b_start(bs)*d.clk_p
-    end = bl.b_end(bs)*d.clk_p
+    bs = b[b.start < t_max_clk]
+    start = bs.start*d.clk_p
+    end = bs.stop**d.clk_p
     R = []
     width = end-start
     ax = gca()
@@ -569,12 +569,12 @@ def timetrace_fret(d, i=0, gamma=1., **kwargs):
                         alpha=0.4, ls='')
     style_kwargs.update(**kwargs)
 
-    t, E = bl.b_start(b)*d.clk_p, d.E[i]
+    t, E = b.start*d.clk_p, d.E[i]
     levels = sort_burst_sizes(bsizes)
     for ilev, level in enumerate(levels):
         plt.plot(t[level], E[level], ms=np.sqrt((ilev+1)*15),
                  **style_kwargs)
-    plt.plot(bl.b_start(b)*d.clk_p, d.E[i], '-k', alpha=0.1, lw=1)
+    plt.plot(b.start*d.clk_p, d.E[i], '-k', alpha=0.1, lw=1)
     xlabel('Time (s)'); ylabel('E')
     _gui_timetrace_burst_sel(d, i, timetrace_fret, gcf(), gca())
 
@@ -585,7 +585,7 @@ def timetrace_fret_scatter(d, i=0, gamma=1., **kwargs):
 
     style_kwargs = dict(s=bsizes, marker='o', alpha=0.5)
     style_kwargs.update(**kwargs)
-    plt.scatter(bl.b_start(b)*d.clk_p, d.E[i], **style_kwargs)
+    plt.scatter(b.start*d.clk_p, d.E[i], **style_kwargs)
     xlabel('Time (s)'); ylabel('E')
 
 def timetrace_bg(d, i=0, nolegend=False, ncol=2, plot_style={}):
@@ -630,8 +630,8 @@ def time_ph(d, i=0, num_ph=1e4, ph_istart=0):
     ph_d = d.ph_times_m[i][SLICE][~d.A_em[i][SLICE]]
     ph_a = d.ph_times_m[i][SLICE][d.A_em[i][SLICE]]
 
-    BSLICE = (bl.b_end(b) < ph_a[-1])
-    start, end = bl.b_start(b[BSLICE]), bl.b_end(b[BSLICE])
+    BSLICE = (b.stop < ph_a[-1])
+    start, end = b[BSLICE].start, b[BSLICE].stop
 
     u = d.clk_p # time scale
     plt.vlines(ph_d*u, 0, 1, color='k', alpha=0.02)
@@ -690,7 +690,7 @@ def hist_width(d, i=0, bins=(0, 10, 0.025), pdf=True, weights=None,
         plot_style (dict): dict of matplotlib line style passed to `plot`.
     """
     weights = weights[i] if weights is not None else None
-    burst_widths = bl.b_width(d.mburst[i])*d.clk_p*1e3
+    burst_widths = d.mburst[i].width*d.clk_p*1e3
 
     _hist_burst_taildist(burst_widths, bins, pdf, weights=weights,
                          yscale=yscale, color=color, plot_style=plot_style)
@@ -722,7 +722,7 @@ def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, weights=None,
     if plot_style is None:
         plot_style = {}
 
-    burst_widths = bl.b_width(d.mburst[i])*d.clk_p*1e3
+    burst_widths = d.mburst[i].width*d.clk_p*1e3
     sizes = d.burst_sizes_ich(ich=i, gamma=gamma, add_naa=add_naa)
     brightness = sizes / burst_widths
     label = 'nd + na'
@@ -1481,7 +1481,7 @@ def hist_burst_delays(d, i=0, bins=(0, 10, 0.2), pdf=False, weights=None,
     """Histogram of waiting times between bursts.
     """
     weights = weights[i] if weights is not None else None
-    bdelays = np.diff(bl.b_start(d.mburst[i])*d.clk_p)
+    bdelays = np.diff(d.mburst[i].start*d.clk_p)
 
     _hist_burst_taildist(bdelays, bins, pdf, weights=weights, color=color,
                          plot_style=plot_style)
@@ -1520,7 +1520,7 @@ def hist_asymmetry(d, i=0, bin_max=2, binwidth=0.1, stat_func=np.median):
 def scatter_width_size(d, i=0):
     """Scatterplot of burst width versus size."""
     b = d.mburst[i]
-    plot(bl.b_width(b)*d.clk_p*1e3, d.nt[i], 'o', mew=0, ms=3, alpha=0.7,
+    plot(b.width*d.clk_p*1e3, d.nt[i], 'o', mew=0, ms=3, alpha=0.7,
          color='blue')
     t_ms = arange(0, 50)
     plot(t_ms, ((d.m)/(d.T[i]))*t_ms*1e-3, '--', lw=2, color='k',
@@ -1534,7 +1534,7 @@ def scatter_width_size(d, i=0):
 def scatter_rate_da(d, i=0):
     """Scatter of nd rate vs na rate (rates for each burst)."""
     b = d.mburst[i]
-    Rate = lambda nX: nX[i]/bl.b_width(b)/d.clk_p*1e-3
+    Rate = lambda nX: nX[i]/b.width/d.clk_p*1e-3
     plot(Rate(d.nd), Rate(d.na), 'o', mew=0, ms=3, alpha=0.1, color='blue')
     xlabel('D burst rate (kcps)'); ylabel('A burst rate (kcps)')
     plt.xlim(-20, 100); plt.ylim(-20, 100)

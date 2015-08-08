@@ -1091,9 +1091,8 @@ class Data(DataContainer):
         """
         dc = Data(**self)
 
-        mburst = np.vstack(self.mburst)
-        burst_start = b_start(mburst)
-        sort_index = burst_start.argsort()
+        bursts = bslib.Bursts.merge(self.mburst, sort=True)
+        sort_index = bursts.start.argsort()
 
         ich_burst = [i*np.ones(nb) for i, nb in enumerate(self.num_bursts)]
         dc.add(ich_burst=np.hstack(ich_burst)[sort_index])
@@ -1181,7 +1180,7 @@ class Data(DataContainer):
         return self._time_min
 
     def _time_reduce(self, last=True, func=max):
-        """Return start or end time reduced with `func`.
+        """Return first or last timestamp per-ch, reduced with `func`.
         """
         idx = -1 if last else 0
         # Try using ph_times_m
@@ -1193,8 +1192,10 @@ class Data(DataContainer):
             time = func(self.ph_times_t)
         # if it is a variable with only burst data
         elif 'mburst' in self:
-            b_func = b_end if last else b_start
-            time = func(b_func(mb)[idx] for mb in self.mburst)
+            if last:
+                time = func(bursts[idx].stop for bursts in self.mburst)
+            else:
+                time = func(bursts[idx].start for bursts in self.mburst)
         else:
             raise ValueError("No timestamps or bursts found.")
         return time*self.clk_p
