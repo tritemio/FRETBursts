@@ -2301,17 +2301,16 @@ class Data(DataContainer):
              zip(self.nd, self.na, self.naa, G)]
         self.add(S=S)
 
-    def calc_alex_hist(self, bin_step=0.05):
+    def calc_alex_hist(self, binwidth=0.05):
         """Compute the ALEX histogram with given bin width `bin_step`"""
-        self.add(bin_step=bin_step)
-        ES_hist_tot = [ES_histog(E, S, bin_step) for E, S in
+        ES_hist_tot = [ES_histog(E, S, binwidth) for E, S in
                        zip(self.E, self.S)]
         E_bins, S_bins = ES_hist_tot[0][1], ES_hist_tot[0][2]
         ES_hist = [h[0] for h in ES_hist_tot]
-        E_ax = E_bins[:-1] + 0.5*bin_step
-        S_ax = S_bins[:-1] + 0.5*bin_step
+        E_ax = E_bins[:-1] + 0.5*binwidth
+        S_ax = S_bins[:-1] + 0.5*binwidth
         self.add(ES_hist=ES_hist, E_bins=E_bins, S_bins=S_bins,
-                 E_ax=E_ax, S_ax=S_ax)
+                 E_ax=E_ax, S_ax=S_ax, ES_binwidth=binwidth)
 
     ##
     # Methods for measurement info

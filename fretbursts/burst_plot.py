@@ -1130,7 +1130,7 @@ def _plot_fit_text_ch(
             transform=ax.transAxes, fontsize=fontsize, bbox=bbox)
 
 
-def hist2d_alex(d, i=0, vmin=2, vmax=0, bin_step=None, S_max_norm=0.8,
+def hist2d_alex(d, i=0, vmin=2, vmax=0, binwidth=0.05, S_max_norm=0.8,
                 interp='bicubic', cmap='hot', under_color='white',
                 over_color='white', scatter=True, scatter_ms=3,
                 scatter_color='orange', scatter_alpha=0.2, gui_sel=False,
@@ -1138,8 +1138,8 @@ def hist2d_alex(d, i=0, vmin=2, vmax=0, bin_step=None, S_max_norm=0.8,
     """Plot 2-D E-S ALEX histogram with a scatterplot overlay.
     """
     ax = plt.gca()
-    if bin_step is not None:
-        d.calc_alex_hist(bin_step=bin_step)
+    if 'ES_binwidth' not in d or d.ES_binwidth != binwidth:
+        d.calc_alex_hist(binwidth)
     ES_hist, E_bins, S_bins, S_ax = d.ES_hist[i], d.E_bins, d.S_bins, d.S_ax
 
     colormap = plt.get_cmap(cmap)
