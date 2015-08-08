@@ -416,7 +416,7 @@ def print_burst_stats(d):
     width_ms, height, delays = burst_stats(d.mburst, d.clk_p)
     s = "\nNUMBER OF BURSTS: m = %d, L = %d" % (d.m, d.L)
     s += "\nPixel:          "+"%7d "*nch % tuple(range(1, nch+1))
-    s += "\n#:              "+"%7d "*nch % tuple([b.shape[0] for b in d.mburst])
+    s += "\n#:              "+"%7d "*nch % tuple([b.num_bursts for b in d.mburst])
     s += "\nT (us) [BS par] "+"%7d "*nch % tuple(np.array(d.T)*1e6)
     s += "\nBG Rat T (cps): "+"%7d "*nch % tuple(d.rate_m)
     s += "\nBG Rat D (cps): "+"%7d "*nch % tuple(d.rate_dd)
@@ -1588,7 +1588,7 @@ class Data(DataContainer):
             label = '%s CH%d' % (ph_sel, ich+1) if verbose else None
             mb = bsearch(ph_bs, L, m, t_clk, label=label, verbose=verbose)
             if compact:
-                mb = bslib.recompute_burst_times(mb, ph)
+                mb = mb.recompute_times(ph)
             mburst.append(mb)
         self.add(mburst=mburst, rate_th=Min_rate_cps, T=T_clk*self.clk_p)
         if ph_sel != Ph_sel('all'):
@@ -1623,7 +1623,7 @@ class Data(DataContainer):
             if len(burst_ch_list) > 0:
                 bursts = bslib.Bursts(np.vstack(burst_ch_list))
                 if compact:
-                    bursts = bursts.recompute_burst_times(bursts, ph)
+                    bursts = bursts.recompute_times(ph)
             else:
                 bursts = bslib.Bursts(np.array([[]]))
             MBurst.append(bursts)
@@ -1765,7 +1765,7 @@ class Data(DataContainer):
                     nd, na = nt, n0    # D-only case
             else:
                 # This is the usual case with photons in both D and A channels
-                na = mch_count_ph_in_bursts(self.mburst, Mask=A_em)
+                na = mch_count_ph_in_bursts(self.mburst, A_em)
                 nd = [t - a for t, a in zip(nt, na)]
             assert (nt[0] == na[0] + nd[0]).all()
         if self.ALEX:

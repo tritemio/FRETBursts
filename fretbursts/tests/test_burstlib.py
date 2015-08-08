@@ -126,8 +126,8 @@ def test_time_min_max():
     assert d.time_min == d.ph_times_m[0][0]*d.clk_p
     d.delete('ph_times_m')
     del d._time_max, d._time_min
-    assert d.time_max == bl.b_end(d.mburst[0])[-1]*d.clk_p
-    assert d.time_min == bl.b_start(d.mburst[0])[0]*d.clk_p
+    assert d.time_max == d.mburst[0].stop[-1]*d.clk_p
+    assert d.time_min == d.mburst[0].start[0]*d.clk_p
 
 def test_time_min_max_multispot(data_8ch):
     """Test time_min and time_max for multi-spot data."""
@@ -335,51 +335,46 @@ def test_dir_ex(data_1ch):
     na2 = list(data.na)
     assert list_array_equal(na1, na2)
 
-def test_b_functions(data):
-    itstart, iwidth, inum_ph, iistart, iiend, itend = 0, 1, 2, 3, 4, 5
+def test_bursts_interface(data):
     d = data
-    for mb in d.mburst:
-        assert (bl.b_start(mb) == mb[:, itstart]).all()
-        assert (bl.b_end(mb) == mb[:, itend]).all()
-        assert (bl.b_width(mb) == mb[:, iwidth]).all()
-        assert (bl.b_istart(mb) == mb[:, iistart]).all()
-        assert (bl.b_iend(mb) == mb[:, iiend]).all()
-        assert (bl.b_size(mb) == mb[:, inum_ph]).all()
+    for b in d.mburst:
+        assert (b.start == b.data[:, b._i_start]).all()
+        assert (b.stop == b.data[:, b._i_stop]).all()
+        assert (b.istart == b.data[:, b._i_istart]).all()
+        assert (b.istop == b.data[:, b._i_istop]).all()
 
-        rate = 1.*mb[:, inum_ph]/mb[:, iwidth]
-        assert (bl.b_ph_rate(mb) == rate).all()
+        rate = 1.*b.counts/b.width
+        assert (b.ph_rate == rate).all()
 
-        separation = mb[1:, itstart] - mb[:-1, itend]
-        assert (bl.b_separation(mb) == separation).all()
+        separation = b.start[1:] - b.stop[:-1]
+        assert (b.separation == separation).all()
 
-        assert (bl.b_end(mb) > bl.b_start(mb)).all()
+        assert (b.stop > b.start).all()
 
 def test_b_end_b_iend(data):
     """Test coherence between b_end() and b_iend()"""
     d = data
-    for ph, mb in zip(d.ph_times_m, d.mburst):
-        assert (ph[bl.b_iend(mb)] == bl.b_end(mb)).all()
+    for ph, bursts in zip(d.ph_times_m, d.mburst):
+        assert (ph[bursts.istop] == bursts.stop).all()
 
 def test_monotonic_burst_start(data):
     """Test for monotonic burst_start."""
     d = data
     for i in range(d.nch):
-        assert (np.diff(bl.b_start(d.mburst[i])) > 0).all()
+        assert (np.diff(d.mburst[i].start) > 0).all()
 
 def test_monotonic_burst_end(data):
     """Test for monotonic burst_end."""
     d = data
-    for mb in d.mburst:
-        assert (np.diff(bl.b_end(mb)) > 0).all()
+    for bursts in d.mburst:
+        assert (np.diff(bursts.stop) > 0).all()
 
-def test_burst_start_end_size(data):
+def test_burst_istart_iend_size(data):
     """Test consistency between burst istart, iend and size"""
     d = data
-    for mb in d.mburst:
-        size = mb[:, bl.iiend] - mb[:, bl.iistart] + 1
-        assert (size == mb[:, bl.inum_ph]).all()
-        size2 = bl.b_iend(mb) - bl.b_istart(mb) + 1
-        assert (size2 == bl.b_size(mb)).all()
+    for bursts in d.mburst:
+        counts = bursts.istop - bursts.istart + 1
+        assert (counts == bursts.counts).all()
 
 def test_burst_ph_data_functions(data):
     """Tests the functions that operate on per-burst "ph-data".
@@ -387,8 +382,8 @@ def test_burst_ph_data_functions(data):
     d = data
     for bursts, ph, mask in zip(d.mburst, d.iter_ph_times(),
                                 d.iter_ph_masks(Ph_sel(Dex='Dem'))):
-        bstart = bl.b_start(bursts)
-        bend = bl.b_end(bursts)
+        bstart = bursts.start
+        bend = bursts.stop
 
         for i, (start, stop) in enumerate(bl.iter_bursts_start_stop(bursts)):
             assert ph[start] == bstart[i]
@@ -407,8 +402,8 @@ def test_burst_ph_data_functions(data):
         assert (stats[~np.isnan(stats)] >= bstart[~np.isnan(stats)]).all()
         assert (stats[~np.isnan(stats)] <= bend[~np.isnan(stats)]).all()
 
-        bistart = bl.b_istart(bursts)
-        biend = bl.b_iend(bursts)
+        bistart = bursts.istart
+        biend = bursts.istop
         bursts_mask = bl.ph_in_bursts_mask(ph.size, bursts)
         for i, (start, stop) in enumerate(bl.iter_bursts_start_stop(bursts)):
             assert bursts_mask[start:stop].all()
@@ -476,10 +471,10 @@ def test_burst_data(data):
 def test_expand(data):
     """Test method `expand()` for `Data()`."""
     d = data
-    for ich, mb in enumerate(d.mburst):
-        if mb.size == 0: continue  # if no bursts skip this ch
+    for ich, bursts in enumerate(d.mburst):
+        if bursts.num_bursts == 0: continue  # if no bursts skip this ch
         nd, na, bg_d, bg_a, width = d.expand(ich, width=True)
-        width2 = mb.width*d.clk_p
+        width2 = bursts.width*d.clk_p
         period = d.bp[ich]
         bg_d2 = d.bg_dd[ich][period] * width2
         bg_a2 = d.bg_ad[ich][period] * width2
@@ -495,10 +490,10 @@ def test_burst_corrections(data):
     d.corrections()
     leakage = d.get_leakage_array()
 
-    for ich, mb in enumerate(d.mburst):
-        if mb.num_bursts == 0: continue  # if no bursts skip this ch
+    for ich, bursts in enumerate(d.mburst):
+        if bursts.num_bursts == 0: continue  # if no bursts skip this ch
         nd, na, bg_d, bg_a, width = d.expand(ich, width=True)
-        burst_size_raw = mb.counts
+        burst_size_raw = bursts.counts
 
         lk = leakage[ich]
         if d.ALEX:
