@@ -1091,16 +1091,18 @@ class Data(DataContainer):
         """
         dc = Data(**self)
 
-        bursts = bslib.Bursts.merge(self.mburst, sort=True)
-        sort_index = bursts.start.argsort()
+        bursts = bslib.Bursts.merge(self.mburst, sort=False)
+        # Sort by start times, and when equal by stop times
+        indexsort = np.lexsort((bursts.stop, bursts.start))
+        dc.add(mburst=[bursts[indexsort]])
 
         ich_burst = [i*np.ones(nb) for i, nb in enumerate(self.num_bursts)]
-        dc.add(ich_burst=np.hstack(ich_burst)[sort_index])
+        dc.add(ich_burst=np.hstack(ich_burst)[indexsort])
 
         for name in self.burst_fields:
-            if name in self:
+            if name in self and name is not 'mburst':
                 # Concatenate arrays along axis = 0
-                value = [np.concatenate(self[name])[sort_index]]
+                value = [np.concatenate(self[name])[indexsort]]
                 dc.add(**{name: value})
         dc.add(nch=1)
         dc.add(_chi_ch=1.)

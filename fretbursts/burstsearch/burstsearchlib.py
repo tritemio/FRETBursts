@@ -248,8 +248,9 @@ class Bursts():
     def merge(list_of_bursts, sort=False):
         mergedata = np.vstack([b.data for b in list_of_bursts])
         if sort:
-            indexsort = mergedata[:, 0].argsort()
-            mergedata[indexsort]
+            # Sort by start times, and when equal by stop times
+            indexsort = np.lexsort((mergedata[:,3], mergedata[:,2]))
+            mergedata = mergedata[indexsort]
         return Bursts(mergedata)
 
     def __init__(self, data):

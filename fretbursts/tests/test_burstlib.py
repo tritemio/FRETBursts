@@ -571,10 +571,29 @@ def test_collapse(data_8ch):
     """
     d = data_8ch
     dc1 = d.collapse()
-    dc2 = d.collapse(update_gamma=False)
-
+    bursts1 = dc1.mburst[0]
+    bursts2 = bl.bslib.Bursts.merge(d.mburst, sort=True)
+    assert bursts1 == bursts2
+    bursts2 = bl.bslib.Bursts.merge(d.mburst, sort=False)
+    indexsort_stop = bursts2.stop.argsort()
+    bursts3 = bursts2[indexsort_stop]
+    indexsort_start = bursts3.start.argsort()
+    bursts4 = bursts3[indexsort_start]
+    assert bursts1 == bursts4
+    indexsort = np.lexsort((bursts2.stop, bursts2.start))
     for name in d.burst_fields:
-        if name in d:
+        if name not in d or name == 'mburst':
+            continue
+        newfield = np.hstack(d[name])[indexsort]
+        assert np.allclose(dc1[name][0], newfield)
+
+    dc2 = d.collapse(update_gamma=False)
+    for name in d.burst_fields:
+        if name not in d: continue
+
+        if name == 'mburst':
+            assert dc1.mburst[0] == dc2.mburst[0]
+        else:
             assert np.allclose(dc1[name][0], dc2[name][0])
 
 if __name__ == '__main__':
