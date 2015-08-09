@@ -97,6 +97,11 @@ def bsearch_py(times, L, m, T, slice_=None,
 
         bursts.append((i_start, i_stop, times[i_start], times[i_stop]))
 
+    if above_min_rate_:
+        # Correction burst-stop off by 1 when last burst does not finish
+        i_start, i_stop, start, stop = bursts.pop()
+        bursts.append((i_start, i_stop+1, times[i_start], times[i_stop+1]))
+
     bursts = np.array(bursts, dtype='int64')
     bursts[:, :2] += i_time0
     return bursts
@@ -274,7 +279,7 @@ class Bursts():
             yield Burst(bdata[0], bdata[1], bdata[2], bdata[3])
 
     def __eq__(self, other_bursts):
-        return (self.data == other_bursts.data).all()
+        return np.all(self.data == other_bursts.data)
 
     @property
     def num_bursts(self):

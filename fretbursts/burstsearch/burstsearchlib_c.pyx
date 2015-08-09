@@ -66,6 +66,10 @@ def bsearch_c(np.int64_t[:] times, np.int16_t L, np.int16_t m,
             bursts.append((i_start, i_stop,
                            times[i_start], times[i_stop]))
 
+    if in_burst:
+        i_stop = i + m - 1
+        bursts.append((i_start, i_stop, times[i_start], times[i_stop]))
+
     return np.array(bursts, dtype='int64')
 
 

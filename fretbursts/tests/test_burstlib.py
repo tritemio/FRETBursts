@@ -261,8 +261,10 @@ def test_burst_search_py_cy(data):
     """Test consistency of python and cython burst search."""
     data.burst_search(pure_python=True)
     mburst1 = [b.copy() for b in data.mburst]
+    num_bursts1 = data.num_bursts
     data.burst_search(pure_python=False)
-    assert list_array_equal(mburst1, data.mburst)
+    assert np.all(num_bursts1 == data.num_bursts)
+    assert mburst1 == data.mburst
 
 def test_burst_search(data):
     """Smoke test and bg_bs check."""
