@@ -324,7 +324,7 @@ def fuse_bursts_iter(bursts, ms=0, clk_p=12.5e-9, verbose=True):
 
     z = 0
     init_nburst = bursts.num_bursts
-    bursts = bslib.BurstsGap.from_array(bursts.data)
+    bursts = bslib.BurstsGap(bursts.data)
     new_nburst, nburst = 0, 1  # starting condition
     while new_nburst < nburst:
         z += 1

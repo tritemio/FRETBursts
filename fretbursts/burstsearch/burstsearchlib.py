@@ -15,12 +15,12 @@ i.e. `getitem` interface) supporting the same indexing as a numpy 1-D array.
 
 The burst search functions return a 2-D array (burst array) of shape Nx4,
 where N is the number of bursts. This array can used to build a Bursts object
-using the static method `from_array`::
+using::
 
-    Bursts.from_array(bursts_array)
+    Bursts(bursts_array)
 
-As an example, assume having a burst array `bursts`. To take a slice of only
-the first 10 bursts you can do::
+As an example, let assume having a burst array `bursts`. To take a slice of
+only the first 10 bursts you can do::
 
     bursts10 = bursts[:10]   # new Bursts object with the first 10 bursts
 
@@ -238,8 +238,8 @@ class Bursts():
     `num_bursts` (the number of bursts).
 
     Some factory-methods (static methods) are used to build `Bursts` objects
-    from a list of :class:`Burst` (:meth:`Bursts.from_list`) or from a 2D
-    array of burst data (:meth:`Bursts.from_array`).
+    from a list of single :class:`Burst` (:meth:`Bursts.from_list`) or from
+    a list of `Bursts`.
 
     `Bursts` object are iterable, yielding one burst a time (:class:`Burst`
     objects). `Bursts` can be compared for equality and copied
@@ -265,18 +265,15 @@ class Bursts():
     _i_istart, _i_istop, _i_start, _i_stop = 0, 1, 2, 3
     _ncols = 4
 
-    @classmethod
-    def from_array(cls, burstarray):
+    def __init__(self, burstarray):
         if burstarray.ndim == 1:
-            assert burstarray.size == cls._ncols
+            assert burstarray.size == self._ncols
             burstarray = burstarray[np.newaxis, :]
-        bursts = cls()
-        bursts.data = burstarray
-        return bursts
+        self.data = burstarray
 
     @classmethod
     def empty(cls, num_bursts=0):
-        return cls.from_array(np.zeros((num_bursts, cls._ncols),
+        return cls(np.zeros((num_bursts, cls._ncols),
                                        dtype=np.int64))
 
     @classmethod
@@ -294,16 +291,16 @@ class Bursts():
             # Sort by start times, and when equal by stop times
             indexsort = np.lexsort((mergedata[:,3], mergedata[:,2]))
             mergedata = mergedata[indexsort]
-        return cls.from_array(mergedata)
+        return cls(mergedata)
 
     ##
     ## Basic interface
     ##
     def copy(self):
-        return self.__class__.from_array(self.data.copy())
+        return self.__class__(self.data.copy())
 
     def __getitem__(self, i):
-        return self.__class__.from_array(self.data[i])
+        return self.__class__(self.data[i])
 
     def __iter__(self):
         for bdata in self.data:
@@ -554,13 +551,12 @@ class BurstsGap(Bursts):
     _i_gap, _i_gap_counts = 4, 5
     _ncols = 6
 
-    @classmethod
-    def from_array(cls, data):
+    def __init__(self, data):
         if data.shape[1] == Bursts._ncols:
-            datag = np.zeros((data.shape[0], cls._ncols), dtype=np.int64)
+            datag = np.zeros((data.shape[0], self._ncols), dtype=np.int64)
             datag[:, :Bursts._ncols] = data
             data = datag
-        return super(cls, cls).from_array(data)
+        super(BurstsGap, self).__init__(data)
 
     @classmethod
     def from_list(cls, bursts_list):
