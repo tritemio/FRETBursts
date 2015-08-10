@@ -432,7 +432,7 @@ def test_burst_fuse(data):
     for bursts in d.mburst:
         new_mbursti = bl.fuse_bursts_iter(bursts, ms=1)
         new_mburstd = bl.fuse_bursts_direct(bursts, ms=1)
-        assert (new_mbursti == new_mburstd).all()
+        assert new_mbursti == new_mburstd
 
 def test_burst_fuse_0ms(data):
     """Test that after fusing with ms=0 the sum of bursts sizes is that same
