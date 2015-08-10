@@ -585,9 +585,9 @@ def join_data(d_list, gap=1):
     period (bg_time_s). For each measurement, the time of burst start is
     offset by the duration of the previous measurement + an additional `gap`.
 
-    The index of the first/last photon in the burst (returned by `b_istart()`
-    and `b_iend()`) are kept unmodified and refer to the original timestamp
-    array. The timestamp arrays are not copied: the new `Data` object will
+    The index of the first/last photon in the burst (`istart` and `iend`)
+    are kept unmodified and refer to the original timestamp array.
+    The timestamp arrays are not copied: the new `Data` object will
     not contain any timestamp arrays (ph_times_m). This may cause error when
     calling functions that require the timestamps data.
 
@@ -605,8 +605,9 @@ def join_data(d_list, gap=1):
     Returns:
         A `Data` object containing bursts from the all the objects in `d_list`.
     """
-
-    from fretbursts.burstlib import Data, itstart, itend
+    from itertools import islice
+    from fretbursts.burstlib import Data
+    from fretbursts.burstlib.burstsearch.burstsearchlib import Bursts
 
     nch = d_list[0].nch
     bg_time_s = d_list[0].bg_time_s
@@ -620,36 +621,40 @@ def join_data(d_list, gap=1):
     # Set the bursts fields by concatenation along axis = 0
     for name in Data.burst_fields:
         if name in new_d:
-            new_d.add(**{name: [np.array([])]*nch})
+            empty = Bursts.empty() if name is 'mburst' else np.array([])
+            new_d.add(**{name: [empty]*nch})
+            concatenate = Bursts.merge if name == 'mburst' else np.concatenate
+
             for ich in range(nch):
-                new_size = np.sum([d[name][ich].shape[0] for d in d_list])
+                new_size = np.sum((d.mburst[ich].num_bursts for d in d_list))
                 if new_size == 0:
                     continue  # -> No bursts in this ch
-                value = np.concatenate([d[name][ich] for d in d_list])
+
+                value = concatenate((d[name][ich] for d in d_list))
                 new_d[name][ich] = value
-                assert new_d[name][ich].shape[0] == new_size
+                assert new_d[name][ich].size == new_size
 
     # Set the background fields by concatenation along axis = 0
-    new_nperiods = np.sum([d.nperiods for d in d_list])
+    new_nperiods = np.sum((d.nperiods for d in d_list))
     for name in Data.bg_fields:
         if name in new_d:
             new_d.add(**{name: []})
             for ich in range(nch):
-                value = np.concatenate([d[name][ich] for d in d_list])
+                value = np.concatenate((d[name][ich] for d in d_list))
                 new_d[name].append(value)
                 assert new_d[name][ich].shape[0] == new_nperiods
 
     # Set the i_origin burst attribute
     new_d.add(i_origin=[])
     for ich in range(nch):
-        i_origin_ch = np.concatenate([i_d*np.ones(d.num_bursts[ich])
-                                      for i_d, d in enumerate(d_list)])
+        i_origin_ch = np.concatenate((i_d*np.ones(d.num_bursts[ich])
+                                      for i_d, d in enumerate(d_list)))
         new_d.i_origin.append(i_origin_ch)
 
     # Update the `bp` attribute to refer to the background period in
     # the new concatenated background arrays.
-    sum_nperiods = np.cumsum([d.nperiods for d in d_list])
-    for i_d, d in zip(range(1, len(d_list)), d_list[1:]):
+    sum_nperiods = np.cumsum((d.nperiods for d in d_list))
+    for i_d, d in islice(enumerate(d_list), 1, None):
         for ich in range(nch):
             # Burst "slice" in new_d coming from current d
             b_mask = new_d.i_origin[ich] == i_d
@@ -658,12 +663,14 @@ def join_data(d_list, gap=1):
 
     # Modify the new mburst so the time of burst start/end is monotonic
     offset_clk = 0
-    for i_orig, d_orig in enumerate(d_list):
+    for i_orig, d_orig in islice(enumerate(d_list), 1, None):
         for ich in range(nch):
-            if np.size(new_d.mburst[ich]) == 0: continue
+            if new_d.mburst[ich].num_bursts == 0:
+                continue
             mask = new_d.i_origin[ich] == i_orig
-            new_d.mburst[ich][mask, itstart] += offset_clk
-            new_d.mburst[ich][mask, itend] += offset_clk
+            bursts_ch_i = new_d.mburst[ich][mask]
+            bursts_ch_i.start += offset_clk
+            bursts_ch_i.stop += offset_clk
         offset_clk += (d_orig.time_max + gap)/d_orig.clk_p
 
     return new_d
