@@ -7,35 +7,42 @@
 The module :mod:`burstsearch.burstsearchlib` provides the low-level (or core)
 burst search and photon counting functions.
 
-All the burst search functions return a 2-D array (burst array) of shape Nx6,
-where N is the number of bursts. The 6 columns contain the burst data.
+It also provides the class `Bursts`, a container for a set of bursts.
+`Bursts` provides attributes for the main burst quatitites (`istart`, `istop`,
+`start`, `stop`, `counts`,  `width`, etc...). `Bursts` implement the iterator
+interface (iterate burst by burst). Morever `Bursts` can be indexed (`[]`,
+i.e. `getitem` interface) supporting the same indexing as a numpy 1-D array.
 
-In order to select one or more bursts, the burst array can be indexed or
-sliced along the first dimension (row wise or axis=0). The second dimension
-(columns) of the burst-array should be considered opaque, and the burst-data
-functions (starting with `b_`) should be used to access it (instead of the
-indexing the column). Using the `b_*` functions is both clearer and less
-bug-prone than using a column index.
+The burst search functions return a 2-D array (burst array) of shape Nx4,
+where N is the number of bursts. This array can used to build a Bursts object
+using the static method `from_array`::
 
-The list of burst-data functions is: :func:`b_start`, :func:`b_end`,
-:func:`b_size`, :func:`b_width`, :func:`b_istart`, :func:`b_istart`,
-:func:`b_iend`, :func:`b_rate`, :func:`b_separation`. You can note that they
-are more than 6 because some of them return additional quantities derived
-from the burst array columns.
+    Bursts.from_array(bursts_array)
 
-As an example, assume having a burst array `mburst`. To take a slice of only
+As an example, assume having a burst array `bursts`. To take a slice of only
 the first 10 bursts you can do::
 
-    mburst10 = mburst[:10]   # new array with burst data of the first 10 bursts
+    bursts10 = bursts[:10]   # new Bursts object with the first 10 bursts
 
 To obtain the burst start of all the bursts::
 
-    b_start(mbursts)
+    bursts.start
 
-To obtain the burst size (number of photons) for the 10-th to 20-th burst::
+To obtain the burst counts (number of photons) for the 10-th to 20-th burst::
 
-    b_size(mbursts[10:20])
+    bursts[10:20].counts
 
+For efficiency, when iterating over `Bursts` the returned burst is a
+named tuple `Burst`, which implemets the same attributes as `Bursts`.
+This results in faster iteration and attribute access than using `Bursts`
+objects with only one burst.
+
+In order to support fusion of consecutive bursts, we provide the class
+`BurstsGap` (and single-burst version `BurstGap`) which add the attributes
+`gap` and `gap_counts` the contains the duration and the number of photons
+in gaps inside a burst. The attribute `width` is the total burst duration
+minus `gap`, while `counts` is the total number of photons minus photons
+falling inside gaps (gaps are open intervals, do not include edges).
 """
 
 from __future__ import division, print_function
@@ -69,12 +76,13 @@ def bsearch_py(times, L, m, T, slice_=None,
             (or counts) < L are discarded.
         m (int): number of consecutive photons used to compute the rate.
         T (float): max time separation of `m` photons to be inside a burst
-        slice (tuple): 2-element tuple used to slice times
+        slice_ (tuple): 2-element tuple used to slice times
         label (string): a label printed when the function is called
         verbose (bool): if False, the function does not print anything.
 
     Returns:
         Array of burst data Nx4, type int64.
+        Column order is: istart, istop, start, stop.
     """
     if verbose:
         pprint('Python search (v): %s\n' % label)
@@ -98,7 +106,7 @@ def bsearch_py(times, L, m, T, slice_=None,
         bursts.append((i_start, i_stop, times[i_start], times[i_stop]))
 
     if above_min_rate_:
-        # Correction burst-stop off by 1 when last burst does not finish
+        # Correct burst-stop off by 1 when last burst does not finish
         i_start, i_stop, start, stop = bursts.pop()
         bursts.append((i_start, i_stop+1, times[i_start], times[i_stop+1]))
 
@@ -113,16 +121,15 @@ def bsearch_py(times, L, m, T, slice_=None,
 def count_ph_in_bursts(bursts, mask):
     """Counts number of photons in each burst counting only photons in `mask`.
 
-    This function takes a burst-array and a boolean mask (photon selection)
-    and computes the number of photons selected by the mask.
+    This function takes a :class:`Bursts` object and a boolean mask (photon
+    selection) and computes the number of photons selected by the mask.
     It is used, for example, to count donor and acceptor photons
     in each burst.
 
-    This is a reference implementation. In practice the multi-channel
-    is always used instead (see :func:`mch_count_ph_in_bursts_py`).
+    For a multi-channel version see :func:`mch_count_ph_in_bursts_py`.
 
     Arguments:
-        bursts (2D array, int64): the burst-array.
+        bursts (Bursts object): the bursts used as input
         mask (1D boolean array): the photon mask. The boolean mask must be
             of the same size of the timestamp array used for burst search.
 
@@ -140,13 +147,17 @@ def count_ph_in_bursts(bursts, mask):
 def mch_count_ph_in_bursts_py(Mburst, Mask):
     """Counts number of photons in each burst counting only photons in `Mask`.
 
-    This multi-channel function takes a list of burst-arrays and a list of
-    photon masks and compute the number of photons selected by the mask.
+    This multi-channel function takes a list of a :class:`Bursts` objects and
+    photon masks and computes the number of photons selected by the mask
+    in each channel.
+
     It is used, for example, to count donor and acceptor photons in
     each burst.
 
+    For a single-channel version see :func:`count_ph_in_bursts_py`.
+
     Arguments:
-        Mburst (list of 2D arrays, int64): a list of burst-arrays, one per ch.
+        Mburst (list Bursts objects): a list of bursts collections, one per ch.
         Mask (list of 1D boolean arrays): a list of photon masks (one per ch),
             For each channel, the boolean mask must be of the same size of the
             timestamp array used for burst search.
@@ -181,6 +192,7 @@ except ImportError:
 
 
 class Burst(namedtuple('Burst', ['istart', 'istop', 'start', 'stop'])):
+    """Container for a single burst."""
     __slots__ = ()
     @property
     def width(self):
@@ -216,20 +228,36 @@ class BurstGap(namedtuple('BurstGap',
 class Bursts():
     """A container for burst data.
 
-    This class provides a container for burst data. It provides a large
-    set of attributes (`start`, `stop`, `size`, etc...) that can be
-    accessed to obtain burst data. Only a few fundamental attributes are
-    stored, the others are comuputed on-fly using python properties.
+    This class provides a container for burst data. It provides a
+    set of attributes (`start`, `stop`, `istart`, `istop`, `counts`, `width`,
+    `ph_rate`, `separation`) that can be accessed to obtain burst data.
+    Only a few fundamental attributes are stored, the others are comuputed
+    on-fly using python properties.
 
-    Some basic methods for burst manipulation are provided.
-    `recompute_times` recompute start and stop times using the current
-    start and stop index and a new timestamps array passed as argument.
-    `recompute_index_*` recompute start and stop index to refer to an expanded
-    or reduced timestamp selection.
+    Other attributes are dataframe (a dataframe with the complete burst data),
+    `num_bursts` (the number of bursts).
+
+    Some factory-methods (static methods) are used to build `Bursts` objects
+    from a list of :class:`Burst` (:meth:`Bursts.from_list`) or from a 2D
+    array of burst data (:meth:`Bursts.from_array`).
+
+    `Bursts` object are iterable, yielding one burst a time (:class:`Burst`
+    objects). `Bursts` can be compared for equality and copied
+    (:meth:`Bursts.copy`).
+
+    Additionally basic methods for burst manipulation are provided:
+
+    - `recompute_times` recompute start and stop times using the current
+      start and stop index and a new timestamps array passed as argument.
+    - `recompute_index_*` recompute start and stop index to refer to an
+      expanded or reduced timestamp selection.
 
     Other methods are:
 
     - `and_gate` computing burst intersection
+
+    Methods that may be implemented in the future:
+
     - `or_gate` (TODO, should it be added?): computing burst union
     - `fuse_bursts` (TODO, should it be added?)
 
