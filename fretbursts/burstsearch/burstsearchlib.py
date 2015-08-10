@@ -263,41 +263,47 @@ class Bursts():
 
     """
     _i_istart, _i_istop, _i_start, _i_stop = 0, 1, 2, 3
+    _ncols = 4
 
-    @staticmethod
-    def from_list(bursts_list):
-        bursts = Bursts(np.zeros((len(bursts_list), 4), dtype=np.int64))
     @classmethod
-    def empty(cls):
-        return cls.from_array(np.zeros((0, cls._ncols)))
+    def from_array(cls, burstarray):
+        if burstarray.ndim == 1:
+            assert burstarray.size == cls._ncols
+            burstarray = burstarray[np.newaxis, :]
+        bursts = cls()
+        bursts.data = burstarray
+        return bursts
 
+    @classmethod
+    def empty(cls, num_bursts=0):
+        return cls.from_array(np.zeros((num_bursts, cls._ncols),
+                                       dtype=np.int64))
+
+    @classmethod
+    def from_list(cls, bursts_list):
+        bursts = cls.empty(len(bursts_list))
         for i, burst in enumerate(bursts_list):
             bursts.istart[i], bursts.istop[i] = burst.istart, burst.istop
             bursts.start[i], bursts.stop[i] = burst.start, burst.stop
         return bursts
 
-    @staticmethod
-    def merge(list_of_bursts, sort=False):
+    @classmethod
+    def merge(cls, list_of_bursts, sort=False):
         mergedata = np.vstack([b.data for b in list_of_bursts])
         if sort:
             # Sort by start times, and when equal by stop times
             indexsort = np.lexsort((mergedata[:,3], mergedata[:,2]))
             mergedata = mergedata[indexsort]
-        return Bursts(mergedata)
-
-    def __init__(self, data):
-        if data.ndim == 1:
-            data = data[np.newaxis, :]
-        self.data = data
+        return cls.from_array(mergedata)
 
     ##
     ## Basic interface
     ##
     def copy(self):
-        return self.__class__(self.data.copy())
+        return self.__class__.from_array(self.data.copy())
 
     def __getitem__(self, i):
-        return self.__class__(self.data[i])
+        return self.__class__.from_array(self.data[i])
 
     def __iter__(self):
         for bdata in self.data:
@@ -550,22 +556,22 @@ class BurstsGap(Bursts):
 
     """
     _i_gap, _i_gap_counts = 4, 5
+    _ncols = 6
 
-    @staticmethod
-    def from_list(bursts_list):
-        bursts = BurstsGap(np.zeros((len(bursts_list), 6), dtype=np.int64))
+    @classmethod
+    def from_array(cls, data):
+        if data.shape[1] == Bursts._ncols:
+            datag = np.zeros((data.shape[0], cls._ncols), dtype=np.int64)
+            datag[:, :Bursts._ncols] = data
+            data = datag
+        return super(cls, cls).from_array(data)
+
+    @classmethod
+    def from_list(cls, bursts_list):
+        bursts = super(cls, cls).from_list(bursts_list)
         for i, burst in enumerate(bursts_list):
-            bursts.istart[i], bursts.istop[i] = burst.istart, burst.istop
-            bursts.start[i], bursts.stop[i] = burst.start, burst.stop
             bursts.gap[i], bursts.gap_counts[i] = burst.gap, burst.gap_counts
         return bursts
-
-    def __init__(self, data):
-        if data.shape[1] == 4:
-            datag = np.zeros((data.shape[0], 6), dtype=np.int64)
-            datag[:, :4] = data
-            data = datag
-        super(BurstsGap, self).__init__(data)
 
     def __iter__(self):
         for bdata in self.data:
