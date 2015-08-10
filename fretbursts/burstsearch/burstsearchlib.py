@@ -344,11 +344,7 @@ class Bursts():
         return self.dataframe._repr_html_()
 
     def join(self, bursts, sort=False):
-        joindata = np.vstack([self.data, bursts.data])
-        if sort:
-            indexsort = joindata[:, 0].argsort()
-            joindata[indexsort]
-        return self.__class__(joindata)
+        return self.merge([self, bursts], sort=sort)
 
     ##
     ## Burst data attributes/properties
