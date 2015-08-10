@@ -267,6 +267,10 @@ class Bursts():
     @staticmethod
     def from_list(bursts_list):
         bursts = Bursts(np.zeros((len(bursts_list), 4), dtype=np.int64))
+    @classmethod
+    def empty(cls):
+        return cls.from_array(np.zeros((0, cls._ncols)))
+
         for i, burst in enumerate(bursts_list):
             bursts.istart[i], bursts.istop[i] = burst.istart, burst.istop
             bursts.start[i], bursts.stop[i] = burst.start, burst.stop

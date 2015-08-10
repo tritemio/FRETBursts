@@ -1037,8 +1037,7 @@ class Data(DataContainer):
         if np.isscalar(N2): N2 = [N2]*self.nch
         assert len(N1) == len(N2) == self.nch
         d = Data(**self)
-        d.add(mburst=[bslib.Bursts(b.data[n1:n2])
-                      for b, n1, n2 in zip(d.mburst, N1, N2)])
+        d.add(mburst=[b[n1:n2].copy() for b, n1, n2 in zip(d.mburst, N1, N2)])
         d.add(nt=[nt[n1:n2] for nt, n1, n2 in zip(d.nt, N1, N2)])
         d.add(nd=[nd[n1:n2] for nd, n1, n2 in zip(d.nd, N1, N2)])
         d.add(na=[na[n1:n2] for na, n1, n2 in zip(d.na, N1, N2)])
@@ -1623,11 +1622,11 @@ class Data(DataContainer):
                             label=label, verbose=verbose))
 
             if len(burst_ch_list) > 0:
-                bursts = bslib.Bursts(np.vstack(burst_ch_list))
+                bursts = bslib.Bursts.merge(burst_ch_list)
                 if compact:
                     bursts = bursts.recompute_times(ph)
             else:
-                bursts = bslib.Bursts(np.array([[]]))
+                bursts = bslib.Bursts.empty()
             MBurst.append(bursts)
 
         self.add(mburst=MBurst)
