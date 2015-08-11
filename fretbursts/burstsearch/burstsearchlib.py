@@ -286,7 +286,7 @@ class Bursts():
 
     @classmethod
     def merge(cls, list_of_bursts, sort=False):
-        mergedata = np.vstack([b.data for b in list_of_bursts])
+        mergedata = np.vstack((b.data for b in list_of_bursts))
         if sort:
             # Sort by start times, and when equal by stop times
             indexsort = np.lexsort((mergedata[:,3], mergedata[:,2]))
