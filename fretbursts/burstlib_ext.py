@@ -630,7 +630,7 @@ def join_data(d_list, gap=1):
                 if new_size == 0:
                     continue  # -> No bursts in this ch
 
-                value = concatenate((d[name][ich] for d in d_list))
+                value = concatenate([d[name][ich] for d in d_list])
                 new_d[name][ich] = value
                 assert new_d[name][ich].size == new_size
 
@@ -640,15 +640,15 @@ def join_data(d_list, gap=1):
         if name in new_d:
             new_d.add(**{name: []})
             for ich in range(nch):
-                value = np.concatenate((d[name][ich] for d in d_list))
+                value = np.concatenate([d[name][ich] for d in d_list])
                 new_d[name].append(value)
                 assert new_d[name][ich].shape[0] == new_nperiods
 
     # Set the i_origin burst attribute
     new_d.add(i_origin=[])
     for ich in range(nch):
-        i_origin_ch = np.concatenate((i_d*np.ones(d.num_bursts[ich])
-                                      for i_d, d in enumerate(d_list)))
+        i_origin_ch = np.concatenate([i_d*np.ones(d.num_bursts[ich])
+                                      for i_d, d in enumerate(d_list)])
         new_d.i_origin.append(i_origin_ch)
 
     # Update the `bp` attribute to refer to the background period in
