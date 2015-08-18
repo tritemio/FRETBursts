@@ -332,7 +332,7 @@ def fuse_bursts_iter(bursts, ms=0, clk_p=12.5e-9, verbose=True):
         nburst = bursts.num_bursts
         bursts = b_fuse(bursts, ms=ms, clk_p=clk_p)
         new_nburst = bursts.num_bursts
-    delta_b = nburst - new_nburst
+    delta_b = init_nburst - nburst
     pprint(" --> END Fused %d bursts (%.1f%%, %d iter)\n\n" %\
             (delta_b, 100.*delta_b/init_nburst, z), mute=not verbose)
     return bursts
@@ -359,8 +359,11 @@ def b_fuse(bursts, ms=0, clk_p=12.5e-9):
     """
     max_delay_clk = (ms*1e-3)/clk_p
     # Nearby bursts masks
-    delays = (bursts.separation <= max_delay_clk)
-    buffer_mask = np.hstack([(False,), delays, (False,)])
+    delays_below_th = (bursts.separation <= max_delay_clk)
+    if not np.any(delays_below_th):
+        return bursts
+
+    buffer_mask = np.hstack([(False,), delays_below_th, (False,)])
     first_bursts = buffer_mask[1:]
     second_bursts = buffer_mask[:-1]
 
@@ -377,6 +380,9 @@ def b_fuse(bursts, ms=0, clk_p=12.5e-9):
 
     gap = fused_bursts2.start - fused_bursts1.stop
     gap_counts = fused_bursts2.istart - fused_bursts1.istop - 1  # yes it's -1
+    overlaping = fused_bursts1.istop >= fused_bursts2.istart
+    gap[overlaping] = 0
+    gap_counts[overlaping] = 0
 
     # Assign the new burst data
     # fused_bursts1 has alredy the right start and istart
@@ -399,7 +405,7 @@ def mch_fuse_bursts(MBurst, ms=0, clk_p=12.5e-9, verbose=True):
         pprint(" - - - - - CHANNEL %2d - - - - \n" % ch,  not verbose)
         if mb.num_bursts == 0:
             continue
-        new_bursts = fuse_bursts_direct(mb, ms=ms, clk_p=clk_p, verbose=verbose)
+        new_bursts = fuse_bursts_iter(mb, ms=ms, clk_p=clk_p, verbose=verbose)
         new_mburst.append(new_bursts)
     return new_mburst
 
