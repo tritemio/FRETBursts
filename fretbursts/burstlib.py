@@ -322,16 +322,17 @@ def fuse_bursts_iter(bursts, ms=0, clk_p=12.5e-9, verbose=True):
         new_bursts (2D array): new array of burst data
     """
 
-    z = 0
+
     init_nburst = bursts.num_bursts
     bursts = bslib.BurstsGap(bursts.data)
+    z = 0
     new_nburst, nburst = 0, 1  # starting condition
     while new_nburst < nburst:
         z += 1
         nburst = bursts.num_bursts
         bursts = b_fuse(bursts, ms=ms, clk_p=clk_p)
         new_nburst = bursts.num_bursts
-    delta_b = init_nburst - nburst
+    delta_b = nburst - new_nburst
     pprint(" --> END Fused %d bursts (%.1f%%, %d iter)\n\n" %\
             (delta_b, 100.*delta_b/init_nburst, z), mute=not verbose)
     return bursts
@@ -359,19 +360,23 @@ def b_fuse(bursts, ms=0, clk_p=12.5e-9):
     max_delay_clk = (ms*1e-3)/clk_p
     # Nearby bursts masks
     delays = (bursts.separation <= max_delay_clk)
-    first_bursts = np.hstack([delays, (False,)])
-    second_bursts = np.hstack([(False,), delays])
-    # Maintain just the 1st in case there were more than 2 consecutive bursts
+    buffer_mask = np.hstack([(False,), delays, (False,)])
+    first_bursts = buffer_mask[1:]
+    second_bursts = buffer_mask[:-1]
+
+    # Keep only the first pair 1st in case there are more than 2 consecutive
+    # bursts
     first_bursts ^= (second_bursts*first_bursts)
-    second_bursts = np.hstack([(False,), first_bursts[:-1]])
+    # previous in-place operation also modifies `second_bursts`
+    #second_bursts = buffer_mask[:-1]np.hstack([(False,), first_bursts[:-1]])
     both_bursts = first_bursts + second_bursts
 
-    # istart is from the first bursts, istop is from the second burst
+    # istart is from the first burst, istop is from the second burst
     fused_bursts1 = bursts[first_bursts]
     fused_bursts2 = bursts[second_bursts]
 
     gap = fused_bursts2.start - fused_bursts1.stop
-    gap_counts = fused_bursts2.istart - fused_bursts1.istop - 1
+    gap_counts = fused_bursts2.istart - fused_bursts1.istop - 1  # yes it's -1
 
     # Assign the new burst data
     # fused_bursts1 has alredy the right start and istart
