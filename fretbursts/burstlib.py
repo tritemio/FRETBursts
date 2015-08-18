@@ -246,16 +246,16 @@ def fuse_bursts_direct(bursts, ms=0, clk_p=12.5e-9, verbose=True):
     For a faster implementation see :func:`fuse_bursts_iter`.
 
     Parameters:
-        bursts (2D array): Nx6 array of burst data, one row per burst
+        bursts (BurstsGap object): bursts to be fused.
             See `burstseach.burstseachlib.py` for details.
         ms (float):
             minimum waiting time between bursts (in millisec). Burst closer
-            than that will be fuse in asingle burst.
+            than that will be fuse in a single burst.
         clk_p (float): clock period or timestamp units in seconds.
         verbose (bool): if True print a summary of fused bursts.
 
     Returns:
-        new_bursts (2D array): new array of burst data
+        new_bursts (BurstsGap object): new fused bursts.
     """
     max_delay_clk = (ms*1e-3)/clk_p
 
@@ -307,19 +307,20 @@ def fuse_bursts_iter(bursts, ms=0, clk_p=12.5e-9, verbose=True):
     """Fuse bursts separated by less than `ms` (milli-secs).
 
     This function calls iteratively :func:`b_fuse` until there are no more
-    bursts to fuse. See also :func:`fuse_bursts_direct`.
+    bursts to fuse. For a slower but more readable version see
+    :func:`fuse_bursts_direct`.
 
     Parameters:
-        bursts (2D array): Nx6 array of burst data, one row per burst
+        bursts (BurstsGap object): bursts to be fused.
             See `burstseach.burstseachlib.py` for details.
         ms (float):
             minimum waiting time between bursts (in millisec). Burst closer
-            than that will be fused in a single burst.
+            than that will be fuse in a single burst.
         clk_p (float): clock period or timestamp units in seconds.
         verbose (bool): if True print a summary of fused bursts.
 
     Returns:
-        new_bursts (2D array): new array of burst data
+        new_bursts (BurstsGap object): new fused bursts.
     """
 
 
@@ -340,22 +341,24 @@ def fuse_bursts_iter(bursts, ms=0, clk_p=12.5e-9, verbose=True):
 def b_fuse(bursts, ms=0, clk_p=12.5e-9):
     """Fuse bursts separated by less than `ms` (milli-secs).
 
-    This is a low-level function that only fuses 2 consecutive bursts
-    separated by less than `ms` millisec. If there are 3 or consecutive
-    bursts separated by less than `ms` only the first 2 are fused.
+    This is a low-level function which fuses pairs of consecutive
+    bursts separated by less than `ms` millisec.
+    If there are 3 or more consecutive bursts separated by less than `ms`
+    only the first 2 are fused.
     See :func:`fuse_bursts_iter` or :func:`fuse_bursts_direct` for
     higher level functions.
 
     Parameters:
-        mburst (2D array): Nx6 array of burst data, one row per burst
+        bursts (BurstsGap object): bursts to be fused.
             See `burstseach.burstseachlib.py` for details.
         ms (float):
             minimum waiting time between bursts (in millisec). Burst closer
-            than that will be fused in a single burst.
+            than that will be fuse in a single burst.
         clk_p (float): clock period or timestamp units in seconds.
 
     Returns:
-        new_mburst (2D array): new array of burst data
+        new_bursts (BurstsGap object): new fused bursts.
+
     """
     max_delay_clk = (ms*1e-3)/clk_p
     # Nearby bursts masks
@@ -367,17 +370,17 @@ def b_fuse(bursts, ms=0, clk_p=12.5e-9):
     first_bursts = buffer_mask[1:]
     second_bursts = buffer_mask[:-1]
 
-    # Keep only the first pair 1st in case there are more than 2 consecutive
-    # bursts
+    # Keep only the first pair in case of more than 2 consecutive bursts
     first_bursts ^= (second_bursts*first_bursts)
-    # previous in-place operation also modifies `second_bursts`
-    #second_bursts = buffer_mask[:-1]np.hstack([(False,), first_bursts[:-1]])
+    # note that previous in-place operation also modifies `second_bursts`
+
     both_bursts = first_bursts + second_bursts
 
     # istart is from the first burst, istop is from the second burst
     fused_bursts1 = bursts[first_bursts]
     fused_bursts2 = bursts[second_bursts]
 
+    # Compute gap and gap_counts
     gap = fused_bursts2.start - fused_bursts1.stop
     gap_counts = fused_bursts2.istart - fused_bursts1.istop - 1  # yes it's -1
     overlaping = fused_bursts1.istop >= fused_bursts2.istart
@@ -391,11 +394,12 @@ def b_fuse(bursts, ms=0, clk_p=12.5e-9):
     fused_bursts1.gap += gap
     fused_bursts1.gap_counts += gap_counts
 
+    # Join fused bursts with the remaining bursts
     new_burst = fused_bursts1.join(bursts[~both_bursts], sort=True)
     return new_burst
 
 def mch_fuse_bursts(MBurst, ms=0, clk_p=12.5e-9, verbose=True):
-    """Multi-ch version of `fuse_bursts`. `MBurst` is a list of arrays.
+    """Multi-ch version of `fuse_bursts`. `MBurst` is a list of Bursts objects.
     """
     mburst = [b.copy() for b in MBurst] # safety copy
     new_mburst = []
