@@ -282,6 +282,12 @@ def test_burst_search(data):
 
     data.burst_search(L=10, m=10, F=7)
 
+def test_mch_count_ph_num_py_c(data):
+    na_py = bl.bslib.mch_count_ph_in_bursts_py(data.mburst, data.A_em)
+    na_c = bl.bslib.mch_count_ph_in_bursts_c(data.mburst, data.A_em)
+    assert list_array_equal(na_py, na_c)
+    assert na_py[0].dtype == np.float64
+
 def test_burst_sizes(data):
     """Test for .burst_sizes_ich() and burst_sizes()"""
     # Smoke test
