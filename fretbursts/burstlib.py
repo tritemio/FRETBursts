@@ -1626,18 +1626,19 @@ class Data(DataContainer):
             ph_bs = ph = self.get_ph_times(ich=ich, ph_sel=ph_sel)
             if compact:
                 ph_bs = self._ph_times_compact(ph, ph_sel)
-            burst_ch_list = []
+            burstarray_ch_list = []
             Tck = T/self.clk_p
 
             for ip, (l0, l1) in enumerate(self.Lim[ich]):
                 if verbose:
                     label = '%s CH%d-%d' % (ph_sel, ich+1, ip)
-                burst_ch_list.append(
+                burstarray_ch_list.append(
                     bsearch(ph_bs, L, m, Tck[ip], slice_=(l0, l1+1),
                             label=label, verbose=verbose))
 
-            if len(burst_ch_list) > 0:
-                bursts = bslib.Bursts.merge(burst_ch_list)
+            if len(burstarray_ch_list) > 0:
+                data = np.vstack([a for a in burstarray_ch_list])
+                bursts = bslib.Bursts(data)
                 if compact:
                     bursts = bursts.recompute_times(ph)
             else:
