@@ -196,15 +196,17 @@ class Burst(namedtuple('Burst', ['istart', 'istop', 'start', 'stop'])):
     __slots__ = ()
     @property
     def width(self):
+        """Burst duration in timestamps unit."""
         return self.stop - self.start
 
     @property
     def counts(self):
+        """Number of photons in the burst."""
         return self.istop - self.istart + 1
 
     @property
     def ph_rate(self):
-        """Photon rate in burst (tot size/duration)"""
+        """Photon rate in the burst (total photon counts/duration)."""
         return self.counts / self.width
 
 
@@ -213,36 +215,41 @@ class BurstGap(namedtuple('BurstGap',
     __slots__ = ()
     @staticmethod
     def from_burst(burst):
+        """Build a `BurstGap` from a :class:`Burst` object."""
         return BurstGap(start=burst.start, stop=burst.stop,
                         istart=burst.istart, istop=burst.istop,
                         gap=0, gap_counts=0)
 
     @property
     def width(self):
+        """Burst duration in timestamps unit, minus `gap` time."""
         return self.stop - self.start - self.gap
 
     @property
     def counts(self):
+        """Number of photons in the burst, minus `gap_counts`."""
         return self.istop - self.istart + 1 - self.gap_counts
 
 class Bursts(object):
     """A container for burst data.
 
-    This class provides a container for burst data. It provides a
+    This class provides a container for burst data. It has a
     set of attributes (`start`, `stop`, `istart`, `istop`, `counts`, `width`,
     `ph_rate`, `separation`) that can be accessed to obtain burst data.
     Only a few fundamental attributes are stored, the others are comuputed
     on-fly using python properties.
 
-    Other attributes are dataframe (a dataframe with the complete burst data),
-    `num_bursts` (the number of bursts).
+    Other attributes are `dataframe` (a `pandas.DataFrame` with the complete
+    burst data), `num_bursts` (the number of bursts).
 
-    Some factory-methods (static methods) are used to build `Bursts` objects
-    from a list of single :class:`Burst` (:meth:`Bursts.from_list`) or from
-    a list of `Bursts`.
+    `Bursts` objects can be built from a list of single :class:`Burst` objects
+    by using the method :meth:`Bursts.from_list`, or from 2D arrays
+    containing bursts data (one row per burst; columns: istart, istop, start,
+    stop) such as the ones returned by burst search functions (e.g.
+    :func:`bsearch_py`).
 
     `Bursts` object are iterable, yielding one burst a time (:class:`Burst`
-    objects). `Bursts` can be compared for equality and copied
+    objects). `Bursts` can be compared for equality (with `==`) and copied
     (:meth:`Bursts.copy`).
 
     Additionally basic methods for burst manipulation are provided:
@@ -273,11 +280,14 @@ class Bursts(object):
 
     @classmethod
     def empty(cls, num_bursts=0):
+        """Return an empty `Bursts()` object."""
         return cls(np.zeros((num_bursts, cls._ncols),
                                        dtype=np.int64))
 
     @classmethod
     def from_list(cls, bursts_list):
+        """Build a new `Bursts()` object from a list of :class:`Burst`.
+        """
         bursts = cls.empty(len(bursts_list))
         for i, burst in enumerate(bursts_list):
             bursts.istart[i], bursts.istop[i] = burst.istart, burst.istop
@@ -286,6 +296,8 @@ class Bursts(object):
 
     @classmethod
     def merge(cls, list_of_bursts, sort=False):
+        """Merge `Bursts` in `list_of_bursts`, returning a new `Bursts` object.
+        """
         mergedata = np.vstack([b.data for b in list_of_bursts])
         if sort:
             # Sort by start times, and when equal by stop times
@@ -297,6 +309,7 @@ class Bursts(object):
     ## Basic interface
     ##
     def copy(self):
+        """Return a new copy of current `Bursts` object."""
         return self.__class__(self.data.copy())
 
     def __getitem__(self, i):
@@ -325,12 +338,14 @@ class Bursts(object):
     @property
     def size(self):
         """Number of bursts. Used for compatibility with ndarray.size.
-        When in doubt, use Bursts.num_bursts instead.
+        Use `Bursts.num_bursts` preferentiallo.
         """
         return self.num_bursts
 
     @property
     def dataframe(self):
+        """A `pandas.DataFrame` containing burst data, one row per burst.
+        """
         return pd.DataFrame(self.data,
                             columns=['istart', 'istop', 'start', 'stop'])
 
@@ -341,6 +356,8 @@ class Bursts(object):
         return self.dataframe._repr_html_()
 
     def join(self, bursts, sort=False):
+        """Join the current `Bursts` object with another one. Returns a copy.
+        """
         return self.merge([self, bursts], sort=sort)
 
     ##
@@ -389,10 +406,12 @@ class Bursts(object):
 
     @property
     def width(self):
+        """Burst duration in timestamps units."""
         return self.stop - self.start
 
     @property
     def counts(self):
+        """Number of photons in each burst."""
         return self.istop - self.istart + 1
 
     @property
@@ -560,6 +579,8 @@ class BurstsGap(Bursts):
 
     @classmethod
     def from_list(cls, bursts_list):
+        """Build a new `BurstsGap()` from a list of :class:`BurstGap`.
+        """
         bursts = super(cls, cls).from_list(bursts_list)
         for i, burst in enumerate(bursts_list):
             bursts.gap[i], bursts.gap_counts[i] = burst.gap, burst.gap_counts
@@ -581,7 +602,7 @@ class BurstsGap(Bursts):
 
     @property
     def gap_counts(self):
-        """Time gap inside a burst"""
+        """Number of photons falling inside gaps of each burst."""
         return self.data[:, BurstsGap._i_gap_counts]
 
     @gap_counts.setter
@@ -590,9 +611,12 @@ class BurstsGap(Bursts):
 
     @property
     def width(self):
+        """Burst duration in timestamps units, minus the `gap` time.
+        """
         return self.stop - self.start - self.gap
 
     @property
     def counts(self):
+        """Number of photons in each burst, minus the `gap_counts`.
+        """
         return self.istop - self.istart + 1 - self.gap_counts
-

@@ -609,12 +609,8 @@ class Data(DataContainer):
     attributes).
 
     Attributes:
-        mburst (list of arrays): list of 2-D arrays containing burst data.
-            Each row contains data for 1 burst. Each column contains burst
-            fields like burst start, end, duration, size and indexes.
-            The proper way to access these fields is through the
-            function b_* (ex: b_start, b_end, b_width, b_size, etc...).
-            For more details see :mod:`fretbursts.burstsearch.burstsearchlib`.
+        mburst (list of Bursts objects): list Bursts() one element per channel.
+            See :class:`fretbursts.burstsearch.burstsearchlib.Bursts`.
 
         TT (list of arrays): list of arrays of *T* values (in sec.). A *T*
             value is the maximum delay between `m` photons to have a
