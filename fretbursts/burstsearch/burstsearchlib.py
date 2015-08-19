@@ -225,7 +225,7 @@ class BurstGap(namedtuple('BurstGap',
     def counts(self):
         return self.istop - self.istart + 1 - self.gap_counts
 
-class Bursts():
+class Bursts(object):
     """A container for burst data.
 
     This class provides a container for burst data. It provides a
