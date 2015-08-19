@@ -676,7 +676,7 @@ class Data(DataContainer):
         else:
             return [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
 
-    def __init__(self, leakage=0, gamma=1, dir_ex=0, **kwargs):
+    def __init__(self, leakage=0., gamma=1., dir_ex=0., **kwargs):
         # Default values
         init_kw = dict(ALEX=False, _leakage=leakage, _gamma=gamma,
                        _dir_ex=dir_ex, _chi_ch=1., s=[])
