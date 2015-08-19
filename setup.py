@@ -70,7 +70,8 @@ setup(name = project_name,
                    'Topic :: Scientific/Engineering',
                    ],
       packages = ['fretbursts', 'fretbursts.utils', 'fretbursts.fit',
-                  'fretbursts.burstsearch', 'fretbursts.dataload'],
+                  'fretbursts.burstsearch', 'fretbursts.dataload',
+                  'fretbursts.tests'],
       keywords = 'single-molecule FRET smFRET burst-analysis biophysics',
       )
 

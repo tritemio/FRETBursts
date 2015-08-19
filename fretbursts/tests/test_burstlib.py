@@ -27,9 +27,9 @@ DATASETS_DIR = u'notebooks/data/'
 
 
 def _alex_process(d):
-        loader.alex_apply_period(d)
-        d.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
-        d.burst_search(L=10, m=10, F=7)
+    loader.alex_apply_period(d)
+    d.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
+    d.burst_search(L=10, m=10, F=7)
 
 def load_dataset_1ch(process=True):
     fn = "0023uLRpitc_NTP_20dT_0.5GndCl.hdf5"
