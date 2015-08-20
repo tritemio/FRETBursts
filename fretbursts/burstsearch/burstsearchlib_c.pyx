@@ -26,14 +26,14 @@ def bsearch_c(np.int64_t[:] times, np.int16_t L, np.int16_t m,
               label='Burst search', verbose=True):
     """Sliding window burst search. Pure python implementation.
 
-    Finds bursts in the array `t` (int64). A burst starts when the photon rate
+    Finds bursts in the array `times` (int64). A burst starts when the photon rate
     is above a minimum threshold, and ends when the rate falls below the same
     threshold. The rate-threshold is defined by the ratio `m`/`T` (`m` photons
     in a time interval `T`). A burst is discarded if it has less than `L`
     photons.
 
     Arguments:
-        t (array, int64): array of timestamps on which to perform the search
+        times (array, int64): array of timestamps on which to perform the search
         L (int): minimum number of photons in a bursts. Bursts with size
             (or counts) < L are discarded.
         m (int): number of consecutive photons used to compute the rate.
