@@ -4,13 +4,12 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-The module :mod:`burstsearch.burstsearchlib` provides the low-level (or core)
+This module provides the low-level (or core)
 burst search and photon counting functions.
-
 It also provides :class:`Bursts`, a container for a set of bursts.
 :class:`Bursts` provides attributes for the main burst quatitites (`istart`, `istop`,
 `start`, `stop`, `counts`,  `width`, etc...). It implements the iterator
-interface (iterate burst by burst). Moreover `Bursts` can be indexed (`[]`,
+interface (iterate burst by burst). Moreover :class:`Bursts` can be indexed (`[]`,
 i.e. `getitem` interface) supporting the same indexing as a numpy 1-D array.
 
 The burst search functions return a 2-D array (burst array) of shape Nx4,
