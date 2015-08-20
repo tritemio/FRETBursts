@@ -26,8 +26,10 @@ MOCK_MODULES = [
                  #'numpy', 'numpy.random',
                  #'scipy', 'scipy.stats', 'scipy.optimize', 'scipy.special',
                  #'scipy.ndimage', 'scipy.interpolate',
-                 #'matplotlib', 'matplotlib.pyplot', 'matplotlib.mlab',
-                 #'matplotlib.patches', 'matplotlib.collections',
+                 'builtins',
+                 'matplotlib', 'matplotlib.pyplot', 'matplotlib.mlab',
+                 'matplotlib.patches', 'matplotlib.collections',
+                 'mpl_toolkits.axes_grid1', 'lmfit',
                  'PySide','PySide.QtCore','PySide.QtGui',
                  'tables', 'pandas',
                  ]
