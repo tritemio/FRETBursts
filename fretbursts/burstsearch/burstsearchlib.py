@@ -7,14 +7,14 @@
 The module :mod:`burstsearch.burstsearchlib` provides the low-level (or core)
 burst search and photon counting functions.
 
-It also provides the class `Bursts`, a container for a set of bursts.
-`Bursts` provides attributes for the main burst quatitites (`istart`, `istop`,
-`start`, `stop`, `counts`,  `width`, etc...). `Bursts` implement the iterator
-interface (iterate burst by burst). Morever `Bursts` can be indexed (`[]`,
+It also provides :class:`Bursts`, a container for a set of bursts.
+:class:`Bursts` provides attributes for the main burst quatitites (`istart`, `istop`,
+`start`, `stop`, `counts`,  `width`, etc...). It implements the iterator
+interface (iterate burst by burst). Moreover `Bursts` can be indexed (`[]`,
 i.e. `getitem` interface) supporting the same indexing as a numpy 1-D array.
 
 The burst search functions return a 2-D array (burst array) of shape Nx4,
-where N is the number of bursts. This array can used to build a Bursts object
+where N is the number of bursts. This array can used to build a `Bursts` object
 using::
 
     Bursts(bursts_array)
@@ -33,13 +33,14 @@ To obtain the burst counts (number of photons) for the 10-th to 20-th burst::
     bursts[10:20].counts
 
 For efficiency, when iterating over `Bursts` the returned burst is a
-named tuple `Burst`, which implemets the same attributes as `Bursts`.
+named tuple `Burst`, which implements the same attributes as `Bursts`
+(istart, istop, start, stop, counts and width).
 This results in faster iteration and attribute access than using `Bursts`
 objects with only one burst.
 
 In order to support fusion of consecutive bursts, we provide the class
 `BurstsGap` (and single-burst version `BurstGap`) which add the attributes
-`gap` and `gap_counts` the contains the duration and the number of photons
+`gap` and `gap_counts` that contains the duration and the number of photons
 in gaps inside a burst. The attribute `width` is the total burst duration
 minus `gap`, while `counts` is the total number of photons minus photons
 falling inside gaps (gaps are open intervals, do not include edges).
@@ -64,14 +65,14 @@ def bsearch_py(times, L, m, T, slice_=None,
              label='Burst search', verbose=True):
     """Sliding window burst search. Pure python implementation.
 
-    Finds bursts in the array `t` (int64). A burst starts when the photon rate
+    Finds bursts in the array `time` (int64). A burst starts when the photon rate
     is above a minimum threshold, and ends when the rate falls below the same
     threshold. The rate-threshold is defined by the ratio `m`/`T` (`m` photons
     in a time interval `T`). A burst is discarded if it has less than `L`
     photons.
 
     Arguments:
-        t (array, int64): array of timestamps on which to perform the search
+        time (array, int64): array of timestamps on which to perform the search
         L (int): minimum number of photons in a bursts. Bursts with size
             (or counts) < L are discarded.
         m (int): number of consecutive photons used to compute the rate.
@@ -338,7 +339,7 @@ class Bursts(object):
     @property
     def size(self):
         """Number of bursts. Used for compatibility with ndarray.size.
-        Use `Bursts.num_bursts` preferentiallo.
+        Use `Bursts.num_bursts` preferentially.
         """
         return self.num_bursts
 
@@ -477,7 +478,7 @@ class Bursts(object):
     def recompute_index_reduce(self, mask):
         """Recompute istart and istop on reduced timestamps selected by `mask`.
 
-        This is useful probably only for testing the inverse tranformation
+        This is useful probably only for testing the inverse transformation
         of :meth:`recompute_index_expand`.
 
         This method returns a new Bursts object with same start and stop times
