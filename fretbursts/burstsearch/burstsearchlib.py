@@ -33,13 +33,13 @@ To obtain the burst counts (number of photons) for the 10-th to 20-th burst::
     bursts[10:20].counts
 
 For efficiency, when iterating over `Bursts` the returned burst is a
-named tuple `Burst`, which implements the same attributes as `Bursts`
+named tuple :class:`Burst`, which implements the same attributes as `Bursts`
 (istart, istop, start, stop, counts and width).
 This results in faster iteration and attribute access than using `Bursts`
 objects with only one burst.
 
 In order to support fusion of consecutive bursts, we provide the class
-`BurstsGap` (and single-burst version `BurstGap`) which add the attributes
+:class:`BurstsGap` (and single-burst version :class:`BurstGap`) which add the attributes
 `gap` and `gap_counts` that contains the duration and the number of photons
 in gaps inside a burst. The attribute `width` is the total burst duration
 minus `gap`, while `counts` is the total number of photons minus photons
