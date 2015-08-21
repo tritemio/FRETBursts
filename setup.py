@@ -15,7 +15,7 @@ and multi-spot smFRET data with or without alternating laser excitation (ALEX).
 
 Quick links:
 
-- `FRETBursts Homepage <https://github.com/tritemio/FRETBursts>`_
+- `FRETBursts Homepage <http://tritemio.github.io/FRETBursts/>`_
 - `FRETBursts Reference Documentation <http://fretbursts.readthedocs.org>`_
 - `FRETBursts Tutorials <https://github.com/tritemio/FRETBursts_notebooks>`_
 """
