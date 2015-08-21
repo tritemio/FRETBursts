@@ -32,6 +32,7 @@ MOCK_MODULES = [
                  'mpl_toolkits.axes_grid1', 'lmfit',
                  'PySide','PySide.QtCore','PySide.QtGui',
                  'tables', 'pandas',
+                 'phconvert', 'phconvert.hdf5', 'phconvert.loader',
                  ]
 
 for mod_name in MOCK_MODULES:
