@@ -1,7 +1,7 @@
 FRETBursts
 ==========
 
-[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.12784.png)](http://dx.doi.org/10.5281/zenodo.12784)
+[![DOI](https://zenodo.org/badge/5991/tritemio/FRETBursts.svg)](https://zenodo.org/badge/latestdoi/5991/tritemio/FRETBursts)
 [![Build Status](https://travis-ci.org/tritemio/FRETBursts.svg?branch=master)](https://travis-ci.org/tritemio/FRETBursts)
 
 > *Quick links: [Reference documentation](http://fretbursts.readthedocs.org/), [FRETBursts tutorials](https://github.com/tritemio/FRETBursts_notebooks)*
