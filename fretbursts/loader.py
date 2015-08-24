@@ -30,35 +30,14 @@ from .dataload.spcreader import load_spc
 from .dataload.manta_reader import (load_manta_timestamps,
                                     load_xavier_manta_data,
                                     get_timestamps_detectors,
-                                    #process_timestamps,
+                                    # process_timestamps,
                                     process_store,
                                     load_manta_timestamps_pytables)
 from .utils.misc import pprint, deprecate
 from .burstlib import Data
-from .hdf5 import hdf5_data_map
-
-from phconvert.hdf5 import dict_from_group
+from . import loader_legacy
 import phconvert as phc
 
-
-def _append_data_ch(d, name, value):
-    if name not in d:
-        d.add(**{name: [value]})
-    else:
-        d[name].append(value)
-
-def _load_from_group(d, group, name, dest_name, ich=None,
-                     ondisk=False, allow_missing=True):
-    if name not in group:
-        return
-
-    node_value = group._f_get_child(name)
-    if not ondisk:
-        node_value = node_value.read()
-    if ich is None:
-        d.add(**{dest_name: node_value})
-    else:
-        _append_data_ch(d, dest_name, node_value)
 
 def _is_multich(h5data):
     if 'photon_data' in h5data:
@@ -69,96 +48,170 @@ def _is_multich(h5data):
         msg = 'Cannot find a photon_data group.'
         raise phc.hdf5.Invalid_PhotonHDF5(msg)
 
-def _photon_hdf5_1ch(h5data, data, ondisk=False):
-    data.add(nch=1)
+def _append_data_ch(d, name, value):
+    if name not in d:
+        d.add(**{name: [value]})
+    else:
+        d[name].append(value)
 
-    ph_data = h5data.photon_data
+def _load_from_group(d, group, name, dest_name, multich_field=False,
+                     ondisk=False, allow_missing=True):
+    if allow_missing and name not in group:
+        return
+
+    node_value = group._f_get_child(name)
+    if not ondisk:
+        node_value = node_value.read()
+    if multich_field:
+        _append_data_ch(d, dest_name, node_value)
+    else:
+        d.add(**{dest_name: node_value})
+
+def _append_empy_ch(data):
+    # Empty channel, fill it with empty arrays
+    ph_times = np.array([], dtype='int64')
+    _append_data_ch(data, 'ph_times_m', ph_times)
+
+    a_em = np.array([], dtype=bool)
+    _append_data_ch(data, 'A_em', a_em)
+
+def _get_measurement_specs(ph_data):
     if 'measurement_specs' not in ph_data:
-        raise NotImplementedError('FRETBursts requires a "measurement_specs" '
-                                  ' to interpret a Photon-HDF5 file.')
+        # No measurement specs, we will load timestamps and set them all in a
+        # conventional photon stream (acceptor emission)
+        meas_type = 'smFRET-1color'
+        meas_specs = None
+    else:
+        assert 'measurement_type' in ph_data.measurement_specs
+        meas_specs = ph_data.measurement_specs
+        meas_type = meas_specs.measurement_type.read().decode()
 
-    assert 'measurement_type' in ph_data.measurement_specs
-    meas_specs = ph_data.measurement_specs
-    meas_type = meas_specs.measurement_type.read().decode()
-    if meas_type not in ['smFRET', 'smFRET-usALEX', 'smFRET-nsALEX']:
+    if meas_type not in ['smFRET-1color', 'smFRET',
+                         'smFRET-usALEX', 'smFRET-nsALEX']:
         raise NotImplementedError('Meaurement type "%s" not supported'
                                   ' by FRETBursts.' % meas_type)
+    return meas_type, meas_specs
 
-    ## Load the photon-data arrays
-    if  meas_type == 'smFRET':
-        mapping = {'timestamps': 'ph_times_m', 'detectors': 'A_em',
-                   'nanotimes': 'nanotimes', 'particles': 'particles'}
-        ich = 0  # Created a 1-element list for each field
-    else:
+def _load_photon_data_arrays(data, ph_data, meas_type, ondisk=False):
+    assert 'timestamps' in ph_data
+
+    # Build mapping to convert Photon-HDF5 to FRETBursts names
+    # fields not mapped use the same name on both Photon-HDF5 and FRETBursts
+    mapping = {'timestamps': 'ph_times_m',
+               'nanotimes': 'nanotimes', 'particles': 'particles'}
+    if 'ALEX' in meas_type:
         mapping = {'timestamps': 'ph_times_t', 'detectors': 'det_t',
                    'nanotimes': 'nanotimes_t', 'particles': 'particles_t'}
-        ich = None  # don't wrap the arrays in a list
 
-    for name, dest_name in mapping.items():
-        _load_from_group(data, ph_data, name, dest_name=dest_name, ich=ich,
-                         ondisk=ondisk)
+    # Load all photon-data arrays
+    for name in ph_data._v_leaves:
+        dest_name = mapping.get(name, name)
+        _load_from_group(data, ph_data, name, dest_name=dest_name,
+                         multich_field=True, ondisk=ondisk)
 
-    ## Load the other parameters
-    donor = np.asscalar(meas_specs.detectors_specs.spectral_ch1.read()),
-    accept = np.asscalar(meas_specs.detectors_specs.spectral_ch2.read()),
+    # Timestamps are always present, and their units are always present too
+    data.add(clk_p=ph_data.timestamps_specs.timestamps_unit.read())
 
-    data.add(
-        clk_p = ph_data.timestamps_specs.timestamps_unit.read(),
-        det_donor_accept = (donor, accept))
+def _load_nanotimes_specs(data, ph_data):
+    nanot_specs = ph_data.nanotimes_specs
+    nanotimes_params = {}
+    for name in ['tcspc_unit', 'tcspc_num_bins', 'tcspc_range']:
+        value = nanot_specs._f_get_child(name).read()
+        nanotimes_params.update(**{name: value})
+    if 'user' in nanot_specs:
+        for name in ['tau_accept_only', 'tau_donor_only',
+                     'tau_fret_donor', 'inverse_fret_rate']:
+            if name in nanot_specs.user:
+                value = nanot_specs.user._f_get_child(name).read()
+                nanotimes_params.update(**{name: value})
+    _append_data_ch(data, 'nanotimes_params', nanotimes_params)
 
-    if meas_type == 'smFRET':
-        # We still have to convert A_em to a boolean mask
-        # because until now it is just the detector list
+def _load_alex_periods_donor_acceptor(data, meas_specs):
+    # Both us- and ns-ALEX
+    try:
+        # Try to load alex period definitions
+        D_ON = meas_specs.alex_excitation_period1.read()
+        A_ON = meas_specs.alex_excitation_period2.read()
+    except tables.NoSuchNodeError:
+        # But if it fails it's OK, those fields are optional
+        print('WARNING: No alternation defintion found.')
+    else:
+        _append_data_ch(data, 'D_ON', D_ON)
+        _append_data_ch(data, 'A_ON', A_ON)
 
-        # Make sure there are at most 2 detectors
-        assert len(np.unique(data.A_em[0])) <= 2
-        if accept and not donor:
-            # In this case we can convert without a copy
-            data.add(A_em=[data.A_em[0].view(dtype=bool)])
-        else:
-            # Create the boolean mask
-            data.add(A_em=[data.A_em[0] == accept])
+def _compute_acceptor_emission_mask(data, ich):
+    """For non-ALEX measurements."""
+    if data.detectors[ich].dtype.itemsize != 1:
+        raise NotImplementedError('Detectors dtype must be 1-byte.')
+    donor, accept = data._det_donor_accept_multich[ich]
 
-    if 'nanotimes_specs' in ph_data:
-        nanot_specs = ph_data.nanotimes_specs
-        nanotimes_params = {}
-        for name in ['tcspc_unit', 'tcspc_num_bins', 'tcspc_range']:
-            value = nanot_specs._f_get_child(name).read()
-            nanotimes_params.update(**{name: value})
-        if 'user' in nanot_specs:
-            for name in ['tau_accept_only', 'tau_donor_only',
-                         'tau_fret_donor', 'inverse_fret_rate']:
-                if name in nanot_specs.user:
-                    value = nanot_specs.user._f_get_child(name).read()
-                    nanotimes_params.update(**{name: value})
-        data.add(nanotimes_params=nanotimes_params)
+    # From `detectors` compute boolean mask `A_em`
+    if accept == 0 or donor == 0:
+        # In this case we create the boolean mask in-place
+        # using the detectors array
+        _append_data_ch(data, 'A_em', data.detectors[ich].view(dtype=bool))
+        if accept == 0:
+            np.logical_not(data.A_em[ich], out=data.A_em[ich])
+    else:
+        # Create the boolean mask
+        _append_data_ch(data, 'A_em', data.detectors[ich] == accept)
+
+def _add_usALEX_specs(data, meas_specs):
+    try:
+        offset = meas_specs.alex_offset.read()
+    except tables.NoSuchNodeError:
+        print('WARNING: No offset found, assuming offset = 0.')
+        offset = 0
+    data.add(offset=offset)
+    data.add(alex_period=meas_specs.alex_period.read())
+
+def _photon_hdf5_1ch(h5data, data, ondisk=False, nch=1, ich=0):
+    data.add(nch=nch)
+    ph_data_name = '/photon_data' if nch == 1 else '/photon_data%d' % ich
+
+    # Handle the case of missing channel (e.g. dead pixel)
+    if ph_data_name not in h5data:
+        _append_empy_ch(data)
+        return
+
+    # Load photon_data group and measurement_specs (if present)
+    ph_data = h5data._f_get_child(ph_data_name)
+    meas_type, meas_specs = _get_measurement_specs(ph_data)
+
+    # Load photon_data arrays
+    _load_photon_data_arrays(data, ph_data, meas_type=meas_type, ondisk=ondisk)
+
+    # If nanotimes are present load their specs
+    if 'nanotimes' in ph_data:
+        _load_nanotimes_specs(data, ph_data)
+
+    # Unless 1-color, load donor and acceptor info
+    if meas_type != 'smFRET-1color':
+        donor = np.asscalar(meas_specs.detectors_specs.spectral_ch1.read())
+        accept = np.asscalar(meas_specs.detectors_specs.spectral_ch2.read())
+        _append_data_ch(data, 'det_donor_accept', (donor, accept))
 
     # Load alternation definition both for ns-ALEX and us-ALEX
     if 'ALEX' in meas_type:
-        try:
-            # Try to load alex period definitions
-            data.add(
-                D_ON = meas_specs.alex_excitation_period1.read(),
-                A_ON = meas_specs.alex_excitation_period2.read())
-        except tables.NoSuchNodeError:
-            # But if it fails it's OK, those fields are optional
-            print('WARNING: No alternation defintion found.')
-        if meas_type == 'smFRET-usALEX':
-            try:
-                offset = meas_specs.alex_offset.read()
-            except tables.NoSuchNodeError:
-                print('WARNING: No offset found, assuming offset = 0.')
-                offset = 0
-            data.add(offset = offset)
+        _load_alex_periods_donor_acceptor(data, meas_specs)
 
-    if meas_type == 'smFRET':
-        data.add(ALEX=False, lifetime=False)
+    # Here there are all the special-case for each measurement type
+    if meas_type == 'smFRET-1color':
+        # Non-FRET or unspecified data, assume all photons are "acceptor"
+        _append_data_ch(data, 'A_em', slice(None))
+
+    elif meas_type == 'smFRET':
+        _compute_acceptor_emission_mask(data, ich)
+
     elif meas_type == 'smFRET-usALEX':
-        data.add(ALEX=True, lifetime=False,
-                 alex_period=meas_specs.alex_period.read())
+        _add_usALEX_specs(data, meas_specs)
+
     elif meas_type == 'smFRET-nsALEX':
-        data.add(ALEX=True, lifetime=True,
-                 alex_period=meas_specs.laser_repetition_rate.read())
+        data.add(laser_repetition_rate=meas_specs.laser_repetition_rate.read())
+
+    # Set some `data` flags
+    data.add(ALEX='ALEX' in meas_type)
+    data.add(lifetime='nanotimes' in ph_data)
 
 
 def _photon_hdf5_multich(h5data, data, ondisk=True):
@@ -166,47 +219,8 @@ def _photon_hdf5_multich(h5data, data, ondisk=True):
     ph_times_dict = phc.hdf5.photon_data_mapping(h5data._v_file)
     nch = np.max(list(ph_times_dict.keys())) + 1
 
-    data.add(nch=nch)
-    for ich in range(data.nch):
-        ph_data_name = '/photon_data%d' % ich
-
-        if ph_data_name not in h5data:
-            ph_times = np.array([], dtype='int64')
-            _append_data_ch(data, 'ph_times_m', ph_times)
-
-            a_em = np.array([], dtype=bool)
-            _append_data_ch(data, 'A_em', a_em)
-        else:
-            ph_data = h5data._f_get_child(ph_data_name)
-
-            _load_from_group(data, ph_data, name='timestamps',
-                             dest_name='ph_times_m', allow_missing=False,
-                             ich=ich, ondisk=ondisk)
-            data.add(clk_p=ph_data.timestamps_specs.timestamps_unit.read())
-
-            if 'detectors' not in ph_data:
-                a_em = slice(None)
-            else:
-                assert 'measurement_specs' in ph_data
-                meas_specs = ph_data.measurement_specs
-                assert 'detectors_specs' in meas_specs
-                det_specs = meas_specs.detectors_specs
-
-                donor = np.asscalar(det_specs.spectral_ch1.read())
-                accept = np.asscalar(det_specs.spectral_ch2.read())
-
-                det = ph_data.detectors.read()
-                if det.dtype.itemsize == 1 and donor == 0:
-                    a_em = det.view(bool)
-                elif det.dtype.itemsize == 1 and accept == 0:
-                    a_em = np.logical_not(det.view(bool))
-                else:
-                    a_em = (det == accept)
-                    d_em = (det == donor)
-                    assert not (a_em*d_em).any()
-                    assert (a_em + d_em).all()
-
-            _append_data_ch(data, 'A_em', a_em)
+    for ich in range(nch):
+        _photon_hdf5_1ch(h5data, data, ondisk=ondisk, nch=nch, ich=ich)
 
 
 def photon_hdf5(filename, ondisk=False, strict=False):
@@ -226,7 +240,7 @@ def photon_hdf5(filename, ondisk=False, strict=False):
     """
     version = phc.hdf5._check_version(filename)
     if version == u'0.2':
-        return hdf5(filename)
+        return loader_legacy.hdf5(filename)
 
     assert os.path.isfile(filename)
     h5file = tables.open_file(filename)
@@ -247,207 +261,6 @@ def photon_hdf5(filename, ondisk=False, strict=False):
     else:
         _photon_hdf5_1ch(h5data, d, ondisk=ondisk)
 
-    return d
-
-def assert_valid_photon_hdf5(h5file):
-    meta = dict(format_name=b'Photon-HDF5', format_version=b'0.2')
-    msg = ''
-    for attr, value in meta.items():
-        if attr not in h5file.root._v_attrs:
-            msg += ' * Error: %s not in %s\n' % (attr, h5file.root._v_attrs)
-        stored_value = h5file.root._v_attrs[attr]
-        if stored_value != value:
-            msg += ' * Error: %s != %s\n' % (stored_value, value)
-    if msg is not '':
-        h5file.close()
-        msg = 'Not a valid Photon-HDF5 file. \n' + msg
-        raise IOError(msg)
-
-def _is_basic_layout(h5file):
-    return 'photon_data' in h5file.root
-
-class H5Loader():
-
-    def __init__(self, h5file, data):
-        self.h5file = h5file
-        self.data = data
-
-    def load_data(self, where, name, dest_name=None, ich=None,
-                  allow_missing=False, ondisk=False):
-        try:
-            node = self.h5file.get_node(where, name)
-        except tables.NoSuchNodeError:
-            if allow_missing:
-                node_value = np.array([])
-            else:
-                self.h5file.close()
-                raise IOError("Invalid file format: '%s' is missing." % name)
-        else:
-            node_value = node if ondisk else node.read()
-
-        if dest_name is None:
-            dest_name = hdf5_data_map.get(name, name)
-
-        if ich is None:
-            self.data.add(**{dest_name: node_value})
-        else:
-            if dest_name not in self.data:
-                self.data.add(**{dest_name: [node_value]})
-            else:
-                self.data[dest_name].append(node_value)
-
-def hdf5(fname, ondisk=False):
-    """Load a data file saved in Photon-HDF5 format, version 0.2 only.
-
-    The format version 0.2 is obsolete, please use :func:`photon_hdf5`
-    for Photon-HDF5 version 0.3 or higher. If you have files in
-    Photon-HDF5 format 0.2 please convert them to version 0.3 or higher.
-
-    For description and specs of the Photon-HDF5 format see:
-    http://photon-hdf5.readthedocs.org/
-
-    Arguments:
-        ondisk (bool): if True do not load in the timestamp arrays, just
-            load the array reference. Multi-spot only. Default False.
-
-    Returns:
-        :class:`fretbursts.burstlib.Data` object containing the data.
-    """
-    print('WARNING: You are using Photon-HDF5 version 0.2 which is '
-          'obsolete. Please update you file to version 0.3 or higher.')
-
-    # This used for reading Photon-HDF5 version 0.2.
-    mandatory_root_fields = ['timestamps_unit', 'num_spots', 'num_detectors',
-                             'num_spectral_ch', 'num_polariz_ch',
-                             'alex', 'lifetime',]
-
-    if not os.path.isfile(fname):
-        raise IOError('File not found.')
-    data_file = tables.open_file(fname, mode="r")
-    assert_valid_photon_hdf5(data_file)
-
-    d = Data(fname=fname)
-    loader = H5Loader(data_file, d)
-
-    # Load mandatory parameters
-    mand_fields = [f for f in mandatory_root_fields if f != 'num_detectors']
-    for field in mand_fields:
-        loader.load_data('/', field)
-    try:
-        data_file.get_node('/', 'num_detectors')
-    except tables.NoSuchNodeError:
-        pprint("WARNING: No 'num_detectors' field found in the HDF5 file.\n")
-    else:
-        loader.load_data('/', 'num_detectors')
-
-    if d.ALEX:
-        if d.lifetime:
-            loader.load_data('/', 'laser_pulse_rate', allow_missing=True)
-        else:
-            loader.load_data('/', 'alex_period')
-        loader.load_data('/', 'alex_period_donor', allow_missing=True)
-        loader.load_data('/', 'alex_period_acceptor', allow_missing=True)
-
-    ## Load metadata groups
-    metagroups = ['/setup', '/provenance', '/identity']
-    for group in metagroups:
-        if group in data_file:
-            d.add(**{group[1:]: dict_from_group(data_file.get_node(group))})
-
-    if '/acquisition_time' in data_file:
-        d.add(acquisition_time=data_file.root.acquisition_time.read())
-
-    if _is_basic_layout(data_file):
-        ph_group = data_file.root.photon_data
-
-    if d.lifetime:
-        try:
-            assert 'nanotimes' in ph_group
-            assert 'nanotimes_specs' in ph_group
-        except AssertionError:
-            data_file.close()
-            raise IOError(('The lifetime flag is True but the TCSPC '
-                           'data is missing.'))
-
-    if d.nch == 1:
-        # load single-spot data from "basic layout"
-        if not d.ALEX:
-            mapping = {'timestamps': 'ph_times_m', 'detectors': 'A_em',
-                       'nanotimes': 'nanotimes', 'particles': 'particles'}
-            ich = 0  # Created a 1-element list for each field
-        else:
-            mapping = {'timestamps': 'ph_times_t', 'detectors': 'det_t',
-                       'nanotimes': 'nanotimes_t', 'particles': 'particles_t'}
-            ich = None  # don't warp the arrays in a list
-        for name, dest_name in mapping.items():
-            if name in ph_group:
-                loader.load_data(ph_group, name, dest_name=dest_name, ich=ich)
-
-        if 'detectors_specs' in ph_group:
-            det_specs = ph_group.detectors_specs
-            if 'donor' in det_specs and 'acceptor' in det_specs:
-                donor = det_specs.donor.read()
-                accept = det_specs.acceptor.read()
-                d.add(det_donor_accept=(donor, accept))
-                if not d.ALEX:
-                    # We still have to convert A_em to a boolean mask
-                    # because until now it is just the detector list
-
-                    # Make sure there are at most 2 detectors
-                    assert len(np.unique(d.A_em[0])) <= 2
-                    if accept and not donor:
-                        # In this case we can convert without a copy
-                        d.add(A_em=[d.A_em[0].view(dtype=bool)])
-                    else:
-                        # Create the boolean mask
-                        d.add(A_em=[d.A_em[0] == accept])
-
-        if 'nanotimes_specs' in ph_group:
-            nanot_specs = ph_group.nanotimes_specs
-            nanotimes_params = {}
-            for name in ['tcspc_unit', 'tcspc_num_bins', 'tcspc_range']:
-                value = nanot_specs._f_get_child(name).read()
-                nanotimes_params.update(**{name: value})
-            for name in ['tau_accept_only', 'tau_donor_only',
-                         'tau_fret_donor', 'inverse_fret_rate']:
-                if name in nanot_specs:
-                    value = nanot_specs._f_get_child(name).read()
-                    nanotimes_params.update(**{name: value})
-            d.add(nanotimes_params=nanotimes_params)
-
-    else:
-        # Load multi-spot data from multi-spot layout
-        for ich in range(d.nch):
-            ph_group_name = '/photon_data_%d' % ich
-            loader.load_data(ph_group_name, 'timestamps', allow_missing=True,
-                             dest_name='ph_times_m', ich=ich, ondisk=ondisk)
-
-            if ph_group_name not in data_file:
-                a_em = np.array([], dtype=bool)
-            elif ph_group_name + '/detectors' not in data_file:
-                a_em = slice(None)
-            else:
-                ph_group = data_file.root._f_get_child(ph_group_name)
-                det_specs = ph_group.detectors_specs
-                donor = det_specs.donor.read()
-                accept = det_specs.acceptor.read()
-                if ph_group.detectors.dtype == np.bool:
-                    a_em = ph_group.detectors.read()
-                    if not accept:
-                        np.logical_not(a_em, out=a_em)
-                else:
-                    det = ph_group.detectors.read()
-                    a_em = (det == accept)
-                    d_em = (det == donor)
-                    assert not (a_em*d_em).any()
-                    assert (a_em + d_em).all()
-
-            if 'A_em' not in d:
-                d.add(A_em=[a_em])
-            else:
-                d.A_em.append(a_em)
-
-    d.add(data_file=data_file)
     return d
 
 
@@ -572,7 +385,7 @@ def _select_inner_range(times, period, edges):
 
 def _select_range(times, period, edges):
     return _select_inner_range(times, period, edges) if edges[0] < edges[1] \
-            else _select_outer_range(times, period, edges)
+        else _select_outer_range(times, period, edges)
 
 def usalex(fname, leakage=0, gamma=1., header=None, start=None, stop=None,
            BT=None):
@@ -613,7 +426,7 @@ def usalex(fname, leakage=0, gamma=1., header=None, start=None, stop=None,
     dx = Data(fname=fname, clk_p=12.5e-9, nch=1, leakage=leakage, gamma=gamma,
               ALEX=True, lifetime=False,
               D_ON=DONOR_ON, A_ON=ACCEPT_ON, alex_period=alex_period,
-              ph_times_t=ph_times_t, det_t=det_t, det_donor_accept=(0, 1),
+              ph_times_t=[ph_times_t], det_t=[det_t], det_donor_accept=(0, 1),
               ch_labels=labels)
     return dx
 
@@ -638,12 +451,14 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
 
     *See also:* :func:`alex_apply_period`.
     """
-    donor_ch, accept_ch = d.det_donor_accept
+    ich = 0
+    donor_ch, accept_ch = d._det_donor_accept_multich[ich]
+    D_ON, A_ON = d._D_ON_multich[ich], d._A_ON_multich[ich]
     # Remove eventual ch different from donor or acceptor
-    d_ch_mask_t = (d.det_t == donor_ch)
-    a_ch_mask_t = (d.det_t == accept_ch)
+    d_ch_mask_t = (d.det_t[ich] == donor_ch)
+    a_ch_mask_t = (d.det_t[ich] == accept_ch)
     valid_mask = d_ch_mask_t + a_ch_mask_t
-    ph_times_val = d.ph_times_t[valid_mask]
+    ph_times_val = d.ph_times_t[ich][valid_mask]
     d_ch_mask_val = d_ch_mask_t[valid_mask]
     a_ch_mask_val = a_ch_mask_t[valid_mask]
     assert (d_ch_mask_val + a_ch_mask_val).all()
@@ -652,8 +467,8 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
         ph_times_val -= d.offset
 
     # Build masks for excitation windows
-    d_ex_mask_val = _select_range(ph_times_val, d.alex_period, d.D_ON)
-    a_ex_mask_val = _select_range(ph_times_val, d.alex_period, d.A_ON)
+    d_ex_mask_val = _select_range(ph_times_val, d.alex_period, D_ON)
+    a_ex_mask_val = _select_range(ph_times_val, d.alex_period, A_ON)
     # Safety check: each ph is either D or A ex (not both)
     assert not (d_ex_mask_val * a_ex_mask_val).any()
 
@@ -671,8 +486,8 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
 
     if remove_d_em_a_ex:
         # Removes donor-ch photons during acceptor excitation
-        mask = a_em + d_em*d_ex
-        assert (mask == -(a_ex*d_em)).all()
+        mask = a_em + d_em * d_ex
+        assert (mask == -(a_ex * d_em)).all()
 
         ph_times = ph_times[mask]
         d_em = d_em[mask]
@@ -688,7 +503,7 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
     d.add(ph_times_m=[ph_times],
           D_em=[d_em], A_em=[a_em], D_ex=[d_ex], A_ex=[a_ex],)
 
-    assert d.ph_times_m[0].size == d.A_em[0].size
+    assert d.ph_times_m[ich].size == d.A_em[ich].size
 
     if delete_ph_t:
         d.delete('ph_times_t')
@@ -729,8 +544,8 @@ def nsalex(fname):
     dx = Data(fname=fname, clk_p=50e-9, nch=1, ALEX=True, lifetime=True,
               D_ON=DONOR_ON, A_ON=ACCEPT_ON,
               nanotimes_nbins=nanotimes_nbins,
-              nanotimes_params = {'tcspc_num_bins': nanotimes_nbins},
-              ph_times_t=ph_times_t, det_t=det_t, nanotimes_t=nanotimes,
+              nanotimes_params = [{'tcspc_num_bins': nanotimes_nbins}],
+              ph_times_t=[ph_times_t], det_t=[det_t], nanotimes_t=[nanotimes],
               det_donor_accept=(4, 6))
     return dx
 
@@ -755,27 +570,26 @@ def nsalex_apply_period(d, delete_ph_t=True):
 
     *See also:* :func:`alex_apply_period`.
     """
-    # Note: between boolean arrays * is equavilent to logical AND,
-    #       and + is equivalent to logical OR.
-
-    donor_ch, accept_ch = d.det_donor_accept
+    ich = 0
+    donor_ch, accept_ch = d._det_donor_accept_multich[ich]
+    D_ON, A_ON = d._D_ON_multich[ich], d._A_ON_multich[ich]
 
     # Mask for donor + acceptor detectors (discard other detectors)
-    d_ch_mask_t = (d.det_t == donor_ch)
-    a_ch_mask_t = (d.det_t == accept_ch)
+    d_ch_mask_t = (d.det_t[ich] == donor_ch)
+    a_ch_mask_t = (d.det_t[ich] == accept_ch)
     da_ch_mask_t = d_ch_mask_t + a_ch_mask_t
 
     # Masks for excitation periods
-    d_ex_mask_t = (d.nanotimes_t > d.D_ON[0]) * (d.nanotimes_t < d.D_ON[1])
-    a_ex_mask_t = (d.nanotimes_t > d.A_ON[0]) * (d.nanotimes_t < d.A_ON[1])
+    d_ex_mask_t = (d.nanotimes_t[ich] > D_ON[0]) * (d.nanotimes_t[ich] < D_ON[1])
+    a_ex_mask_t = (d.nanotimes_t[ich] > A_ON[0]) * (d.nanotimes_t[ich] < A_ON[1])
     ex_mask_t = d_ex_mask_t + a_ex_mask_t  # Select only ph during Dex or Aex
 
     # Total mask: D+A photons, and only during the excitation periods
     mask = da_ch_mask_t * ex_mask_t  # logical AND
 
     # Apply selection to timestamps and nanotimes
-    ph_times = d.ph_times_t[mask]
-    nanotimes = d.nanotimes_t[mask]
+    ph_times = d.ph_times_t[ich][mask]
+    nanotimes = d.nanotimes_t[ich][mask]
 
     # Apply selection to the emission masks
     d_em = d_ch_mask_t[mask]
@@ -789,7 +603,7 @@ def nsalex_apply_period(d, delete_ph_t=True):
     assert (d_ex + a_ex).all()
     assert not (d_ex * a_ex).any()
 
-    d.add(ph_times_m=[ph_times], nanotimes=nanotimes,
+    d.add(ph_times_m=[ph_times], nanotimes=[nanotimes],
           D_em=[d_em], A_em=[a_em], D_ex=[d_ex], A_ex=[a_ex],)
 
     if delete_ph_t:

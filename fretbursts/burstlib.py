@@ -665,6 +665,7 @@ class Data(DataContainer):
     # List of photon selections on which the background is computed
     _ph_streams = [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem'),
                    Ph_sel(Aex='Dem'), Ph_sel(Aex='Aem')]
+
     @property
     def ph_streams(self):
         if self.ALEX:
@@ -687,8 +688,8 @@ class Data(DataContainer):
         Appending a '_' to a per-channel field avoids specifying the channel.
         For example use d.nd_ instead if d.nd[0].
         """
-        msg_missing_attr = "'%s' object has no attribute '%s'" % \
-                                            (self.__class__.__name__, name)
+        msg_missing_attr = "'%s' object has no attribute '%s'" %\
+                            (self.__class__.__name__, name)
         if name.startswith('_') or not name.endswith('_'):
             raise AttributeError(msg_missing_attr)
 
@@ -704,12 +705,11 @@ class Data(DataContainer):
                     return value[0]
             raise ValueError('Name "%s" is not a per-channel field.' % field)
 
-
     def copy(self, mute=False):
         """Copy data in a new object. All arrays copied except for ph_times_m
         """
         pprint('Deep copy executed.\n', mute)
-        new_d = Data(**self) # this make a shallow copy (like a pointer)
+        new_d = Data(**self)  # this make a shallow copy (like a pointer)
 
         ## Deep copy (not just reference) or array data
         for field in self.burst_fields + self.bg_fields:
@@ -806,9 +806,9 @@ class Data(DataContainer):
         elif ph_sel == Ph_sel(Dex='Aem'):
             return self.get_A_em_D_ex(ich)
         elif ph_sel == Ph_sel(Aex='Dem'):
-            return self.get_D_em(ich)*self.get_A_ex(ich)
+            return self.get_D_em(ich) * self.get_A_ex(ich)
         elif ph_sel == Ph_sel(Aex='Aem'):
-            return self.get_A_em(ich)*self.get_A_ex(ich)
+            return self.get_A_em(ich) * self.get_A_ex(ich)
 
         # Selection of all photon in one emission ch
         elif ph_sel == Ph_sel(Dex='Dem', Aex='Dem'):
@@ -824,7 +824,7 @@ class Data(DataContainer):
 
         # Selection of all photons except for Dem during Aex
         elif ph_sel == Ph_sel(Dex='DAem', Aex='Aem'):
-            return self.get_D_ex(ich) + self.get_A_em(ich)*self.get_A_ex(ich)
+            return self.get_D_ex(ich) + self.get_A_em(ich) * self.get_A_ex(ich)
 
         else:
             raise ValueError('Selection not implemented.')
@@ -902,14 +902,14 @@ class Data(DataContainer):
     def get_D_em_D_ex(self, ich=0):
         """Returns a mask of donor photons during donor-excitation."""
         if self.ALEX:
-            return self.get_D_em(ich)*self.get_D_ex(ich)
+            return self.get_D_em(ich) * self.get_D_ex(ich)
         else:
             return self.get_D_em(ich)
 
     def get_A_em_D_ex(self, ich=0):
         """Returns a mask of acceptor photons during donor-excitation."""
         if self.ALEX:
-            return self.get_A_em(ich)*self.get_D_ex(ich)
+            return self.get_A_em(ich) * self.get_D_ex(ich)
         else:
             return self.get_A_em(ich)
 
@@ -945,14 +945,14 @@ class Data(DataContainer):
         if ph_sel.Dex is not None and ph_sel.Aex is not None:
             raise ValueError(msg)
 
-    def _excitation_width(self, ph_sel):
+    def _excitation_width(self, ph_sel, ich=0):
         """Returns duration of alternation period outside selected excitation.
         """
         self._assert_compact(ph_sel)
         if ph_sel.Aex is None:
-            excitation_range = self.D_ON
+            excitation_range = self._D_ON_multich[ich]
         elif ph_sel.Dex is None:
-            excitation_range = self.A_ON
+            excitation_range = self._A_ON_multich[ich]
         return _excitation_width(excitation_range, self.alex_period)
 
     def _ph_times_compact(self, ph, ph_sel):
@@ -975,6 +975,26 @@ class Data(DataContainer):
         """
         excitation_width = self._excitation_width(ph_sel)
         return _ph_times_compact(ph, self.alex_period, excitation_width)
+
+    def _get_tuple_multich(self, name, n=2):
+        """Get a n-element tuple field in multi-ch format (1 row per ch)."""
+        field = np.array(self[name])
+        assert field.shape[-1] == n
+        if field.ndim == 1:
+            field = np.repeat([field], self.nch, axis=0)
+        return field
+
+    @property
+    def _D_ON_multich(self):
+        return self._get_tuple_multich('D_ON')
+
+    @property
+    def _A_ON_multich(self):
+        return self._get_tuple_multich('A_ON')
+
+    @property
+    def _det_donor_accept_multich(self):
+        return self._get_tuple_multich('det_donor_accept')
 
     ##
     # Methods and properties for burst-data access
@@ -2618,4 +2638,3 @@ class Data(DataContainer):
             assert (-np.isnan(E_var[i])).all() # check there is NO NaN
         self.add(E_var=E_var, E_var_bu=E_var_bu, E_var_ph=E_var_ph)
         return E_var
-

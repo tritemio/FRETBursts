@@ -109,7 +109,7 @@ def _normalize_kwargs(kwargs, kind='patch'):
 
 def bsavefig(d, s):
     """Save current figure with name in `d`, appending the string `s`."""
-    plt.savefig(d.Name()+s)
+    plt.savefig(d.Name() + s)
 
 ##
 #  Multi-channel plot functions
@@ -164,7 +164,7 @@ def plot_alternation_hist(d, bins=None, ax=None, **kwargs):
         plot_alternation = plot_alternation_hist_usalex
     plot_alternation(d, bins=bins, ax=ax, **kwargs)
 
-def plot_alternation_hist_usalex(d, bins=None, ax=None,
+def plot_alternation_hist_usalex(d, bins=None, ax=None, ich=0,
                                  hist_style={}, span_style={}):
     """Plot the us-ALEX alternation histogram for the variable `d`.
 
@@ -177,9 +177,10 @@ def plot_alternation_hist_usalex(d, bins=None, ax=None,
     if bins is None:
         bins = 100
 
+    D_ON, A_ON = d._D_ON_multich[ich], d._A_ON_multich[ich]
+    d_ch, a_ch = d._det_donor_accept_multich[ich]
     offset = d.get('offset', 0)
-    ph_times_t, det_t, period = d.ph_times_t, d.det_t, d.alex_period
-    d_ch, a_ch = d.det_donor_accept
+    ph_times_t, det_t, period = d.ph_times_t[ich], d.det_t[ich], d.alex_period
     d_em_t = (det_t == d_ch)
     hist_style_ = dict(bins=bins, alpha=0.5, histtype='stepfilled', lw=1.3)
     hist_style_.update(hist_style)
@@ -187,8 +188,8 @@ def plot_alternation_hist_usalex(d, bins=None, ax=None,
     span_style_ = dict(alpha=0.2)
     span_style_.update(span_style)
 
-    D_label = 'Donor: %d-%d' % (d.D_ON[0], d.D_ON[1])
-    A_label = 'Accept: %d-%d' % (d.A_ON[0], d.A_ON[1])
+    D_label = 'Donor: %d-%d' % (D_ON[0], D_ON[1])
+    A_label = 'Accept: %d-%d' % (A_ON[0], A_ON[1])
 
     ax.hist((ph_times_t[d_em_t] - offset) % period, color=green, label=D_label,
             **hist_style_)
@@ -196,20 +197,20 @@ def plot_alternation_hist_usalex(d, bins=None, ax=None,
             **hist_style_)
     ax.set_xlabel('Timestamp MODULO Alternation period')
 
-    if d.D_ON[0] < d.D_ON[1]:
-        ax.axvspan(d.D_ON[0], d.D_ON[1], color=green, **span_style_)
+    if D_ON[0] < D_ON[1]:
+        ax.axvspan(D_ON[0], D_ON[1], color=green, **span_style_)
     else:
-        ax.axvspan(0, d.D_ON[1], color=green, **span_style_)
-        ax.axvspan(d.D_ON[0], period, color=green, **span_style_)
+        ax.axvspan(0, D_ON[1], color=green, **span_style_)
+        ax.axvspan(D_ON[0], period, color=green, **span_style_)
 
-    if d.A_ON[0] < d.A_ON[1]:
-        ax.axvspan(d.A_ON[0], d.A_ON[1], color=red, **span_style_)
+    if A_ON[0] < A_ON[1]:
+        ax.axvspan(A_ON[0], A_ON[1], color=red, **span_style_)
     else:
-        ax.axvspan(0, d.A_ON[1], color=red, **span_style_)
-        ax.axvspan(d.A_ON[0], period, color=red, **span_style_)
+        ax.axvspan(0, A_ON[1], color=red, **span_style_)
+        ax.axvspan(A_ON[0], period, color=red, **span_style_)
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), frameon=False)
 
-def plot_alternation_hist_nsalex(d, bins=None, ax=None,
+def plot_alternation_hist_nsalex(d, bins=None, ax=None, ich=0,
                                  hist_style={}, span_style={}):
     """Plot the ns-ALEX alternation histogram for the variable `d`.
 
@@ -220,26 +221,28 @@ def plot_alternation_hist_nsalex(d, bins=None, ax=None,
         _, ax = plt.subplots()
 
     if bins is None:
-        bins = np.arange(d.nanotimes_params['tcspc_num_bins'])
+        bins = np.arange(d.nanotimes_params[ich]['tcspc_num_bins'])
 
+    D_ON, A_ON = d._D_ON_multich[ich], d._A_ON_multich[ich]
+    d_ch, a_ch = d._det_donor_accept_multich[ich]
     hist_style_ = dict(bins=bins, alpha=0.8, histtype='step', lw=1.3)
     hist_style_.update(hist_style)
 
     span_style_ = dict(alpha=0.2)
     span_style_.update(span_style)
 
-    D_label = 'Donor: %d-%d' % (d.D_ON[0], d.D_ON[1])
-    A_label = 'Accept: %d-%d' % (d.A_ON[0], d.A_ON[1])
+    D_label = 'Donor: %d-%d' % (D_ON[0], D_ON[1])
+    A_label = 'Accept: %d-%d' % (A_ON[0], A_ON[1])
 
-    nanotimes_d = d.nanotimes_t[d.det_t == d.det_donor_accept[0]]
-    nanotimes_a = d.nanotimes_t[d.det_t == d.det_donor_accept[1]]
+    nanotimes_d = d.nanotimes_t[ich][d.det_t[ich] == d_ch]
+    nanotimes_a = d.nanotimes_t[ich][d.det_t[ich] == a_ch]
 
     ax.hist(nanotimes_d, label=D_label, color=green, **hist_style_)
     ax.hist(nanotimes_a, label=A_label, color=red, **hist_style_)
     ax.set_xlabel('Nanotime bin')
     ax.set_yscale('log')
-    ax.axvspan(d.D_ON[0], d.D_ON[1], color=green, **span_style_)
-    ax.axvspan(d.A_ON[0], d.A_ON[1], color=red, **span_style_)
+    ax.axvspan(D_ON[0], D_ON[1], color=green, **span_style_)
+    ax.axvspan(A_ON[0], A_ON[1], color=red, **span_style_)
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), frameon=False)
 
 
