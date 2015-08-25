@@ -800,6 +800,22 @@ class Data(DataContainer):
             #       (where a normal boolean array would)
             return slice(None)
 
+        # Handle the case when A_em contains slice objects
+        if isinstance(self.A_em[ich], slice):
+            if self.A_em[ich] == slice(None):
+                if ph_sel.Dex == 'Dem':
+                    return slice(0)
+                if ph_sel.Dex == 'Aem':
+                    return slice(None)
+            elif self.A_em[ich] == slice(0):
+                if ph_sel.Dex == 'Dem':
+                    return slice(None)
+                if ph_sel.Dex == 'Aem':
+                    return slice(0)
+            else:
+                msg = 'When a slice, A_em can only be slice(None) or slice(0).'
+                raise NotImplementedError(msg)
+
         # Base selections
         elif ph_sel == Ph_sel(Dex='Dem'):
             return self.get_D_em_D_ex(ich)
