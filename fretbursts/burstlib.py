@@ -1358,17 +1358,15 @@ class Data(DataContainer):
     def _get_num_periods(self, time_s):
         """Return the number of periods using `time_s` as period duration.
         """
-        t_max_mch = np.array([ph[-1] for ph in self.iter_ph_times()])
+        duration = self.time_max - self.time_min
         # Take the ceil to have at least 1 periods
-        # Take the min to avoid having ch with 0 photons in the last period
-        nperiods = np.ceil(t_max_mch*self.clk_p/time_s).min().astype('int32')
+        nperiods = np.ceil(duration / time_s)
         # Discard last period if negligibly small to avoid problems with
         # background fit with very few photons.
         if nperiods > 1:
-            last_period = np.min([t_max_i*self.clk_p - (nperiods - 1)*time_s
-                                  for t_max_i in t_max_mch])
+            last_period = self.time_max - time_s * (nperiods - 1)
             # Discard last period if smaller than 3% of the bg period
-            if last_period < time_s*0.03:
+            if last_period < time_s * 0.03:
                 nperiods -= 1
         return int(nperiods)
 
@@ -1424,7 +1422,6 @@ class Data(DataContainer):
 
         kwargs = dict(clk_p=self.clk_p, error_metrics=error_metrics)
         nperiods = self._get_num_periods(time_s)
-        bg_time_clk = time_s/self.clk_p
 
         BG, BG_dd, BG_ad, BG_da, BG_aa, Lim, Ph_p = [], [], [], [], [], [], []
         rate_m, rate_dd, rate_ad, rate_da, rate_aa = [], [], [], [], []
@@ -1443,7 +1440,7 @@ class Data(DataContainer):
                 da_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Aex='Dem'))
                 aa_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Aex='Aem'))
 
-            bins = np.arange(nperiods + 1)*bg_time_clk
+            bins = (np.arange(nperiods + 1)*time_s + self.time_min)/self.clk_p
             # Note: histogram bins are half-open, e.g. [a, b)
             counts, _ = np.histogram(ph_ch, bins=bins)
             lim, ph_p = [], []
