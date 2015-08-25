@@ -1215,14 +1215,18 @@ class Data(DataContainer):
         """Return first or last timestamp per-ch, reduced with `func`.
         """
         idx = -1 if last else 0
-        # Try using ph_times_m
-        if 'ph_times_m' in self:
+
+        # Get either ph_times_m or ph_times_t
+        ph_times = None
+        for ph_times_name in ['ph_times_m', 'ph_times_t']:
+            try:
+                ph_times = self[ph_times_name]
+            except KeyError:
+                pass
+
+        if ph_times is not None:
             # This works with both numpy arrays and pytables arrays
-            time = func(t[idx] for t in self.ph_times_m if t.shape[0] > 0)
-        # if it is an ALEX measurement before alex_apply_periods()
-        elif 'ph_times_t' in self:
-            time = func(self.ph_times_t)
-        # if it is a variable with only burst data
+            time = func(t[idx] for t in ph_times if t.shape[0] > 0)
         elif 'mburst' in self:
             if last:
                 time = func(bursts[idx].stop for bursts in self.mburst)
@@ -1230,7 +1234,8 @@ class Data(DataContainer):
                 time = func(bursts[idx].start for bursts in self.mburst)
         else:
             raise ValueError("No timestamps or bursts found.")
-        return time*self.clk_p
+
+        return time * self.clk_p
 
     def ph_in_bursts_mask_ich(self, ich=0, ph_sel=Ph_sel('all')):
         """Return mask of all photons inside bursts for channel `ich`.

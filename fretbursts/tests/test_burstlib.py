@@ -95,6 +95,7 @@ def test_ph_times_compact(data_1ch):
     """Test calculation of ph_times_compact."""
     def isinteger(x):
         return np.equal(np.mod(x, 1), 0)
+    ich = 0
     d = data_1ch
 
     ph_d = d.get_ph_times(ph_sel=Ph_sel(Dex='DAem'))
@@ -103,13 +104,13 @@ def test_ph_times_compact(data_1ch):
     ph_ac = d.get_ph_times(ph_sel=Ph_sel(Aex='DAem'), compact=True)
     # Test that the difference of ph and ph_compact is multiple of
     # the complementary excitation period duration
-    Dex_void = bl._excitation_width(d.D_ON, d.alex_period)
-    Aex_void = bl._excitation_width(d.A_ON, d.alex_period)
-    assert isinteger((ph_d - ph_dc)/Dex_void).all()
-    assert isinteger((ph_a - ph_ac)/Aex_void).all()
+    Dex_void = bl._excitation_width(d._D_ON_multich[ich], d.alex_period)
+    Aex_void = bl._excitation_width(d._A_ON_multich[ich], d.alex_period)
+    assert isinteger((ph_d - ph_dc) / Dex_void).all()
+    assert isinteger((ph_a - ph_ac) / Aex_void).all()
     # Test that alternation histogram does not have "gaps" for ph_compact
     bins = np.linspace(0, d.alex_period, num=101)
-    hist_dc, _ = np.histogram(ph_dc % d.alex_period , bins=bins)
+    hist_dc, _ = np.histogram(ph_dc % d.alex_period, bins=bins)
     hist_ac, _ = np.histogram(ph_ac % d.alex_period, bins=bins)
     assert (hist_dc > 0).all()
     assert (hist_ac > 0).all()
@@ -118,16 +119,17 @@ def test_ph_times_compact(data_1ch):
 def test_time_min_max():
     """Test time_min and time_max for ALEX data."""
     d = load_dataset_1ch(process=False)
-    assert d.time_max == d.ph_times_t.max()*d.clk_p
-    assert d.time_min == d.ph_times_t.min()*d.clk_p
+    ich = 0
+    assert d.time_max == d.ph_times_t[ich].max() * d.clk_p
+    assert d.time_min == d.ph_times_t[ich].min() * d.clk_p
     del d._time_max, d._time_min
     _alex_process(d)
-    assert d.time_max == d.ph_times_m[0][-1]*d.clk_p
-    assert d.time_min == d.ph_times_m[0][0]*d.clk_p
+    assert d.time_max == d.ph_times_m[ich][-1] * d.clk_p
+    assert d.time_min == d.ph_times_m[ich][0] * d.clk_p
     d.delete('ph_times_m')
     del d._time_max, d._time_min
-    assert d.time_max == d.mburst[0].stop[-1]*d.clk_p
-    assert d.time_min == d.mburst[0].start[0]*d.clk_p
+    assert d.time_max == d.mburst[0].stop[-1] * d.clk_p
+    assert d.time_min == d.mburst[0].start[0] * d.clk_p
 
 def test_time_min_max_multispot(data_8ch):
     """Test time_min and time_max for multi-spot data."""
