@@ -396,7 +396,7 @@ def timetrace_single(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
                       rate_th_style=rate_th_style)
 
     xlabel('Time (s)'); ylabel('# ph')
-    if burst_picker:
+    if burst_picker and 'mburst' in d:
         _gui_timetrace_burst_sel(d, gcf(), gca())
     if scroll:
         _gui_timetrace_scroll(gcf())
