@@ -402,8 +402,7 @@ def bursts_fitter(dx, burst_data='E', save_fitter=True,
         if add_naa:
             weight_kwargs['naa'] = dx.naa
         if weights == 'brightness':
-            weight_kwargs['widths'] = [burstlib.b_width(mb)*dx.clk_p
-                                       for mb in dx.mburst]
+            weight_kwargs['widths'] = [mb.width*dx.clk_p for mb in dx.mburst]
         fitter.set_weights_func(weight_func=fret_fit.get_weights,
                                 weight_kwargs=weight_kwargs)
     if bandwidth is not None:
@@ -809,7 +808,7 @@ def asymmetry(dx, ich=0, func=np.mean, dropnan=True):
     stats_a = ph_burst_stats(dx, ich=ich, func=func, ph_sel=Ph_sel(Dex='Aem'))
 
     #b_size = d.burst_sizes(ich, add_naa=False)
-    #b_width = burstlib.b_width(d.mburst[ich])
+    #b_width = d.mburst[ich].width
     burst_asym = (stats_d - stats_a)*dx.clk_p*1e3
     if dropnan:
         burst_asym = burst_asym[-np.isnan(burst_asym)]

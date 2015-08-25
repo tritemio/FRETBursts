@@ -194,6 +194,8 @@ def get_weights(nd, na, weights, naa=0, gamma=1., widths=None):
             'cum_size2' CDF_of_burst_sizes(burst size)^2,
             'brightness' the burst size divided by the burst width.
             If None returns uniform weights.
+        widths (1D array): bursts duration in seconds, needed only when
+            weights = 'brightness'.
 
     Returns:
         1D array of weigths, one element per burst.
@@ -257,6 +259,3 @@ def fit_E_m(nd, na, weights=None, gamma=1., gamma_correct=False):
         E = na/(na + nd)
     E_fit = np.dot(E, weights)/weights.sum()
     return E_fit
-
-
-
