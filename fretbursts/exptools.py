@@ -62,7 +62,7 @@ def weighted_median(data, weights=None):
 
 
 def estimate_tau(sample, median=False, weights=None):
-    """Estimate the `tau` parameter from an exponentilly-distributed `sample`.
+    """Estimate the `tau` parameter from an exponentially-distributed `sample`.
 
     Arguments:
         sample (array): the exponetially-distributed samples
