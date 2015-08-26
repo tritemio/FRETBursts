@@ -71,7 +71,7 @@ def bsearch_py(times, L, m, T, slice_=None,
     photons.
 
     Arguments:
-        time (array, int64): array of timestamps on which to perform the search
+        times (array, int64): array of timestamps on which to perform the search
         L (int): minimum number of photons in a bursts. Bursts with size
             (or counts) < L are discarded.
         m (int): number of consecutive photons used to compute the rate.
@@ -86,6 +86,8 @@ def bsearch_py(times, L, m, T, slice_=None,
     """
     if verbose:
         pprint('Python search (v): %s\n' % label)
+
+    i_time0 = 0
     if slice_ is not None:
         times = times[slice_[0]:slice_[1]]
         i_time0 = slice_[0]

@@ -38,6 +38,7 @@ def bsearch_c(np.int64_t[:] times, np.int16_t L, np.int16_t m,
             (or counts) < L are discarded.
         m (int): number of consecutive photons used to compute the rate.
         T (float): max time separation of `m` photons to be inside a burst
+        slice_ (tuple): 2-element tuple used to slice times
         label (string): a label printed when the function is called
         verbose (bool): if False, the function does not print anything.
 
@@ -52,6 +53,9 @@ def bsearch_c(np.int64_t[:] times, np.int16_t L, np.int16_t m,
     if slice_ is not None:
         islice1 = slice_[0]
         islice2 = slice_[1]
+    else:
+        islice1 = 0
+        islice2 = times.size
 
     bursts = []
     in_burst = 0
