@@ -268,6 +268,16 @@ def test_burst_search_py_cy(data):
     assert np.all(num_bursts1 == data.num_bursts)
     assert mburst1 == data.mburst
 
+def test_burst_search_with_no_bursts(data):
+    """Smoke test burst search when some periods have no bursts."""
+    # F=600 results in periods with no bursts for the us-ALEX measurement
+    # and in no bursts at all for the multi-spot measurements
+    data.burst_search(m=10, F=600)
+
+def test_burst_search_constant_rates(data):
+    """Smoke test burst search with constant rate-threshold."""
+    data.burst_search(m=10, min_rate_cps=80e3)
+
 def test_burst_search(data):
     """Smoke test and bg_bs check."""
     data.burst_search(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Dem'))
@@ -283,12 +293,6 @@ def test_burst_search(data):
         data.burst_search(m=10, F=7, ph_sel=Ph_sel(Dex='DAem'), compact=True)
 
     data.burst_search(L=10, m=10, F=7)
-
-def test_burst_search_with_no_bursts(data):
-    """Smoke test burst search when some periods have no bursts."""
-    # F=600 results in periods with no bursts for the us-ALEX measurement
-    # and in no bursts at all for the multi-spot measurements
-    data.burst_search(m=10, F=600)
 
 def test_mch_count_ph_num_py_c(data):
     na_py = bl.bslib.mch_count_ph_in_bursts_py(data.mburst, data.A_em)
