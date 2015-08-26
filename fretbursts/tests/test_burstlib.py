@@ -260,11 +260,23 @@ def test_iter_ph_times_period(data):
             assert (ph_period == ph_period_test).all()
 
 def test_burst_search_py_cy(data):
-    """Test consistency of python and cython burst search."""
+    """Test python and cython burst search with background-dependent threshold.
+    """
     data.burst_search(pure_python=True)
     mburst1 = [b.copy() for b in data.mburst]
     num_bursts1 = data.num_bursts
     data.burst_search(pure_python=False)
+    assert np.all(num_bursts1 == data.num_bursts)
+    assert mburst1 == data.mburst
+
+def test_burst_search_constant_rates(data):
+    """Test python and cython burst search with constant threshold."""
+    data.burst_search(min_rate_cps=50e3, pure_python=True)
+    assert (data.num_bursts > 0).all()
+    mburst1 = [b.copy() for b in data.mburst]
+    num_bursts1 = data.num_bursts
+    data.burst_search(min_rate_cps=50e3, pure_python=False)
+    assert (data.num_bursts > 0).all()
     assert np.all(num_bursts1 == data.num_bursts)
     assert mburst1 == data.mburst
 
@@ -273,10 +285,6 @@ def test_burst_search_with_no_bursts(data):
     # F=600 results in periods with no bursts for the us-ALEX measurement
     # and in no bursts at all for the multi-spot measurements
     data.burst_search(m=10, F=600)
-
-def test_burst_search_constant_rates(data):
-    """Smoke test burst search with constant rate-threshold."""
-    data.burst_search(m=10, min_rate_cps=80e3)
 
 def test_burst_search(data):
     """Smoke test and bg_bs check."""
