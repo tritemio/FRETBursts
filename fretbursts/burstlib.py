@@ -1636,10 +1636,14 @@ class Data(DataContainer):
             if compact:
                 ph_bs = self._ph_times_compact(ph, ph_sel)
             label = '%s CH%d' % (ph_sel, ich+1) if verbose else None
-            mb = bsearch(ph_bs, L, m, t_clk, label=label, verbose=verbose)
-            if compact:
-                mb = mb.recompute_times(ph)
-            mburst.append(mb)
+            burstarray = bsearch(ph_bs, L, m, t_clk, label=label, verbose=verbose)
+            if burstarray.size > 1:
+                bursts = bslib.Bursts(burstarray)
+                if compact:
+                    bursts = bursts.recompute_times(ph)
+            else:
+                bursts = bslib.Bursts.empty()
+            mburst.append(bursts)
         self.add(mburst=mburst, rate_th=Min_rate_cps, T=T_clk*self.clk_p)
         if ph_sel != Ph_sel('all'):
             self._fix_mburst_from(ph_sel=ph_sel)
