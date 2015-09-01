@@ -992,10 +992,9 @@ class Data(DataContainer):
         excitation_width = self._excitation_width(ph_sel)
         return _ph_times_compact(ph, self.alex_period, excitation_width)
 
-    def _get_tuple_multich(self, name, n=2):
+    def _get_tuple_multich(self, name):
         """Get a n-element tuple field in multi-ch format (1 row per ch)."""
         field = np.array(self[name])
-        assert field.shape[-1] == n
         if field.ndim == 1:
             field = np.repeat([field], self.nch, axis=0)
         return field

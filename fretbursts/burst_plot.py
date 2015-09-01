@@ -25,7 +25,8 @@ The 1-ch plot functions names all start with the plot type (`timetrace`,
 
     dplot(d, hist_fret, show_model=True)
 
-For more examples refer to the `FRETBurst notebooks <http://nbviewer.ipython.org/github/tritemio/FRETBursts_notebooks/tree/master/notebooks/>`_.
+For more examples refer to
+`FRETBurst notebooks <http://nbviewer.ipython.org/github/tritemio/FRETBursts_notebooks/tree/master/notebooks/>`_.
 
 """
 
@@ -223,7 +224,10 @@ def plot_alternation_hist_nsalex(d, bins=None, ax=None, ich=0,
     if bins is None:
         bins = np.arange(d.nanotimes_params[ich]['tcspc_num_bins'])
 
-    D_ON, A_ON = d._D_ON_multich[ich], d._A_ON_multich[ich]
+    D_ON_multi, A_ON_multi = d._D_ON_multich[ich], d._A_ON_multich[ich]
+    D_ON = [(D_ON_multi[i], D_ON_multi[i+1]) for i in range(0, len(D_ON_multi), 2)]
+    A_ON = [(A_ON_multi[i], A_ON_multi[i+1]) for i in range(0, len(A_ON_multi), 2)]
+
     d_ch, a_ch = d._det_donor_accept_multich[ich]
     hist_style_ = dict(bins=bins, alpha=0.8, histtype='step', lw=1.3)
     hist_style_.update(hist_style)
@@ -231,8 +235,12 @@ def plot_alternation_hist_nsalex(d, bins=None, ax=None, ich=0,
     span_style_ = dict(alpha=0.2)
     span_style_.update(span_style)
 
-    D_label = 'Donor: %d-%d' % (D_ON[0], D_ON[1])
-    A_label = 'Accept: %d-%d' % (A_ON[0], A_ON[1])
+    D_label = 'Donor: '
+    for d_on in D_ON:
+        D_label += '%d-%d' % (d_on[0], d_on[1])
+    A_label = 'Accept: '
+    for a_on in A_ON:
+        A_label += '%d-%d' % (a_on[0], a_on[1])
 
     nanotimes_d = d.nanotimes_t[ich][d.det_t[ich] == d_ch]
     nanotimes_a = d.nanotimes_t[ich][d.det_t[ich] == a_ch]
@@ -241,8 +249,10 @@ def plot_alternation_hist_nsalex(d, bins=None, ax=None, ich=0,
     ax.hist(nanotimes_a, label=A_label, color=red, **hist_style_)
     ax.set_xlabel('Nanotime bin')
     ax.set_yscale('log')
-    ax.axvspan(D_ON[0], D_ON[1], color=green, **span_style_)
-    ax.axvspan(A_ON[0], A_ON[1], color=red, **span_style_)
+    for d_on in D_ON:
+        ax.axvspan(d_on[0], d_on[1], color=green, **span_style_)
+    for a_on in A_ON:
+        ax.axvspan(a_on[0], a_on[1], color=red, **span_style_)
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), frameon=False)
 
 

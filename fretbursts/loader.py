@@ -572,7 +572,9 @@ def nsalex_apply_period(d, delete_ph_t=True):
     """
     ich = 0
     donor_ch, accept_ch = d._det_donor_accept_multich[ich]
-    D_ON, A_ON = d._D_ON_multich[ich], d._A_ON_multich[ich]
+    D_ON_multi, A_ON_multi = d._D_ON_multich[ich], d._A_ON_multich[ich]
+    D_ON = [(D_ON_multi[i], D_ON_multi[i+1]) for i in range(0, len(D_ON_multi), 2)]
+    A_ON = [(A_ON_multi[i], A_ON_multi[i+1]) for i in range(0, len(A_ON_multi), 2)]
 
     # Mask for donor + acceptor detectors (discard other detectors)
     d_ch_mask_t = (d.det_t[ich] == donor_ch)
@@ -580,8 +582,14 @@ def nsalex_apply_period(d, delete_ph_t=True):
     da_ch_mask_t = d_ch_mask_t + a_ch_mask_t
 
     # Masks for excitation periods
-    d_ex_mask_t = (d.nanotimes_t[ich] > D_ON[0]) * (d.nanotimes_t[ich] < D_ON[1])
-    a_ex_mask_t = (d.nanotimes_t[ich] > A_ON[0]) * (d.nanotimes_t[ich] < A_ON[1])
+    d_ex_mask_t = np.zeros(d.nanotimes_t[ich].size, dtype='bool')
+    for d_on in D_ON:
+        d_ex_mask_t += (d.nanotimes_t[ich] > d_on[0]) * (d.nanotimes_t[ich] < d_on[1])
+
+    a_ex_mask_t = np.zeros(d.nanotimes_t[ich].size, dtype='bool')
+    for a_on in A_ON:
+        a_ex_mask_t += (d.nanotimes_t[ich] > a_on[0]) * (d.nanotimes_t[ich] < a_on[1])
+
     ex_mask_t = d_ex_mask_t + a_ex_mask_t  # Select only ph during Dex or Aex
 
     # Total mask: D+A photons, and only during the excitation periods
