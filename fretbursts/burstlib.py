@@ -2404,9 +2404,9 @@ class Data(DataContainer):
         if not hasattr(self, '_name'):
             name = basename = os.path.splitext(os.path.basename(self.fname))[0]
             last_dir = os.path.basename(os.path.dirname(self.fname))
-            if last_dir is not '':
-                name = '_'.join([last_dir, basename])
-            self.add(_name=name)
+            if len(last_dir) > 0:
+                name = b'_'.join([last_dir, basename])
+            self.add(_name=name.decode())
         return self._name
 
     @name.setter
