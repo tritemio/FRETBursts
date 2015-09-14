@@ -71,8 +71,8 @@ plt.rcParams.update(params)
 #
 blue = '#0055d4'
 green = '#2ca02c'
-red = "#e74c3c" # '#E41A1C'
-purple = "#9b59b6"
+red = '#e74c3c'  # '#E41A1C'
+purple = '#9b59b6'
 
 _ph_sel_color_dict = {Ph_sel('all'): blue, Ph_sel(Dex='Dem'): green,
                       Ph_sel(Dex='Aem'): red, Ph_sel(Aex='Aem'): purple,
@@ -266,17 +266,19 @@ def plot_alternation_hist_nsalex(d, bins=None, ax=None, ich=0,
 def _plot_bursts(d, i, t_max_clk, pmax=1e3, pmin=0, color="#999999"):
     """Highlights bursts in a timetrace plot."""
     b = d.mburst[i]
-    if b.num_bursts == 0: return
-    pprint("CH %d burst..." % (i+1))
+    if b.num_bursts == 0:
+        return
+    pprint("CH %d burst..." % (i + 1))
     bs = b[b.start < t_max_clk]
     start = bs.start * d.clk_p
     end = bs.stop * d.clk_p
     R = []
-    width = end-start
+    width = end - start
     ax = gca()
     for s, w in zip(start, width):
-        r = Rectangle(xy=(s, pmin), height=pmax-pmin, width=w)
-        r.set_clip_box(ax.bbox); r.set_zorder(0)
+        r = Rectangle(xy=(s, pmin), height=pmax - pmin, width=w)
+        r.set_clip_box(ax.bbox)
+        r.set_zorder(0)
         R.append(r)
     ax.add_artist(PatchCollection(R, lw=0, color=color))
     pprint("[DONE]\n")
@@ -300,9 +302,9 @@ def _plot_rate_th(d, i, F, ph_sel, invert=False, scale=1,
     rate_th_style_.update(_normalize_kwargs(rate_th_style, kind='line2d'))
     if rate_th_style_['label'] is 'auto':
         rate_th_style_['label'] = 'bg_rate*%d %s' % \
-                                    (F, plot_style_['label'])
-    x_rate = np.hstack(d.Ph_p[i])*d.clk_p
-    y_rate = F*np.hstack([(rate, rate) for rate in d.bg_from(ph_sel)[i]])
+                                  (F, plot_style_['label'])
+    x_rate = np.hstack(d.Ph_p[i]) * d.clk_p
+    y_rate = F * np.hstack([(rate, rate) for rate in d.bg_from(ph_sel)[i]])
     y_rate *= scale
     if invert:
         y_rate *= -1
@@ -321,7 +323,6 @@ def _gui_timetrace_scroll(fig):
     global gui_status
     if gui_status['first_plot_in_figure']:
         gui_status['scroll_gui'] = ScrollingToolQT(fig)
-
 
 def timetrace_single(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
                      ph_sel=Ph_sel('all'), invert=False, bursts=False,
@@ -364,8 +365,8 @@ def timetrace_single(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
     if not cache_bins and _has_cache:
         _del_cache()
 
-    tmin_clk, tmax_clk = tmin/d.clk_p, tmax/d.clk_p
-    binwidth_clk = binwidth/d.clk_p
+    tmin_clk, tmax_clk = tmin / d.clk_p, tmax / d.clk_p
+    binwidth_clk = binwidth / d.clk_p
 
     # If bins is not passed try to use the
     if bins is None:
@@ -373,7 +374,7 @@ def timetrace_single(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
             bins, x = timetrace_single.bins, timetrace_single.x
         else:
             bins = np.arange(tmin_clk, tmax_clk + 1, binwidth_clk)
-            x = bins[:-1]*d.clk_p + 0.5*binwidth
+            x = bins[:-1] * d.clk_p + 0.5 * binwidth
             if cache_bins:
                 _set_cache(bins, x, binwidth, tmin, tmax)
 
@@ -385,7 +386,7 @@ def timetrace_single(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
 
     # Plot bursts
     if bursts:
-        t_max_clk = int(tmax/d.clk_p)
+        t_max_clk = int(tmax / d.clk_p)
         print(burst_color)
         _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500, color=burst_color)
 
@@ -405,7 +406,8 @@ def timetrace_single(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
                       scale=binwidth, plot_style_=plot_style_,
                       rate_th_style=rate_th_style)
 
-    xlabel('Time (s)'); ylabel('# ph')
+    plt.xlabel('Time (s)')
+    plt.ylabel('# ph')
     if burst_picker and 'mburst' in d:
         _gui_timetrace_burst_sel(d, gcf(), gca())
     if scroll:
@@ -431,7 +433,7 @@ def timetrace(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
     """
     # Plot bursts
     if bursts:
-        t_max_clk = int(tmax/d.clk_p)
+        t_max_clk = int(tmax / d.clk_p)
         _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500, color=burst_color)
 
     # Plot multiple timetraces
