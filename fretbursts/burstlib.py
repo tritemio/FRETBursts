@@ -2402,11 +2402,12 @@ class Data(DataContainer):
     def name(self):
         """Measurement name: last subfolder + file name with no extension."""
         if not hasattr(self, '_name'):
-            name = basename = os.path.splitext(os.path.basename(self.fname))[0]
-            last_dir = os.path.basename(os.path.dirname(self.fname))
+            basename = str(os.path.splitext(os.path.basename(self.fname))[0])
+            name = basename
+            last_dir = str(os.path.basename(os.path.dirname(self.fname)))
             if len(last_dir) > 0:
-                name = b'_'.join([last_dir, basename])
-            self.add(_name=name.decode())
+                name = '_'.join([last_dir, basename])
+            self.add(_name=name)
         return self._name
 
     @name.setter
