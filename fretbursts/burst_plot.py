@@ -269,8 +269,8 @@ def _plot_bursts(d, i, t_max_clk, pmax=1e3, pmin=0, color="#999999"):
     if b.num_bursts == 0: return
     pprint("CH %d burst..." % (i+1))
     bs = b[b.start < t_max_clk]
-    start = bs.start*d.clk_p
-    end = bs.stop**d.clk_p
+    start = bs.start * d.clk_p
+    end = bs.stop * d.clk_p
     R = []
     width = end-start
     ax = gca()
