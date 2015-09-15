@@ -182,13 +182,14 @@ class MultiAxPointSelection(object):
     def on_press_print(self):
         if self.debug:
             pprint("%s %s %s\n" % (self.xp, self.yp, self.ich))
-        mburst = self.d.mburst[self.ich]
-        t_clk = self.xp/self.d.clk_p
-        mask = (b_start(mburst) < t_clk)*(b_end(mburst) > t_clk)
+        bursts = self.d.mburst[self.ich]
+        t_clk = self.xp / self.d.clk_p
+        mask = (bursts.start < t_clk) * (bursts.stop > t_clk)
         if mask.any():
             burst_index = np.where(mask)[0][0]
-            ts = b_start(mburst)[burst_index]*self.d.clk_p
-            width = b_width(mburst)[burst_index]*self.d.clk_p
+            burst = bursts[burst_index]
+            ts = burst.start * self.d.clk_p
+            width = burst.width * self.d.clk_p
             asym = self.asymmetry(self.ich)[burst_index]
             msg = "Burst [%d-CH%d]: " % (burst_index, self.ich+1)
             msg += "t = %7.2f ms" % (ts*1e3)
@@ -204,4 +205,3 @@ class MultiAxPointSelection(object):
                 msg += "   S=%4.2f" % self.d.E[self.ich][burst_index]
             msg += "   Asym(D-A)=%5.2f ms" % asym
             pprint(msg + '\n')
-
