@@ -13,6 +13,7 @@ from __future__ import absolute_import
 from builtins import range, zip
 
 import numpy as np
+from scipy.stats import mode
 from matplotlib.patches import Rectangle, Ellipse
 
 from .utils.misc import pprint
@@ -188,20 +189,27 @@ class MultiAxPointSelection(object):
         if mask.any():
             burst_index = np.where(mask)[0][0]
             burst = bursts[burst_index]
-            ts = burst.start * self.d.clk_p
-            width = burst.width * self.d.clk_p
-            asym = self.asymmetry(self.ich)[burst_index]
-            msg = "Burst [%d-CH%d]: " % (burst_index, self.ich+1)
-            msg += "t = %7.2f ms" % (ts*1e3)
-            msg += "   width=%4.2f ms" % (width*1e3)
-            msg += "   size=(T%3d, D%3d, A%3d" % \
-                (self.d.nt[self.ich][burst_index],
-                 self.d.nd[self.ich][burst_index],
-                 self.d.na[self.ich][burst_index])
+            params = dict(ich=self.ich, b_index=burst_index,
+                start_ms = float(burst.start) * self.d.clk_p * 1e3,
+                width_ms = float(burst.width) * self.d.clk_p * 1e3,
+                asym = self.asymmetry(self.ich)[burst_index],
+                nt = self.d.nt[self.ich][burst_index],
+                nd = self.d.nd[self.ich][burst_index],
+                na = self.d.na[self.ich][burst_index],
+                E = self.d.E[self.ich][burst_index])
+            msg = ("Burst [{b_index}-CH{ich}]: t = {start_ms:7.2f} ms"
+                   "   width={width_ms:4.2f} ms"
+                   "   size=(T{nt:3.0f}, D{nd:3.0f}, A{na:3.0f}")
             if self.d.ALEX:
-                msg += ", AA%3d" % self.d.naa[self.ich][burst_index]
-            msg += ")   E=%4.2f" % self.d.E[self.ich][burst_index]
+                msg += ", AA{naa:3.0f}"
+                params['naa'] = self.d.naa[self.ich][burst_index]
+            msg += ")   E={E:4.2%}"
             if self.d.ALEX:
-                msg += "   S=%4.2f" % self.d.E[self.ich][burst_index]
-            msg += "   Asym(D-A)=%5.2f ms" % asym
-            pprint(msg + '\n')
+                msg += "   S={S:4.2%}"
+                params['S'] = self.d.S[self.ich][burst_index]
+            if 'particles' in self.d:
+                msg = "P{par:2d} " + msg
+                particles = self.d.particles[self.ich]
+                params['par'] = mode(particles[burst.istart:burst.istop])[0][0]
+            msg += "   Asym(D-A)={asym:5.2f} ms"
+            pprint((msg + '\n').format(**params))
