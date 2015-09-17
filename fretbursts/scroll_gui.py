@@ -152,22 +152,28 @@ class mToolQT(object):
         self.draw()
 
 class ScrollingToolQT(object):
-    def __init__(self, fig, scroll_step=10, debug=False):
+    # Scrolling steps in fractions of axis width
+    scroll_page = 10
+    scroll_single = 0.25
+
+    scale = 1e3  # conversion between x-axis (float) and slider units (ints)
+
+    def __init__(self, fig, width=1, debug=False):
         # Setup data range variables for scrolling
         self.debug = debug
-        if self.debug: pprint('ScrollingToolQT init\n')
-
+        if self.debug:
+            pprint('ScrollingToolQT init\n')
         self.fig = fig
-        self.scroll_step = scroll_step
-        self.xmin, self.xmax = fig.axes[0].get_xlim()
-        self.width = 1 # axis units
-        self.pos = 0   # axis units
-        self.scale = 1e3 # conversion betweeen scrolling units and axis units
+
+        # Data range inferred from initial x-axis range
+        self.data_xmin, self.data_xmax = fig.axes[0].get_xlim()
+        self.xmin = self.data_xmin
+        self.width = width    # axis units (e.g. 1 second)
 
         # Some handy shortcuts
         self.ax = self.fig.axes[0]
         self.draw = self.fig.canvas.draw
-        #self.draw_idle = self.fig.canvas.draw_idle
+        # self.draw_idle = self.fig.canvas.draw_idle
 
         # Retrive the QMainWindow used by current figure and add a toolbar
         # to host the new widgets
@@ -179,45 +185,59 @@ class ScrollingToolQT(object):
         self.set_slider(toolbar)
         self.set_spinbox(toolbar)
 
-        # Set the initial xlimits coherently with values in slider and spinbox
-        self.ax.set_xlim(self.pos, self.pos + self.width)
-        self.draw()
+        # Set the initial x-axis range coherently with slider and spinbox
+        self.update_xlim()
+
+    @property
+    def xmax(self):
+        return self.xmin + self.width
 
     def set_slider(self, parent):
-        if self.debug: pprint('ScrollingToolQT set_slider\n')
+        # Note: slider controls the position of xmin, so its range is
+        # between `data_xmin` and `data_xmax - width`.
+        if self.debug:
+            pprint('ScrollingToolQT set_slider\n')
         self.slider = QtGui.QSlider(QtCore.Qt.Horizontal, parent=parent)
         self.slider.setTickPosition(QtGui.QSlider.TicksAbove)
-        self.slider.setTickInterval((self.xmax-self.xmin)/10.*self.scale)
-        self.slider.setMinimum(self.xmin*self.scale)
-        self.slider.setMaximum((self.xmax-self.width)*self.scale)
-        self.slider.setSingleStep(self.width*self.scale/4.)
-        self.slider.setPageStep(self.scroll_step*self.width*self.scale)
-        self.slider.setValue(self.pos*self.scale) # set the initial position
-        self.slider.valueChanged.connect(self.xpos_changed)
+
+        self.slider.setMinimum(self.data_xmin * self.scale)
+        self.slider.setMaximum(self.data_xmax * self.scale)
+        self.slider.setTickInterval(
+            (self.data_xmax - self.data_xmin) / 10 * self.scale)
+
+        self.slider.setSingleStep(self.width * self.scale * self.scroll_single)
+        self.slider.setPageStep(self.width * self.scale * self.scroll_page)
+        self.slider.setValue(self.xmin * self.scale)   # set initial position
+        self.slider.valueChanged.connect(self.slider_changed)
         parent.addWidget(self.slider)
 
     def set_spinbox(self, parent):
-        if self.debug: pprint('ScrollingToolQT set_spinbox\n')
+        if self.debug:
+            pprint('ScrollingToolQT set_spinbox\n')
         self.spinb = QtGui.QDoubleSpinBox(parent=parent)
         self.spinb.setDecimals(3)
         self.spinb.setRange(0.001, 60e3)
         self.spinb.setSuffix(" ms")
-        self.spinb.setValue(self.width*1e3)   # set the initial width
-        self.spinb.valueChanged.connect(self.xwidth_changed)
+        self.spinb.setValue(self.width * 1e3)   # set the initial width
+        self.spinb.valueChanged.connect(self.spinbox_changed)
         parent.addWidget(self.spinb)
 
-    def xpos_changed(self, pos):
-        if self.debug: pprint("Position (in scroll units) %f\n" %pos)
-        pos /= self.scale
-        self.ax.set_xlim(pos, pos+self.width)
+    def slider_changed(self, pos):
+        if self.debug:
+            pprint("Position (in scroll units) %f\n" % pos)
+        self.xmin = pos / self.scale
+        self.update_xlim()
+
+    def update_xlim(self):
+        self.ax.set_xlim(self.xmin, self.xmax)
         self.draw()
 
-    def xwidth_changed(self, width):
-        if self.debug: pprint("Width (axis units) %f\n" % width)
-        if width <= 0: return
-        self.width = width*1e-3
-        self.slider.setSingleStep(self.width*self.scale/5.)
-        self.slider.setPageStep(self.scroll_step*self.width*self.scale)
-        old_xlim = self.ax.get_xlim()
-        self.xpos_changed(old_xlim[0]*self.scale)
-
+    def spinbox_changed(self, width_ms):
+        if self.debug:
+            pprint("Width (axis units) %f\n" % width_ms)
+        if width_ms <= 0:
+            return
+        self.width = width_ms * 1e-3
+        self.update_xlim()
+        self.slider.setSingleStep(self.width * self.scale * self.scroll_single)
+        self.slider.setPageStep(self.width * self.scale * self.scroll_step)
