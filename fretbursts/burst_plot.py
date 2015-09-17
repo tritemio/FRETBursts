@@ -335,7 +335,7 @@ def timetrace_single(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
     See :func:`timetrace` to plot multiple photon selections (i.e.
     Donor and Acceptor photons) in one step.
     """
-    if tmax is None or tmax < 0:
+    if tmax is None or tmax < 0 or tmax > d.time_max:
         tmax = d.time_max
 
     def _get_cache():
