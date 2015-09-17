@@ -81,8 +81,8 @@ if not on_rtd:
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.mathjax',
-    #'sphinx.ext.napoleon',
-    'sphinxcontrib.napoleon',
+    'sphinx.ext.napoleon',
+    #'sphinxcontrib.napoleon',
 ]
 
 ## Napoleon settings
