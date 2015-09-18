@@ -47,7 +47,7 @@ import matplotlib.pyplot as plt
 from matplotlib.pyplot import (plot, hist, xlabel, ylabel, grid, title, legend,
                                gca, gcf)
 from matplotlib.patches import Rectangle, Ellipse
-from matplotlib.collections import PatchCollection
+from matplotlib.collections import PatchCollection, PolyCollection
 
 # Local imports
 from .ph_sel import Ph_sel
@@ -368,7 +368,7 @@ def timetrace_single(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
     tmin_clk, tmax_clk = tmin / d.clk_p, tmax / d.clk_p
     binwidth_clk = binwidth / d.clk_p
 
-    # If bins is not passed try to use the
+    # If bins is not passed try to use the cached one
     if bins is None:
         if cache_bins and _has_cache_for(binwidth, tmin, tmax):
             bins, x = timetrace_single.bins, timetrace_single.x
@@ -1784,7 +1784,7 @@ def _alex_plot_style(g):
     g.ax_marg_y.locator_params(axis='x', tight=True, nbins=3)
     pos = g.ax_joint.get_position().get_points()
     X, Y = pos[:, 0], pos[:, 1]
-    cax = plt.axes([1., Y[0], (X[1] - X[0])*0.045, Y[1]-Y[0]])
+    cax = plt.axes([1., Y[0], (X[1] - X[0]) * 0.045, Y[1] - Y[0]])
     plt.colorbar(cax=cax)
 
 def _hist_bursts_marg(arr, dx, **kwargs):
@@ -1812,10 +1812,10 @@ def _alex_hexbin_vmax(patches, vmax_fret=True, Smax=0.8):
 
 def _calc_vmin(vmax, vmax_threshold, vmin_default):
     if vmax <= vmax_threshold:
-        vmin = vmin_default - 0.5*vmax
-    elif vmax_threshold < vmax < 2*vmax_threshold:
-        vmin = vmin_default - 0.5*vmax*((2*vmax_threshold - vmax)/ \
-                                        (1.*vmax_threshold))
+        vmin = vmin_default - 0.5 * vmax
+    elif vmax_threshold < vmax < 2 * vmax_threshold:
+        vmin = vmin_default - 0.5 * vmax * ((2 * vmax_threshold - vmax) /
+                                            (1 * vmax_threshold))
     else:
         vmin = vmin_default
     return vmin
@@ -1868,15 +1868,16 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='alex_light',
     jplot = g.plot_joint(plt.hexbin, **joint_kws_)
 
     # Set the vmin and vmax values for the colormap
-    poly = jplot.ax_joint.get_children()[2]
-    vmax = _alex_hexbin_vmax(poly, vmax_fret=vmax_fret)
+    polyc = [c for c in jplot.ax_joint.get_children()
+             if isinstance(c, PolyCollection)][0]
+    vmax = _alex_hexbin_vmax(polyc, vmax_fret=vmax_fret)
     if vmin is None:
         if cmap_compensate:
-            #vmin = _calc_vmin(vmax, vmax_threshold, vmin_default)
-            vmin = -vmax/3
+            # vmin = _calc_vmin(vmax, vmax_threshold, vmin_default)
+            vmin = -vmax / 3
         else:
             vmin = vmin_default
-    poly.set_clim(vmin, vmax)
+    polyc.set_clim(vmin, vmax)
 
     marginal_kws_ = dict(show_kde=True, bandwidth=0.03, binwidth=0.03)
     if marginal_kws is not None:
