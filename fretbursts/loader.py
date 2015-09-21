@@ -501,7 +501,12 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
     print("#donor: %d  #acceptor: %d \n" % (d_em.sum(), a_em.sum()))
 
     d.add(ph_times_m=[ph_times],
-          D_em=[d_em], A_em=[a_em], D_ex=[d_ex], A_ex=[a_ex],)
+          D_em=[d_em], A_em=[a_em], D_ex=[d_ex], A_ex=[a_ex])
+
+    if 'particles_t' in d:
+        particles_val = d.particles_t[ich][valid_mask]
+        particles = particles_val[DexAex_mask]
+        d.add(particles=[particles])
 
     assert d.ph_times_m[ich].size == d.A_em[ich].size
 
