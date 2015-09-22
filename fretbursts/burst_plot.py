@@ -770,10 +770,11 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
         i (int): channel index
         bins (array or None): array of bin edges. If len(bins) == 3
             then is interpreted as (start, stop, step) values.
-        which (string): which counts to consider. 'all' all-photon size
-            computed with `d.burst_sizes()`; 'nd', 'na', 'naa' get counts
-            from `d.nd`, `d.na`, `d.naa` (respectively Dex-Dem, Dex-Aem,
-            Aex-Aem).
+        which (string): what photons to include in "size". Valid values are
+            'all', 'nd', 'na', 'naa'. When 'all', sizes are computed with
+            `d.burst_sizes()` (by default nd + na); 'nd', 'na', 'naa' get
+            counts from `d.nd`, `d.na`, `d.naa` (respectively Dex-Dem,
+            Dex-Aem, Aex-Aem).
         add_naa (bool): if True `naa` is added to the burst size, if False
             the burst size is `nd + na`. Ignored when `which` != 'all'.
         gamma (float): gamma factor used to compute the corrected burst
