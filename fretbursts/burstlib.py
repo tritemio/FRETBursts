@@ -640,7 +640,8 @@ class Data(DataContainer):
     # Attribute names containing per-photon data.
     # Each attribute is a list (1 element per ch) of arrays (1 element
     # per photon).
-    ph_fields = ['ph_times_m', 'A_em', 'D_em', 'A_ex', 'D_ex']
+    ph_fields = ['ph_times_m', 'nanotimes', 'particles',
+                 'A_em', 'D_em', 'A_ex', 'D_ex']
 
     # Attribute names containing background data.
     # Each attribute is a list (1 element per ch) of sequences (1 element per
@@ -1103,6 +1104,10 @@ class Data(DataContainer):
     #
     def slice_ph(self, time_s1=0, time_s2=None, s='slice'):
         """Return a new Data object with ph in [`time_s1`,`time_s2`] (seconds)
+
+        If ALEX, this method must be called right after
+        :func:`fretbursts.loader.alex_apply_periods` (with `delete_ph_t=True`)
+        and before any background estimation or burst search.
         """
         if time_s2 is None:
             time_s2 = self.time_max
@@ -1110,8 +1115,8 @@ class Data(DataContainer):
             return self.copy()
         assert time_s1 < self.time_max
 
-        t1_clk, t2_clk = time_s1/self.clk_p, time_s2/self.clk_p
-        masks = [(ph >= t1_clk)*(ph <= t2_clk) for ph in self.iter_ph_times()]
+        t1_clk, t2_clk = time_s1 / self.clk_p, time_s2 / self.clk_p
+        masks = [(ph >= t1_clk)*(ph < t2_clk) for ph in self.iter_ph_times()]
 
         new_d = Data(**self)
         for name in self.ph_fields:
@@ -1125,6 +1130,11 @@ class Data(DataContainer):
             ph_i = new_d.get_ph_times(ich)
             ph_i -= t1_clk
         new_d.s.append(s)
+
+        # Delete eventual cached properties
+        for attr in ['_time_min', '_time_max']:
+            if hasattr(new_d, attr):
+                delattr(new_d, attr)
         return new_d
 
     def collapse(self, update_gamma=True):
