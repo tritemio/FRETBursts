@@ -124,9 +124,16 @@ def top_tail(nx, a=0.1):
     return np.r_[[n[n > n.max()*(1-a)].mean() for n in nx]]
 
 # Quick functions to calculate rate-trace from ph_times
-def ph_delays(ph, m):
+def ph_delay(ph, m):
     """Return an array of m-photon delays of size ph.size - m + 1."""
-    return m/(ph[m-1:] - ph[:ph.size-m+1])
+    return ph[m-1:] - ph[:ph.size-m+1]
+
+def ph_delay_min(ph, m):
+    """Return the min photon delay computed with m photons in `ph`."""
+    if ph.size < m:
+        return None
+    else:
+        return ph_delay(ph=ph, m=m).max()
 
 def ph_rate(ph, m):
     """Return an array of m-photons rates of size ph.size - m + 1."""
