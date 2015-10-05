@@ -124,13 +124,24 @@ def top_tail(nx, a=0.1):
     return np.r_[[n[n > n.max()*(1-a)].mean() for n in nx]]
 
 # Quick functions to calculate rate-trace from ph_times
-def ph_rate(m, ph):
-    """Return an array of m-photons rates of size ph.size - m + 1."""
-    return m/(ph[m-1:] - ph[:ph.size-m+1])   # rate
+def ph_delays(ph, m):
+    """Return an array of m-photon delays of size ph.size - m + 1."""
+    return m/(ph[m-1:] - ph[:ph.size-m+1])
 
-def ph_rate_t(m, ph):
+def ph_rate(ph, m):
+    """Return an array of m-photons rates of size ph.size - m + 1."""
+    return m/(ph[m-1:] - ph[:ph.size-m+1])
+
+def ph_rate_t(ph, m):
     """Return the mean time for each rate computed by `ph_rate`."""
     return 0.5*(ph[m-1:] + ph[:ph.size-m+1])  # time for rate
+
+def ph_rate_max(ph, m):
+    """Return the max photon rate computed with m photons in `ph`."""
+    if ph.size < m:
+        return None
+    else:
+        return ph_rate(ph=ph, m=m).max()
 
 ##
 # Per-burst quatitites from ph-data arrays (timestamps, lifetime, etc..)
@@ -149,8 +160,9 @@ def _ph_times_compact(ph_times_sel, alex_period, excitation_width):
 
     Arguments:
         ph_times_sel (array): array of timestamps from one alternation period.
-        excitation_range (2-tuple): start,stop values for the excitation period
-        alex_period (int or float): period of alternation in timestamp units.
+        alex_period (scalar): period of alternation in timestamp units.
+        excitation_width (float): fraction of `alex_period` covered by
+            current photon selection.
 
     Returns nothing, ph_times is modified in-place.
     """
@@ -175,17 +187,34 @@ def iter_bursts_start_stop(bursts):
 
 def iter_bursts_ph(ph_data, bursts, mask=None, compact=False,
                    alex_period=None, excitation_width=None):
-    """Iterate over arrays of photon-data for each burst.
+    """Iterator over arrays of photon-data for each burst.
+
+    Arguments:
+        ph_data (1D array): array of photon-data (timestamps, nanotimes).
+        bursts (Bursts object): bursts computed from `ph`.
+        mask (boolean mask or None): if not None, is a boolean mask
+            to select photons in `ph` (for example Donor-ch photons).
+        compact (bool): if True, a photon selection of only one excitation
+            period is required and the timestamps are "compacted" by
+            removing the "gaps" between each excitation period.
+        alex_period (scalar): period of alternation in timestamp units.
+        excitation_width (float): fraction of `alex_period` covered by
+            current photon selection.
+
+    Yields an array with a selection of "photons" for each burst.
     """
+    if isinstance(mask, slice) and mask == slice(None):
+        mask = None
     if compact:
         assert alex_period is not None
         assert excitation_width is not None
+        assert mask is not None
     for start, stop in iter_bursts_start_stop(bursts):
         ph = ph_data[start:stop]
         if mask is not None:
             ph = ph[mask[start:stop]]
-            if compact:
-                ph = _ph_times_compact(ph, alex_period, excitation_width)
+        if compact:
+            ph = _ph_times_compact(ph, alex_period, excitation_width)
         yield ph
 
 def bursts_ph_list(ph_data, bursts, mask=None):
@@ -197,13 +226,27 @@ def bursts_ph_list(ph_data, bursts, mask=None):
     """
     return [ph for ph in iter_bursts_ph(ph_data, bursts, mask=mask)]
 
-def burst_ph_stats(ph_data, bursts, mask, func=np.mean):
-    """Compute a function `func` for "ph-data" of each burst.
+def burst_ph_stats(ph_data, bursts, func=np.mean, func_kw=None, **kwargs):
+    """Reduce burst photons (timestamps, nanotimes) to a scalar using `func`.
+
+    Arguments
+        ph_data (1D array): array of photon-data (timestamps, nanotimes).
+        bursts (Bursts object): bursts computed from `ph`.
+        func (callable): function that takes the burst photon timestamps
+            as first argument and returns a scalar.
+        func_kw (callable): additional arguments in `func` beyond photon-data.
+        **kwargs: additional arguments passed to :func:`iter_bursts_ph`.
+
+    Return
+        Array one element per burst.
     """
-    stats = []
-    for burst_ph in iter_bursts_ph(ph_data, bursts, mask=mask):
-        stats.append(func(burst_ph))
-    return np.asfarray(stats)
+    if func_kw is None:
+        func_kw = {}
+    burst_stats = []
+    for burst_ph in iter_bursts_ph(ph_data, bursts, **kwargs):
+        burst_stats.append(func(burst_ph, **func_kw))
+    return np.asfarray(burst_stats)  # NOTE: asfarray converts None to nan
+
 
 def ph_in_bursts_mask(ph_data_size, bursts):
     """Return bool mask to select all "ph-data" inside any burst."""
@@ -211,32 +254,6 @@ def ph_in_bursts_mask(ph_data_size, bursts):
     for start, stop in iter_bursts_start_stop(bursts):
         mask[start:stop] = True
     return mask
-
-def b_rate_max(ph_data, bursts, m, mask=None, compact=False,
-               alex_period=None, excitation_width=None):
-    """Returns the max m-photons rate reached inside each burst.
-
-    Arguments
-        ph_data (1D array): array of photons timestamps
-        bursts (2D array): array of burst data as returned by the burst search
-            function.
-        m (int): number of timestamps to use to compute the rate
-        mask (boolean mask or None): if not None, is a boolean mask
-            to select photons in `ph` (for example Donor-ch photons).
-
-    Return
-        Array of max photon rate reached inside each burst.
-    """
-    burst_rates = []
-    for burst_ph in iter_bursts_ph(ph_data, bursts, mask=mask, compact=compact,
-                                   excitation_width=excitation_width,
-                                   alex_period=alex_period):
-        if burst_ph.size < m:
-            burst_rates.append(None)
-        else:
-            burst_rates.append(ph_rate(m=m, ph=burst_ph).max())
-
-    return np.asfarray(burst_rates)  # NOTE: np.asfarray converts None to nan
 
 
 def fuse_bursts_direct(bursts, ms=0, clk_p=12.5e-9, verbose=True):
@@ -752,16 +769,6 @@ class Data(DataContainer):
                                             self.ph_times_m])
         return self._ph_data_sizes
 
-    def iter_ph_masks(self, ph_sel=Ph_sel('all')):
-        """Iterator returning masks for `ph_sel` photons.
-
-        Arguments:
-            ph_sel (Ph_sel object): object defining the photon selection.
-                See :mod:`fretbursts.ph_sel` for details.
-        """
-        for ich in range(self.nch):
-            yield self.get_ph_mask(ich, ph_sel=ph_sel)
-
     def _check_ph_sel(self, ph_sel):
         """Check consistency of `ph_sel` with current data (ALEX vs not ALEX).
         """
@@ -846,14 +853,15 @@ class Data(DataContainer):
         else:
             raise ValueError('Selection not implemented.')
 
-    def iter_ph_times(self, ph_sel=Ph_sel('all'), compact=False):
-        """Iterator that returns the arrays of timestamps in `.ph_times_m`.
+    def iter_ph_masks(self, ph_sel=Ph_sel('all')):
+        """Iterator returning masks for `ph_sel` photons.
 
         Arguments:
-            Same arguments as :meth:`get_ph_mask` except for `ich`.
+            ph_sel (Ph_sel object): object defining the photon selection.
+                See :mod:`fretbursts.ph_sel` for details.
         """
         for ich in range(self.nch):
-            yield self.get_ph_times(ich, ph_sel=ph_sel, compact=compact)
+            yield self.get_ph_mask(ich, ph_sel=ph_sel)
 
     def get_ph_times(self, ich=0, ph_sel=Ph_sel('all'), compact=False):
         """Returns the timestamps array for channel `ich`.
@@ -864,10 +872,9 @@ class Data(DataContainer):
         Arguments:
             ph_sel (Ph_sel object): object defining the photon selection.
                 See :mod:`fretbursts.ph_sel` for details.
-            compact (bool): if True, a photon selection of only one
-                excitation period is required and the timestamps are
-                "compacted" removing the "gaps" between each excitation
-                period.
+            compact (bool): if True, a photon selection of only one excitation
+                period is required and the timestamps are "compacted" by
+                removing the "gaps" between each excitation period.
         """
         ph = self.ph_times_m[ich]
 
@@ -884,6 +891,15 @@ class Data(DataContainer):
         if compact:
             ph = self._ph_times_compact(ph, ph_sel)
         return ph
+
+    def iter_ph_times(self, ph_sel=Ph_sel('all'), compact=False):
+        """Iterator that returns the arrays of timestamps in `.ph_times_m`.
+
+        Arguments:
+            Same arguments as :meth:`get_ph_mask` except for `ich`.
+        """
+        for ich in range(self.nch):
+            yield self.get_ph_times(ich, ph_sel=ph_sel, compact=compact)
 
     def _get_ph_mask_single(self, ich, mask_name, negate=False):
         """Get the bool array `mask_name` for channel `ich`.
@@ -2284,6 +2300,43 @@ class Data(DataContainer):
         self.add(sbr=sbr)
         return sbr
 
+    def calc_burst_ph_func(self, func, func_kw, ph_sel=Ph_sel('all'),
+                           compact=False, ich=0):
+        """Evaluate a scalar function from photons in each burst.
+
+        This method allow calling an arbitrary function on the photon
+        timestamps of each burst. For example if `func` is `np.mean` it
+        computes the mean time in each bursts.
+
+        Arguments:
+            func (callable): function that takes as first argument an array of
+                timestamps for one burst.
+            func_kw (callable): additional arguments to be passed  `func`.
+            ph_sel (Ph_sel object): object defining the photon selection.
+                See :mod:`fretbursts.ph_sel` for details.
+            compact (bool): if True, a photon selection of only one excitation
+                period is required and the timestamps are "compacted" by
+                removing the "gaps" between each excitation period.
+
+        Returns:
+            A list (on element per channel) array. The array size is equal to
+            the number of bursts in the corresponding channel.
+        """
+        if compact:
+            self._assert_compact(ph_sel)
+
+        kwargs = dict(func=func, func_kw=func_kw, compact=compact)
+        if self.ALEX:
+            kwargs.update(alex_period=self.alex_period)
+        if compact:
+            kwargs.update(excitation_width=self._excitation_width(ph_sel))
+
+        results_mch = [burst_ph_stats(ph, bursts, mask=mask, **kwargs)
+                       for ph, mask, bursts in
+                       zip(self.iter_ph_times(),
+                           self.iter_ph_masks(ph_sel=ph_sel),
+                           self.mburst)]
+        return results_mch
 
     def calc_max_rate(self, m, ph_sel=Ph_sel('all'), compact=False):
         """Compute the max m-photon rate reached in each burst.
@@ -2293,28 +2346,13 @@ class Data(DataContainer):
             ph_sel (Ph_sel object): object defining the photon selection.
                 See :mod:`fretbursts.ph_sel` for details.
         """
-        if compact:
-            self._assert_compact(ph_sel)
-        if ph_sel == Ph_sel('all'):
-            Max_Rate = [b_rate_max(ph_data=ph, m=m, bursts=mb)
-                        for ph, mb in
-                        zip(self.iter_ph_times(), self.mburst)]
-        else:
-            compact_kw = dict(compact=compact, alex_period=self.alex_period)
-            if compact:
-                compact_kw['excitation_width'] = self._excitation_width(ph_sel)
-            Max_Rate = [b_rate_max(ph_data=ph, m=m, bursts=mb, mask=mask,
-                                   **compact_kw)
-                        for ph, mask, mb in
-                        zip(self.iter_ph_times(),
-                            self.iter_ph_masks(ph_sel=ph_sel),
-                            self.mburst)]
-
+        Max_Rate = self.calc_burst_ph_func(func=ph_rate_max,
+                                           func_kw=dict(m=m),
+                                           ph_sel=ph_sel, compact=compact)
         Max_Rate = [mr/self.clk_p - bg[bp] for bp, bg, mr in
                     zip(self.bp, self.bg_from(ph_sel), Max_Rate)]
         params = dict(m=m, ph_sel=ph_sel, compact=compact)
         self.add(max_rate=Max_Rate, max_rate_params=params)
-
 
     def calc_fret(self, count_ph=False, corrections=True, dither=False,
                   mute=False, pure_python=False):
