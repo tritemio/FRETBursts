@@ -90,7 +90,7 @@ def period(d, ich=0, bp1=0, bp2=None):
 
 def time(d, ich=0, time_s1=0, time_s2=None):
     """Select the burst starting from time_s1 to time_s2 (in seconds)."""
-    burst_start = bslib.b_start(d.mburst[ich])*d.clk_p
+    burst_start = d.mburst[ich].start * d.clk_p
     if time_s2 is None: time_s2 = burst_start.max()
     burst_mask = (burst_start >= time_s1)*(burst_start <= time_s2)
     return burst_mask, ''
@@ -361,4 +361,3 @@ def fret_value(d, ich=0, E=0.5, P_th=0.01):
         min_accept_num = RV.ppf(P_th) # ppf: percent point function (cdf^-1)
         bursts_mask[indexes] = (d.na[ich][indexes] > min_accept_num)
     return bursts_mask, ''
-

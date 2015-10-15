@@ -592,6 +592,31 @@ def test_burst_selection(data):
     Mb2 = [m1 + m2 for m1, m2 in zip(M1, M2)]
     assert list_array_equal(Mb, Mb2)
 
+def test_burst_selection_ranges(data):
+    """Test selection functions having a min-max range.
+    """
+    d = data
+    Range = namedtuple('Range', ['min', 'max', 'getter'])
+    d.calc_max_rate(m=10, ph_sel=Ph_sel(Dex='DAem'))
+    sel_functions = dict(
+        E=Range(0.5, 1, None), nd=Range(30, 40, None), na=Range(30, 40, None),
+        time=Range(1, 61, lambda d, ich: d.mburst[ich].start),
+        width=Range(0.5, 1.5, lambda d, ich: d.mburst[ich].width),
+        peak_phrate=Range(50e3, 150e3, lambda d, ich: d.max_rate[ich]))
+    if d.ALEX:
+        sel_functions.update(naa=Range(30, 40, None), S=Range(0.3, 0.7, None))
+
+    for func_name, range_ in sel_functions.items():
+        func = getattr(select_bursts, func_name)
+        getter = range_.getter
+        if getter is None:
+            getter = lambda d, ich: d[func_name][ich]
+
+        d.select_bursts(func, range_.min, range_.max)
+        for ich in range(d.nch):
+            selected = getter(d, ich)
+            assert ((selected > range_.min) * (selected < range_.max)).all()
+
 def test_collapse(data_8ch):
     """Test the .collapse() method that joins the ch.
     """
