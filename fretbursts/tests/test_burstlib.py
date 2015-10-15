@@ -379,26 +379,26 @@ def test_bursts_interface(data):
 
         assert (b.stop > b.start).all()
 
-def test_b_end_b_iend(data):
+def test_burst_stop_istop(data):
     """Test coherence between b_end() and b_iend()"""
     d = data
     for ph, bursts in zip(d.ph_times_m, d.mburst):
         assert (ph[bursts.istop] == bursts.stop).all()
 
 def test_monotonic_burst_start(data):
-    """Test for monotonic burst_start."""
+    """Test for monotonic burst start times."""
     d = data
     for i in range(d.nch):
         assert (np.diff(d.mburst[i].start) > 0).all()
 
-def test_monotonic_burst_end(data):
-    """Test for monotonic burst_end."""
+def test_monotonic_burst_stop(data):
+    """Test for monotonic burst stop times."""
     d = data
     for bursts in d.mburst:
         assert (np.diff(bursts.stop) > 0).all()
 
 def test_burst_istart_iend_size(data):
-    """Test consistency between burst istart, iend and size"""
+    """Test consistency between burst istart, istop and counts (i.e. size)"""
     d = data
     for bursts in d.mburst:
         counts = bursts.istop - bursts.istart + 1
@@ -487,13 +487,13 @@ def test_calc_sbr(data):
     data.calc_sbr()
 
 def test_calc_max_rate(data):
-    """Smoke test Data.calc_max-rate()"""
+    """Smoke test for Data.calc_max_rate()"""
     data.calc_max_rate(m=10)
     if data.ALEX:
         data.calc_max_rate(m=10, ph_sel=Ph_sel(Dex='DAem'), compact=True)
 
 def test_burst_data(data):
-    """Smoke test Data.calc_max-rate()"""
+    """Smoke test for bext.burst_data()"""
     bext.burst_data(data, include_bg=True, include_ph_index=True)
 
 def test_expand(data):
@@ -577,7 +577,7 @@ def test_burst_size_da(data):
             assert (tot_size == nd + na).all()
 
 def test_burst_selection(data):
-    """Smoke test for burst selection functions.
+    """Smoke test for burst selection methods.
     """
     d = data
     d.select_bursts(select_bursts.size, th1=20, th2=100, add_naa=True)
