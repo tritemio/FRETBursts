@@ -61,7 +61,7 @@ from fretbursts.utils.misc import pprint
 #
 
 def bsearch_py(times, L, m, T, slice_=None,
-             label='Burst search', verbose=True):
+               label='Burst search', verbose=True):
     """Sliding window burst search. Pure python implementation.
 
     Finds bursts in the array `time` (int64). A burst starts when the photon rate
@@ -113,7 +113,9 @@ def bsearch_py(times, L, m, T, slice_=None,
         bursts.append((i_start, i_stop+1, times[i_start], times[i_stop+1]))
 
     bursts = np.array(bursts, dtype='int64')
-    bursts[:, :2] += i_time0
+    if bursts.size > 0:
+        # Add slice offset to istart and istop
+        bursts[:, :2] += i_time0
     return bursts
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
