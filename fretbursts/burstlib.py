@@ -1915,7 +1915,8 @@ class Data(DataContainer):
     ##
     # Burst selection and filtering
     #
-    def select_bursts(self, filter_fun, negate=False, nofret=False, **kwargs):
+    def select_bursts(self, filter_fun, negate=False, nofret=False,
+                      args=None, **kwargs):
         """Return an object with bursts filtered according to `filter_fun`.
 
         This is the main method to select bursts according to different
@@ -1931,9 +1932,10 @@ class Data(DataContainer):
                 of the selection returned by `filter_fun`. Default `False`.
             nofret (boolean): If True do not recompute FRET quantities
                 (i.e. E, S) in the new returned object. Default `False`.
+            args (tuple or None): positional arguments for `filter_fun()`
 
         kwargs:
-            Any additional keyword argument is passed to `filter_fun()`.
+            Additional keyword arguments passed to `filter_fun()`.
 
         Returns:
             A new :class:`Data` object containing only the selected bursts.
@@ -1945,13 +1947,14 @@ class Data(DataContainer):
             etc...) are new distinct objects.
         """
         Masks, str_sel = self.select_bursts_mask(filter_fun, negate=negate,
-                                                 return_str=True, **kwargs)
+                                                 return_str=True, args=args,
+                                                 **kwargs)
         d_sel = self.select_bursts_mask_apply(Masks, nofret=nofret,
                                               str_sel=str_sel)
         return d_sel
 
     def select_bursts_mask(self, filter_fun, negate=False, return_str=False,
-                           **kwargs):
+                           args=None, **kwargs):
         """Returns mask arrays to select bursts according to `filter_fun`.
 
         The function `filter_fun` is called to compute the mask arrays for
@@ -1968,9 +1971,10 @@ class Data(DataContainer):
                 a bool array and a string that can be added to the measurement
                 name to indicate the selection. If False returns only
                 the bool array. Default False.
+            args (tuple or None): positional arguments for `filter_fun()`
 
         kwargs:
-            Any additional keyword argument is passed to `filter_fun()`.
+            Additional keyword arguments passed to `filter_fun()`.
 
         Returns:
             A list of boolean arrays (one per channel) that define the burst
@@ -1981,7 +1985,9 @@ class Data(DataContainer):
             :meth:`Data.select_bursts`, :meth:`Data.select_bursts_mask_apply`
         """
         ## Create the list of bool masks for the bursts selection
-        M = [filter_fun(self, i, **kwargs) for i in range(self.nch)]
+        if args is None:
+            args = tuple()
+        M = [filter_fun(self, i, *args, **kwargs) for i in range(self.nch)]
         # Make sure the selection function has the right return signature
         assert np.all([isinstance(m[1], str) for m in M])
         Masks = [-m[0] if negate else m[0] for m in M]

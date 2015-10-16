@@ -12,6 +12,7 @@ Running the tests requires `py.test`.
 from __future__ import division
 from builtins import range, zip
 
+from collections import namedtuple
 import pytest
 import numpy as np
 
@@ -600,8 +601,8 @@ def test_burst_selection_ranges(data):
     d.calc_max_rate(m=10, ph_sel=Ph_sel(Dex='DAem'))
     sel_functions = dict(
         E=Range(0.5, 1, None), nd=Range(30, 40, None), na=Range(30, 40, None),
-        time=Range(1, 61, lambda d, ich: d.mburst[ich].start),
-        width=Range(0.5, 1.5, lambda d, ich: d.mburst[ich].width),
+        time=Range(1, 61, lambda d, ich: d.mburst[ich].start * d.clk_p),
+        width=Range(0.5, 1.5, lambda d, ich: d.mburst[ich].width * d.clk_p*1e3),
         peak_phrate=Range(50e3, 150e3, lambda d, ich: d.max_rate[ich]))
     if d.ALEX:
         sel_functions.update(naa=Range(30, 40, None), S=Range(0.3, 0.7, None))
@@ -612,10 +613,10 @@ def test_burst_selection_ranges(data):
         if getter is None:
             getter = lambda d, ich: d[func_name][ich]
 
-        d.select_bursts(func, range_.min, range_.max)
+        ds = d.select_bursts(func, args=(range_.min, range_.max))
         for ich in range(d.nch):
-            selected = getter(d, ich)
-            assert ((selected > range_.min) * (selected < range_.max)).all()
+            selected = getter(ds, ich)
+            assert ((selected >= range_.min) * (selected <= range_.max)).all()
 
 def test_collapse(data_8ch):
     """Test the .collapse() method that joins the ch.
