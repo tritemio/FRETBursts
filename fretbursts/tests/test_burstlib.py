@@ -597,8 +597,11 @@ def test_burst_selection_ranges(data):
     """Test selection functions having a min-max range.
     """
     d = data
-    Range = namedtuple('Range', ['min', 'max', 'getter'])
+    d.burst_search()
     d.calc_max_rate(m=10, ph_sel=Ph_sel(Dex='DAem'))
+
+    Range = namedtuple('Range', ['min', 'max', 'getter'])
+
     sel_functions = dict(
         E=Range(0.5, 1, None), nd=Range(30, 40, None), na=Range(30, 40, None),
         time=Range(1, 61, lambda d, ich: d.mburst[ich].start * d.clk_p),
