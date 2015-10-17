@@ -25,7 +25,6 @@ from builtins import range, zip
 import numpy as np
 from scipy import stats
 
-import fretbursts.burstsearch.burstsearchlib as bslib
 from .utils.misc import clk_to_s as _clk_to_s
 
 

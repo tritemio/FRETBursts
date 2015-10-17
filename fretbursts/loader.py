@@ -88,7 +88,7 @@ def _get_measurement_specs(ph_data):
 
     if meas_type not in ['smFRET-1color', 'smFRET',
                          'smFRET-usALEX', 'smFRET-nsALEX']:
-        raise NotImplementedError('Meaurement type "%s" not supported'
+        raise NotImplementedError('Measurement type "%s" not supported'
                                   ' by FRETBursts.' % meas_type)
     return meas_type, meas_specs
 
