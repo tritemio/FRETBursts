@@ -245,7 +245,7 @@ def factory_two_asym_gaussians(add_bridge=False, p1_center=0.1, p2_center=0.9,
     model = peak1 + peak2
 
     model.set_param_hint('p1_center', value=p1_center, min=-1, max=2)
-    model.set_param_hint('p2_center', value=p2_center, min=-1, max=2)
+    #model.set_param_hint('p2_center', value=p2_center, min=-1, max=2)
     model.set_param_hint('p1_sigma1', value=p1_sigma, min=0.01, max=0.2)
     model.set_param_hint('p1_sigma2', value=p1_sigma, min=0.01, max=0.2)
     model.set_param_hint('p2_sigma1', value=p2_sigma, min=0.01, max=0.2)
