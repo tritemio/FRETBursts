@@ -1138,7 +1138,7 @@ class Data(DataContainer):
             return self.copy()
         assert time_s1 < self.time_max
 
-        t1_clk, t2_clk = time_s1 / self.clk_p, time_s2 / self.clk_p
+        t1_clk, t2_clk = int(time_s1 / self.clk_p), int(time_s2 / self.clk_p)
         masks = [(ph >= t1_clk)*(ph < t2_clk) for ph in self.iter_ph_times()]
 
         new_d = Data(**self)
