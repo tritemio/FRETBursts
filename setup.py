@@ -20,13 +20,6 @@ Quick links:
 - `FRETBursts Tutorials <https://github.com/tritemio/FRETBursts_notebooks>`_
 """
 
-## Configure versioneer
-versioneer.VCS = 'git'
-versioneer.versionfile_source = project_name + '/_version.py'
-versioneer.versionfile_build = project_name + '/_version.py'
-versioneer.tag_prefix = '' # tags are like 1.2.0
-versioneer.parentdir_prefix = project_name + '-'
-
 ## Configuration to build Cython extensions
 try:
     from Cython.Distutils import build_ext
@@ -75,4 +68,3 @@ setup(name = project_name,
                   'fretbursts.tests'],
       keywords = 'single-molecule FRET smFRET burst-analysis biophysics',
       )
-
