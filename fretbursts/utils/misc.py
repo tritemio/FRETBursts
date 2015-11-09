@@ -24,7 +24,7 @@ class HistData(object):
         counts (array, ints): array of counts in each bin
         bins (array): array of bin edges. Size is size(counts) + 1.
         bincenters (array): array of bin  centers. Size is size(counts).
-        pdf (array, floats): array od normalized counts (aka PDF)
+        pdf (array, floats): array of normalized counts (aka PDF)
     """
     def __init__(self, counts, bins):
         self.counts = counts
