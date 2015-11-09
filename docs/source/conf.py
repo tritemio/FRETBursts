@@ -54,7 +54,7 @@ except ImportError:
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('../..'))
 import fretbursts
-version = fretbursts._version.git_versions()['version']
+version = fretbursts._version.get_versions()['version']
 if on_rtd:
     # RTD modifies conf.py so the git repo becomes dirty
     # We strip the '-dirty' that would generate a wrong verion string
