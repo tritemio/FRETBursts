@@ -83,6 +83,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.napoleon',
     #'sphinxcontrib.napoleon',
+    'sphinx.ext.viewcode',
 ]
 
 ## Napoleon settings
