@@ -93,8 +93,7 @@ def bsearch_py(times, L, m, T, slice_=None,
         i_time0 = slice_[0]
 
     bursts = []
-    max_index = times.size-m+1
-    above_min_rate = ((times[m-1:] - times[:max_index]) <= T)[:max_index]
+    above_min_rate = ((times[m-1:] - times[:times.size-m+1]) <= T)
 
     it = enumerate(above_min_rate)
     for i, above_min_rate_ in it:
