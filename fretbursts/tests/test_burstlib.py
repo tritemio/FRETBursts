@@ -593,6 +593,24 @@ def test_burst_selection(data):
     Mb2 = [m1 + m2 for m1, m2 in zip(M1, M2)]
     assert list_array_equal(Mb, Mb2)
 
+def test_burst_selection_nocorrections(data):
+    """Test burst selection with uncorrected bursts.
+    """
+    d = data
+    d.burst_search(nofret=True)
+    d.calc_fret(count_ph=True, corrections=False)
+    ds1 = d.select_bursts(select_bursts.size, th1=20, th2=100, nofret=True)
+    ds2 = d.select_bursts(select_bursts.size, th1=20, th2=100)
+    ds2.calc_ph_num()
+    ds2.calc_fret(corrections=False)
+
+    assert list_array_equal(ds1.nd, ds2.nd)
+    assert list_array_equal(ds1.na, ds2.na)
+    assert list_array_equal(ds1.E, ds2.E)
+    if d.ALEX:
+        assert list_array_equal(ds1.naa, ds2.naa)
+        assert list_array_equal(ds1.E, ds2.E)
+
 def test_burst_selection_ranges(data):
     """Test selection functions having a min-max range.
     """
