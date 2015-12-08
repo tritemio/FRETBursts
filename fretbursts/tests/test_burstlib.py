@@ -597,9 +597,10 @@ def test_burst_selection_nocorrections(data):
     """Test burst selection with uncorrected bursts.
     """
     d = data
-    d.burst_search(nofret=True)
+    d.burst_search(computefret=False)
     d.calc_fret(count_ph=True, corrections=False)
-    ds1 = d.select_bursts(select_bursts.size, th1=20, th2=100, nofret=True)
+    ds1 = d.select_bursts(select_bursts.size, th1=20, th2=100,
+                          computefret=False)
     ds2 = d.select_bursts(select_bursts.size, th1=20, th2=100)
     ds2.calc_ph_num()
     ds2.calc_fret(corrections=False)
