@@ -98,7 +98,8 @@ def Sel(d_orig, filter_fun, negate=False, nofret=False, **kwargs):
 
     This function is deprecated. Use :meth:`Data.select_bursts` instead.
     """
-    d_sel = d_orig.select_bursts(filter_fun, negate=negate, nofret=nofret,
+    d_sel = d_orig.select_bursts(filter_fun, negate=negate,
+                                 computefret=not nofret,
                                  **kwargs)
     return d_sel
 
@@ -1736,16 +1737,22 @@ class Data(DataContainer):
 
         pprint('[DONE]\n', mute)
 
-    def burst_search(self, L=None, m=10, P=None, F=6., min_rate_cps=None,
-                     nofret=False, max_rate=False, dither=False,
-                     ph_sel=Ph_sel('all'), verbose=False, mute=False,
-                     pure_python=False, compact=False):
+    def burst_search(self, L=None, m=10, F=6., P=None, min_rate_cps=None,
+                     ph_sel=Ph_sel('all'), compact=False,
+                     computefret=True, max_rate=False, dither=False,
+                     pure_python=False, verbose=False, mute=False):
         """Performs a burst search with specified parameters.
 
         This method performs a sliding-window burst search without
         binning the timestamps. The burst starts when the rate of `m`
         photons is above a minimum rate, and stops when the rate falls below
-        the threshold.
+        the threshold. The result of the burst search is stored in the
+        `mburst` attribute (a list of Bursts objects, one per channel) and
+        consit of start and stop times and indexes. By default, after burst
+        search, this method computes donor and acceptor counts, it applies
+        the burst corrections (background, leakage, etc...) and computes
+        E (and S in case of ALEX). You can skip these steps passing
+        `computefret=False`.
 
         The minimum rate can be explicitly specified (`min_rate`) or computed
         as a function of the background rate (using `F` or `P`).
@@ -1755,13 +1762,14 @@ class Data(DataContainer):
                 photon rate.
             L (int or None): minimum number of photons in burst. If None
                 L = m is used.
+            F (float): defines how many times higher than the background rate
+                is the minimum rate used for burst search
+                (min rate = F * bg. rate), assiming that P = None (default).
             P (float): threshold for burst detection expressed as a
                 probability that a detected bursts is not due to a Poisson
                 background. If not None, `P` overrides `F`. Note that the
                 background process is experimentally super-Poisson so this
-                probability is not physically meaningful.
-            F (float): if `P` is None: min.rate/bg.rate ratio for burst search
-                else: `P` refers to a Poisson rate = bg_rate*F
+                probability is not physically very meaningful.
             min_rate_cps (float or list/array): min. rate in cps for burst
                 start. If not None has the precedence over `P` and `F`.
                 If non-scalar, contains one rate per each channel.
@@ -1770,16 +1778,25 @@ class Data(DataContainer):
                 See :mod:`fretbursts.ph_sel` for details.
             pure_python (bool): if True, uses the pure python functions even
                 when the optimized Cython functions are available.
+            computefret (bool): if True (default) compute donor and acceptor
+                counts, apply corrections (background, leakage, direct
+                excitation) and compute E (and S). If False, skip all these
+                steps and stop just after the inital burst search.
+            max_rate (bool): if True compute the max photon rate inside each
+                burst using the same `m` used for burst search. If False
+                (default) skip this step.
+            dither (bool): whether to apply dithering corrections to burst
+                counts. See :meth:`Data.dither`.
 
         Note:
             when using `P` or `F` the background rates are needed, so
             `.calc_bg()` must be called before the burst search.
 
         Example:
-            d.burst_search(L=10, m=10, F=6)
+            d.burst_search(m=10, F=6)
 
         Returns:
-            None, all the results are saved in the object.
+            None, all the results are saved in the Data object.
         """
         if compact:
             self._assert_compact(ph_sel)
@@ -1815,7 +1832,7 @@ class Data(DataContainer):
         self.add(bg_corrected=False, leakage_corrected=False,
                  dir_ex_corrected=False, dithering=False)
 
-        if not nofret:
+        if computefret:
             pprint(" - Counting D and A ph and calculating FRET ... \n", mute)
             self.calc_fret(count_ph=True, corrections=True, dither=dither,
                            mute=mute, pure_python=pure_python)
@@ -1915,7 +1932,7 @@ class Data(DataContainer):
     ##
     # Burst selection and filtering
     #
-    def select_bursts(self, filter_fun, negate=False, nofret=False,
+    def select_bursts(self, filter_fun, negate=False, computefret=True,
                       args=None, **kwargs):
         """Return an object with bursts filtered according to `filter_fun`.
 
@@ -1930,8 +1947,9 @@ class Data(DataContainer):
             filter_fun (fuction): function used for burst selection
             negate (boolean): If True, negates (i.e. take the complementary)
                 of the selection returned by `filter_fun`. Default `False`.
-            nofret (boolean): If True do not recompute FRET quantities
-                (i.e. E, S) in the new returned object. Default `False`.
+            computefret (boolean): If True (default) recompute donor and
+                acceptor counts, corrections and FRET quantities (i.e. E, S)
+                in the new returned object.
             args (tuple or None): positional arguments for `filter_fun()`
 
         kwargs:
@@ -1949,7 +1967,7 @@ class Data(DataContainer):
         Masks, str_sel = self.select_bursts_mask(filter_fun, negate=negate,
                                                  return_str=True, args=args,
                                                  **kwargs)
-        d_sel = self.select_bursts_mask_apply(Masks, nofret=nofret,
+        d_sel = self.select_bursts_mask_apply(Masks, computefret=computefret,
                                               str_sel=str_sel)
         return d_sel
 
@@ -1997,7 +2015,7 @@ class Data(DataContainer):
         else:
             return Masks
 
-    def select_bursts_mask_apply(self, masks, nofret=False, str_sel=''):
+    def select_bursts_mask_apply(self, masks, computefret=True, str_sel=''):
         """Returns a new Data object with bursts selected according to `masks`.
 
         This method select bursts using a list of boolean arrays as input.
@@ -2010,8 +2028,9 @@ class Data(DataContainer):
         Arguments:
             masks (list of arrays): each element in this list is a boolean
                 array that selects bursts in a channel.
-            nofret (boolean): If True do not recompute FRET quantities
-                (i.e. E, S) in the new returned object. Default `False`.
+            computefret (boolean): If True (default) recompute donor and
+                acceptor counts, corrections and FRET quantities (i.e. E, S)
+                in the new returned object.
 
         Returns:
             A new :class:`Data` object containing only the selected bursts.
@@ -2046,7 +2065,7 @@ class Data(DataContainer):
                 ds[name][ich] = self[name][ich][mask]
 
         # Recompute E and S
-        if not nofret:
+        if computefret:
             ds.calc_fret(count_ph=False)
         # Add the annotation about the filter function
         ds.s = list(self.s + [str_sel]) # using append would modify also self
@@ -2106,7 +2125,7 @@ class Data(DataContainer):
         self.add(dir_ex_corrected=True)
 
     def dither(self, lsb=2, mute=False):
-        """Add dithering (uniform random noise) to burst sizes (nd, na,...).
+        """Add dithering (uniform random noise) to burst counts (nd, na,...).
 
         The dithering amplitude is the range -0.5*lsb .. 0.5*lsb.
         """
