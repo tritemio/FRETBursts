@@ -430,7 +430,7 @@ class Bursts(object):
     ##
     ## Burst manipulation methods
     ##
-    def recompute_times(self, times):
+    def recompute_times(self, times, out=None):
         """Recomputes start, stop times applying index data to `times`.
 
         This method computes burst start, stop using the index of
@@ -443,16 +443,20 @@ class Bursts(object):
 
         Arguments:
             times (array): array of photon timestamps
+            out (None or Bursts): if None (default), do computations on a copy
+                of the current object. Otherwise, modify the `Bursts` object
+                passed (can be used for in-place operations).
 
         Returns:
-            A new Bursts object with recomputed start/stop times.
+            A `Bursts` object with recomputed start/stop times.
         """
-        newbursts = self.copy()
-        newbursts.start = times[self.istart]
-        newbursts.stop = times[self.istart]
-        return newbursts
+        if out is None:
+            out = self.copy()
+        out.start = times[self.istart]
+        out.stop = times[self.istop]
+        return out
 
-    def recompute_index_expand(self, mask):
+    def recompute_index_expand(self, mask, out=None):
         """Recompute istart and istop from selection `mask` to full timestamps.
 
         This modifies the Bursts object inplace recomputing istart and istop.
@@ -468,46 +472,91 @@ class Bursts(object):
         Arguments:
             mask (bool array): boolean mask defining the timestamps selection
                 on which the old istart and istop were computed.
+            out (None or Bursts): if None (default), do computations on a copy
+                of the current object. Otherwise, modify the `Bursts` object
+                passed (can be used for in-place operations).
 
         Returns:
-            A new Bursts object with recomputed istart/istop.
+            A `Bursts` object with recomputed istart/istop.
         """
+        if out is None:
+            out = self.copy()
         index = np.arange(mask.size, dtype=np.int32)
-        self.istart = index[mask][self.istart]
-        self.istop = index[mask][self.istop]
-        return self
+        out.istart = index[mask][self.istart]
+        out.istop = index[mask][self.istop]
+        return out
 
-    def recompute_index_reduce(self, mask):
-        """Recompute istart and istop on reduced timestamps selected by `mask`.
+#    def recompute_index_reduce2(self, times_reduced, out=None):
+#        """Recompute istart and istop on reduced timestamps `times_reduced`.
+#
+#        Extremely inefficient (but very simple!) version of
+#        `Bursts.recompute_index` used for testing.
+#        """
+#        if out is None:
+#            out = self.copy()
+#
+#        for i, burst in enumerate(self):
+#            # The first index ([0]) accesses the tuple returned by nonzero.
+#            # The second index ([0] or [-1]) accesses the array inside the
+#            # tuple. THis array can have size > 1 when burst start or stop
+#            # happens on a repeated timestamp.
+#            out[i].istart = np.nonzero(times_reduced == burst.start)[0][0]
+#            out[i].istop = np.nonzero(times_reduced == burst.stop)[0][-1]
+#        return out
 
-        This is useful probably only for testing the inverse transformation
-        of :meth:`recompute_index_expand`.
+    def recompute_index_reduce(self, times_reduced, out=None):
+        """Recompute istart and istop on reduced timestamps `times_reduced`.
 
         This method returns a new Bursts object with same start and stop times
         and recomputed istart and istop. Old istart, istop are assumed to
         be index of a "full" timestamps array of size `mask.size`. New istart,
-        istop are computed to be index of a reduced array `timestamps[mask]`.
+        istop are computed to be index of the reduced timestamps array
+        `timestamps_reduced`.
 
         Note: it is required that all the start and stop times are
         also contained in the reduced timestamps selection.
 
+        This method is the inverse of :meth:`recompute_index_expand`.
+
         Arguments:
-            mask (bool array): boolean mask defining the timestamp selection
-                on which the new istart and istop are computed.
+            times_reduced (array): array of selected timestamps used to
+                compute the new istart and istop. This array needs to be
+                a sub-set of the original timestamps array.
+            out (None or Bursts): if None (default), do computations on a copy
+                of the current object. Otherwise, modify the `Bursts` object
+                passed (can be used for in-place operations).
 
         Returns:
-            A new Bursts object with recomputed istart/istop times.
+            A `Bursts` object with recomputed istart/istop times.
         """
-        newbursts = self.copy()
-        ## Untested, to be checked
-        newbursts.istart = np.nonzero(mask[self.istart])[0]
-        newbursts.istop = np.nonzero(mask[self.istop])[0]
+        if out is None:
+            out = self.copy()
 
-        # Check that we are not missing any start or stop index
-        assert newbursts.istart.size == self.istart.size
-        assert newbursts.istop.size == self.istop.size
-
-        return newbursts
+        # Go through the timestamps searching for start
+        # and stop of each burst in order
+        it = 0
+        for ib, burst in enumerate(self):
+            startfound = False
+            while not startfound:
+                if times_reduced[it] == burst.start:
+                    out[ib].istart = it
+                    startfound = True
+                it += 1
+            it_saved = it
+            stopfound = False
+            while not stopfound:
+                if times_reduced[it] == burst.stop:
+                    # there may be repeated timestamps, istop points to
+                    # the last in aseries of repeats
+                    while times_reduced[it] == burst.stop:
+                        it += 1
+                    out[ib].istop = it - 1
+                    stopfound = True
+                it += 1
+            # Finished with the stop of currect burst, reset it to  istart+1
+            # before starting a new burst
+            it = it_saved
+        return out
 
     def and_gate(self, bursts2):
         """From 2 burst arrays return bursts defined as intersection (AND rule).
