@@ -1652,7 +1652,7 @@ class Data(DataContainer):
                  rate_th=rate_th)
 
     def _burst_search_rate(self, m, L, min_rate_cps, ph_sel=Ph_sel('all'),
-                           compact=False, index_all=True, verbose=True,
+                           compact=False, index_allph=True, verbose=True,
                            pure_python=False):
         """Compute burst search using a fixed minimum photon rate.
 
@@ -1679,11 +1679,11 @@ class Data(DataContainer):
                 bursts = bslib.Bursts.empty()
             mburst.append(bursts)
         self.add(mburst=mburst, rate_th=Min_rate_cps, T=T_clk*self.clk_p)
-        if ph_sel != Ph_sel('all') and index_all:
+        if ph_sel != Ph_sel('all') and index_allph:
             self._fix_mburst_from(ph_sel=ph_sel)
 
     def _burst_search_TT(self, m, L, ph_sel=Ph_sel('all'), verbose=True,
-                         compact=False, index_all=True, pure_python=False,
+                         compact=False, index_allph=True, pure_python=False,
                          mute=False):
         """Compute burst search with params `m`, `L` on ph selection `ph_sel`
 
@@ -1720,7 +1720,7 @@ class Data(DataContainer):
             MBurst.append(bursts)
 
         self.add(mburst=MBurst)
-        if ph_sel != Ph_sel('all') and index_all:
+        if ph_sel != Ph_sel('all') and index_allph:
             # Convert the burst data to be relative to ph_times_m.
             # Convert both Lim/Ph_p and mburst, as they are both needed
             # to compute `.bp`.
@@ -1740,7 +1740,7 @@ class Data(DataContainer):
         pprint('[DONE]\n', mute)
 
     def burst_search(self, L=None, m=10, F=6., P=None, min_rate_cps=None,
-                     ph_sel=Ph_sel('all'), compact=False, index_all=True,
+                     ph_sel=Ph_sel('all'), compact=False, index_allph=True,
                      computefret=True, max_rate=False, dither=False,
                      pure_python=False, verbose=False, mute=False):
         """Performs a burst search with specified parameters.
@@ -1778,8 +1778,13 @@ class Data(DataContainer):
             ph_sel (Ph_sel object): object defining the photon selection
                 used for burst search. Default: all photons.
                 See :mod:`fretbursts.ph_sel` for details.
-            pure_python (bool): if True, uses the pure python functions even
-                when the optimized Cython functions are available.
+            compact (bool): if True, a photon selection of only one excitation
+                period is required and the timestamps are "compacted" by
+                removing the "gaps" between each excitation period.
+            index_allph (bool): if True (default), the indexes of burst start
+                and stop (`istart`, `istop`) are relative to the full
+                timestamp array. If False, the indexes are relative to
+                timestamps selected by the `ph_sel` argument.
             computefret (bool): if True (default) compute donor and acceptor
                 counts, apply corrections (background, leakage, direct
                 excitation) and compute E (and S). If False, skip all these
@@ -1789,6 +1794,8 @@ class Data(DataContainer):
                 (default) skip this step.
             dither (bool): whether to apply dithering corrections to burst
                 counts. See :meth:`Data.dither`.
+            pure_python (bool): if True, uses the pure python functions even
+                when the optimized Cython functions are available.
 
         Note:
             when using `P` or `F` the background rates are needed, so
@@ -1810,14 +1817,14 @@ class Data(DataContainer):
             # Saves rate_th in self
             self._burst_search_rate(m=m, L=L, min_rate_cps=min_rate_cps,
                                     ph_sel=ph_sel, compact=compact,
-                                    index_all=index_all,
+                                    index_allph=index_allph,
                                     verbose=verbose, pure_python=pure_python)
         else:
             # Compute TT, saves P and F in self
             self._calc_T(m=m, P=P, F=F, ph_sel=ph_sel)
             # Use TT and compute mburst
             self._burst_search_TT(L=L, m=m, ph_sel=ph_sel, compact=compact,
-                                  index_all=index_all, verbose=verbose,
+                                  index_allph=index_allph, verbose=verbose,
                                   pure_python=pure_python, mute=mute)
         pprint("[DONE]\n", mute)
 
