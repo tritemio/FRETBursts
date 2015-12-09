@@ -423,10 +423,14 @@ def test_burst_recompute_index(data):
             d.iter_ph_times(ph_sel=ph_sel),
             d.iter_ph_masks(ph_sel=ph_sel),
             d_sel.mburst, d.mburst):
-        bursts_sel2 = bursts_allph.recompute_index_reduce(times_sel)
-        assert  bursts_sel2 == bursts_sel
+        # Test individual methods
         bursts_allph2 = bursts_sel.recompute_index_expand(mask_sel)
         assert  bursts_allph2 == bursts_allph
+        bursts_sel2 = bursts_allph.recompute_index_reduce(times_sel)
+        assert  bursts_sel2 == bursts_sel
+        # Test round-trip
+        bursts_allph3 = bursts_sel2.recompute_index_expand(mask_sel)
+        assert  bursts_allph3 == bursts_allph
 
 def test_burst_ph_data_functions(data):
     """Tests the functions that operate on per-burst "ph-data".
