@@ -477,36 +477,32 @@ class Bursts(object):
         self.istop = index[mask][self.istop]
         return self
 
-    def recompute_index_reduce(self, mask):
+    def recompute_index_reduce(self, times_reduced):
         """Recompute istart and istop on reduced timestamps selected by `mask`.
-
-        This is useful probably only for testing the inverse transformation
-        of :meth:`recompute_index_expand`.
 
         This method returns a new Bursts object with same start and stop times
         and recomputed istart and istop. Old istart, istop are assumed to
         be index of a "full" timestamps array of size `mask.size`. New istart,
-        istop are computed to be index of a reduced array `timestamps[mask]`.
+        istop are computed to be index of the reduced timestamps array
+        `timestamps_reduced`.
 
         Note: it is required that all the start and stop times are
         also contained in the reduced timestamps selection.
 
+        This method is the inverse of :meth:`recompute_index_expand`.
+
         Arguments:
-            mask (bool array): boolean mask defining the timestamp selection
-                on which the new istart and istop are computed.
+            times_reduced (array): array of selected timestamps used to
+                compute the new istart and istop. This array needs to be
+                a sub-set of the original timestamps array.
 
         Returns:
             A new Bursts object with recomputed istart/istop times.
         """
         newbursts = self.copy()
-        ## Untested, to be checked
-        newbursts.istart = np.nonzero(mask[self.istart])[0]
-        newbursts.istop = np.nonzero(mask[self.istop])[0]
-
-        # Check that we are not missing any start or stop index
-        assert newbursts.istart.size == self.istart.size
-        assert newbursts.istop.size == self.istop.size
-
+        for i, burst in enumerate(newbursts):
+            newbursts[i].istart = np.nonzero(times_reduced == burst.start)[0]
+            newbursts[i].istop = np.nonzero(times_reduced == burst.stop)[0]
         return newbursts
 
     def and_gate(self, bursts2):

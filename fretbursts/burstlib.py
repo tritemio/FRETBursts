@@ -1652,7 +1652,8 @@ class Data(DataContainer):
                  rate_th=rate_th)
 
     def _burst_search_rate(self, m, L, min_rate_cps, ph_sel=Ph_sel('all'),
-                           compact=False, verbose=True, pure_python=False):
+                           compact=False, index_all=True, verbose=True,
+                           pure_python=False):
         """Compute burst search using a fixed minimum photon rate.
 
         Arguments:
@@ -1678,11 +1679,12 @@ class Data(DataContainer):
                 bursts = bslib.Bursts.empty()
             mburst.append(bursts)
         self.add(mburst=mburst, rate_th=Min_rate_cps, T=T_clk*self.clk_p)
-        if ph_sel != Ph_sel('all'):
+        if ph_sel != Ph_sel('all') and index_all:
             self._fix_mburst_from(ph_sel=ph_sel)
 
     def _burst_search_TT(self, m, L, ph_sel=Ph_sel('all'), verbose=True,
-                         compact=False, pure_python=False, mute=False):
+                         compact=False, index_all=True, pure_python=False,
+                         mute=False):
         """Compute burst search with params `m`, `L` on ph selection `ph_sel`
 
         Requires the list of arrays `self.TT` with the max time-thresholds in
@@ -1718,7 +1720,7 @@ class Data(DataContainer):
             MBurst.append(bursts)
 
         self.add(mburst=MBurst)
-        if ph_sel != Ph_sel('all'):
+        if ph_sel != Ph_sel('all') and index_all:
             # Convert the burst data to be relative to ph_times_m.
             # Convert both Lim/Ph_p and mburst, as they are both needed
             # to compute `.bp`.
@@ -1738,7 +1740,7 @@ class Data(DataContainer):
         pprint('[DONE]\n', mute)
 
     def burst_search(self, L=None, m=10, F=6., P=None, min_rate_cps=None,
-                     ph_sel=Ph_sel('all'), compact=False,
+                     ph_sel=Ph_sel('all'), compact=False, index_all=True,
                      computefret=True, max_rate=False, dither=False,
                      pure_python=False, verbose=False, mute=False):
         """Performs a burst search with specified parameters.
@@ -1808,14 +1810,15 @@ class Data(DataContainer):
             # Saves rate_th in self
             self._burst_search_rate(m=m, L=L, min_rate_cps=min_rate_cps,
                                     ph_sel=ph_sel, compact=compact,
+                                    index_all=index_all,
                                     verbose=verbose, pure_python=pure_python)
         else:
             # Compute TT, saves P and F in self
             self._calc_T(m=m, P=P, F=F, ph_sel=ph_sel)
             # Use TT and compute mburst
             self._burst_search_TT(L=L, m=m, ph_sel=ph_sel, compact=compact,
-                                  verbose=verbose, pure_python=pure_python,
-                                  mute=mute)
+                                  index_all=index_all, verbose=verbose,
+                                  pure_python=pure_python, mute=mute)
         pprint("[DONE]\n", mute)
 
         pprint(" - Calculating burst periods ...", mute)
