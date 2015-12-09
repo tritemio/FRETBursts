@@ -415,7 +415,7 @@ def test_burst_recompute_times(data):
 def test_burst_recompute_index(data):
     """Test Bursts.recompute_index_* methods."""
     d = data
-    ph_sel = Ph_sel(Dex='DAem')
+    ph_sel = Ph_sel(Dex='Dem')
     d.burst_search(ph_sel=ph_sel, index_allph=True)
     d_sel = d.copy()
     d_sel.burst_search(ph_sel=ph_sel, index_allph=False)
@@ -447,7 +447,6 @@ def test_burst_recompute_index(data):
         assert  bursts_allph3 == bursts_allph2
         assert (times_allph[bursts_allph3.istart] == bursts_allph3.start).all()
         assert (times_allph[bursts_allph3.istop] == bursts_allph3.stop).all()
-
 
 def test_burst_ph_data_functions(data):
     """Tests the functions that operate on per-burst "ph-data".
