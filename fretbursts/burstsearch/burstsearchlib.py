@@ -430,7 +430,7 @@ class Bursts(object):
     ##
     ## Burst manipulation methods
     ##
-    def recompute_times(self, times):
+    def recompute_times(self, times, out=None):
         """Recomputes start, stop times applying index data to `times`.
 
         This method computes burst start, stop using the index of
@@ -443,14 +443,18 @@ class Bursts(object):
 
         Arguments:
             times (array): array of photon timestamps
+            out (None or Bursts): if None (default), do computations on a copy
+                of the current object. Otherwise, modify the `Bursts` object
+                passed (can be used for in-place operations).
 
         Returns:
-            A new Bursts object with recomputed start/stop times.
+            A `Bursts` object with recomputed start/stop times.
         """
-        newbursts = self.copy()
-        newbursts.start = times[self.istart]
-        newbursts.stop = times[self.istop]
-        return newbursts
+        if out is None:
+            out = self.copy()
+        out.start = times[self.istart]
+        out.stop = times[self.istop]
+        return out
 
     def recompute_index_expand(self, mask, out=None):
         """Recompute istart and istop from selection `mask` to full timestamps.

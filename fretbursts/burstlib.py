@@ -1674,7 +1674,7 @@ class Data(DataContainer):
             if burstarray.size > 1:
                 bursts = bslib.Bursts(burstarray)
                 if compact:
-                    bursts = bursts.recompute_times(ph)
+                    bursts.recompute_times(ph, out=bursts)
             else:
                 bursts = bslib.Bursts.empty()
             mburst.append(bursts)
@@ -1714,7 +1714,7 @@ class Data(DataContainer):
                 data = np.vstack(burstarray_ch_list)
                 bursts = bslib.Bursts(data)
                 if compact:
-                    bursts = bursts.recompute_times(ph)
+                    bursts.recompute_times(ph, out=bursts)
             else:
                 bursts = bslib.Bursts.empty()
             MBurst.append(bursts)
