@@ -449,7 +449,7 @@ class Bursts(object):
         """
         newbursts = self.copy()
         newbursts.start = times[self.istart]
-        newbursts.stop = times[self.istart]
+        newbursts.stop = times[self.istop]
         return newbursts
 
     def recompute_index_expand(self, mask):
