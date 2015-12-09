@@ -416,21 +416,38 @@ def test_burst_recompute_index(data):
     """Test Bursts.recompute_index_* methods."""
     d = data
     ph_sel = Ph_sel(Dex='DAem')
-    d.burst_search(ph_sel=ph_sel, index_all=True)
+    d.burst_search(ph_sel=ph_sel, index_allph=True)
     d_sel = d.copy()
-    d_sel.burst_search(ph_sel=ph_sel, index_all=False)
-    for times_sel, mask_sel, bursts_sel, bursts_allph in zip(
+    d_sel.burst_search(ph_sel=ph_sel, index_allph=False)
+    for times_sel, mask_sel, bursts_sel, times_allph, bursts_allph in zip(
             d.iter_ph_times(ph_sel=ph_sel),
             d.iter_ph_masks(ph_sel=ph_sel),
-            d_sel.mburst, d.mburst):
+            d_sel.mburst,
+            d.iter_ph_times(),
+            d.mburst):
+        assert (times_sel[bursts_sel.istart] == bursts_sel.start).all()
+        assert (times_sel[bursts_sel.istop] == bursts_sel.stop).all()
+
+        assert (times_allph[bursts_allph.istart] == bursts_allph.start).all()
+        assert (times_allph[bursts_allph.istop] == bursts_allph.stop).all()
+
         # Test individual methods
         bursts_allph2 = bursts_sel.recompute_index_expand(mask_sel)
         assert  bursts_allph2 == bursts_allph
+        assert (times_allph[bursts_allph2.istart] == bursts_allph2.start).all()
+        assert (times_allph[bursts_allph2.istop] == bursts_allph2.stop).all()
+
         bursts_sel2 = bursts_allph.recompute_index_reduce(times_sel)
+        assert (times_sel[bursts_sel2.istart] == bursts_sel2.start).all()
+        assert (times_sel[bursts_sel2.istop] == bursts_sel2.stop).all()
         assert  bursts_sel2 == bursts_sel
+
         # Test round-trip
         bursts_allph3 = bursts_sel2.recompute_index_expand(mask_sel)
-        assert  bursts_allph3 == bursts_allph
+        assert  bursts_allph3 == bursts_allph2
+        assert (times_allph[bursts_allph3.istart] == bursts_allph3.start).all()
+        assert (times_allph[bursts_allph3.istop] == bursts_allph3.stop).all()
+
 
 def test_burst_ph_data_functions(data):
     """Tests the functions that operate on per-burst "ph-data".
