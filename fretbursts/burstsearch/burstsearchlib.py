@@ -486,6 +486,24 @@ class Bursts(object):
         out.istop = index[mask][self.istop]
         return out
 
+#    def recompute_index_reduce_slow(self, times_reduced, out=None):
+#        """Recompute istart and istop on reduced timestamps `times_reduced`.
+#
+#        Extremely inefficient (but very simple!) version of
+#        `Bursts.recompute_index` used for testing.
+#        """
+#        if out is None:
+#            out = self.copy()
+#
+#        for i, burst in enumerate(self):
+#            # The first index ([0]) accesses the tuple returned by nonzero.
+#            # The second index ([0] or [-1]) accesses the array inside the
+#            # tuple. THis array can have size > 1 when burst start or stop
+#            # happens on a repeated timestamp.
+#            out[i].istart = np.nonzero(times_reduced == burst.start)[0][0]
+#            out[i].istop = np.nonzero(times_reduced == burst.stop)[0][-1]
+#        return out
+
     def recompute_index_reduce(self, times_reduced, out=None):
         """Recompute istart and istop on reduced timestamps `times_reduced`.
 
@@ -513,13 +531,32 @@ class Bursts(object):
         """
         if out is None:
             out = self.copy()
-        for i, burst in enumerate(self):
-            # The first index ([0]) accesses the tuple returned by nonzero.
-            # The second index ([0] or [-1]) accesses the array inside the
-            # tuple. THis array can have size > 1 when burst start or stop
-            # happens on a repeated timestamp.
-            out[i].istart = np.nonzero(times_reduced == burst.start)[0][0]
-            out[i].istop = np.nonzero(times_reduced == burst.stop)[0][-1]
+
+        # Go through the timestamps searching for start
+        # and stop of each burst in order
+        times_reducedm = memoryview(times_reduced)
+        it = 0
+        for ib, burst in enumerate(self):
+            startfound = False
+            while not startfound:
+                if times_reducedm[it] == burst.start:
+                    out[ib].istart = it
+                    startfound = True
+                it += 1
+            it_saved = it
+            stopfound = False
+            while not stopfound:
+                if times_reducedm[it] == burst.stop:
+                    # there may be repeated timestamps, istop points to
+                    # the last in aseries of repeats
+                    while times_reducedm[it] == burst.stop:
+                        it += 1
+                    out[ib].istop = it - 1
+                    stopfound = True
+                it += 1
+            # Finished with the stop of currect burst, reset it to  istart+1
+            # before starting a new burst
+            it = it_saved
         return out
 
     def and_gate(self, bursts2):

@@ -448,6 +448,31 @@ def test_burst_recompute_index(data):
         assert (times_allph[bursts_allph3.istart] == bursts_allph3.start).all()
         assert (times_allph[bursts_allph3.istop] == bursts_allph3.stop).all()
 
+## This test is only used to develop alternative implementations of
+## Bursts.recompute_index_reduce() and is normally disable as it is very slow.
+#def test_burst_recompute_index_reduce(data):
+#    """Test different versions of Bursts.recompute_index_reduce methods.
+#
+#    This test is very slow so it's normally disabled.
+#    """
+#    d = data
+#    ph_sel = Ph_sel(Dex='Aem')
+#    d.burst_search(ph_sel=ph_sel)
+#    d_sel = d.copy()
+#    d_sel.burst_search(ph_sel=ph_sel, index_allph=False)
+#    for times_sel, bursts_sel, times_allph, bursts_allph in zip(
+#            d.iter_ph_times(ph_sel=ph_sel),
+#            d_sel.mburst,
+#            d.iter_ph_times(),
+#            d.mburst):
+#        assert (times_allph[bursts_allph.istart] == bursts_allph.start).all()
+#        assert (times_allph[bursts_allph.istop] == bursts_allph.stop).all()
+#
+#        bursts_sel1 = bursts_allph.recompute_index_reduce(times_sel)
+#        bursts_sel2 = bursts_allph.recompute_index_reduce2(times_sel)
+#        assert  bursts_sel1 == bursts_sel2
+#        assert  bursts_sel == bursts_sel1
+
 def test_burst_ph_data_functions(data):
     """Tests the functions that operate on per-burst "ph-data".
     """
