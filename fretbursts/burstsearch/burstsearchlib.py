@@ -37,12 +37,18 @@ named tuple :class:`Burst`, which implements the same attributes as `Bursts`
 This results in faster iteration and attribute access than using `Bursts`
 objects with only one burst.
 
+Three methods allow to transform Bursts to refer to a new timestamps array:
+
+- :meth:`Bursts.recompute_times`
+- :meth:`Bursts.recompute_index_expand`
+- :meth:`Bursts.recompute_index_reduce`
+
 In order to support fusion of consecutive bursts, we provide the class
-:class:`BurstsGap` (and single-burst version :class:`BurstGap`) which add the attributes
-`gap` and `gap_counts` that contains the duration and the number of photons
-in gaps inside a burst. The attribute `width` is the total burst duration
-minus `gap`, while `counts` is the total number of photons minus photons
-falling inside gaps (gaps are open intervals, do not include edges).
+:class:`BurstsGap` (and single-burst version :class:`BurstGap`) which add the
+attributes `gap` and `gap_counts` that contains the duration and the number
+of photons in gaps inside a burst. The attribute `width` is the total burst
+duration minus `gap`, while `counts` is the total number of photons minus
+photons falling inside gaps (gaps are open intervals, do not include edges).
 """
 
 from __future__ import division, print_function
@@ -431,7 +437,7 @@ class Bursts(object):
     ## Burst manipulation methods
     ##
     def recompute_times(self, times, out=None):
-        """Recomputes start, stop times applying index data to `times`.
+        """Recomputes start, stop times using timestamps from a new array.
 
         This method computes burst start, stop using the index of
         timestamps in `bursts` and and using `times` as timestamps array.
@@ -448,7 +454,7 @@ class Bursts(object):
                 passed (can be used for in-place operations).
 
         Returns:
-            A `Bursts` object with recomputed start/stop times.
+            `Bursts` object with recomputed start/stop times.
         """
         if out is None:
             out = self.copy()
@@ -459,11 +465,10 @@ class Bursts(object):
     def recompute_index_expand(self, mask, out=None):
         """Recompute istart and istop from selection `mask` to full timestamps.
 
-        This modifies the Bursts object inplace recomputing istart and istop.
-        Old istart, istop are assumed to be index of a reduced array
-        `timestamps[mask]`.
-        New istart, istop are computed to be index of a "full" timestamps
-        array of size `mask.size`.
+        This method returns a new Bursts object with recomputed istart and
+        istop. Old istart, istop are assumed to be index of a reduced array
+        `timestamps[mask]`. New istart, istop are computed to be index of
+        a "full" timestamps array of size `mask.size`.
 
         This is useful when performing burst search on a timestamps selection
         and we want to tranform the burst data to use the index of the "full"
@@ -477,7 +482,7 @@ class Bursts(object):
                 passed (can be used for in-place operations).
 
         Returns:
-            A `Bursts` object with recomputed istart/istop.
+            `Bursts` object with recomputed istart/istop.
         """
         if out is None:
             out = self.copy()
@@ -527,7 +532,7 @@ class Bursts(object):
                 passed (can be used for in-place operations).
 
         Returns:
-            A `Bursts` object with recomputed istart/istop times.
+            `Bursts` object with recomputed istart/istop times.
         """
         if out is None:
             out = self.copy()
