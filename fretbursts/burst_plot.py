@@ -986,7 +986,7 @@ def hist_burst_data(
             print(' - Overwriting the old %s object with the new weights.' %\
                     fitter_name)
             if verbose:
-                print('   Old weights:', d[data_name+'_weights'])
+                print('   Old weights:', getattr(d, data_name+'_weights'))
                 print('   New weights:', weights_tuple)
         bext.bursts_fitter(d, burst_data=data_name, weights=weights,
                            gamma=gamma, add_naa=add_naa)
