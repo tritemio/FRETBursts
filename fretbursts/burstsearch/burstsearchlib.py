@@ -439,13 +439,13 @@ class Bursts(object):
     def recompute_times(self, times, out=None):
         """Recomputes start, stop times using timestamps from a new array.
 
-        This method computes burst start, stop using the index of
-        timestamps in `bursts` and and using `times` as timestamps array.
+        This method computes burst start, stop using the index of timestamps
+        from the current object and timestamps from the passed array `times`.
 
         This is useful, for example, when burst search is computed on a
         "compacted" timestamps array (i.e. removing the gaps outside the
         alternation period in usALEX experiments), and afterwards the "real"
-        start and stop times need to be recomputed.
+        start and stop times needs to be recomputed.
 
         Arguments:
             times (array): array of photon timestamps
