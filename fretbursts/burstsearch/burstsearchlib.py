@@ -486,7 +486,7 @@ class Bursts(object):
         out.istop = index[mask][self.istop]
         return out
 
-#    def recompute_index_reduce_slow(self, times_reduced, out=None):
+#    def recompute_index_reduce2(self, times_reduced, out=None):
 #        """Recompute istart and istop on reduced timestamps `times_reduced`.
 #
 #        Extremely inefficient (but very simple!) version of
