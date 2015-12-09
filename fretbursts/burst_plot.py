@@ -981,7 +981,7 @@ def hist_burst_data(
         xlim, ylim = ylim, xlim
     weights_tuple = (weights, float(gamma), add_naa)
     if not hasattr(d, fitter_name) or _is_list_of_arrays(weights) \
-            or d[data_name+'_weights'] != weights_tuple:
+            or getattr(d, data_name+'_weights') != weights_tuple:
         if hasattr(d, fitter_name):
             print(' - Overwriting the old %s object with the new weights.' %\
                     fitter_name)
