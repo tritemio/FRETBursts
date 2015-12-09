@@ -1735,7 +1735,7 @@ class Data(DataContainer):
 
         for bursts, mask in zip(self.mburst,
                                 self.iter_ph_masks(ph_sel=ph_sel)):
-            bursts.recompute_index_expand(mask)
+            bursts.recompute_index_expand(mask, out=bursts)
 
         pprint('[DONE]\n', mute)
 
