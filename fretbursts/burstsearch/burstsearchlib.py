@@ -43,7 +43,7 @@ Three methods allow to transform Bursts to refer to a new timestamps array:
 - :meth:`Bursts.recompute_index_expand`
 - :meth:`Bursts.recompute_index_reduce`
 
-In order to support fusion of consecutive bursts, we provide the class
+Finally, in order to support fusion of consecutive bursts, we provide the class
 :class:`BurstsGap` (and single-burst version :class:`BurstGap`) which add the
 attributes `gap` and `gap_counts` that contains the duration and the number
 of photons in gaps inside a burst. The attribute `width` is the total burst
