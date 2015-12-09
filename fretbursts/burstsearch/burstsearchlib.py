@@ -478,7 +478,7 @@ class Bursts(object):
         return self
 
     def recompute_index_reduce(self, times_reduced):
-        """Recompute istart and istop on reduced timestamps selected by `mask`.
+        """Recompute istart and istop on reduced timestamps `times_reduced`.
 
         This method returns a new Bursts object with same start and stop times
         and recomputed istart and istop. Old istart, istop are assumed to
@@ -501,8 +501,12 @@ class Bursts(object):
         """
         newbursts = self.copy()
         for i, burst in enumerate(newbursts):
-            newbursts[i].istart = np.nonzero(times_reduced == burst.start)[0]
-            newbursts[i].istop = np.nonzero(times_reduced == burst.stop)[0]
+            # The first index ([0]) accesses the tuple returned by nonzero.
+            # The second index ([0] or [-1]) accesses the array inside the
+            # tuple. THis array can have size > 1 when burst start or stop
+            # happens on a repeated timestamp.
+            newbursts[i].istart = np.nonzero(times_reduced == burst.start)[0][0]
+            newbursts[i].istop = np.nonzero(times_reduced == burst.stop)[0][-1]
         return newbursts
 
     def and_gate(self, bursts2):
