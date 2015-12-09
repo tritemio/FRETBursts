@@ -534,22 +534,21 @@ class Bursts(object):
 
         # Go through the timestamps searching for start
         # and stop of each burst in order
-        times_reducedm = memoryview(times_reduced)
         it = 0
         for ib, burst in enumerate(self):
             startfound = False
             while not startfound:
-                if times_reducedm[it] == burst.start:
+                if times_reduced[it] == burst.start:
                     out[ib].istart = it
                     startfound = True
                 it += 1
             it_saved = it
             stopfound = False
             while not stopfound:
-                if times_reducedm[it] == burst.stop:
+                if times_reduced[it] == burst.stop:
                     # there may be repeated timestamps, istop points to
                     # the last in aseries of repeats
-                    while times_reducedm[it] == burst.stop:
+                    while times_reduced[it] == burst.stop:
                         it += 1
                     out[ib].istop = it - 1
                     stopfound = True
