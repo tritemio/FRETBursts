@@ -1772,7 +1772,7 @@ def dplot(d, func, **kwargs):
 ##
 #  ALEX join-plot using seaborn
 #
-def _alex_plot_style(g):
+def _alex_plot_style(g, colorbar=True):
     """Set plot style and colorbar for an ALEX joint plot.
     """
     g.set_axis_labels(xlabel="E", ylabel="S")
@@ -1784,10 +1784,11 @@ def _alex_plot_style(g):
     plt.setp(g.ax_marg_x.get_yticklabels(), visible=True)
     g.ax_marg_x.locator_params(axis='y', tight=True, nbins=3)
     g.ax_marg_y.locator_params(axis='x', tight=True, nbins=3)
-    pos = g.ax_joint.get_position().get_points()
-    X, Y = pos[:, 0], pos[:, 1]
-    cax = plt.axes([1., Y[0], (X[1] - X[0]) * 0.045, Y[1] - Y[0]])
-    plt.colorbar(cax=cax)
+    if colorbar:
+        pos = g.ax_joint.get_position().get_points()
+        X, Y = pos[:, 0], pos[:, 1]
+        cax = plt.axes([1., Y[0], (X[1] - X[0]) * 0.045, Y[1] - Y[0]])
+        plt.colorbar(cax=cax)
 
 def _hist_bursts_marg(arr, dx, **kwargs):
     """Wrapper to call hist_burst_data() from seaborn plot_marginals().
@@ -1822,7 +1823,7 @@ def _calc_vmin(vmax, vmax_threshold, vmin_default):
         vmin = vmin_default
     return vmin
 
-def alex_jointplot(d, i=0, gridsize=50, cmap='alex_light',
+def alex_jointplot(d, i=0, gridsize=50, cmap='alex_light', kind='hex',
                    vmax_fret=True, vmax_threshold=10,
                    vmin_default=0, vmin=None, cmap_compensate=False,
                    joint_kws=None, marginal_kws=None):
@@ -1844,14 +1845,19 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='alex_light',
             addition to matplotlib colormaps, FRETbursts defines
             these custom colormaps: 'alex_light', 'alex_dark' and 'alex_lv'.
             Default 'alex_light'.
+        kind (string): kind of plot for the 2-D distribution. Valid values:
+            'hex' for hexbin plots, 'kde' for kernel density estimation,
+            'scatter' for scatter plot.
         vmax_fret (bool): if True, the colormap max value is equal to the
             max bin counts in the FRET region (S < 0.8). If False the
             colormap max is equal to the max bin counts.
-        joint_kws (dict): keyword arguments passed to Seaborn plot_joint()
+        joint_kws (dict): keyword arguments passed to the function with plots
+            the inner 2-D distribution (i.e matplotlib scatter or hexbin or
+            seaborn kdeplot).
             and hence to matplolib hexbin to customize the plot style.
-        marginal_kws (dict) : keyword arguments passed to Seaborn
-            plot_marginals() to customize the plot style of the marginals
-            plots.
+        marginal_kws (dict) : keyword arguments passed to :func:`hist_burst_`
+            through seaborn plot_marginals() to customize the marginals plot
+            style.
 
     .. seealso::
         The `Seaborn documentation <http://web.stanford.edu/~mwaskom/software/seaborn/index.html>`__
@@ -1863,23 +1869,36 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='alex_light',
     """
     g = sns.JointGrid(x=d.E[i], y=d.S[i], ratio=3, space=0.2,
                       xlim=(-0.2, 1.2), ylim=(-0.2, 1.2))
-    joint_kws_ = dict(edgecolor='grey', linewidth=0.2, gridsize=gridsize,
-                      cmap=cmap, extent=(-0.2, 1.2, -0.2, 1.2), mincnt=1)
-    if joint_kws is not None:
-        joint_kws_.update(_normalize_kwargs(joint_kws))
-    jplot = g.plot_joint(plt.hexbin, **joint_kws_)
 
-    # Set the vmin and vmax values for the colormap
-    polyc = [c for c in jplot.ax_joint.get_children()
-             if isinstance(c, PolyCollection)][0]
-    vmax = _alex_hexbin_vmax(polyc, vmax_fret=vmax_fret)
-    if vmin is None:
-        if cmap_compensate:
-            # vmin = _calc_vmin(vmax, vmax_threshold, vmin_default)
-            vmin = -vmax / 3
-        else:
-            vmin = vmin_default
-    polyc.set_clim(vmin, vmax)
+    if kind == "scatter":
+        joint_kws_ = dict(s=40, color=blue, alpha=0.1, linewidths=0)
+        if joint_kws is not None:
+            joint_kws_.update(_normalize_kwargs(joint_kws))
+        jplot = g.plot_joint(plt.scatter, **joint_kws_)
+    elif kind.startswith('hex'):
+        joint_kws_ = dict(edgecolor='grey', linewidth=0.2, gridsize=gridsize,
+                          cmap=cmap, extent=(-0.2, 1.2, -0.2, 1.2), mincnt=1)
+        if joint_kws is not None:
+            joint_kws_.update(_normalize_kwargs(joint_kws))
+        jplot = g.plot_joint(plt.hexbin, **joint_kws_)
+
+        # Set the vmin and vmax values for the colormap
+        polyc = [c for c in jplot.ax_joint.get_children()
+                 if isinstance(c, PolyCollection)][0]
+        vmax = _alex_hexbin_vmax(polyc, vmax_fret=vmax_fret)
+        if vmin is None:
+            if cmap_compensate:
+                # vmin = _calc_vmin(vmax, vmax_threshold, vmin_default)
+                vmin = -vmax / 3
+            else:
+                vmin = vmin_default
+        polyc.set_clim(vmin, vmax)
+    elif kind.startswith("kde"):
+        joint_kws_ = dict(shade=True, shade_lowest=False, n_levels=30,
+                          cmap='viridis')
+        if joint_kws is not None:
+            joint_kws_.update(_normalize_kwargs(joint_kws))
+        jplot = g.plot_joint(sns.kdeplot, **joint_kws_)
 
     marginal_kws_ = dict(show_kde=True, bandwidth=0.03, binwidth=0.03)
     if marginal_kws is not None:
@@ -1887,7 +1906,8 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='alex_light',
     g.plot_marginals(_hist_bursts_marg, dx=d, **marginal_kws_)
     g.annotate(lambda x, y: x.size, stat='# Bursts',
                template='{stat}: {val}')
-    _alex_plot_style(g)
+    colorbar = kind.startswith('hex')
+    _alex_plot_style(g, colorbar=colorbar)
     return g
 
 def _register_colormaps():
