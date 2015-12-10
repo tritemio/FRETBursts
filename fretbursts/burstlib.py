@@ -1620,7 +1620,8 @@ class Data(DataContainer):
                        Ph_sel(Dex='Aem', Aex='Aem'): bg_Aem,
                        Ph_sel(Dex='DAem', Aex='Aem'): bg_noDA})
         if ph_sel not in BG:
-            raise NotImplementedError('Photon selection not implemented.')
+            raise NotImplementedError('Photon selection %s not implemented.' %
+                                      ph_sel)
         return BG[ph_sel]
 
     def _calc_T(self, m, P, F=1., ph_sel=Ph_sel('all')):

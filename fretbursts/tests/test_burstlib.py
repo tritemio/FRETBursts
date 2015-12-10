@@ -303,15 +303,17 @@ def test_burst_search(data):
 
     data.burst_search(L=10, m=10, F=7)
 
-def test_burst_search_and_gate(data):
+def test_burst_search_and_gate(data_1ch):
     """Test consistency of burst search and gate."""
-    d_dex = data.copy()
+    d = data_1ch
+    assert d.ALEX
+    d_dex = d.copy()
     d_dex.burst_search(ph_sel=Ph_sel(Dex='DAem'))
-    d_aex = data.copy()
+    d_aex = d.copy()
     d_aex.burst_search(ph_sel=Ph_sel(Aex='Aem'))
-    d_and = bext.burst_search_and_gate(data)
+    d_and = bext.burst_search_and_gate(d)
     for bursts_dex, bursts_aex, bursts_and, ph in zip(
-            d_dex.mburst, d_aex.mburst, d_and.mburst, data.iter_ph_times()):
+            d_dex.mburst, d_aex.mburst, d_and.mburst, d.iter_ph_times()):
         ph_b_mask_dex = bl.ph_in_bursts_mask(ph.size, bursts_dex)
         ph_b_mask_aex = bl.ph_in_bursts_mask(ph.size, bursts_aex)
         ph_b_mask_and = bl.ph_in_bursts_mask(ph.size, bursts_and)
