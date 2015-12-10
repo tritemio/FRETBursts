@@ -710,9 +710,11 @@ def burst_search_and_gate(dx, F=6, m=10, min_rate_cps=None,
     dx_and = dx.copy(mute=mute)
 
     dx_d.burst_search(L=m, m=m, F=F, min_rate_cps=min_rate_cps,
-                      ph_sel=ph_sel1, compact=compact, mute=mute)
+                      ph_sel=ph_sel1, compact=compact, computefret=False,
+                      mute=mute)
     dx_a.burst_search(L=m, m=m, F=F, min_rate_cps=min_rate_cps,
-                      ph_sel=ph_sel2, compact=compact, mute=mute)
+                      ph_sel=ph_sel2, compact=compact, computefret=False,
+                      mute=mute)
 
     mburst_and = []
     for bursts_d, bursts_a in zip(dx_d.mburst, dx_a.mburst):
