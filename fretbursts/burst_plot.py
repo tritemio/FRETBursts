@@ -48,6 +48,7 @@ from matplotlib.pyplot import (plot, hist, xlabel, ylabel, grid, title, legend,
                                gca, gcf)
 from matplotlib.patches import Rectangle, Ellipse
 from matplotlib.collections import PatchCollection, PolyCollection
+import seaborn as sns
 
 # Local imports
 from .ph_sel import Ph_sel
@@ -1926,14 +1927,7 @@ def _register_colormaps():
     mpl.cm.register_cmap(name='YlGnBu_crop', cmap=cmap)
     mpl.cm.register_cmap(name='alex_dark', cmap=mpl.cm.GnBu_r)
 
-def alex_jointplot_stub(*args):
-    """Stub function used when seaborn is not installed."""
-    pprint('Error: to use this function you need to install seaborn.')
 
-try:
-    import seaborn as sns
-except ImportError:
-    pprint('WARNING: seaborn not installed. ALEX join-plot disabled.\n')
-    alex_jointplot = alex_jointplot_stub
-else:
+# Register colormaps on import if not mocking
+if not hasattr(seaborn, '_mock'):
     _register_colormaps()

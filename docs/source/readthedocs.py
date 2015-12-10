@@ -6,6 +6,7 @@ html_style = None
 import sys
 class Mock(object):
     def __init__(self, *args, **kwargs):
+        self._mock = True   # if this exists the object is a mock
         pass
 
     def __call__(self, *args, **kwargs):
