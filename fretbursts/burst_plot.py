@@ -1929,5 +1929,5 @@ def _register_colormaps():
 
 
 # Register colormaps on import if not mocking
-if not hasattr(seaborn, '_mock'):
+if not hasattr(sns, '_mock'):
     _register_colormaps()
