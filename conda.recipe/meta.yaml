@@ -43,7 +43,6 @@ requirements:
     - pyqt
     - pytables
     - pandas
-    - seaborn
     - lmfit
     - phconvert
 

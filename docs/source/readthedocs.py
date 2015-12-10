@@ -29,7 +29,7 @@ MOCK_MODULES = [
                  'builtins',
                  'matplotlib', 'matplotlib.pyplot', 'matplotlib.mlab',
                  'matplotlib.patches', 'matplotlib.collections',
-                 'mpl_toolkits.axes_grid1', 'lmfit',
+                 'mpl_toolkits.axes_grid1', 'seaborn', 'lmfit',
                  'PySide','PySide.QtCore','PySide.QtGui',
                  'tables', 'pandas',
                  'phconvert', 'phconvert.hdf5', 'phconvert.loader',

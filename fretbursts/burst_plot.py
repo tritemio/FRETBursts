@@ -1927,7 +1927,7 @@ def _register_colormaps():
     mpl.cm.register_cmap(name='alex_dark', cmap=mpl.cm.GnBu_r)
 
 def alex_jointplot_stub(*args):
-    """Stub function used whens eaborn is not installed."""
+    """Stub function used when seaborn is not installed."""
     pprint('Error: to use this function you need to install seaborn.')
 
 try:
