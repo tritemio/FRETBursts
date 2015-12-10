@@ -777,21 +777,19 @@ class Data(DataContainer):
                                             self.ph_times_m])
         return self._ph_data_sizes
 
-    def _check_ph_sel(self, ph_sel):
-        """Check consistency of `ph_sel` with current data (ALEX vs not ALEX).
-        """
-        assert isinstance(ph_sel, Ph_sel)
+    def _fix_ph_sel(self, ph_sel):
+        """For non-ALEX data fix Aex to allow stable comparison."""
+        if self.ALEX or ph_sel.Dex != 'DAem':
+            return ph_sel
+        else:
+            return Ph_sel(Dex=ph_sel.Dex, Aex='DAem')
 
-        if not self.ALEX and ph_sel == Ph_sel(Dex='DAem'):
-            ph_sel = Ph_sel('all')
-
-        # If Aex != None and not ALEX print a warning and set Aex to None
-        not_ph_sel_all = ph_sel != Ph_sel('all')
-        if not_ph_sel_all and (not self.ALEX) and (ph_sel.Aex is not None):
-            print('WARNING: Use of acceptor excitation with non-ALEX data.')
-            ph_sel = Ph_sel(Dex=ph_sel.Dex)
-
-        return ph_sel
+    def _is_allph(self, ph_sel):
+        """Return whether a photon selection `ph_sel` covers all photon."""
+        if self.ALEX:
+            return ph_sel == Ph_sel(Dex='DAem', Aex='DAem')
+        else:
+            return ph_sel.Dex == 'DAem'
 
     def get_ph_mask(self, ich=0, ph_sel=Ph_sel('all')):
         """Returns a mask for `ph_sel` photons in channel `ich`.
@@ -805,10 +803,8 @@ class Data(DataContainer):
                 See :mod:`fretbursts.ph_sel` for details.
         """
         assert isinstance(ich, int)
-        ph_sel = self._check_ph_sel(ph_sel)
 
-        # This is the only case in which Aex='DAem' for non-ALEX data is OK
-        if ph_sel == Ph_sel('all'):
+        if self._is_allph(ph_sel):
             # Note that slice(None) is equivalent to [:].
             # Also, numpy arrays are not copies when sliced.
             # So getting all photons with this mask is efficient
@@ -1295,11 +1291,11 @@ class Data(DataContainer):
         """
         bursts_mask = ph_in_bursts_mask(self.ph_data_sizes[ich],
                                         self.mburst[ich])
-        if ph_sel == Ph_sel('all'):
+        if self._is_allph(ph_sel):
             return bursts_mask
         else:
             ph_sel_mask = self.get_ph_mask(ich=ich, ph_sel=ph_sel)
-            return ph_sel_mask*bursts_mask
+            return ph_sel_mask * bursts_mask
 
     def ph_in_bursts_ich(self, ich=0, ph_sel=Ph_sel('all')):
         """Return timestamps of photons inside bursts for channel `ich`.
@@ -1543,11 +1539,12 @@ class Data(DataContainer):
                  bg_th_us=Th_us, bg_auto_th=bg_auto_th)
         pprint("[DONE]\n")
 
-    def recompute_bg_lim_ph_p(self, ph_sel=Ph_sel(Dex='Dem'), mute=False):
+    def recompute_bg_lim_ph_p(self, ph_sel, mute=False):
         """Recompute self.Lim and selp.Ph_p relative to ph selection `ph_sel`
         `ph_sel` is a Ph_sel object selecting the timestamps in which self.Lim
         and self.Ph_p are being computed.
         """
+        ph_sel = self._fix_ph_sel(ph_sel)
         if self.bg_ph_sel == ph_sel: return
 
         pprint(" - Recomputing background limits for %s ... " % \
@@ -1598,8 +1595,7 @@ class Data(DataContainer):
     def bg_from(self, ph_sel):
         """Return the background rates for the specified photon selection.
         """
-        ph_sel = self._check_ph_sel(ph_sel)
-
+        ph_sel = self._fix_ph_sel(ph_sel)
         if ph_sel == Ph_sel('all'):
             return self.bg
 
@@ -1730,7 +1726,7 @@ class Data(DataContainer):
     def _fix_mburst_from(self, ph_sel, mute=False):
         """Convert burst data from any ph_sel to 'all' timestamps selection.
         """
-        assert isinstance(ph_sel, Ph_sel) and ph_sel != Ph_sel('all')
+        assert isinstance(ph_sel, Ph_sel) and not self._is_allph(ph_sel)
         pprint(' - Fixing  burst data to refer to ph_times_m ... ', mute)
 
         for bursts, mask in zip(self.mburst,
@@ -1807,6 +1803,7 @@ class Data(DataContainer):
         Returns:
             None, all the results are saved in the Data object.
         """
+        ph_sel = self._fix_ph_sel(ph_sel)
         if compact:
             self._assert_compact(ph_sel)
         pprint(" - Performing burst search (verbose=%s) ..." % verbose, mute)
@@ -2324,6 +2321,7 @@ class Data(DataContainer):
             A list of arrays (one per channel) with one value per burst.
             The list is also saved in `sbr` attribute.
         """
+        ph_sel = self._fix_ph_sel(ph_sel)
         sbr = []
         for ich, mb in enumerate(self.mburst):
             if mb.num_bursts == 0:
@@ -2388,6 +2386,7 @@ class Data(DataContainer):
             ph_sel (Ph_sel object): object defining the photon selection.
                 See :mod:`fretbursts.ph_sel` for details.
         """
+        ph_sel = self._fix_ph_sel(ph_sel)
         Max_Rate = self.calc_burst_ph_func(func=ph_rate_max,
                                            func_kw=dict(m=m),
                                            ph_sel=ph_sel, compact=compact)
