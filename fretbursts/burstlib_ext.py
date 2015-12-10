@@ -705,7 +705,7 @@ def burst_search_and_gate(dx, F=6, m=10, min_rate_cps=None,
 
     See also :meth:`fretbursts.burstlib.Data.burst_search`.
     """
-    dx_d = dx
+    dx_d = dx.copy(mute=mute)
     dx_a = dx.copy(mute=mute)
     dx_and = dx.copy(mute=mute)
 

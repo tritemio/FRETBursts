@@ -303,6 +303,20 @@ def test_burst_search(data):
 
     data.burst_search(L=10, m=10, F=7)
 
+def test_burst_search_and_gate(data):
+    """Test consistency of burst search and gate."""
+    d_dex = data.copy()
+    d_dex.burst_search(ph_sel=Ph_sel(Dex='DAem'))
+    d_aex = data.copy()
+    d_aex.burst_search(ph_sel=Ph_sel(Aex='Aem'))
+    d_and = bext.burst_search_and_gate(data)
+    for bursts_dex, bursts_aex, bursts_and, ph in zip(
+            d_dex.mburst, d_aex.mburst, d_and.mburst, data.iter_ph_times()):
+        ph_b_mask_dex = bl.ph_in_bursts_mask(ph.size, bursts_dex)
+        ph_b_mask_aex = bl.ph_in_bursts_mask(ph.size, bursts_aex)
+        ph_b_mask_and = bl.ph_in_bursts_mask(ph.size, bursts_and)
+        assert (ph_b_mask_and == ph_b_mask_dex * ph_b_mask_aex).all()
+
 def test_mch_count_ph_num_py_c(data):
     na_py = bl.bslib.mch_count_ph_in_bursts_py(data.mburst, data.A_em)
     na_c = bl.bslib.mch_count_ph_in_bursts_c(data.mburst, data.A_em)
@@ -474,7 +488,7 @@ def test_burst_recompute_index(data):
 #        assert  bursts_sel == bursts_sel1
 
 def test_burst_ph_data_functions(data):
-    """Tests the functions that operate on per-burst "ph-data".
+    """Tests the functions that iterate or operate on per-burst "ph-data".
     """
     d = data
     for bursts, ph, mask in zip(d.mburst, d.iter_ph_times(),
