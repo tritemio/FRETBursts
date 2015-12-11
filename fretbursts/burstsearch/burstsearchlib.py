@@ -265,17 +265,18 @@ class Bursts(object):
 
     - `recompute_times` recompute start and stop times using the current
       start and stop index and a new timestamps array passed as argument.
-    - `recompute_index_*` recompute start and stop index to refer to an
+    - `recompute_index_*` recompute start and stop indexes to refer to an
       expanded or reduced timestamp selection.
 
     Other methods are:
 
-    - `and_gate` computing burst intersection
+    - `and_gate` computing burst intersection with a second set of bursts.
+      Used to implement the dual-channel burst search (DCBS).
 
     Methods that may be implemented in the future:
 
-    - `or_gate` (TODO, should it be added?): computing burst union
-    - `fuse_bursts` (TODO, should it be added?)
+    - `or_gate`: computing union with a second set of bursts.
+    - `fuse_bursts`: fuse nearby bursts.
 
     """
     _i_istart, _i_istop, _i_start, _i_stop = 0, 1, 2, 3
