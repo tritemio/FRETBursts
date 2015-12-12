@@ -7,10 +7,11 @@
 This module provides the low-level (or core)
 burst search and photon counting functions.
 It also provides :class:`Bursts`, a container for a set of bursts.
-:class:`Bursts` provides attributes for the main burst quatitites (`istart`, `istop`,
-`start`, `stop`, `counts`,  `width`, etc...). It implements the iterator
-interface (iterate burst by burst). Moreover :class:`Bursts` can be indexed (`[]`,
-i.e. `getitem` interface) supporting the same indexing as a numpy 1-D array.
+:class:`Bursts` provides attributes for the main burst quatitites (`istart`,
+`istop`, `start`, `stop`, `counts`,  `width`, etc...). It implements the
+iterator interface (iterate burst by burst). Moreover :class:`Bursts` can
+be indexed (`[]`, i.e. `getitem` interface) supporting the same indexing as a
+numpy 1-D array.
 
 The burst search functions return a 2-D array (burst array) of shape Nx4,
 where N is the number of bursts. This array can used to build a `Bursts` object
@@ -57,12 +58,13 @@ from builtins import range, zip
 from collections import namedtuple
 import numpy as np
 import pandas as pd
-pd.set_option('display.max_rows', 10)
 
 from fretbursts.utils.misc import pprint
 
+pd.set_option('display.max_rows', 10)
 
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  LOW-LEVEL BURST SEARCH FUNCTIONS
 #
 
@@ -99,15 +101,17 @@ def bsearch_py(times, L, m, T, slice_=None,
         i_time0 = slice_[0]
 
     bursts = []
-    above_min_rate = ((times[m-1:] - times[:times.size-m+1]) <= T)
+    above_min_rate = (times[m-1:] - times[:times.size-m+1]) <= T
 
     it = enumerate(above_min_rate)
     for i, above_min_rate_ in it:
-        if not above_min_rate_: continue
+        if not above_min_rate_:
+            continue
 
         i_start = i
         for i, above_min_rate_ in it:
-            if not above_min_rate_: break
+            if not above_min_rate_:
+                break
         i_stop = i + m - 2  # index of last ph in burst
 
         bursts.append((i_start, i_stop, times[i_start], times[i_stop]))
@@ -115,7 +119,8 @@ def bsearch_py(times, L, m, T, slice_=None,
     if above_min_rate_:
         # Correct burst-stop off by 1 when last burst does not finish
         i_start, i_stop, start, stop = bursts.pop()
-        bursts.append((i_start, i_stop+1, times[i_start], times[i_stop+1]))
+        bursts.append((i_start, i_stop + 1,
+                       times[i_start], times[i_stop + 1]))
 
     bursts = np.array(bursts, dtype='int64')
     if bursts.size > 0:
@@ -123,7 +128,8 @@ def bsearch_py(times, L, m, T, slice_=None,
         bursts[:, :2] += i_time0
     return bursts
 
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  Functions to count D and A photons in bursts
 #
 
@@ -149,7 +155,7 @@ def count_ph_in_bursts(bursts, mask):
     num_ph = np.zeros(bursts.num_bursts, dtype=np.int16)
     for i, burst in enumerate(bursts):
         # Counts photons between start and end of current `burst`
-        num_ph[i] = mask[burst.istart : burst.istop+1].sum()
+        num_ph[i] = mask[burst.istart : burst.istop + 1].sum()
     return num_ph
 
 
@@ -203,6 +209,7 @@ except ImportError:
 class Burst(namedtuple('Burst', ['istart', 'istop', 'start', 'stop'])):
     """Container for a single burst."""
     __slots__ = ()
+
     @property
     def width(self):
         """Burst duration in timestamps unit."""
@@ -222,6 +229,7 @@ class Burst(namedtuple('Burst', ['istart', 'istop', 'start', 'stop'])):
 class BurstGap(namedtuple('BurstGap',
                           'istart istop start stop gap gap_counts')):
     __slots__ = ()
+
     @staticmethod
     def from_burst(burst):
         """Build a `BurstGap` from a :class:`Burst` object."""
@@ -238,6 +246,7 @@ class BurstGap(namedtuple('BurstGap',
     def counts(self):
         """Number of photons in the burst, minus `gap_counts`."""
         return self.istop - self.istart + 1 - self.gap_counts
+
 
 class Bursts(object):
     """A container for burst data.
@@ -292,7 +301,7 @@ class Bursts(object):
     def empty(cls, num_bursts=0):
         """Return an empty `Bursts()` object."""
         return cls(np.zeros((num_bursts, cls._ncols),
-                                       dtype=np.int64))
+                            dtype=np.int64))
 
     @classmethod
     def from_list(cls, bursts_list):
@@ -311,13 +320,13 @@ class Bursts(object):
         mergedata = np.vstack([b.data for b in list_of_bursts])
         if sort:
             # Sort by start times, and when equal by stop times
-            indexsort = np.lexsort((mergedata[:,3], mergedata[:,2]))
+            indexsort = np.lexsort((mergedata[:, 3], mergedata[:, 2]))
             mergedata = mergedata[indexsort]
         return cls(mergedata)
 
-    ##
-    ## Basic interface
-    ##
+    #
+    # Basic interface
+    #
     def copy(self):
         """Return a new copy of current `Bursts` object."""
         return self.__class__(self.data.copy())
@@ -370,9 +379,9 @@ class Bursts(object):
         """
         return self.merge([self, bursts], sort=sort)
 
-    ##
-    ## Burst data attributes/properties
-    ##
+    #
+    # Burst data attributes/properties
+    #
     def _set_data(self, column, values):
         """This method allows subclasses to easily extend the setters.
         """
@@ -434,9 +443,9 @@ class Bursts(object):
         """Separation between nearby bursts"""
         return self.start[1:] - self.stop[:-1]
 
-    ##
-    ## Burst manipulation methods
-    ##
+    #
+    # Burst manipulation methods
+    #
     def recompute_times(self, times, out=None):
         """Recomputes start, stop times using timestamps from a new array.
 
@@ -552,14 +561,14 @@ class Bursts(object):
             stopfound = False
             while not stopfound:
                 if times_reduced[it] == burst.stop:
-                    # there may be repeated timestamps, istop points to
-                    # the last in aseries of repeats
+                    # in case of repeated timestamps, istop needs to point
+                    # to the last of the repeats
                     while times_reduced[it] == burst.stop:
                         it += 1
                     out[ib].istop = it - 1
                     stopfound = True
                 it += 1
-            # Finished with the stop of currect burst, reset it to  istart+1
+            # Finished with the stop of currect burst, reset it to istart+1
             # before starting a new burst
             it = it_saved
         return out
@@ -647,7 +656,7 @@ class BurstsGap(Bursts):
     def __iter__(self):
         for bdata in self.data:
            yield BurstGap(bdata[0], bdata[1], bdata[2], bdata[3],
-                           bdata[4], bdata[5])
+                          bdata[4], bdata[5])
 
     @property
     def gap(self):

@@ -265,7 +265,7 @@ def ph_in_bursts_mask(ph_data_size, bursts):
 
 
 def fuse_bursts_direct(bursts, ms=0, clk_p=12.5e-9, verbose=True):
-    """Fuse bursts separated by less than `ms` (milli-secs).
+    """Fuse bursts separated by less than `ms` (milli-seconds).
 
     This function is a direct implementation using a single loop.
     For a faster implementation see :func:`fuse_bursts_iter`.
@@ -280,9 +280,9 @@ def fuse_bursts_direct(bursts, ms=0, clk_p=12.5e-9, verbose=True):
         verbose (bool): if True print a summary of fused bursts.
 
     Returns:
-        new_bursts (BurstsGap object): new fused bursts.
+        A BurstsGap object containing the new fused bursts.
     """
-    max_delay_clk = (ms*1e-3)/clk_p
+    max_delay_clk = (ms * 1e-3) / clk_p
 
     fused_bursts_list = []
     fused_burst = None
@@ -314,7 +314,7 @@ def fuse_bursts_direct(bursts, ms=0, clk_p=12.5e-9, verbose=True):
             else:
                 fused_bursts_list.append(bslib.BurstGap.from_burst(burst1c))
 
-    # Append the last bursts (either a fused one or isolated)
+    # Append the last bursts (either a fused or an isolated one)
     if fused_burst is not None:
         fused_bursts_list.append(fused_burst)
     else:
@@ -324,9 +324,10 @@ def fuse_bursts_direct(bursts, ms=0, clk_p=12.5e-9, verbose=True):
 
     init_num_bursts = bursts.num_bursts
     delta_b = init_num_bursts - fused_bursts.num_bursts
-    pprint(" --> END Fused %d bursts (%.1f%%)\n\n" %\
-            (delta_b, 100.*delta_b/init_num_bursts), mute=not verbose)
+    pprint(" --> END Fused %d bursts (%.1f%%)\n\n" %
+           (delta_b, 100 * delta_b / init_num_bursts), mute=not verbose)
     return fused_bursts
+
 
 def fuse_bursts_iter(bursts, ms=0, clk_p=12.5e-9, verbose=True):
     """Fuse bursts separated by less than `ms` (milli-secs).
@@ -338,17 +339,14 @@ def fuse_bursts_iter(bursts, ms=0, clk_p=12.5e-9, verbose=True):
     Parameters:
         bursts (BurstsGap object): bursts to be fused.
             See `burstseach.burstseachlib.py` for details.
-        ms (float):
-            minimum waiting time between bursts (in millisec). Burst closer
-            than that will be fuse in a single burst.
+        ms (float): minimum waiting time between bursts (in millisec).
+            Burst closer than that will be fuse in a single burst.
         clk_p (float): clock period or timestamp units in seconds.
         verbose (bool): if True print a summary of fused bursts.
 
     Returns:
-        new_bursts (BurstsGap object): new fused bursts.
+        A BurstsGap object containing the new fused bursts.
     """
-
-
     init_nburst = bursts.num_bursts
     bursts = bslib.BurstsGap(bursts.data)
     z = 0
@@ -359,9 +357,10 @@ def fuse_bursts_iter(bursts, ms=0, clk_p=12.5e-9, verbose=True):
         bursts = b_fuse(bursts, ms=ms, clk_p=clk_p)
         new_nburst = bursts.num_bursts
     delta_b = init_nburst - nburst
-    pprint(" --> END Fused %d bursts (%.1f%%, %d iter)\n\n" %\
-            (delta_b, 100.*delta_b/init_nburst, z), mute=not verbose)
+    pprint(" --> END Fused %d bursts (%.1f%%, %d iter)\n\n" %
+           (delta_b, 100 * delta_b / init_nburst, z), mute=not verbose)
     return bursts
+
 
 def b_fuse(bursts, ms=0, clk_p=12.5e-9):
     """Fuse bursts separated by less than `ms` (milli-secs).
@@ -376,16 +375,14 @@ def b_fuse(bursts, ms=0, clk_p=12.5e-9):
     Parameters:
         bursts (BurstsGap object): bursts to be fused.
             See `burstseach.burstseachlib.py` for details.
-        ms (float):
-            minimum waiting time between bursts (in millisec). Burst closer
-            than that will be fuse in a single burst.
+        ms (float): minimum waiting time between bursts (in millisec).
+            Burst closer than that will be fuse in a single burst.
         clk_p (float): clock period or timestamp units in seconds.
 
     Returns:
-        new_bursts (BurstsGap object): new fused bursts.
-
+        A BurstsGap object containing the new fused bursts.
     """
-    max_delay_clk = (ms*1e-3)/clk_p
+    max_delay_clk = (ms * 1e-3) / clk_p
     # Nearby bursts masks
     delays_below_th = (bursts.separation <= max_delay_clk)
     if not np.any(delays_below_th):
@@ -423,6 +420,7 @@ def b_fuse(bursts, ms=0, clk_p=12.5e-9):
     new_burst = fused_bursts1.join(bursts[~both_bursts], sort=True)
     return new_burst
 
+
 def mch_fuse_bursts(MBurst, ms=0, clk_p=12.5e-9, verbose=True):
     """Multi-ch version of `fuse_bursts`. `MBurst` is a list of Bursts objects.
     """
@@ -438,7 +436,8 @@ def mch_fuse_bursts(MBurst, ms=0, clk_p=12.5e-9, verbose=True):
         new_mburst.append(new_bursts)
     return new_mburst
 
-def burst_stats(mburst, clk_p=12.5*1e9):
+
+def burst_stats(mburst, clk_p):
     """Compute average duration, size and burst-delay for bursts in mburst.
     """
     width_stats = np.array([[b[:, 1].mean(), b[:, 1].std()] for b in mburst
@@ -449,6 +448,7 @@ def burst_stats(mburst, clk_p=12.5*1e9):
                                  if len(b) > 0])
     return (clk_to_s(width_stats, clk_p)*1e3, height_stats,
             clk_to_s(mean_burst_delay, clk_p))
+
 
 def print_burst_stats(d):
     """Print some bursts statistics."""
@@ -474,6 +474,7 @@ def print_burst_stats(d):
     s += "\nDelay (s):      "+"%7.3f "*nch % tuple(delays)
     return s
 
+
 def ES_histog(E, S, bin_step=0.05, E_bins=None, S_bins=None):
     """Returns 2D (ALEX) histogram and bins of bursts (E,S).
     """
@@ -484,9 +485,11 @@ def ES_histog(E, S, bin_step=0.05, E_bins=None, S_bins=None):
     H, E_bins, S_bins = np.histogram2d(E, S, bins=[E_bins, S_bins])
     return H, E_bins, S_bins
 
+
 def delta(x):
     """Return x.max() - x.min()"""
     return x.max() - x.min()
+
 
 def mask_empty(mask):
     """Returns True if `mask` is empty, otherwise False.
@@ -499,6 +502,7 @@ def mask_empty(mask):
     else:
         # Bolean array
         return not mask.any()
+
 
 class DataContainer(dict):
     """
@@ -707,7 +711,6 @@ class Data(DataContainer):
         init_kw.update(**kwargs)
         DataContainer.__init__(self, **init_kw)
 
-    ## Single-spot shortcuts
     def __getattr__(self, name):
         """Single-channel shortcuts for per-channel fields.
 
@@ -715,7 +718,7 @@ class Data(DataContainer):
         For example use d.nd_ instead if d.nd[0].
         """
         msg_missing_attr = "'%s' object has no attribute '%s'" %\
-                            (self.__class__.__name__, name)
+                           (self.__class__.__name__, name)
         if name.startswith('_') or not name.endswith('_'):
             raise AttributeError(msg_missing_attr)
 
@@ -2472,7 +2475,7 @@ class Data(DataContainer):
             else:
                 P_str = '' if self.P is None else ' P%s' % self.P
                 s += " BS_%s L%d m%d F%.1f%s" % \
-                        (self.ph_sel, self.L, self.m, np.mean(self.F), P_str)
+                     (self.ph_sel, self.L, self.m, np.mean(self.F), P_str)
         s += " G%.3f" % np.mean(self.gamma)
         if 'bg_fun' in self: s += " BG%s" % self.bg_fun.__name__[:-4]
         if 'bg_time_s' in self: s += "-%ds" % self.bg_time_s
@@ -2727,7 +2730,7 @@ class Data(DataContainer):
         Mask = self.select_bursts_mask(select_bursts.E, E1=E1, E2=E2)
 
         E_var, E_var_bu, E_var_ph = \
-                zeros(self.nch), zeros(self.nch), zeros(self.nch)
+            zeros(self.nch), zeros(self.nch), zeros(self.nch)
         for i, (Ech, nt, mask) in enumerate(zip(E_sel, self.nt, Mask)):
             nt_s = nt[mask]
             nd_s, na_s = self.nd[i][mask], self.na[i][mask]
