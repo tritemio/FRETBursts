@@ -190,8 +190,8 @@ def test_bg_from(data):
         assert list_array_equal(bg, bg_c)
 
         bg = d.bg_from(ph_sel=Ph_sel(Dex='DAem', Aex='Aem'))
-        bg_c = [bg1 + bg2 + bg3 for bg1, bg2, bg3 in
-                        zip(d.bg_dd, d.bg_ad, d.bg_aa)]
+        bg_c = [bg1 + bg2 + bg3
+                for bg1, bg2, bg3 in zip(d.bg_dd, d.bg_ad, d.bg_aa)]
         assert list_array_equal(bg, bg_c)
 
 
@@ -614,8 +614,8 @@ def test_burst_corrections(data):
             period = d.bp[ich]
             bg_da = d.bg_da[ich][period]*width
             bg_aa = d.bg_aa[ich][period]*width
-            burst_size_raw2 = nd + na + bg_d + bg_a + lk*nd + nda + naa + \
-                              bg_da + bg_aa
+            burst_size_raw2 = (nd + na + bg_d + bg_a + lk*nd + nda + naa +
+                               bg_da + bg_aa)
             assert np.allclose(burst_size_raw, burst_size_raw2)
         else:
             burst_size_raw2 = nd + na + bg_d + bg_a + lk*nd
@@ -723,6 +723,15 @@ def test_burst_selection_ranges(data):
         for ich in range(d.nch):
             selected = getter(ds, ich)
             assert ((selected >= range_.min) * (selected <= range_.max)).all()
+
+def test_join_data(data):
+    """Smoke test for bext.join_data() function.
+    """
+    d = data
+    dj = bext.join_data([d, d.copy()])
+    assert (dj.num_bursts == 2 * d.num_bursts).all()
+    for bursts in dj.mburst:
+        assert (np.diff(bursts.start) > 0).all()
 
 def test_collapse(data_8ch):
     """Test the .collapse() method that joins the ch.
