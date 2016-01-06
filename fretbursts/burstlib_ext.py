@@ -67,44 +67,78 @@ from . import mfit
 from .burstlib import isarray
 
 
-def slice_time_list(dx, period, start_time=0):
-    """Slice a class:`Data` object in a series of consecutive chunks of time.
+def moving_window_slices(start, stop, step, window=None):
+    """Computes list of (start, stop) values defining a moving-window.
 
     Arguments:
-        dx (Data): the Data() object to be sliced
-        period (float): the time period (in seconds) for each slice
-        start_time (float): the time (in seconds) when the first slice starts.
-            Default 0.
+        start, stop (scalars): range spanned by the moving window.
+        step (scalar): window shift at each "step".
+        window (scalar): window duration. If None, window = step.
 
     Returns:
-        A list of class:`Data` objects, each one containing bursts
-        in a single time slice.
+        A list of (start, stop) values for the defined moving-window range.
     """
-    return [dx.select_bursts(select_bursts.time,
-                             time_s1=t1, time_s2=t1 + period)
-            for t1 in range(start_time, dx.time_max, period)]
+    if window is None:
+        window = step
+    # Reduce `stop` to an integer number of `step` and adjust for last window
+    stop_corrected = (stop - stop % step) - window + step
+    # differently from range, np.arange accepts also floats
+    return [(t1, t1+window) for t1 in np.arange(start, stop_corrected, step)]
 
-def slice_time_dict(dx, period, start_time=0):
-    """Slice a class:`Data` object in a series of consecutive chunks of time.
+def moving_window_dataframe(start, stop, step, window=None):
+    """Create a DataFrame for moving-window data, one row per time-window.
+
+    Create a DataFrame conveniently initialize with "time" columns (i.e. x-axis)
+    ('tstart', 'tstop', tmean') for the specified moving window range.
+    This DataFrame can be used to store quantitites computed as function
+    of the moving window.
 
     Arguments:
-        dx (Data): the Data() object to be sliced
-        period (float): the time period (in seconds) for each slice
-        start_time (float): the time (in seconds) when the first slice starts.
-            Default 0.
+        start, stop (scalars): range spanned by the moving window.
+        step (scalar): window shift at each "step".
+        window (scalar): window duration. If None, window = step.
 
     Returns:
-        An OrderedDict in which keys are strings 'XX-YYs' (where XX and YY
-        are the start and end in seconds), and values are class:`Data`
-        objects containing bursts in a specific time slice.
+        DataFrame with 3 columns (tstart, tstop, tmean), one row for each
+        window position.
     """
-    data_slices = OrderedDict()
-    for t1 in range(start_time, dx.time_max, period):
-        t2 = t1 + period
-        name = '%d-%ds' % (t1, t2)
-        data_slices[name] = dx.select_bursts(select_bursts.time,
-                                             time_s1=t1, time_s2=t1 + period)
-    return data_slices
+    mw_slices = np.array(moving_window_slices(start, stop, step, window))
+    tstart = mw_slices[:, 0]
+    tstop = mw_slices[:, 1]
+    tmean = 0.5 * (tstart + tstop)
+    df = pd.DataFrame(data=dict(tstart=tstart, tstop=tstop, tmean=tmean))
+    return df
+
+def moving_window_data(dx, start, stop, step, window=None,
+                       time_zero=0):
+    """Return a list of Data object, each containing bursts in one time-window.
+
+    Each returned Data object has only bursts in the current time-window.
+    Additionally, the current time-window is saved in `Data` attributes name,
+    slice_tstart, slice_tstop.
+
+    Arguments:
+        dx (Data): the Data() object to be sliced with a moving window.
+        start, stop (scalars): time-range in seconds spanned by the
+            moving window.
+        step (scalar): window time-shift at each step.
+        window (scalar): window duration. If None, window = step.
+        time_zero (scalar): shift the times in the returned DataFrame
+            so that "time zero" falls after `time_zero` seconds.
+            Default 0, no shift.
+
+    Returns:
+        A list of Data objects, one for each window position.
+    """
+    time_slices = moving_window_slices(start, min(int(dx.time_max), stop),
+                                       step, window)
+    dx_slices = []
+    for t1, t2 in time_slices:
+        dx_slice = dx.select_bursts(select_bursts.time, time_s1=t1, time_s2=t2)
+        dx_slice.name = 'Slice %d-%d s (duration %d s)' % (t1, t2, window)
+        dx_slice.add(slice_tstart=t1 - time_zero, slice_tstop=t2 - time_zero)
+        dx_slices.append(dx_slice)
+    return dx_slices
 
 
 def calc_mean_lifetime(dx, t1=0, t2=np.inf, ph_sel=Ph_sel('all')):
