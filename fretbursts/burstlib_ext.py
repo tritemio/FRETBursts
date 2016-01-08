@@ -5,7 +5,7 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-The module `burtlib_ext.py` (usually imported as `bext`) contains extensions
+The module `burtlib_ext.py` (by default imported as `bext`) contains extensions
 to `burstslib.py`. It can be though as a simple plugin system for FRETBursts.
 
 Functions here defined operate on :class:`fretbursts.burstlib.Data()` objects
@@ -29,10 +29,10 @@ follows.
 * :func:`calc_mdelays_hist` computes the histogram of the m-delays
   distribution of photon intervals.
 
-* :func:`burst_data_period_mean` computes a mean of any "burst data"
-  for each background period.
+* :func:`moving_window_data`: slices the measurement using a moving-window
+  (along the time axis). Used to follow or detect kinetics.
 
-* :func:`join_data` joins different measuremets to create a single
+* :func:`join_data` joins different measurements to create a single
   "virtual" measurement from a series of measurements.
 
 Finally a few functions deal with burst timestamps:
@@ -90,7 +90,7 @@ def moving_window_dataframe(start, stop, step, window=None):
 
     Create a DataFrame conveniently initialize with "time" columns (i.e. x-axis)
     ('tstart', 'tstop', tmean') for the specified moving window range.
-    This DataFrame can be used to store quantitites computed as function
+    This DataFrame can be used to store quantities computed as function
     of the moving window.
 
     Arguments:
@@ -101,6 +101,8 @@ def moving_window_dataframe(start, stop, step, window=None):
     Returns:
         DataFrame with 3 columns (tstart, tstop, tmean), one row for each
         window position.
+
+    See also: :func:`moving_window_data`.
     """
     mw_slices = np.array(moving_window_slices(start, stop, step, window))
     tstart = mw_slices[:, 0]
@@ -129,6 +131,8 @@ def moving_window_data(dx, start, stop, step, window=None,
 
     Returns:
         A list of Data objects, one for each window position.
+
+    See also: :func:`moving_window_dataframe`.
     """
     time_slices = moving_window_slices(start, min(int(dx.time_max), stop),
                                        step, window)
@@ -214,7 +218,7 @@ def calc_bg_brute_cache(dx, min_ph_delay_list=None, return_all=False,
     function. The best background fit is the rate fitted using the
     best threshold.
 
-    Results are cached to disk and loaded trasparentlty when needed.
+    Results are cached to disk and loaded transparently when needed.
     The cache file is an HDF5 file named `dx.fname[:-5] + '_BKG.hdf5'`.
 
     Arguments:
@@ -324,7 +328,7 @@ def calc_bg_brute(dx, min_ph_delay_list=None, return_all=False,
 
 
 def burst_data(dx, ich=0, include_bg=False, include_ph_index=False):
-    """Return a pandas Dataframe (one row per bursts) with all the burst data.
+    """Return a pandas DataFrame (one row per bursts) with all the burst data.
     """
     if dx.ALEX:
         nd, na, naa, bg_d, bg_a, bg_aa, wid = dx.expand(ich=ich, alex_naa=True,
@@ -369,7 +373,7 @@ def fit_bursts_kde_peak(dx, burst_data='E', bandwidth=0.03, weights=None,
     Parameters
         dx (Data): `Data` object containing the FRET data
         burst_data (string): name of burst-data attribute (i.e 'E' or 'S').
-        bandwidth (float): bandwidth for the Kernel Densisty Estimation
+        bandwidth (float): bandwidth for the Kernel Density Estimation
         weights (string or None): kind of burst-size weights.
             See :func:`fretbursts.fret_fit.get_weights`.
         gamma (float): gamma factor passed to `get_weights()`.
