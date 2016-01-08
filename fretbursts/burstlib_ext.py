@@ -116,8 +116,8 @@ def moving_window_data(dx, start, stop, step, window=None,
     """Return a list of Data object, each containing bursts in one time-window.
 
     Each returned Data object has only bursts in the current time-window.
-    Additionally, the current time-window is saved in `Data` attributes name,
-    slice_tstart, slice_tstop.
+    Additionally, the start/stop values of current time-window are saved
+    in `Data`'s attributes: name, slice_tstart, slice_tstop.
 
     Arguments:
         dx (Data): the Data() object to be sliced with a moving window.
@@ -125,8 +125,8 @@ def moving_window_data(dx, start, stop, step, window=None,
             moving window.
         step (scalar): window time-shift at each step.
         window (scalar): window duration. If None, window = step.
-        time_zero (scalar): shift the times in the returned DataFrame
-            so that "time zero" falls after `time_zero` seconds.
+        time_zero (scalar): shift the start/stop times saved in the Data
+            attributes so that "time zero" falls at `time_zero` seconds.
             Default 0, no shift.
 
     Returns:
