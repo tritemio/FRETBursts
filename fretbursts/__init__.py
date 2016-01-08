@@ -6,7 +6,7 @@
 """
  FRETBursts - A single-molecule FRET burst analysis toolkit.
 
- Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+ Copyright (C) 2014-2016 Antonino Ingargiola <tritemio@gmail.com>
 
 
  You can import this package as:

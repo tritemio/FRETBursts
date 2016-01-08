@@ -2,7 +2,7 @@
 #
 # FRETBursts - A single-molecule FRET burst analysis toolkit.
 #
-# Copyright (C) 2015 Antonino Ingargiola <tritemio@gmail.com>
+# Copyright (C) 2015-2016 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
 Tools for handling and testing exponential-like samples.

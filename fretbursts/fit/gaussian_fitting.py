@@ -1,7 +1,7 @@
 #
 # FRETBursts - A single-molecule FRET burst analysis toolkit.
 #
-# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+# Copyright (C) 2014-2016 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
 This module provides functions to fit gaussian distributions and gaussian
@@ -831,4 +831,3 @@ if __name__ == '__main__':
     #test_gaussian_fit()
     #show()
     pass
-

@@ -1,7 +1,7 @@
 #
 # FRETBursts - A single-molecule FRET burst analysis toolkit.
 #
-# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+# Copyright (C) 2014-2016 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
 Routines to compute the background from an array of timestamps. This module
@@ -329,4 +329,3 @@ def smart_bg(d, ich=0, bin_=50e-3, step=1):
         bg.append(h[0].min())
     pprint('\n')
     return np.array(bg)/bin_
-

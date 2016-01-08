@@ -1,7 +1,7 @@
 #
 # FRETBursts - A single-molecule FRET burst analysis toolkit.
 #
-# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+# Copyright (C) 2014-2016 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
 Optimized version of burst search functions to be compiled in C with Cython.

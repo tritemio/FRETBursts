@@ -2,7 +2,7 @@
 #
 # FRETBursts - A single-molecule FRET burst analysis toolkit.
 #
-# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+# Copyright (C) 2014-2016 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
 The module `burtlib_ext.py` (by default imported as `bext`) contains extensions
