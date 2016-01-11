@@ -67,7 +67,7 @@ from . import mfit
 from .burstlib import isarray
 
 
-def moving_window_slices(start, stop, step, window=None):
+def moving_window_startstop(start, stop, step, window=None):
     """Computes list of (start, stop) values defining a moving-window.
 
     Arguments:
@@ -86,12 +86,14 @@ def moving_window_slices(start, stop, step, window=None):
     return [(t1, t1+window) for t1 in np.arange(start, stop_corrected, step)]
 
 def moving_window_dataframe(start, stop, step, window=None):
-    """Create a DataFrame for moving-window data, one row per time-window.
+    """Create a DataFrame for storing moving-window data.
 
-    Create a DataFrame conveniently initialize with "time" columns (i.e. x-axis)
-    ('tstart', 'tstop', tmean') for the specified moving window range.
-    This DataFrame can be used to store quantities computed as function
-    of the moving window.
+    Create and return a DataFrame for storing columns of moving-window data.
+    Three columns are initialize with "time axis" data: 'tstart', 'tstop'
+    and 'tmean'. The returned DataFrame is typically used to store (in new
+    columns) quantities as function of the moving time-window.
+    Examples of such quantities are number of bursts, mean burst size/duration,
+    fitted E peak position, etc.
 
     Arguments:
         start, stop (scalars): range spanned by the moving window.
@@ -102,22 +104,22 @@ def moving_window_dataframe(start, stop, step, window=None):
         DataFrame with 3 columns (tstart, tstop, tmean), one row for each
         window position.
 
-    See also: :func:`moving_window_data`.
+    See also: :func:`moving_window_chunks`.
     """
-    mw_slices = np.array(moving_window_slices(start, stop, step, window))
+    mw_slices = np.array(moving_window_startstop(start, stop, step, window))
     tstart = mw_slices[:, 0]
     tstop = mw_slices[:, 1]
     tmean = 0.5 * (tstart + tstop)
     df = pd.DataFrame(data=dict(tstart=tstart, tstop=tstop, tmean=tmean))
     return df
 
-def moving_window_data(dx, start, stop, step, window=None,
-                       time_zero=0):
+def moving_window_chunks(dx, start, stop, step, window=None,
+                         time_zero=0):
     """Return a list of Data object, each containing bursts in one time-window.
 
-    Each returned Data object has only bursts in the current time-window.
-    Additionally, the start/stop values of current time-window are saved
-    in `Data`'s attributes: name, slice_tstart, slice_tstop.
+    Each returned Data object contains only bursts lying in the current
+    time-window. Additionally, the start/stop values of current time-window
+    are saved in `Data`'s attributes: name, slice_tstart and slice_tstop.
 
     Arguments:
         dx (Data): the Data() object to be sliced with a moving window.
@@ -134,8 +136,8 @@ def moving_window_data(dx, start, stop, step, window=None,
 
     See also: :func:`moving_window_dataframe`.
     """
-    time_slices = moving_window_slices(start, min(int(dx.time_max), stop),
-                                       step, window)
+    stop = min(int(dx.time_max), stop)
+    time_slices = moving_window_startstop(start, stop, step, window)
     dx_slices = []
     for t1, t2 in time_slices:
         dx_slice = dx.select_bursts(select_bursts.time, time_s1=t1, time_s2=t2)
