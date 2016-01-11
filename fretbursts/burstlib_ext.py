@@ -29,7 +29,7 @@ follows.
 * :func:`calc_mdelays_hist` computes the histogram of the m-delays
   distribution of photon intervals.
 
-* :func:`moving_window_data`: slices the measurement using a moving-window
+* :func:`moving_window_chunks`: slices the measurement using a moving-window
   (along the time axis). Used to follow or detect kinetics.
 
 * :func:`join_data` joins different measurements to create a single
