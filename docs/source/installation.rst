@@ -4,7 +4,7 @@ FRETBursts Installation
 =======================
 
 FRETBursts can be installed as a standard python package either via `conda`
-or PIP (see below). Being written in python, FRETBursts runs on Mac OSX,
+or PIP (see below). Being written in python, FRETBursts runs on OS X,
 Windows and Linux.
 
 In order to easily install the different dependencies, you need to
@@ -17,84 +17,68 @@ After installing FRETBursts, it is recommended that you download and run the
 `FRETBursts notebooks <https://github.com/tritemio/FRETBursts_notebooks/archive/master.zip>`__
 to get started. See :ref:`running_fretbursts`.
 
-For updates the latest version please refer to the
+For updates on the latest version please refer to the
 `Release Notes (What's new?) <https://github.com/tritemio/FRETBursts/releases>`_.
 
 .. _package_install:
 
-Package installation (conda)
-----------------------------
+Installing latest stable version
+--------------------------------
 
-`conda` is the package manager used by Anaconda that simplifies installation
-and upgrades. If you installed the Anaconda distribution, this is
-the preferred method to install FRETBursts and keep it updated.
-
-As a first step, add the "channel" containing the FRETBursts
+The preferred way to to install and keep FRETBursts updated is through
+`conda`, a package manager used by Anaconda scientific python distribution.
+If you haven't done it already, please install the python3 version of
+`Continuum Anaconda distribution <https://www.continuum.io/downloads>`__
+(legacy python2 works too but is less updated).
+Then, only the first time, add the "channel" containing the FRETBursts
 packages::
 
     conda config --add channels tritemio
 
-Then install FRETBursts with::
+After that, to install or upgrade FRETBursts use::
 
     conda install fretbursts
 
-The previous command will upgrade to the newest FRETBursts version
-whenever available. See also the
+Refer to the
 `Release Notes (What's new?) <https://github.com/tritemio/FRETBursts/releases>`_
 to stay updated on new features and changes.
 
-Package installation (PIP)
---------------------------
-
-FRETBursts can be also installed through the standard python package
-manager (PIP).
-
-In this case, make sure that all the non-pure python dependencies are already
-installed (i.e. numpy, scipy, pandas, matplotlib, pyqt, pytables).
-
-Then install or upgrade FRETBursts with::
+Users that prefer to use PIP (the standard python package manager), have to
+make sure that all the non-pure python dependencies are properly installed
+(i.e. numpy, scipy, pandas, matplotlib, pyqt, pytables), then use the
+usual::
 
     pip install fretbursts --upgrade
 
-Use the previous command every time you want to upgrade to the latest stable
-release.
+The previous installs or upgrades FRETBursts to the latest stable release.
 
-Install from GitHub (development)
----------------------------------
+
+.. _source_install:
+
+Install latest development version
+----------------------------------
 
 You can install the latest development version directly from GitHub with::
 
     pip install git+git://github.com/tritemio/FRETBursts.git
 
 .. note ::
-    Note that the previous command fails when `git <http://git-scm.com/>`_
+    Note that the previous command fails if `git <http://git-scm.com/>`_
     is not installed.
 
-Alternatively you can clone FRETBursts git repository and from the
-source folder run::
+Alternatively you can clone FRETBursts git repository and run from the
+source folder the following commands::
 
     python setup.py build
-    python setup.py install
+    pip install .
 
 The optimized C extensions are installed in both cases. Make sure that
 the dependencies `lmfit` and `seaborn` have been installed.
 
-.. _source_install:
+Note that to do an "editable" or "source" installation, i.e. executing
+FRETBursts from the source folder you need to add ``-e`` to the lasted command::
 
-Source installation (development)
----------------------------------
+    pip install . -e
 
-To perform a "source installation", i.e. executing FRETBursts from the source
-folder, download the code from GitHub, and execute the ipython notebook
-`FRETBursts Installation`.
-
-In the case of source installation, instead of the normal import, we need to
-use a little helper script (:ref:`load_fretbursts.py <load_fretbursts>`) that
-finds the sources and import FRETBursts.
-Once the script `load_fretbursts.py` is copied in your notebook
-folder you can load/import FRETBursts with::
-
-    %run load_fretbursts --nogui -- sources
-
-A copy of `load_fretbursts.py` can be found under `notebooks` in the
-source tree.
+In this case, modifications in the source files would be immediately available
+on the next FRETBursts import.
