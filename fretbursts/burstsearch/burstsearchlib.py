@@ -551,23 +551,19 @@ class Bursts(object):
         # and stop of each burst in order
         it = 0
         for ib, burst in enumerate(self):
-            startfound = False
-            while not startfound:
-                if times_reduced[it] == burst.start:
-                    out[ib].istart = it
-                    startfound = True
+            while times_reduced[it] != burst.start:
                 it += 1
-            it_saved = it
-            stopfound = False
-            while not stopfound:
-                if times_reduced[it] == burst.stop:
-                    # in case of repeated timestamps, istop needs to point
-                    # to the last of the repeats
-                    while times_reduced[it] == burst.stop:
-                        it += 1
-                    out[ib].istop = it - 1
-                    stopfound = True
+            out[ib].istart = it
+            it_saved = it + 1
+
+            while times_reduced[it] != burst.stop:
                 it += 1
+            # in case of repeated timestamps, istop needs to point
+            # to the last of the repeats
+            while it < times_reduced.size and times_reduced[it] == burst.stop:
+                it += 1
+            out[ib].istop = it - 1
+            
             # Finished with the stop of currect burst, reset it to istart+1
             # before starting a new burst
             it = it_saved
