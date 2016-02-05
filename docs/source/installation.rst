@@ -7,17 +7,7 @@ FRETBursts can be installed as a standard python package either via `conda`
 or PIP (see below). Being written in python, FRETBursts runs on OS X,
 Windows and Linux.
 
-In order to easily install the different dependencies, you need to
-install a **scientific python distribution**. If you don't know where
-to start just install
-`Continuum Anaconda <https://store.continuum.io/cshop/anaconda/>`_
-(free version).
-
-After installing FRETBursts, it is recommended that you download and run the
-`FRETBursts notebooks <https://github.com/tritemio/FRETBursts_notebooks/archive/master.zip>`__
-to get started. See :ref:`running_fretbursts`.
-
-For updates on the latest version please refer to the
+For updates on the latest FRETBursts version please refer to the
 `Release Notes (What's new?) <https://github.com/tritemio/FRETBursts/releases>`_.
 
 .. _package_install:
@@ -39,9 +29,17 @@ After that, to install or upgrade FRETBursts use::
 
     conda install fretbursts
 
-Refer to the
-`Release Notes (What's new?) <https://github.com/tritemio/FRETBursts/releases>`_
-to stay updated on new features and changes.
+After the installation, it is recommended that you download and run the
+`FRETBursts notebooks <https://github.com/tritemio/FRETBursts_notebooks/archive/master.zip>`__
+to get familiar with the workflow. If you don't know what a Jupyter Notebooks is
+and how to launch it please see:
+
+* `Jupyter/IPython Notebook Quick Start Guide <http://jupyter-notebook-beginner-guide.readthedocs.org/en/latest/>`__
+
+See also the FRETBursts documentation section: :ref:`running_fretbursts`.
+
+Alternative methods: using PIP
+------------------------------
 
 Users that prefer to use PIP (the standard python package manager), have to
 make sure that all the non-pure python dependencies are properly installed

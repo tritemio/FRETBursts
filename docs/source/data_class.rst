@@ -24,8 +24,8 @@ A description of the :class:`Data` class and its main attributes.
 Summary information
 -------------------
 
-List of :class:`Data` attributes and methods (names ending with `()`)
-for summary information:
+List of :class:`Data` attributes and
+methods providing summary information on the measurement:
 
 .. class:: Data
 
@@ -152,8 +152,8 @@ with generic models is now handled with the new
 Data access methods
 -------------------
 
-These methods are used to access (or iterate over) the different
-arrays of timestamps or burst data.
+These methods are used to access (or iterate over) the arrays of timestamps
+(for different photon streams), timestamps masks and burst data.
 
 .. class:: Data
 
