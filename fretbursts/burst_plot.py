@@ -1306,7 +1306,9 @@ def hist_bg_single(d, i=0, period=0, binwidth=1e-4, bins=None, tmax=0.01,
         fit_style_.update(linestyle='-', marker='', label='auto')
         fit_style_.update(_normalize_kwargs(fit_style, kind='line2d'))
         if fit_style_['label'] is 'auto':
-            fit_style_['label'] = '%s, %.2f kcps' % (plot_style_['label'],
+            plt_label = plot_style_.get('label', None)
+            label = str(ph_sel) if plt_label is None else plt_label
+            fit_style_['label'] = '%s, %.2f kcps' % (label,
                                                      bg_rate*1e-3)
         plot(t_ax[:n_trim]*1e3, y_fit[:n_trim], **fit_style_)
 
@@ -1332,9 +1334,9 @@ def hist_bg(d, i=0, period=0, binwidth=1e-4, bins=None, tmax=0.01,
     # Plot multiple timetraces
     ph_sel_list = [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
     if d.ALEX:
-         ph_sel_list.append(Ph_sel(Aex='Aem'))
-         if show_da:
-             ph_sel_list.append(Ph_sel(Aex='Dem'))
+        ph_sel_list.append(Ph_sel(Aex='Aem'))
+        if show_da:
+            ph_sel_list.append(Ph_sel(Aex='Dem'))
 
     for ix, ph_sel in enumerate(ph_sel_list):
         if not bl.mask_empty(d.get_ph_mask(i, ph_sel=ph_sel)):
