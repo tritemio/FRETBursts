@@ -229,7 +229,7 @@ def photon_hdf5(filename, ondisk=False, strict=False):
     Photon-HDF5 is a format for a wide range of timestamp-based
     single molecule data. For more info please see:
 
-    http://photon-hdf5.readthedocs.org/
+    http://photon-hdf5.org/
 
     Arguments:
         ondisk (bool): if True do not load in the timestamp arrays, just

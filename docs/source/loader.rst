@@ -4,7 +4,7 @@ Loader functions
 ================
 
 While FRETBursts can load data files from different file formats, we
-advocate using `Photon-HDF5 <http://photon-hdf5.readthedocs.org/>`_,
+advocate using `Photon-HDF5 <http://photon-hdf5.org/>`__,
 a file format specifically designed for freely-diffusing single-molecule
 spectroscopy data.
 
