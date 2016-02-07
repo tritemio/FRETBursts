@@ -1319,7 +1319,7 @@ def hist_bg_single(d, i=0, period=0, binwidth=1e-4, bins=None, tmax=0.01,
         plt.xlim(0.5*binwidth)
         _plot_status['hist_bg_single'] = {'autoscale': False}
     plt.xlabel('Inter-photon delay (ms)')
-    plt.ylabel("counts")
+    plt.ylabel('# Delays')
 
 
 def hist_bg(d, i=0, period=0, binwidth=1e-4, bins=None, tmax=0.01,
