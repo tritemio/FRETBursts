@@ -421,7 +421,7 @@ class MultiFitter(FitterBase):
 
         data_list = self.hist_pdf if pdf else self.hist_counts
         self.params = pd.DataFrame(index=range(self.ndata),
-                                   columns=self.model.param_names)
+                                   columns=sorted(self.model.param_names))
         self.fit_res = []
         #init_params = copy.deepcopy(self.model.params)
         for i, data in enumerate(data_list):
@@ -513,5 +513,3 @@ def plot_mfit(fitter, ich=0, residuals=False, ax=None, plot_kde=False,
 
     if return_fig:
         return fig
-
-
