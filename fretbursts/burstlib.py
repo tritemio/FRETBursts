@@ -2432,9 +2432,9 @@ class Data(DataContainer):
         if self.ALEX:
             self.calculate_stoich()
             #self.calc_alex_hist()
-        for fitter in ['E_fitter', 'S_fitter']:
-            if fitter in self:
-                self.delete(fitter)
+        for attr in ['E_fitter', 'S_fitter', 'ES_binwidth', 'ES_hist']:
+            if attr in self:
+                self.delete(attr)
 
     def calculate_fret_eff(self):
         """Compute FRET efficiency (`E`) for each burst."""
@@ -2451,6 +2451,9 @@ class Data(DataContainer):
 
     def calc_alex_hist(self, binwidth=0.05):
         """Compute the ALEX histogram with given bin width `bin_step`"""
+        if 'ES_binwidth' in self and self.ES_binwidth == binwidth:
+            return
+
         ES_hist_tot = [ES_histog(E, S, binwidth) for E, S in
                        zip(self.E, self.S)]
         E_bins, S_bins = ES_hist_tot[0][1], ES_hist_tot[0][2]

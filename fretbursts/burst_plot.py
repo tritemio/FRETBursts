@@ -1156,8 +1156,7 @@ def hist2d_alex(d, i=0, vmin=2, vmax=0, binwidth=0.05, S_max_norm=0.8,
     """Plot 2-D E-S ALEX histogram with a scatterplot overlay.
     """
     ax = plt.gca()
-    if 'ES_binwidth' not in d or d.ES_binwidth != binwidth:
-        d.calc_alex_hist(binwidth)
+    d.calc_alex_hist(binwidth)
     ES_hist, E_bins, S_bins, S_ax = d.ES_hist[i], d.E_bins, d.S_bins, d.S_ax
 
     colormap = plt.get_cmap(cmap)
