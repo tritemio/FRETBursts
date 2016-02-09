@@ -1936,6 +1936,11 @@ def _register_colormaps():
     mpl.cm.register_cmap(name='YlGnBu_crop', cmap=cmap)
     mpl.cm.register_cmap(name='alex_dark', cmap=mpl.cm.GnBu_r)
 
+    # Temporary hack to workaround issue
+    # https://github.com/mwaskom/seaborn/issues/855
+    mpl.cm.alex_light = mpl.cm.get_cmap('alex_light')
+    mpl.cm.alex_dark = mpl.cm.get_cmap('alex_dark')
+
 
 # Register colormaps on import if not mocking
 if not hasattr(sns, '_mock'):
