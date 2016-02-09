@@ -1826,10 +1826,10 @@ def _calc_vmin(vmax, vmax_threshold, vmin_default):
         vmin = vmin_default
     return vmin
 
-def alex_jointplot(d, i=0, gridsize=50, cmap='alex_light', kind='hex',
+def alex_jointplot(d, i=0, gridsize=50, cmap='Spectral_r', kind='hex',
                    vmax_fret=True, vmax_threshold=10,
                    vmin_default=0, vmin=None, cmap_compensate=False,
-                   joint_kws=None, marginal_kws=None):
+                   joint_kws=None, marginal_kws=None, histcolor_id=1):
     """Plot an ALEX join plot: an E-S 2D histograms with marginal E and S.
 
     This function plots a jointplot: a main 2D histogram (hexbin plot)
@@ -1861,6 +1861,9 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='alex_light', kind='hex',
         marginal_kws (dict) : keyword arguments passed to :func:`hist_burst_`
             through seaborn plot_marginals() to customize the marginals plot
             style.
+        histcolor_id (int): the colormap passes as `cmap` is divided in
+            12 colors. `histcolor_id` is the index of the color to be used
+            for the marginal 1D histogram. Default 1.
 
     .. seealso::
         The `Seaborn documentation <http://web.stanford.edu/~mwaskom/software/seaborn/index.html>`__
@@ -1873,13 +1876,20 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='alex_light', kind='hex',
     g = sns.JointGrid(x=d.E[i], y=d.S[i], ratio=3, space=0.2,
                       xlim=(-0.2, 1.2), ylim=(-0.2, 1.2))
 
+    histcolor = sns.color_palette(cmap, 12)[histcolor_id]
+    marginal_kws_ = dict(
+        show_kde=True, bandwidth=0.03, binwidth=0.03,
+        hist_bar_style={'facecolor': histcolor, 'edgecolor': 'k', 'linewidth': 0.2})
+    if marginal_kws is not None:
+        marginal_kws_.update(_normalize_kwargs(marginal_kws))
+
     if kind == "scatter":
         joint_kws_ = dict(s=40, color=blue, alpha=0.1, linewidths=0)
         if joint_kws is not None:
             joint_kws_.update(_normalize_kwargs(joint_kws))
         jplot = g.plot_joint(plt.scatter, **joint_kws_)
     elif kind.startswith('hex'):
-        joint_kws_ = dict(edgecolor='grey', linewidth=0.2, gridsize=gridsize,
+        joint_kws_ = dict(edgecolor='none', linewidth=0.2, gridsize=gridsize,
                           cmap=cmap, extent=(-0.2, 1.2, -0.2, 1.2), mincnt=1)
         if joint_kws is not None:
             joint_kws_.update(_normalize_kwargs(joint_kws))
@@ -1903,9 +1913,6 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='alex_light', kind='hex',
             joint_kws_.update(_normalize_kwargs(joint_kws))
         jplot = g.plot_joint(sns.kdeplot, **joint_kws_)
 
-    marginal_kws_ = dict(show_kde=True, bandwidth=0.03, binwidth=0.03)
-    if marginal_kws is not None:
-        marginal_kws_.update(_normalize_kwargs(marginal_kws))
     g.plot_marginals(_hist_bursts_marg, dx=d, **marginal_kws_)
     g.annotate(lambda x, y: x.size, stat='# Bursts',
                template='{stat}: {val}')
