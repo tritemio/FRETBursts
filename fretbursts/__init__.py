@@ -31,12 +31,12 @@ del get_versions
 
 ## Citation information
 _CITATION = """
-   FRETBursts - An opensource single-molecule FRET bursts analysis toolkit.
-   A. Ingargiola 2014. http://tritemio.github.io/FRETBursts"""
+   FRETBursts: Open Source Burst Analysis Toolkit for Confocal Single-Molecule FRET.
+   Ingargiola et al. (2016). http://dx.doi.org/10.1101/039198 """
 
 _INFO_CITATION = (' You are running FRETBursts (version {}).\n\n'
-                  ' If you use this software in a publication, please '
-                  'cite it as:\n{}\n\n').format(__version__, _CITATION)
+                  ' If you use this software please cite the following'
+                  ' paper:\n{}\n\n').format(__version__, _CITATION)
 
 def citation(bar=True):
     cit = _INFO_CITATION
