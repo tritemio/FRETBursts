@@ -1884,7 +1884,7 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='Spectral_r', kind='hex',
         marginal_kws_.update(_normalize_kwargs(marginal_kws))
 
     if kind == "scatter":
-        joint_kws_ = dict(s=40, color=blue, alpha=0.1, linewidths=0)
+        joint_kws_ = dict(s=40, color=histcolor, alpha=0.1, linewidths=0)
         if joint_kws is not None:
             joint_kws_.update(_normalize_kwargs(joint_kws))
         jplot = g.plot_joint(plt.scatter, **joint_kws_)
@@ -1908,7 +1908,7 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='Spectral_r', kind='hex',
         polyc.set_clim(vmin, vmax)
     elif kind.startswith("kde"):
         joint_kws_ = dict(shade=True, shade_lowest=False, n_levels=30,
-                          cmap='viridis')
+                          cmap=cmap)
         if joint_kws is not None:
             joint_kws_.update(_normalize_kwargs(joint_kws))
         jplot = g.plot_joint(sns.kdeplot, **joint_kws_)
