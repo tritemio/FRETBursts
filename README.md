@@ -10,7 +10,7 @@ Project description
 -------------------
 
 <div style="float: right; margin-left: 30px;">
-<img title="FRETBurst generated ALEX histogram"style="float: right; margin-left: 30px;" src="http://i.imgur.com/My7rWc2.png" align=right height = 340 />
+<img title="FRETBurst generated ALEX histogram"style="float: right; margin-left: 30px;" src="https://cloud.githubusercontent.com/assets/4156237/12905626/89aa1faa-ce8d-11e5-973e-bedeefcb5f8b.png" align=right height = 340 />
 </div>
 
 **[FRETBursts](http://tritemio.github.io/FRETBursts)** is a
