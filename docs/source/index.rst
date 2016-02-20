@@ -10,26 +10,26 @@ Welcome to FRETBursts's documentation!
 :Contact: tritemio@gmail.com
 :Version: |version| (`release notes <https://github.com/tritemio/FRETBursts/releases>`__)
 
-FRETBursts is an open-source (GPLv2) python package for burst analysis of
+`FRETBursts <http://tritemio.github.io/FRETBursts/>`__ is an open-source (GPLv2) python package for burst analysis of
 freely-diffusing single-molecule FRET data for single and multi-spot experiments.
 
-The latest FRETBursts release can be installed via conda or PIP (see :ref:`getting-started`).
+See :ref:`getting-started` for installation instructions.
 The development version can be found on the `GitHub repository <https://github.com/tritemio/FRETBursts>`_,
-where you can also read the `Release Notes (What's new?) <https://github.com/tritemio/FRETBursts/releases>`_.
-
-FRETBursts includes a set of *Jupyter Notebook* tutorials that can be either
-`viewed online <http://nbviewer.ipython.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/FRETBursts%20-%20us-ALEX%20smFRET%20burst%20analysis.ipynb>`_
-or downloaded from
-`FRETBursts_notebooks <https://github.com/tritemio/FRETBursts_notebooks/>`_ repository.
-
-For a general overview of FRETBursts features and its philosophy see
-this `README file <https://github.com/tritemio/FRETBursts#fretbursts>`_.
+where you can also find the `Release Notes (What's new?) <https://github.com/tritemio/FRETBursts/releases>`_.
 
 This documentation contains installation instructions and the
 reference API documentation.
 
+Other FRETBursts-related resources include:
 
-Table of contents
+- `FRETBursts Homepage <http://tritemio.github.io/FRETBursts>`__: general overview of FRETBursts features and philosophy.
+- `FRETBursts Tutorials <https://github.com/tritemio/FRETBursts_notebooks#fretbursts-notebooks>`__ a list of
+  Jupyter Notebooks that can be either viewed online or downloaded and executed locally.
+- `bioRxiv paper <http://dx.doi.org/10.1101/039198>`__ detailed description of burst analysis and FRETBursts usage.
+- `Blog post <http://tritemio.github.io/smbits/2016/02/19/fretbursts/>`__ announcing the bioRxiv paper.
+
+
+Table of Contents
 -----------------
 
 .. toctree::
