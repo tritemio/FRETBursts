@@ -35,8 +35,19 @@
 <a href="https://travis-ci.org/tritemio/FRETBursts"><img src="https://travis-ci.org/tritemio/FRETBursts.svg?branch=master" alt="Build Status"></a></p>
 
 <blockquote>
-<p><em>Quick links: <a href="http://fretbursts.readthedocs.org/">Reference documentation</a>, <a href="https://github.com/tritemio/FRETBursts_notebooks">FRETBursts tutorials</a></em></p>
+<p><em>Quick links: <a href="http://fretbursts.readthedocs.org/">Reference documentation</a>, <a href="https://github.com/tritemio/FRETBursts_notebooks#fretbursts-notebooks">FRETBursts tutorials</a>, <a href="http://dx.doi.org/10.1101/039198">bioRxiv paper</a></em></p>
 </blockquote>
+
+<h2>
+<a id="hot-news" class="anchor" href="#hot-news" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Hot News</h2>
+
+<p>Check out our new paper describing smFRET bursts analysis and FRETBursts on the bioRxiv:</p>
+
+<ul>
+<li><a href="http://dx.doi.org/10.1101/039198">FRETBursts: Open Source Burst Analysis Toolkit for Confocal Single-Molecule FRET</a></li>
+</ul>
+
+<p>See also this <a href="http://tritemio.github.io/smbits/2016/02/19/fretbursts/">blog post</a> announcing it.</p>
 
 <h2>
 <a id="project-description" class="anchor" href="#project-description" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Project description</h2>
@@ -46,26 +57,27 @@
 </div>
 
 <p><strong><a href="http://tritemio.github.io/FRETBursts">FRETBursts</a></strong> is a
-software toolkit for burst analysis of confocal
+open source software for burst analysis of freely-diffusing
 <a href="http://en.wikipedia.org/wiki/Single-molecule_FRET">single-molecule FRET</a>
-(smFRET) measurements.</p>
+(smFRET) experiments.</p>
 
 <p>FRETBursts is an effort to bring
 <a href="http://dx.doi.org/10.1371/journal.pcbi.1003285">reproducible computing</a>
 to the field of single-molecule confocal microscopy. It provides
-a standard implementation of state-of-the-art algorithms
+a well-tested implementation of state-of-the-art algorithms
 for confocal smFRET analysis.
 FRETBursts is opensource and contributions are welcome.
 The authors are committed to promptly fix bugs whenever discovered.</p>
 
-<p>Together with FRETBursts we promote the open file format
-<a href="http://photon-hdf5.readthedocs.org/">Photon-HDF5</a>.</p>
+<p>FRETBursts has full supports for <a href="http://photon-hdf5.org/">Photon-HDF5</a> files: 
+an open file format for single-molecule fluorescence experiments 
+(see the <a href="http://dx.doi.org/10.1101/026484">Biophys. J. paper</a>).</p>
 
-<p>Issues can be reported and discussed on the
+<p>FRETBursts issues can be reported and discussed on the
 <a href="https://github.com/tritemio/FRETBursts/issues?state=open">issue tracker</a>.
 Fixes or enhancements can be sent with a <a href="https://help.github.com/articles/creating-a-pull-request">github pull request</a>.
 Small corrections can be made directly online
-by clicking on the GitHub edit button of a specific file.</p>
+(by clicking on the GitHub edit button of a specific file).</p>
 
 <p>FRETBursts allows to analyze both <a href="http://dx.doi.org/10.1126/science.283.5408.1676">single-spot</a>
 and <a href="http://dx.doi.org/10.1117/12.2003704">multi-spot smFRET</a> data.
@@ -119,8 +131,8 @@ implementation make the comparison of experiments performed by different
 groups problematic.</p>
 
 <p>We envision FRETBursts both as a state-of-the-art burst analysis package
-for smFRET experimenters, and as a benchmark for advanced users willing
-to explore new algorithms or to compare alternative implementations.</p>
+for smFRET experimenters, and as a toolkit for advanced users willing
+to develop new algorithms or to compare alternative implementations.</p>
 
 <h2>
 <a id="software-environment" class="anchor" href="#software-environment" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Software Environment</h2>
@@ -165,7 +177,7 @@ channel called <code>tritemio</code>.</p>
 <li><a href="http://fretbursts.readthedocs.org/">FRETBursts Documentation</a></li>
 </ul>
 
-<p>We provide a list of IPython notebooks showing typical workflows
+<p>We provide a list of Jupyter notebooks showing typical workflows
 for smFRET analysis and illustrating FRETBursts functionalities.
 These notebooks can be either viewed online or downloaded and executed locally
 using publically available datasets (see below). You can read the tutorials
@@ -177,23 +189,21 @@ online at the following locations:</p>
 </li>
 <li><a href="http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%2520-%25208-spot%2520smFRET%2520burst%2520analysis.ipynb">FRETBursts - 8-spot smFRET burst analysis</a></li>
 <li><a href="http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%20-%20ns-ALEX%20example.ipynb">FRETBursts - ns-ALEX example</a></li>
+<li><a href="http://nbviewer.ipython.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%20usALEX%20histogram.ipynb">Example - usALEX histogram</a></li>
+<li><a href="http://nbviewer.ipython.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%20Working%20with%20timestamps%20and%20bursts.ipynb">Example - Working with timestamps and bursts</a></li>
+<li><a href="http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%20Burst%20Variance%20Analysis.ipynb">Example - Burst Variance Analysis</a></li>
 </ul>
 
-<p>You can download the tutorials from the <a href="https://github.com/tritemio/FRETBursts_notebooks">FRETBursts_notebooks</a>
+<p>You can download the tutorials from the <a href="https://github.com/tritemio/FRETBursts_notebooks#fretbursts-notebooks">FRETBursts_notebooks</a>
 repository.</p>
 
 <blockquote>
-<p><em>NOTE:</em> We include an unevaluated copy of the tutorials in the FRETBursts
-sources in the
-<a href="https://github.com/tritemio/FRETBursts/tree/master/notebooks">notebooks folder</a>.</p>
+<p><em>NOTE:</em> A copy of the tutorials (without output) is <a href="https://github.com/tritemio/FRETBursts/tree/master/notebooks">included</a>
+in the FRETBursts repository.</p>
 </blockquote>
 
-<p>We provide a public dataset [1] to test and demonstrate FRETBursts
-functionalities. These dataset files will be automatically downloaded
-when running the tutorials.</p>
-
-<p>[1] A. Ingargiola, S. Chung (2014): smFRET example datasets for the FRETBursts
-software. <a href="http://dx.doi.org/10.6084/m9.figshare.1019906">DOI 10.6084/m9.figshare.1019906</a></p>
+<p>FRETBursts notebooks use public <a href="https://dx.doi.org/10.6084/m9.figshare.1456362.v13">smFRET datasets</a> that are automatically downloaded
+when each notebook is executed for the first time.</p>
 
 <h2>
 <a id="development" class="anchor" href="#development" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Development</h2>
