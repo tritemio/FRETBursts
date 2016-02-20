@@ -4,7 +4,7 @@ FRETBursts
 [![DOI](https://zenodo.org/badge/5991/tritemio/FRETBursts.svg)](https://zenodo.org/badge/latestdoi/5991/tritemio/FRETBursts)
 [![Build Status](https://travis-ci.org/tritemio/FRETBursts.svg?branch=master)](https://travis-ci.org/tritemio/FRETBursts)
 
-> *Quick links: [Reference documentation](http://fretbursts.readthedocs.org/), [FRETBursts tutorials](https://github.com/tritemio/FRETBursts_notebooks), [bioRxiv paper](http://dx.doi.org/10.1101/039198)*
+> *Quick links: [Reference documentation](http://fretbursts.readthedocs.org/), [FRETBursts tutorials](https://github.com/tritemio/FRETBursts_notebooks#fretbursts-notebooks), [bioRxiv paper](http://dx.doi.org/10.1101/039198)*
 
 Hot News
 --------
@@ -147,7 +147,7 @@ online at the following locations:
 * [Example - Working with timestamps and bursts](http://nbviewer.ipython.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%20Working%20with%20timestamps%20and%20bursts.ipynb)
 * [Example - Burst Variance Analysis](http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%20Burst%20Variance%20Analysis.ipynb)
 
-You can download the tutorials from the [FRETBursts_notebooks](https://github.com/tritemio/FRETBursts_notebooks)
+You can download the tutorials from the [FRETBursts_notebooks](https://github.com/tritemio/FRETBursts_notebooks#fretbursts-notebooks)
 repository.
 
 > *NOTE:* A copy of the tutorials (without output) is [included](https://github.com/tritemio/FRETBursts/tree/master/notebooks)
