@@ -563,9 +563,9 @@ class Bursts(object):
             while it < times_reduced.size and times_reduced[it] == burst.stop:
                 it += 1
             out[ib].istop = it - 1
-            
-            # Finished with the stop of currect burst, reset it to istart+1
-            # before starting a new burst
+
+            # Done with current burst, before starting a new burst,
+            # reset `it` to `istart+1`
             it = it_saved
         return out
 
