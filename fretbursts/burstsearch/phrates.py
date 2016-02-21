@@ -28,6 +28,11 @@ Note that computing rates with a fixed sliding time window and sampling
 the function by centering the window on each timestamp is equivalent to
 a KDE-based rate computation using a rectangular kernel.
 
+**References**
+
+1.  Tomov et al. "Disentangling Subpopulations in Single-Molecule FRET ..."
+    Biophysical Journal. (2012) 102(5):1163-1173. doi:10.1016/j.bpj.2011.11.4025.
+
 """
 
 import numpy as np
@@ -136,6 +141,7 @@ def kde_laplace_numba(timestamps, tau, time_axis=None):
 def kde_laplace_numba_nc(timestamps, tau, time_axis=None):
     """Computes exponential KDE for `timestamps` evaluated at `time_axis`.
 
+    This version does not compute counts `nph` (speed gain is minimal ~10%)
     When ``time_axis`` is None them ``timestamps`` is used also as time axis.
     """
     if time_axis is None:
@@ -238,3 +244,32 @@ def kde_gaussian_numba(timestamps, tau, time_axis=None):
             rates[it] += exp(-((timestamps[itx] - t)**2)/tau2)
 
     return rates
+
+@numba.jit
+def kde_nbKDE(timestamps, tau):
+    """Computes nbKDE for `timestamps`. See Tomov et al. BJ 2012.
+    """
+    timestamps_size = timestamps.size
+    rates = np.zeros((timestamps_size,), dtype=np.float64)
+    nph = np.ones((timestamps_size,), dtype=np.int16)
+    tau_lim = 5 * tau
+
+    ipos, ineg = 0, 0  # indexes for timestamps
+    for it, t in enumerate(timestamps):
+
+        while ipos < timestamps_size and timestamps[ipos] - t < tau_lim:
+            ipos += 1
+
+        while t - timestamps[ineg] > tau_lim:
+            ineg += 1
+
+        for itx in range(ineg, it):
+            rates[it] += exp((timestamps[itx] - t)/tau)
+            nph[it] += 1
+
+        for itx in range(it + 1, ipos):
+            rates[it] += exp((t - timestamps[itx])/tau)
+            nph[it] += 1
+
+    nbkde = (1 + 2/nph) * rates
+    return nbkde, rates, nph
