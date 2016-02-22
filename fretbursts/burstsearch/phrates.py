@@ -181,8 +181,7 @@ def kde_laplace_numba2(timestamps, tau, time_axis=None):
     nph = np.zeros((t_size,), dtype=np.int16)
     tau_lim = 5 * tau
 
-    ipos, ineg = 0, 0  # indexes for timestamps
-    icenter = 0          # index for time_axis
+    ipos, ineg, icenter = 0, 0, 0   # indexes for timestamps
     for it, t in enumerate(time_axis):
 
         while ipos < timestamps_size and timestamps[ipos] - t < tau_lim:
@@ -191,6 +190,7 @@ def kde_laplace_numba2(timestamps, tau, time_axis=None):
         while t - timestamps[ineg] > tau_lim:
             ineg += 1
 
+        # this has problems whe time_axis is finer than timestamps
         while timestamps[icenter] < t:
             icenter += 1
         # now timestamps[icenter] is >= t
