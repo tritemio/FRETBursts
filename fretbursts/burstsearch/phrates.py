@@ -190,8 +190,8 @@ def kde_laplace_numba2(timestamps, tau, time_axis=None):
         while t - timestamps[ineg] > tau_lim:
             ineg += 1
 
-        # this has problems whe time_axis is finer than timestamps
-        while timestamps[icenter] < t:
+        # this has problems when time_axis[-1] > timestamps[-1]
+        while icenter < timestamps_size and timestamps[icenter] < t:
             icenter += 1
         # now timestamps[icenter] is >= t
 
