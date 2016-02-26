@@ -238,11 +238,11 @@ def photon_hdf5(filename, ondisk=False, strict=False):
     Returns:
         :class:`fretbursts.burstlib.Data` object containing the data.
     """
+    assert os.path.isfile(filename), 'File not found.'
     version = phc.hdf5._check_version(filename)
     if version == u'0.2':
         return loader_legacy.hdf5(filename)
 
-    assert os.path.isfile(filename)
     h5file = tables.open_file(filename)
     h5data = h5file.root
     d = Data(fname=filename, data_file=h5data._v_file)
