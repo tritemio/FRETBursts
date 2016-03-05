@@ -43,10 +43,8 @@ from math import exp, fabs
 def kde_laplace_self(ph, tau):
     """Computes exponential KDE for each photon in `ph`.
 
-    The rate function is evaluated for each element in `ph` (that's why
-    name ends with ``_self``).
     This function computes the rate of timestamps in `ph`
-    using a KDE and simmetric-exponential kernel (i.e. laplacian)::
+    using a KDE and simmetric-exponential kernel (i.e. laplace distribution)::
 
         kernel = exp( -|t - t0| / tau)
 
@@ -110,10 +108,34 @@ def kde_laplace_self_numba(ph, tau):
     return rates, nph
 
 @numba.jit
-def kde_laplace_numba(timestamps, tau, time_axis=None):
+def kde_laplace_nph_numba(timestamps, tau, time_axis=None):
     """Computes exponential KDE for `timestamps` evaluated at `time_axis`.
 
+    Computes KDE rates of `timestamps` and number of photon used to compute
+    each rate value. For a similar function computing only the rates
+    see :func:`kde_laplace_numba`.
+
+    The kernel used is a simmetric-exponential
+    (i.e. laplace distribution)::
+
+        kernel = exp( -|t - t0| / tau)
+
+    The rate is computed for each time in `time_axis`.
     When ``time_axis`` is None them ``timestamps`` is used also as time axis.
+
+    Arguments:
+        timestamps (array): arrays of photon timestamps
+        tau (float): time constant of the exponential kernel
+        time_axis (array or None): array of time points where the rate is
+            computed. If None, uses `timestamps` as time axis.
+
+    Returns:
+        rates (array): non-normalized rates (just the sum of the
+            exponential kernels). To obtain rates in Hz divide the
+            array by `2*tau` (or other conventional x*tau duration).
+        nph (array): number of photons in -5*tau..5*tau window
+            for each timestamp. Proportional to the rate computed
+            with KDE and rectangular kernel.
     """
     if time_axis is None:
         time_axis = timestamps
@@ -138,11 +160,29 @@ def kde_laplace_numba(timestamps, tau, time_axis=None):
     return rates, nph
 
 @numba.jit
-def kde_laplace_numba_nc(timestamps, tau, time_axis=None):
+def kde_laplace_numba(timestamps, tau, time_axis=None):
     """Computes exponential KDE for `timestamps` evaluated at `time_axis`.
 
-    This version does not compute counts `nph` (speed gain is minimal ~10%)
+    Computes KDE rates of `timestamps` using a simmetric-exponential kernel
+    (i.e. laplace distribution)::
+
+        kernel = exp( -|t - t0| / tau)
+
+    The rate is computed for each time in `time_axis`.
     When ``time_axis`` is None them ``timestamps`` is used also as time axis.
+    For a similar function returning also the number of photons used to
+    compute each rate value see :func:`kde_laplace_numba`.
+
+    Arguments:
+        timestamps (array): arrays of photon timestamps
+        tau (float): time constant of the exponential kernel
+        time_axis (array or None): array of time points where the rate is
+            computed. If None, uses `timestamps` as time axis.
+
+    Returns:
+        rates (array): non-normalized rates (just the sum of the
+            exponential kernels). To obtain rates in Hz divide the
+            array by `2*tau` (or other conventional x*tau duration).
     """
     if time_axis is None:
         time_axis = timestamps
@@ -222,6 +262,24 @@ def kde_laplace_numba2(timestamps, tau, time_axis=None):
 @numba.jit
 def kde_gaussian_numba(timestamps, tau, time_axis=None):
     """Computes Gaussian KDE for `timestamps` evaluated at `time_axis`.
+
+    Computes KDE rates of `timestamps` using a Gaussian kernel.
+
+    The rate is computed for each time in `time_axis`.
+    When ``time_axis`` is None them ``timestamps`` is used also as time axis.
+    For a similar function returning also the number of photons used to
+    compute each rate value see :func:`kde_laplace_numba`.
+
+    Arguments:
+        timestamps (array): arrays of photon timestamps
+        tau (float): sigma of the Gaussian kernel
+        time_axis (array or None): array of time points where the rate is
+            computed. If None, uses `timestamps` as time axis.
+
+    Returns:
+        rates (array): non-normalized rates (just the sum of the
+            Gaussian kernels). To obtain rates in Hz divide the
+            array by `2.5*tau`.
     """
     if time_axis is None:
         time_axis = timestamps
