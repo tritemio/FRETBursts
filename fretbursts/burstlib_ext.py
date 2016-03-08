@@ -62,7 +62,8 @@ from . import select_bursts
 from . import fret_fit
 from . import mfit
 
-from .burstlib import isarray
+from .burstlib import isarray, Data
+from .phtools.burstsearch import Bursts
 
 
 def moving_window_startstop(start, stop, step, window=None):
@@ -644,8 +645,6 @@ def join_data(d_list, gap=1):
         A `Data` object containing bursts from the all the objects in `d_list`.
     """
     from itertools import islice
-    from .burstlib import Data
-    from .burstsearch.burstsearchlib import Bursts
 
     nch = d_list[0].nch
     bg_time_s = d_list[0].bg_time_s
