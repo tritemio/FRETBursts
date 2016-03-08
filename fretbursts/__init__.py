@@ -113,7 +113,6 @@ __all_local_names = [
 __all__ = __all__numpy + __all_local_names
 
 import numpy as np
-from numpy import r_, zeros
 
 if has_matplotlib:
     __all__ += __all__matplotlib

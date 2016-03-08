@@ -56,7 +56,7 @@ from .fit.gaussian_fitting import (gaussian_fit_hist,
 # Redefine some old functions that have been renamed so old scripts will not
 # break but will print a warning
 bg_calc_exp = deprecate(bg.exp_fit, 'bg_calc_exp', 'bg.exp_fit')
-bg_calc_exp_cdf = deprecate(bg.exp_fit, 'bg_calc_exp_cdf', 'bg.exp_cdf_fit')
+bg_calc_exp_cdf = deprecate(bg.exp_cdf_fit, 'bg_calc_exp_cdf', 'bg.exp_cdf_fit')
 
 
 def _get_bsearch_func(pure_python=False):
@@ -82,12 +82,6 @@ def isarray(obj):
     """
     return hasattr(obj, '__array__')
 
-### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##  GLOBAL VARIABLES
-##
-#
-# itstart, iwidth, inum_ph, iistart and others defined in burstsearch/bs.py
-#
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  BURST SELECTION FUNCTIONS

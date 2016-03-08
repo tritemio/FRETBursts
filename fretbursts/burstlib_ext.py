@@ -47,7 +47,6 @@ Finally a few functions deal with burst timestamps:
 from __future__ import division, print_function, absolute_import
 from builtins import range, zip
 
-from collections import OrderedDict
 import numpy as np
 from scipy.stats import erlang
 from scipy.optimize import leastsq
