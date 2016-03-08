@@ -227,9 +227,8 @@ def kde_gaussian_numba(timestamps, tau, time_axis=None):
     """
     if time_axis is None:
         time_axis = timestamps
-    t_size = time_axis.size
     timestamps_size = timestamps.size
-    rates = np.zeros((t_size,), dtype=np.float64)
+    rates = np.zeros((time_axis.size,), dtype=np.float64)
     tau_lim = 3 * tau   # 3 tau = 99.7 % of the Gaussian
     tau2 = 2 * (tau**2)
 
