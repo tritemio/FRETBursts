@@ -190,7 +190,7 @@ def mch_count_ph_in_bursts_py(Mburst, Mask):
 #
 
 try:
-    from burstsearchlib_c import bsearch_c
+    from burstsearch_c import bsearch_c
     bsearch = bsearch_c
     print(" - Optimized (cython) burst search loaded.")
 except ImportError:
@@ -198,7 +198,7 @@ except ImportError:
     print(" - Fallback to pure python burst search.")
 
 try:
-    from burstsearchlib_c import mch_count_ph_in_bursts_c
+    from burstsearch_c import mch_count_ph_in_bursts_c
     mch_count_ph_in_bursts = mch_count_ph_in_bursts_c
     print(" - Optimized (cython) photon counting loaded.")
 except ImportError:
