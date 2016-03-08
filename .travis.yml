@@ -15,7 +15,9 @@ before_install:
 install:
     - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy pandas matplotlib pytables pytest pyqt seaborn lmfit cython
     - pip install phconvert
+    - python setup.py build
     - pip install .
+    - rm -rf build/
 
 before_script:
     - mkdir notebooks/data
