@@ -207,59 +207,6 @@ def kde_laplace_numba(timestamps, tau, time_axis=None):
 
 
 @numba.jit
-def kde_laplace_numba2(timestamps, tau, time_axis=None):
-    """Computes exponential KDE for `timestamps` evaluated at `time_axis`.
-
-    This is an alternative version of :func:`kde_laplace_numba` not using
-    the `abs` function.
-    """
-    if time_axis is None:
-        time_axis = timestamps
-    t_size = time_axis.size
-    timestamps_size = timestamps.size
-    rates = np.zeros((t_size,), dtype=np.float64)
-    nph = np.zeros((t_size,), dtype=np.int16)
-    tau_lim = 5 * tau
-
-    ipos, ineg, icenter = 0, 0, 0   # indexes for timestamps
-    for it, t in enumerate(time_axis):
-
-        while ipos < timestamps_size and timestamps[ipos] - t < tau_lim:
-            ipos += 1
-
-        while t - timestamps[ineg] > tau_lim:
-            ineg += 1
-
-        # this has problems when time_axis[-1] > timestamps[-1]
-        while icenter < timestamps_size and timestamps[icenter] < t:
-            icenter += 1
-        # now timestamps[icenter] is >= t
-
-        #  CASE 1: timestamps[icenter] > t
-        #
-        #        +                +            --> timestamps
-        #              *          |            --> time_axis
-        #              t      timestamps[icenter]
-        #
-        #  CASE 2: timestamps[icenter] = t
-        #
-        #      +       +                   +   --> timestamps
-        #              *                       --> time_axis
-        #              t = timestamps[icenter]
-
-        # includes timestamps[icenter]
-        for itx in range(icenter, ipos):
-            rates[it] += exp(-(timestamps[itx] - t)/tau)
-            nph[it] += 1
-
-        # does not include timestamps[icenter]
-        for itx in range(ineg, icenter):
-            rates[it] += exp(-(t - timestamps[itx])/tau)
-            nph[it] += 1
-
-    return rates, nph
-
-@numba.jit
 def kde_gaussian_numba(timestamps, tau, time_axis=None):
     """Computes Gaussian KDE for `timestamps` evaluated at `time_axis`.
 
