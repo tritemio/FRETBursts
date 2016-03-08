@@ -251,7 +251,7 @@ def kde_nbKDE(timestamps, tau):
     """
     timestamps_size = timestamps.size
     rates = np.zeros((timestamps_size,), dtype=np.float64)
-    nph = np.ones((timestamps_size,), dtype=np.int16)
+    nph = np.zeros((timestamps_size,), dtype=np.int16)
     tau_lim = 5 * tau
 
     ipos, ineg = 0, 0  # indexes for timestamps
@@ -261,13 +261,9 @@ def kde_nbKDE(timestamps, tau):
         while t - timestamps[ineg] > tau_lim:
             ineg += 1
 
-        for itx in range(ineg, it):
-            rates[it] += exp((timestamps[itx] - t)/tau)
+        for itx in range(ineg, ipos):
+            rates[it] += exp(-fabs(timestamps[itx] - t)/tau)
             nph[it] += 1
 
-        for itx in range(it + 1, ipos):
-            rates[it] += exp((t - timestamps[itx])/tau)
-            nph[it] += 1
-
-    nbkde = (1 + 2/nph) * rates
+    nbkde = (1 + 2/nph) * (rates - 1)
     return nbkde, rates, nph
