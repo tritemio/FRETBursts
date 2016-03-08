@@ -147,16 +147,15 @@ def kde_laplace_nph_numba(timestamps, tau, time_axis=None):
 
     ipos, ineg = 0, 0  # indexes for timestamps
     for it, t in enumerate(time_axis):
-
         while ipos < timestamps_size and timestamps[ipos] - t < tau_lim:
             ipos += 1
-
         while t - timestamps[ineg] > tau_lim:
             ineg += 1
 
         for itx in range(ineg, ipos):
             rates[it] += exp(-fabs(timestamps[itx] - t)/tau)
             nph[it] += 1
+
     return rates, nph
 
 @numba.jit
@@ -193,10 +192,8 @@ def kde_laplace_numba(timestamps, tau, time_axis=None):
 
     ipos, ineg = 0, 0  # indexes for timestamps
     for it, t in enumerate(time_axis):
-
         while ipos < timestamps_size and timestamps[ipos] - t < tau_lim:
             ipos += 1
-
         while t - timestamps[ineg] > tau_lim:
             ineg += 1
 
@@ -238,10 +235,8 @@ def kde_gaussian_numba(timestamps, tau, time_axis=None):
 
     ipos, ineg = 0, 0  # indexes for timestamps
     for it, t in enumerate(time_axis):
-
         while ipos < timestamps_size and timestamps[ipos] - t < tau_lim:
             ipos += 1
-
         while t - timestamps[ineg] > tau_lim:
             ineg += 1
 
@@ -261,10 +256,8 @@ def kde_nbKDE(timestamps, tau):
 
     ipos, ineg = 0, 0  # indexes for timestamps
     for it, t in enumerate(timestamps):
-
         while ipos < timestamps_size and timestamps[ipos] - t < tau_lim:
             ipos += 1
-
         while t - timestamps[ineg] > tau_lim:
             ineg += 1
 
