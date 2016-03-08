@@ -1,6 +1,8 @@
 """
-This folder contains the core burst search functions. Also core functions to
-obtain basic burst information are defined here.
+This folder contains the core functions to manipulate timestamps,
+including burst search and photon rates computations.
+Additionally, data structures for storing and manipulating bursts data
+are provided.
 
 Burst search and photon counting functions (to count number of donor and acceptor
 photons in each burts) are provided both as a pure python implementation and as
