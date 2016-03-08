@@ -32,8 +32,8 @@ from . import bg_cache
 from .ph_sel import Ph_sel
 from .fretmath import gamma_correct_E, gamma_uncorrect_E
 
-from .burstsearch import burstsearchlib as bslib
-from .burstsearch.burstsearchlib import (
+from .phtools import burstsearch as bslib
+from .phtools.burstsearch import (
     # Burst search function
     bsearch,
     # Photon counting function,
@@ -633,7 +633,7 @@ class Data(DataContainer):
 
     Attributes:
         mburst (list of Bursts objects): list Bursts() one element per channel.
-            See :class:`fretbursts.burstsearch.burstsearchlib.Bursts`.
+            See :class:`fretbursts.phtools.burstsearch.Bursts`.
 
         TT (list of arrays): list of arrays of *T* values (in sec.). A *T*
             value is the maximum delay between `m` photons to have a

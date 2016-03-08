@@ -75,7 +75,7 @@ else:
     has_lmfit = True
 
 
-__all__numpy = ["np", "r_", "zeros"]
+__all__numpy = ["np"]
 
 __all__matplotlib = [
         # Library modules and functions

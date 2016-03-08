@@ -54,7 +54,6 @@ import pandas as pd
 import tables
 
 from .ph_sel import Ph_sel
-from .burstsearch import burstsearchlib as bslib
 from . import background as bg
 from .utils.misc import pprint, HistData, _is_list_of_arrays
 

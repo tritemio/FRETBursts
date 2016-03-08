@@ -30,9 +30,9 @@ except ImportError:
 else:
     # cython is installed: register the extensions to be built
     has_cython = True
-    ext_modules = [Extension("burstsearchlib_c",
+    ext_modules = [Extension("burstsearch_c",
                              [project_name + \
-                             "/burstsearch/burstsearchlib_c.pyx"])]
+                             "/phtools/burstsearch_c.pyx"])]
 
 ## Configure setup.py commands
 cmdclass = versioneer.get_cmdclass()
@@ -47,8 +47,8 @@ setup(name = project_name,
       ext_modules = ext_modules,
       author = 'Antonino Ingargiola',
       author_email = 'tritemio@gmail.com',
-      url          = 'http://github.com/tritemio/FRETBursts/',
-      download_url = 'http://github.com/tritemio/FRETBursts/',
+      url          = 'http://tritemio.github.io/FRETBursts/',
+      download_url = 'http://tritemio.github.io/FRETBursts/',
       install_requires = ['numpy', 'scipy', 'matplotlib', 'lmfit', 'seaborn',
                           'phconvert', 'future'],
       license = 'GPLv2',
@@ -65,7 +65,7 @@ setup(name = project_name,
                    'Topic :: Scientific/Engineering',
                    ],
       packages = ['fretbursts', 'fretbursts.utils', 'fretbursts.fit',
-                  'fretbursts.burstsearch', 'fretbursts.dataload',
+                  'fretbursts.phtools', 'fretbursts.dataload',
                   'fretbursts.tests'],
       keywords = 'single-molecule FRET smFRET burst-analysis biophysics',
       )

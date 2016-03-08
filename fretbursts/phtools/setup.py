@@ -3,7 +3,7 @@ from distutils.extension import Extension
 from Cython.Distutils import build_ext
 import numpy as NP
 
-ext_modules = [Extension("burstsearchlib_c", ["burstsearchlib_c.pyx"])]
+ext_modules = [Extension("burstsearch_c", ["burstsearch_c.pyx"])]
 
 setup(
   name = 'Burst search',
