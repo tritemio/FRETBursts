@@ -149,7 +149,7 @@ def kde_laplace_nph_numba(timestamps, tau, time_axis=None):
     for it, t in enumerate(time_axis):
         while ipos < timestamps_size and timestamps[ipos] - t < tau_lim:
             ipos += 1
-        while t - timestamps[ineg] > tau_lim:
+        while ineg < timestamps_size and t - timestamps[ineg] > tau_lim:
             ineg += 1
 
         for itx in range(ineg, ipos):
@@ -194,7 +194,7 @@ def kde_laplace_numba(timestamps, tau, time_axis=None):
     for it, t in enumerate(time_axis):
         while ipos < timestamps_size and timestamps[ipos] - t < tau_lim:
             ipos += 1
-        while ipos < timestamps_size and t - timestamps[ineg] > tau_lim:
+        while ineg < timestamps_size and t - timestamps[ineg] > tau_lim:
             ineg += 1
 
         for itx in range(ineg, ipos):
@@ -237,7 +237,7 @@ def kde_gaussian_numba(timestamps, tau, time_axis=None):
     for it, t in enumerate(time_axis):
         while ipos < timestamps_size and timestamps[ipos] - t < tau_lim:
             ipos += 1
-        while ipos < timestamps_size and t - timestamps[ineg] > tau_lim:
+        while ineg < timestamps_size and t - timestamps[ineg] > tau_lim:
             ineg += 1
 
         for itx in range(ineg, ipos):
