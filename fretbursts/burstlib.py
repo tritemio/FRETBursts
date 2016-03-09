@@ -538,8 +538,8 @@ class Data(DataContainer):
 
     When loading a measurement file a Data() object is created by one
     of the loader functions in `loaders.py`. Data() objects can be also
-    created by some methods (`.copy()`, `.fuse_bursts()`, etc...) or by a
-    "burst selection" with `Sel()` function.
+    created with :meth:`Data.copy`, :meth:`Data.fuse_bursts()` or
+    :meth:`Data.select_bursts`.
 
     To add or delete data-attributes use `.add()` or `.delete()` methods.
     All the standard data-attributes are listed below.

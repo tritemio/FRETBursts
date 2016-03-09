@@ -1,5 +1,5 @@
 Low-level burst search functions
 ================================
 
-.. automodule:: fretbursts.burstsearch.burstsearchlib
+.. automodule:: fretbursts.phtools.burstsearch
     :members:
