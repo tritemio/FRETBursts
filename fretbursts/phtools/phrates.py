@@ -39,130 +39,15 @@ import numpy as np
 import numba
 from math import exp, fabs
 
-
-def kde_laplace_self(ph, tau):
-    """Computes exponential KDE for each photon in `ph`.
-
-    This function computes the rate of timestamps in `ph`
-    using a KDE and simmetric-exponential kernel (i.e. laplace distribution)::
-
-        kernel = exp( -|t - t0| / tau)
-
-    The rate is evaluated for each element in `ph` (that's why name ends
-    with ``_self``).
-
-    Arguments:
-        ph (array): arrays of photon timestamps
-        tau (float): time constant of the exponential kernel
-
-    Returns:
-        rates (array): unnormalized rates (just the sum of the
-            exponential kernels). To obtain rates in Hz divide the
-            array by `2*tau` (or other conventional x*tau duration).
-        nph (array): number of photons in -5*tau..5*tau window
-            for each timestamp. Proportional to the rate computed
-            with KDE and rectangular kernel.
-        """
-    ph_size = ph.size
-    ipos, ineg = 0, 0
-    rates = np.zeros((ph_size,), dtype=np.float64)
-    nph = np.zeros((ph_size,), dtype=np.int16)
-    tau_lim = 5*tau
-    for i, t in enumerate(ph):
-        # Increment ipos until falling out of N*tau (tau_lim)
-        # ipos is the first value *outside* the limit
-        while ipos < ph_size and ph[ipos] - t < tau_lim:
-            ipos += 1
-
-        # Increment ineg until falling inside N*tau (tau_lim)
-        # ineg is the first value *inside* the limit
-        while t - ph[ineg] > tau_lim:
-            ineg += 1
-
-        delta_t = np.abs(ph[ineg:ipos] - t)
-        rates[i] = np.exp(-delta_t / tau).sum()
-        nph[i] = ipos - ineg
-    return rates, nph
-
-
-@numba.jit
-def kde_laplace_self_numba(ph, tau):
-    """Numba version of `kde_laplace_self()`
-    """
-    ph_size = ph.size
-    ipos, ineg = 0, 0
-    rates = np.zeros((ph_size,), dtype=np.float64)
-    nph = np.zeros((ph_size,), dtype=np.int16)
-    tau_lim = 5*tau
-    for i, t in enumerate(ph):
-        while ipos < ph_size and ph[ipos] - t < tau_lim:
-            ipos += 1
-
-        while t - ph[ineg] > tau_lim:
-            ineg += 1
-
-        for itx in range(ineg, ipos):
-            rates[i] += exp(-fabs(ph[itx]-t)/tau)
-            nph[i] += 1
-
-    return rates, nph
-
-@numba.jit
-def kde_laplace_nph_numba(timestamps, tau, time_axis=None):
-    """Computes exponential KDE for `timestamps` evaluated at `time_axis`.
-
-    Computes KDE rates of `timestamps` and number of photon used to compute
-    each rate value. For a similar function computing only the rates
-    see :func:`kde_laplace_numba`.
-
-    The kernel used is a simmetric-exponential
-    (i.e. laplace distribution)::
-
-        kernel = exp( -|t - t0| / tau)
-
-    The rate is computed for each time in `time_axis`.
-    When ``time_axis`` is None them ``timestamps`` is used also as time axis.
-
-    Arguments:
-        timestamps (array): arrays of photon timestamps
-        tau (float): time constant of the exponential kernel
-        time_axis (array or None): array of time points where the rate is
-            computed. If None, uses `timestamps` as time axis.
-
-    Returns:
-        rates (array): non-normalized rates (just the sum of the
-            exponential kernels). To obtain rates in Hz divide the
-            array by `2*tau` (or other conventional x*tau duration).
-        nph (array): number of photons in -5*tau..5*tau window
-            for each timestamp. Proportional to the rate computed
-            with KDE and rectangular kernel.
-    """
-    if time_axis is None:
-        time_axis = timestamps
-    t_size = time_axis.size
-    timestamps_size = timestamps.size
-    rates = np.zeros((t_size,), dtype=np.float64)
-    nph = np.zeros((t_size,), dtype=np.int16)
-    tau_lim = 5 * tau
-
-    ipos, ineg = 0, 0  # indexes for timestamps
-    for it, t in enumerate(time_axis):
-        while ipos < timestamps_size and timestamps[ipos] - t < tau_lim:
-            ipos += 1
-        while ineg < timestamps_size and t - timestamps[ineg] > tau_lim:
-            ineg += 1
-
-        for itx in range(ineg, ipos):
-            rates[it] += exp(-fabs(timestamps[itx] - t)/tau)
-            nph[it] += 1
-
-    return rates, nph
+##
+# General purpose functions to compute rates
+#
 
 @numba.jit
 def kde_laplace_numba(timestamps, tau, time_axis=None):
     """Computes exponential KDE for `timestamps` evaluated at `time_axis`.
 
-    Computes KDE rates of `timestamps` using a simmetric-exponential kernel
+    Computes KDE rates of `timestamps` using a symmetric-exponential kernel
     (i.e. laplace distribution)::
 
         kernel = exp( -|t - t0| / tau)
@@ -243,6 +128,171 @@ def kde_gaussian_numba(timestamps, tau, time_axis=None):
             rates[it] += exp(-((timestamps[itx] - t)**2)/tau2)
 
     return rates
+
+
+@numba.jit
+def kde_rect_numba(timestamps, tau, time_axis=None):
+    """Computes KDE with rect kernel for `timestamps` evaluated at `time_axis`.
+
+    Computes KDE rates of `timestamps` using a rectangular kernel.
+
+    The rate is computed for each time in `time_axis`.
+    When ``time_axis`` is None them ``timestamps`` is used also as time axis.
+
+    Arguments:
+        timestamps (array): arrays of photon timestamps
+        tau (float): duration of the rectangular kernel
+        time_axis (array or None): array of time points where the rate is
+            computed. If None, uses `timestamps` as time axis.
+
+    Returns:
+        rates (array): non-normalized rates (just the sum of the
+            rectangular kernels). To obtain rates in Hz divide the
+            array by `tau`.
+    """
+    if time_axis is None:
+        time_axis = timestamps
+    timestamps_size = timestamps.size
+    rates = np.zeros((time_axis.size,), dtype=np.float64)
+    tau_lim = tau / 2
+
+    ipos, ineg = 0, 0  # indexes for timestamps
+    for it, t in enumerate(time_axis):
+        while ipos < timestamps_size and timestamps[ipos] - t < tau_lim:
+            ipos += 1
+        while ineg < timestamps_size and t - timestamps[ineg] > tau_lim:
+            ineg += 1
+
+        rates[it] = ipos - ineg
+
+    return rates
+
+kde_laplace = kde_laplace_numba
+kde_gaussian = kde_gaussian_numba
+kde_rect = kde_rect_numba
+
+##
+# Functions evaluating rates at the same location as timestamps
+#
+def kde_laplace_self(ph, tau):
+    """Computes exponential KDE for each photon in `ph`.
+
+    This function computes the rate of timestamps in `ph`
+    using a KDE and symmetric-exponential kernel (i.e. laplace distribution)::
+
+        kernel = exp( -|t - t0| / tau)
+
+    The rate is evaluated for each element in `ph` (that's why name ends
+    with ``_self``).
+
+    Arguments:
+        ph (array): arrays of photon timestamps
+        tau (float): time constant of the exponential kernel
+
+    Returns:
+        rates (array): unnormalized rates (just the sum of the
+            exponential kernels). To obtain rates in Hz divide the
+            array by `2*tau` (or other conventional x*tau duration).
+        nph (array): number of photons in -5*tau..5*tau window
+            for each timestamp. Proportional to the rate computed
+            with KDE and rectangular kernel.
+        """
+    ph_size = ph.size
+    ipos, ineg = 0, 0
+    rates = np.zeros((ph_size,), dtype=np.float64)
+    nph = np.zeros((ph_size,), dtype=np.int16)
+    tau_lim = 5*tau
+    for i, t in enumerate(ph):
+        # Increment ipos until falling out of N*tau (tau_lim)
+        # ipos is the first value *outside* the limit
+        while ipos < ph_size and ph[ipos] - t < tau_lim:
+            ipos += 1
+
+        # Increment ineg until falling inside N*tau (tau_lim)
+        # ineg is the first value *inside* the limit
+        while t - ph[ineg] > tau_lim:
+            ineg += 1
+
+        delta_t = np.abs(ph[ineg:ipos] - t)
+        rates[i] = np.exp(-delta_t / tau).sum()
+        nph[i] = ipos - ineg
+    return rates, nph
+
+
+@numba.jit
+def kde_laplace_self_numba(ph, tau):
+    """Numba version of `kde_laplace_self()`
+    """
+    ph_size = ph.size
+    ipos, ineg = 0, 0
+    rates = np.zeros((ph_size,), dtype=np.float64)
+    nph = np.zeros((ph_size,), dtype=np.int16)
+    tau_lim = 5*tau
+    for i, t in enumerate(ph):
+        while ipos < ph_size and ph[ipos] - t < tau_lim:
+            ipos += 1
+
+        while t - ph[ineg] > tau_lim:
+            ineg += 1
+
+        for itx in range(ineg, ipos):
+            rates[i] += exp(-fabs(ph[itx]-t)/tau)
+            nph[i] += 1
+
+    return rates, nph
+
+##
+# Custom functions needed for 2CDE
+#
+@numba.jit
+def kde_laplace_nph_numba(timestamps, tau, time_axis=None):
+    """Computes exponential KDE for `timestamps` evaluated at `time_axis`.
+
+    Computes KDE rates of `timestamps` and number of photon used to compute
+    each rate value. For a similar function computing only the rates
+    see :func:`kde_laplace_numba`.
+
+    The kernel used is a symmetric-exponential (i.e. laplace distribution)::
+
+        kernel = exp( -|t - t0| / tau)
+
+    The rate is computed for each time in `time_axis`.
+    When ``time_axis`` is None them ``timestamps`` is used also as time axis.
+
+    Arguments:
+        timestamps (array): arrays of photon timestamps
+        tau (float): time constant of the exponential kernel
+        time_axis (array or None): array of time points where the rate is
+            computed. If None, uses `timestamps` as time axis.
+
+    Returns:
+        rates (array): non-normalized rates (just the sum of the
+            exponential kernels). To obtain rates in Hz divide the
+            array by `2*tau` (or other conventional x*tau duration).
+        nph (array): number of photons in -5*tau..5*tau window
+            for each timestamp. Proportional to the rate computed
+            with KDE and rectangular kernel.
+    """
+    if time_axis is None:
+        time_axis = timestamps
+    t_size = time_axis.size
+    timestamps_size = timestamps.size
+    rates = np.zeros((t_size,), dtype=np.float64)
+    nph = np.zeros((t_size,), dtype=np.int16)
+    tau_lim = 5 * tau
+
+    ipos, ineg = 0, 0  # indexes for timestamps
+    for it, t in enumerate(time_axis):
+        while ipos < timestamps_size and timestamps[ipos] - t < tau_lim:
+            ipos += 1
+        while ineg < timestamps_size and t - timestamps[ineg] > tau_lim:
+            ineg += 1
+
+        for itx in range(ineg, ipos):
+            rates[it] += exp(-fabs(timestamps[itx] - t)/tau)
+            nph[it] += 1
+
+    return rates, nph
 
 @numba.jit
 def kde_nbKDE(timestamps, tau):
