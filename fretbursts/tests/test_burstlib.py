@@ -22,6 +22,8 @@ import fretbursts.background as bg
 import fretbursts.burstlib as bl
 import fretbursts.burstlib_ext as bext
 from fretbursts.ph_sel import Ph_sel
+from fretbursts.phtools import phrates
+
 
 # data subdir in the notebook folder
 DATASETS_DIR = u'notebooks/data/'
@@ -465,7 +467,7 @@ def test_burst_recompute_index(data):
         assert (times_allph[bursts_allph3.istop] == bursts_allph3.stop).all()
 
 ## This test is only used to develop alternative implementations of
-## Bursts.recompute_index_reduce() and is normally disable as it is very slow.
+## Bursts.recompute_index_reduce() and is normally disabled as it is very slow.
 #def test_burst_recompute_index_reduce(data):
 #    """Test different versions of Bursts.recompute_index_reduce methods.
 #
@@ -488,6 +490,37 @@ def test_burst_recompute_index(data):
 #        bursts_sel2 = bursts_allph.recompute_index_reduce2(times_sel)
 #        assert  bursts_sel1 == bursts_sel2
 #        assert  bursts_sel == bursts_sel1
+
+def test_phrates(data):
+    d = data
+    tau = 5000  # 5000 * 12.5ns = 6.25 us
+    for ph in d.iter_ph_times():
+        # Test consistency of kde_laplace_nph and (kde_laplace, kde_rect)
+        rates = phrates.kde_laplace(ph, tau)
+        nrect = phrates.kde_rect(ph, tau*10)
+        ratesl, nph = phrates.kde_laplace_nph(ph, tau)
+        assert (rates == ratesl).all()
+        assert (nph == nrect).all()
+
+        # Test consistency of kde_laplace and _kde_laplace_self_numba
+        ratesl2, nph2 = phrates._kde_laplace_self_numba(ph, tau)
+        assert (nph2 == nrect).all()
+        assert (ratesl2 == rates).all()
+
+        # Test nbKDE
+        nbkde, ratesnb, nphnb = phrates.kde_nbKDE(ph, tau)
+        nbkde2 = (1 + 2/nrect) * (rates - 1)
+        assert np.all(nphnb == nrect)
+        assert np.allclose(rates, ratesnb)
+        assert np.allclose(nbkde, nbkde2)
+
+        # Smoke test laplace, gaussian, rect with time_axis
+        ratesl = phrates.kde_laplace(ph, tau, time_axis=ph+1)
+        assert ((ratesl >= 0) * (ratesl < 5e6)).all()
+        ratesg = phrates.kde_gaussian(ph, tau, time_axis=ph+1)
+        assert ((ratesg >= 0) * (ratesg < 5e6)).all()
+        ratesr = phrates.kde_rect(ph, tau, time_axis=ph+1)
+        assert ((ratesr >= 0) * (ratesr < 5e6)).all()
 
 def test_burst_ph_data_functions(data):
     """Tests the functions that iterate or operate on per-burst "ph-data".

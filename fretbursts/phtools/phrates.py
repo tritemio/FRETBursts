@@ -44,7 +44,7 @@ from math import exp, fabs
 #
 
 @numba.jit
-def kde_laplace_numba(timestamps, tau, time_axis=None):
+def _kde_laplace_numba(timestamps, tau, time_axis=None):
     """Computes exponential KDE for `timestamps` evaluated at `time_axis`.
 
     Computes KDE rates of `timestamps` using a symmetric-exponential kernel
@@ -89,7 +89,7 @@ def kde_laplace_numba(timestamps, tau, time_axis=None):
 
 
 @numba.jit
-def kde_gaussian_numba(timestamps, tau, time_axis=None):
+def _kde_gaussian_numba(timestamps, tau, time_axis=None):
     """Computes Gaussian KDE for `timestamps` evaluated at `time_axis`.
 
     Computes KDE rates of `timestamps` using a Gaussian kernel.
@@ -131,7 +131,7 @@ def kde_gaussian_numba(timestamps, tau, time_axis=None):
 
 
 @numba.jit
-def kde_rect_numba(timestamps, tau, time_axis=None):
+def _kde_rect_numba(timestamps, tau, time_axis=None):
     """Computes KDE with rect kernel for `timestamps` evaluated at `time_axis`.
 
     Computes KDE rates of `timestamps` using a rectangular kernel.
@@ -167,14 +167,14 @@ def kde_rect_numba(timestamps, tau, time_axis=None):
 
     return rates
 
-kde_laplace = kde_laplace_numba
-kde_gaussian = kde_gaussian_numba
-kde_rect = kde_rect_numba
+kde_laplace = _kde_laplace_numba
+kde_gaussian = _kde_gaussian_numba
+kde_rect = _kde_rect_numba
 
 ##
 # Functions evaluating rates at the same location as timestamps
 #
-def kde_laplace_self(ph, tau):
+def _kde_laplace_self(ph, tau):
     """Computes exponential KDE for each photon in `ph`.
 
     This function computes the rate of timestamps in `ph`
@@ -220,7 +220,7 @@ def kde_laplace_self(ph, tau):
 
 
 @numba.jit
-def kde_laplace_self_numba(ph, tau):
+def _kde_laplace_self_numba(ph, tau):
     """Numba version of `kde_laplace_self()`
     """
     ph_size = ph.size
@@ -245,7 +245,7 @@ def kde_laplace_self_numba(ph, tau):
 # Custom functions needed for 2CDE
 #
 @numba.jit
-def kde_laplace_nph_numba(timestamps, tau, time_axis=None):
+def kde_laplace_nph(timestamps, tau, time_axis=None):
     """Computes exponential KDE for `timestamps` evaluated at `time_axis`.
 
     Computes KDE rates of `timestamps` and number of photon used to compute
