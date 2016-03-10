@@ -5,11 +5,7 @@ package:
 source:
     #path: ../fretbursts/
     git_url: https://github.com/tritemio/fretbursts.git
-    #git_url: ../fretbursts/
     #git_tag : 0.4rc6.dev3
-    # fn: fretbursts-0.4rc5.zip
-    # url: https://pypi.python.org/packages/source/f/fretbursts/fretbursts-0.4rc5.zip
-    # md5: 6c8fd936f30b4f9678756e5aeff18c7f
 
 build:
     number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
@@ -52,6 +48,7 @@ test:
   # Python imports
   imports:
     - fretbursts
+    - fretbursts.phtools.phrates
 
   # commands:
     # You can put test commands to be run here.  Use this to test that the
