@@ -7,10 +7,12 @@
 This module provides functions to compute photon rates from timestamps
 arrays. Different methods to compute rates are implemented::
 
-1. Consecutive set of `m` timestamps ("sliding m-tuple")
-2. Sliding window with fixed duration
-3. KDE-based methods with Gaussian or Laplace distribution kernels.
+1. Consecutive set of `m` timestamps ("sliding m-tuple") [TODO, move from burstlib]
+2. KDE-based methods with Gaussian or Laplace distribution or rectangular
+   kernels.
 
+It also provide a few specific functions useful for the implementation
+of the 2CDE method [1].
 
 **Time axis for the rates**
 
@@ -18,9 +20,8 @@ In case of using of "sliding m-tuple" method (1), rates can be only computed
 for each consecutive set of `m` timestamps. The time-axis can be
 computed from the mean timestamp in each m-tuple.
 
-For the other methods (2 & 3), rates can be in priciple computed at each time
-point. Practically, in most cases, the time points at which rates are computed
-are defined by the same timestamps (or by timestamps in a related photon
+For the KDE method, rates can be computed at any time point. Practically,
+the time points at which rates are computed are timestamps (in a photon
 stream). In other words, we don't normally use a uniformly sampled time axis
 but we use a timestamps array as time axis for the rate.
 
@@ -30,7 +31,7 @@ a KDE-based rate computation using a rectangular kernel.
 
 **References**
 
-1.  Tomov et al. "Disentangling Subpopulations in Single-Molecule FRET ..."
+[1] Tomov et al. "Disentangling Subpopulations in Single-Molecule FRET ..."
     Biophysical Journal. (2012) 102(5):1163-1173. doi:10.1016/j.bpj.2011.11.4025.
 
 """
@@ -39,10 +40,10 @@ import numpy as np
 import numba
 from math import exp, fabs
 
+
 ##
 # General purpose functions to compute rates
 #
-
 @numba.jit
 def _kde_laplace_numba(timestamps, tau, time_axis=None):
     """Computes exponential KDE for `timestamps` evaluated at `time_axis`.
@@ -55,7 +56,7 @@ def _kde_laplace_numba(timestamps, tau, time_axis=None):
     The rate is computed for each time in `time_axis`.
     When ``time_axis`` is None them ``timestamps`` is used also as time axis.
     For a similar function returning also the number of photons used to
-    compute each rate value see :func:`kde_laplace_numba`.
+    compute each rate see :func:`kde_laplace_nph`.
 
     Arguments:
         timestamps (array): arrays of photon timestamps
@@ -96,8 +97,6 @@ def _kde_gaussian_numba(timestamps, tau, time_axis=None):
 
     The rate is computed for each time in `time_axis`.
     When ``time_axis`` is None them ``timestamps`` is used also as time axis.
-    For a similar function returning also the number of photons used to
-    compute each rate value see :func:`kde_laplace_numba`.
 
     Arguments:
         timestamps (array): arrays of photon timestamps
@@ -249,8 +248,10 @@ def kde_laplace_nph(timestamps, tau, time_axis=None):
     """Computes exponential KDE for `timestamps` evaluated at `time_axis`.
 
     Computes KDE rates of `timestamps` and number of photon used to compute
-    each rate value. For a similar function computing only the rates
-    see :func:`kde_laplace_numba`.
+    each rate. Number of photons are the one in the 10*tau range around the
+    current time. This function is used when computing the 2CDE estimator
+    nbKDE which requires both the photon rates the number of photons.
+    For a similar function computing only the rates see :func:`kde_laplace`.
 
     The kernel used is a symmetric-exponential (i.e. laplace distribution)::
 
