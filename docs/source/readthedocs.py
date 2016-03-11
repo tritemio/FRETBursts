@@ -38,3 +38,5 @@ MOCK_MODULES = [
 
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
+
+numba.jit = lambda f: f
