@@ -276,7 +276,7 @@ def calc_bg_brute(dx, min_ph_delay_list=None, return_all=False,
     function. The best background fit is the rate fitted using the
     best threshold.
 
-    Parameters
+    Arguments:
         min_ph_delay_list (sequence): sequence of values used for the
             brute-force search. Background and error will be computed
             for each value in `min_ph_delay_list`.
@@ -285,7 +285,7 @@ def calc_bg_brute(dx, min_ph_delay_list=None, return_all=False,
         error_metrics (string): Specifies the error metric to use.
             See :func:`fretbursts.background.exp_fit` for more details.
 
-    Returns
+    Returns:
         Two arrays with best threshold (us) and best background. If
         `return_all = True` also returns the dictionaries containing all the
         fitted backgrounds and errors.
@@ -371,7 +371,7 @@ def fit_bursts_kde_peak(dx, burst_data='E', bandwidth=0.03, weights=None,
                         x_ax=None, save_fitter=True):
     """Fit burst data (typ. E or S) by finding the KDE max on all the channels.
 
-    Parameters
+    Arguments:
         dx (Data): `Data` object containing the FRET data
         burst_data (string): name of burst-data attribute (i.e 'E' or 'S').
         bandwidth (float): bandwidth for the Kernel Density Estimation
@@ -385,7 +385,7 @@ def fit_bursts_kde_peak(dx, burst_data='E', bandwidth=0.03, weights=None,
             Used to select a single peak in a multi-peaks distribution.
         x_ax (array or None): x-axis used to evaluate the Kernel Density
 
-    Returns
+    Returns:
         An array of max peak positions (one per ch). If the number of
         channels is 1 returns a scalar.
     """
@@ -409,7 +409,7 @@ def bursts_fitter(dx, burst_data='E', save_fitter=True,
     A MultiFitter object allows to fit multi-channel data with the same
     model.
 
-    Parameters
+    Arguments:
         dx (Data): `Data` object containing the FRET data
         save_fitter (bool): if True save the `MultiFitter` object in the
             `dx` object with name: burst_data + '_fitter'.
@@ -426,7 +426,7 @@ def bursts_fitter(dx, burst_data='E', save_fitter=True,
             fitting. If None the histogram is not fitted.
         verbose (bool): if False avoids printing any output.
 
-    Returns
+    Returns:
         The `mfit.MultiFitter` object with the specified burst-size weights.
     """
     assert burst_data in dx
@@ -488,7 +488,7 @@ def histogram_mdelays(d, ich=0, m=10, ph_sel=Ph_sel('all'),
                       inbursts=False):
     """Compute histogram of m-photons delays (or waiting times).
 
-    Arguments
+    Arguments:
         dx (Data object): contains the burst data to process.
         ich (int): the channel number. Default 0.
         m (int): number of photons used to compute each delay.
@@ -496,8 +496,8 @@ def histogram_mdelays(d, ich=0, m=10, ph_sel=Ph_sel('all'),
         inbursts (bool): if True, compute the histogram with only
             photons in bursts.
 
-    Returns
-        A HistData object containing the computed histogram.
+    Returns:
+        A `HistData` object containing the computed histogram.
     """
     if bins is None:
         bins = np.arange(0, dt_max, binwidth)
