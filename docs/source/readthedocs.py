@@ -32,7 +32,7 @@ MOCK_MODULES = [
                  'matplotlib.patches', 'matplotlib.collections',
                  'mpl_toolkits.axes_grid1', 'seaborn', 'lmfit',
                  'PySide','PySide.QtCore','PySide.QtGui',
-                 'tables', 'pandas',
+                 'tables', 'pandas', 'numba',
                  'phconvert', 'phconvert.hdf5', 'phconvert.loader',
                  ]
 
