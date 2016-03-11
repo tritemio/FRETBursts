@@ -15,6 +15,7 @@ Contents:
     fret_fit
     plots
     burstsearch
+    phrates
     plugins
     HDF5_format
     fretmath
