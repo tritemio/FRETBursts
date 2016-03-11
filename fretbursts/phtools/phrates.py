@@ -5,34 +5,32 @@
 #
 """
 This module provides functions to compute photon rates from timestamps
-arrays. Different methods to compute rates are implemented::
+arrays. Different methods to compute rates are implemented:
 
-1. Consecutive set of `m` timestamps ("sliding m-tuple") [TODO, move from burstlib]
+1. Consecutive set of *m* timestamps ("sliding m-tuple") [TODO, move from burstlib]
 2. KDE-based methods with Gaussian or Laplace distribution or rectangular
    kernels.
 
 It also provide a few specific functions useful for the implementation
 of the 2CDE method [1].
 
-**Time axis for the rates**
+Note:
+    When using of "sliding m-tuple" method (1), rates can be only
+    computed for each consecutive set of *m* timestamps. The time-axis can be
+    computed from the mean timestamp in each m-tuple.
 
-In case of using of "sliding m-tuple" method (1), rates can be only computed
-for each consecutive set of `m` timestamps. The time-axis can be
-computed from the mean timestamp in each m-tuple.
+    When using the KDE method, rates can be computed at any time point.
+    Practically, the time points at which rates are computed are timestamps
+    (in a photon stream). In other words, we don't normally use a uniformly
+    sampled time axis but we use a timestamps array as time axis for the rate.
 
-For the KDE method, rates can be computed at any time point. Practically,
-the time points at which rates are computed are timestamps (in a photon
-stream). In other words, we don't normally use a uniformly sampled time axis
-but we use a timestamps array as time axis for the rate.
+    Note that computing rates with a fixed sliding time window and sampling
+    the function by centering the window on each timestamp is equivalent to
+    a KDE-based rate computation using a rectangular kernel.
 
-Note that computing rates with a fixed sliding time window and sampling
-the function by centering the window on each timestamp is equivalent to
-a KDE-based rate computation using a rectangular kernel.
-
-**References**
-
-[1] Tomov et al. "Disentangling Subpopulations in Single-Molecule FRET ..."
-    Biophysical Journal. (2012) 102(5):1163-1173. doi:10.1016/j.bpj.2011.11.4025.
+References:
+    [1] Tomov et al. "Disentangling Subpopulations in Single-Molecule FRET ..."
+        Biophys. J. (2012). doi:10.1016/j.bpj.2011.11.4025.
 
 """
 
@@ -66,8 +64,8 @@ def _kde_laplace_numba(timestamps, tau, time_axis=None):
 
     Returns:
         rates (array): non-normalized rates (just the sum of the
-            exponential kernels). To obtain rates in Hz divide the
-            array by `2*tau` (or other conventional x*tau duration).
+        exponential kernels). To obtain rates in Hz divide the
+        array by `2*tau` (or other conventional x*tau duration).
     """
     if time_axis is None:
         time_axis = timestamps
@@ -106,8 +104,8 @@ def _kde_gaussian_numba(timestamps, tau, time_axis=None):
 
     Returns:
         rates (array): non-normalized rates (just the sum of the
-            Gaussian kernels). To obtain rates in Hz divide the
-            array by `2.5*tau`.
+        Gaussian kernels). To obtain rates in Hz divide the
+        array by `2.5*tau`.
     """
     if time_axis is None:
         time_axis = timestamps
@@ -146,8 +144,8 @@ def _kde_rect_numba(timestamps, tau, time_axis=None):
 
     Returns:
         rates (array): non-normalized rates (just the sum of the
-            rectangular kernels). To obtain rates in Hz divide the
-            array by `tau`.
+        rectangular kernels). To obtain rates in Hz divide the
+        array by `tau`.
     """
     if time_axis is None:
         time_axis = timestamps
@@ -189,12 +187,12 @@ def _kde_laplace_self(ph, tau):
         tau (float): time constant of the exponential kernel
 
     Returns:
-        rates (array): unnormalized rates (just the sum of the
-            exponential kernels). To obtain rates in Hz divide the
-            array by `2*tau` (or other conventional x*tau duration).
-        nph (array): number of photons in -5*tau..5*tau window
-            for each timestamp. Proportional to the rate computed
-            with KDE and rectangular kernel.
+        rates, nph (arrays): the unnormalized rates (just the sum of the
+        exponential kernels). To obtain rates in Hz divide the
+        array by `2*tau` (or other conventional x*tau duration).
+        nph is the number of photons in -5*tau..5*tau window
+        for each timestamp. Proportional to the rate computed
+        with KDE and rectangular kernel.
         """
     ph_size = ph.size
     ipos, ineg = 0, 0
@@ -267,12 +265,12 @@ def kde_laplace_nph(timestamps, tau, time_axis=None):
             computed. If None, uses `timestamps` as time axis.
 
     Returns:
-        rates (array): non-normalized rates (just the sum of the
-            exponential kernels). To obtain rates in Hz divide the
-            array by `2*tau` (or other conventional x*tau duration).
-        nph (array): number of photons in -5*tau..5*tau window
-            for each timestamp. Proportional to the rate computed
-            with KDE and rectangular kernel.
+        rates, nph (arrays): the unnormalized rates (just the sum of the
+        exponential kernels). To obtain rates in Hz divide the
+        array by `2*tau` (or other conventional x*tau duration).
+        nph is the number of photons in -5*tau..5*tau window
+        for each timestamp. Proportional to the rate computed
+        with KDE and rectangular kernel.
     """
     if time_axis is None:
         time_axis = timestamps
