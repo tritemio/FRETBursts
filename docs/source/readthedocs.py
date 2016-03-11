@@ -23,6 +23,14 @@ class Mock(object):
         else:
             return Mock()
 
+class MockDecorator(object):
+    def __init__(self, *args, **kwargs):
+        self._mock = True   # if this exists the object is a mock
+        pass
+
+    def __call__(self, x):
+        return x
+
 MOCK_MODULES = [
                  #'numpy', 'numpy.random',
                  #'scipy', 'scipy.stats', 'scipy.optimize', 'scipy.special',
@@ -39,4 +47,4 @@ MOCK_MODULES = [
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
 
-sys.modules['numba.jit'] = lambda f: f
+sys.modules['numba.jit'] = MockDecorator()
