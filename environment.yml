@@ -1,4 +1,8 @@
 name: fretbursts_env
+
+channels:
+- tritemio
+
 dependencies:
 - cycler=0.10.0=py35_0
 - freetype=2.5.5=0
