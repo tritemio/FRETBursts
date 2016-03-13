@@ -26,8 +26,8 @@ class Mock(object):
 
 MOCK_MODULES = [
                  #'numpy', 'numpy.random',
-                 #'scipy', 'scipy.stats', 'scipy.optimize', 'scipy.special',
-                 #'scipy.ndimage', 'scipy.interpolate',
+                 'scipy', 'scipy.stats', 'scipy.optimize', 'scipy.special',
+                 'scipy.ndimage', 'scipy.interpolate',
                  #'builtins',
                  #'matplotlib', 'matplotlib.pyplot', 'matplotlib.mlab',
                  #'matplotlib.patches', 'matplotlib.collections',
