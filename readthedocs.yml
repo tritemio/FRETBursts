@@ -2,8 +2,12 @@ conda:
     file: environment.yml
 
 python:
-   version: 3
+   version: 3.5
+   setup_py_install: true
 
 formats:
     - epub
     - pdf
+
+version: 3.4
+   setup_py_install: true
