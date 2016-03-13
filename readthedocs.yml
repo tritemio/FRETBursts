@@ -1,8 +1,8 @@
 conda:
-    file: docs/environment_py2.yml
+    file: docs/environment_py35.yml
 
 python:
-   version: 2
+   version: 3.5
    setup_py_install: true
 
 formats:
