@@ -7,7 +7,6 @@ dependencies:
 - cycler=0.10.0=py27_0
 - enum34=1.1.2=py27_0
 - freetype=2.5.5=0
-- fretbursts=0.5.3=py27_0
 - funcsigs=0.4=py27_0
 - future=0.15.2=py27_0
 - hdf5=1.8.15.1=2
