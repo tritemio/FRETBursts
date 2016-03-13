@@ -22,14 +22,7 @@ class Mock(object):
             return mockType
         else:
             return Mock()
-
-class MockDecorator(object):
-    def __init__(self, *args, **kwargs):
-        self._mock = True   # if this exists the object is a mock
-        pass
-
-    def __call__(self, x):
-        return x
+            
 
 MOCK_MODULES = [
                  #'numpy', 'numpy.random',
@@ -40,11 +33,9 @@ MOCK_MODULES = [
                  'matplotlib.patches', 'matplotlib.collections',
                  'mpl_toolkits.axes_grid1', 'seaborn', 'lmfit',
                  'PySide','PySide.QtCore','PySide.QtGui',
-                 'tables', 'pandas', 'numba', #'numba.jit',
+                 'tables', 'pandas',
                  'phconvert', 'phconvert.hdf5', 'phconvert.loader',
                  ]
 
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
-
-sys.modules['numba.jit'] = MockDecorator()

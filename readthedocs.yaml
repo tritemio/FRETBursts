@@ -1,0 +1,9 @@
+conda:
+    file: environment.yml
+
+python:
+   version: 3
+
+formats:
+    - epub
+    - pdf
