@@ -8,6 +8,3 @@ python:
 formats:
     - epub
     - pdf
-
-version: 3.4
-   setup_py_install: true
