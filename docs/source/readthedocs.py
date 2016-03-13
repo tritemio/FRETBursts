@@ -22,19 +22,19 @@ class Mock(object):
             return mockType
         else:
             return Mock()
-            
+
 
 MOCK_MODULES = [
                  #'numpy', 'numpy.random',
                  #'scipy', 'scipy.stats', 'scipy.optimize', 'scipy.special',
                  #'scipy.ndimage', 'scipy.interpolate',
-                 'builtins',
-                 'matplotlib', 'matplotlib.pyplot', 'matplotlib.mlab',
-                 'matplotlib.patches', 'matplotlib.collections',
-                 'mpl_toolkits.axes_grid1', 'seaborn', 'lmfit',
-                 'PySide','PySide.QtCore','PySide.QtGui',
-                 'tables', 'pandas',
-                 'phconvert', 'phconvert.hdf5', 'phconvert.loader',
+                 #'builtins',
+                 #'matplotlib', 'matplotlib.pyplot', 'matplotlib.mlab',
+                 #'matplotlib.patches', 'matplotlib.collections',
+                 #'mpl_toolkits.axes_grid1', 'seaborn', 'lmfit',
+                 #'PySide','PySide.QtCore','PySide.QtGui',
+                 #'tables', 'pandas',
+                 #'phconvert', 'phconvert.hdf5', 'phconvert.loader',
                  ]
 
 for mod_name in MOCK_MODULES:
