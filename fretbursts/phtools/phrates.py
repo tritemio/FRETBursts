@@ -230,12 +230,14 @@ def _kde_laplace_self(ph, tau):
         tau (float): time constant of the exponential kernel
 
     Returns:
-        rates, nph (arrays): the unnormalized rates (just the sum of the
-        exponential kernels). To obtain rates in Hz divide the
-        array by `2*tau` (or other conventional x*tau duration).
-        nph is the number of photons in -5*tau..5*tau window
-        for each timestamp. Proportional to the rate computed
-        with KDE and rectangular kernel.
+        2-element tuple containing
+
+        - **rates** (*array*): the unnormalized rates (just the sum of the
+          exponential kernels). To obtain rates in Hz divide the
+          array by `2*tau` (or other conventional `x*tau` duration).
+        - **nph** (*array*): number of photons in -5*tau..5*tau window
+          for each timestamp. Proportional to the rate computed
+          with KDE and rectangular kernel.
         """
     ph_size = ph.size
     ipos, ineg = 0, 0
@@ -308,12 +310,14 @@ def kde_laplace_nph(timestamps, tau, time_axis=None):
             computed. If None, uses `timestamps` as time axis.
 
     Returns:
-        rates, nph (arrays): the unnormalized rates (just the sum of the
-        exponential kernels). To obtain rates in Hz divide the
-        array by `2*tau` (or other conventional x*tau duration).
-        nph is the number of photons in -5*tau..5*tau window
-        for each timestamp. Proportional to the rate computed
-        with KDE and rectangular kernel.
+        2-element tuple containing
+
+        - **rates** (*array*): the unnormalized rates (just the sum of the
+          exponential kernels). To obtain rates in Hz divide the
+          array by `2*tau` (or other conventional `x*tau` duration).
+        - **nph** (*array*): number of photons in -5*tau..5*tau window
+          for each timestamp. Proportional to the rate computed
+          with KDE and rectangular kernel.
     """
     if time_axis is None:
         time_axis = timestamps
