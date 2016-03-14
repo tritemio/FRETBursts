@@ -517,7 +517,7 @@ def test_phrates_kde(data):
         assert (nph == nrect).all()
 
         # Test consistency of kde_laplace and _kde_laplace_self_numba
-        ratesl2, nph2 = phrates._kde_laplace_self_numba(ph, tau)
+        ratesl2, nph2 = phrates.nb._kde_laplace_self_numba(ph, tau)
         assert (nph2 == nrect).all()
         assert (ratesl2 == rates).all()
 

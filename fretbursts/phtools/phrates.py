@@ -36,8 +36,7 @@ from __future__ import division
 import numpy as np
 import numba
 from math import exp, fabs
-from .phrates_numba import (_kde_laplace_numba, _kde_gaussian_numba,
-                            _kde_rect_numba)
+from . import phrates_numba as nb
 import phrates_c as cy
 
 
@@ -98,7 +97,7 @@ def kde_laplace(timestamps, tau, time_axis=None):
         exponential kernels). To obtain rates in Hz divide the
         array by `2*tau` (or other conventional x*tau duration).
     """
-    return _kde_laplace_numba(timestamps, tau, time_axis)
+    return nb._kde_laplace_numba(timestamps, tau, time_axis)
 
 def kde_gaussian(timestamps, tau, time_axis=None):
     """Computes Gaussian KDE for `timestamps` evaluated at `time_axis`.
@@ -119,7 +118,7 @@ def kde_gaussian(timestamps, tau, time_axis=None):
         Gaussian kernels). To obtain rates in Hz divide the
         array by `2.5*tau`.
     """
-    return _kde_gaussian_numba(timestamps, tau, time_axis)
+    return nb._kde_gaussian_numba(timestamps, tau, time_axis)
 
 def kde_rect(timestamps, tau, time_axis=None):
     """Computes KDE with rect kernel for `timestamps` evaluated at `time_axis`.
@@ -140,7 +139,7 @@ def kde_rect(timestamps, tau, time_axis=None):
         rectangular kernels). To obtain rates in Hz divide the
         array by `tau`.
     """
-    return _kde_rect_numba(timestamps, tau, time_axis)
+    return nb._kde_rect_numba(timestamps, tau, time_axis)
 
 
 
