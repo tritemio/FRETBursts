@@ -101,7 +101,9 @@ def kde_laplace(timestamps, tau, time_axis=None):
 def kde_gaussian(timestamps, tau, time_axis=None):
     """Computes Gaussian KDE for `timestamps` evaluated at `time_axis`.
 
-    Computes KDE rates of `timestamps` using a Gaussian kernel.
+    Computes KDE rates of `timestamps` using a Gaussian kernel::
+
+        kernel = exp( -(t - t0)^2 / (2 * tau^2)))
 
     The rate is computed for each time in `time_axis`.
     When ``time_axis`` is None them ``timestamps`` is used also as time axis.
@@ -122,7 +124,8 @@ def kde_gaussian(timestamps, tau, time_axis=None):
 def kde_rect(timestamps, tau, time_axis=None):
     """Computes KDE with rect kernel for `timestamps` evaluated at `time_axis`.
 
-    Computes KDE rates of `timestamps` using a rectangular kernel.
+    Computes KDE rates of `timestamps` using a rectangular kernel of
+    amplitude 1 and duration `tau`.
 
     The rate is computed for each time in `time_axis`.
     When ``time_axis`` is None them ``timestamps`` is used also as time axis.
