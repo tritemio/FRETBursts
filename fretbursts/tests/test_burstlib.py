@@ -536,6 +536,22 @@ def test_phrates_kde(data):
         ratesr = phrates.kde_rect(ph, tau, time_axis=ph+1)
         assert ((ratesr >= 0) * (ratesr < 5e6)).all()
 
+
+def test_phrates_kde_cy(data):
+    d = data
+    tau = 5000  # 5000 * 12.5ns = 6.25 us
+    for ph in d.iter_ph_times():
+        # Test consistency of kde_laplace_nph and (kde_laplace, kde_rect)
+        ratesg = phrates.kde_gaussian(ph, tau)
+        ratesl = phrates.kde_laplace(ph, tau)
+        ratesr = phrates.kde_rect(ph, tau)
+        ratesgc = phrates.cy.kde_gaussian_cy(ph, tau)
+        rateslc = phrates.cy.kde_laplace_cy(ph, tau)
+        ratesrc = phrates.cy.kde_rect_cy(ph, tau)
+        assert (ratesg == ratesgc).all()
+        assert (ratesl == rateslc).all()
+        assert (ratesr == ratesrc).all()
+
 def test_burst_ph_data_functions(data):
     """Tests the functions that iterate or operate on per-burst "ph-data".
     """
