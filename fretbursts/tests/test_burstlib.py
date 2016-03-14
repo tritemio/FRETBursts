@@ -521,13 +521,6 @@ def test_phrates_kde(data):
         assert (nph2 == nrect).all()
         assert (ratesl2 == rates).all()
 
-        # Test nbKDE
-        nbkde, ratesnb, nphnb = phrates.kde_nbKDE(ph, tau)
-        nbkde2 = (1 + 2/nrect) * (rates - 1)
-        assert np.all(nphnb == nrect)
-        assert np.allclose(rates, ratesnb)
-        assert np.allclose(nbkde, nbkde2)
-
         # Smoke test laplace, gaussian, rect with time_axis
         ratesl = phrates.kde_laplace(ph, tau, time_axis=ph+1)
         assert ((ratesl >= 0) * (ratesl < 5e6)).all()
