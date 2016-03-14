@@ -497,13 +497,13 @@ def test_phrates_mtuple(data):
     max_num_ph = 20001
     for ph in d.iter_ph_times():
         phc = ph[:max_num_ph]
-        rates = phrates.ph_rate(phc, m)
-        delays = phrates.ph_delay(phc, m)
+        rates = phrates.mtuple_rates(phc, m)
+        delays = phrates.mtuple_delays(phc, m)
         t_rates = 0.5 * (phc[m-1:] + phc[:-m+1])
-        assert phrates.ph_rate_max(phc, m) == rates.max()
-        assert phrates.ph_delay_min(phc, m) == delays.min()
+        assert phrates.mtuple_rates_max(phc, m) == rates.max()
+        assert phrates.mtuple_delays_min(phc, m) == delays.min()
         assert (rates == m/delays).all()
-        assert (phrates.ph_rate_t(phc, m) == t_rates).all()
+        assert (phrates.mtuple_rates_t(phc, m) == t_rates).all()
 
 def test_phrates_kde(data):
     d = data

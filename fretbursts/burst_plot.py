@@ -497,10 +497,10 @@ def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
                        'time range increase `max_num_ph`.') % tmax,
                       UserWarning)
     ph_times = ph_times[iph1:iph2]
-    rates = 1e-3*phrates.ph_rate(ph_times, m)/d.clk_p
+    rates = 1e-3*phrates.mtuple_rates(ph_times, m)/d.clk_p
     if invert:
         rates *= -1
-    times = phrates.ph_rate_t(ph_times, m)*d.clk_p
+    times = phrates.mtuple_rates_t(ph_times, m)*d.clk_p
 
     # Plot ratetrace
     plot_style_ = dict(linestyle='-', linewidth=1.2, marker=None)

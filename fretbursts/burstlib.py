@@ -2359,7 +2359,7 @@ class Data(DataContainer):
                 See :mod:`fretbursts.ph_sel` for details.
         """
         ph_sel = self._fix_ph_sel(ph_sel)
-        Max_Rate = self.calc_burst_ph_func(func=phrates.ph_rate_max,
+        Max_Rate = self.calc_burst_ph_func(func=phrates.mtuple_rates_max,
                                            func_kw=dict(m=m),
                                            ph_sel=ph_sel, compact=compact)
         Max_Rate = [mr/self.clk_p - bg[bp] for bp, bg, mr in

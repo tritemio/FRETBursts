@@ -42,31 +42,31 @@ from math import exp, fabs
 ##
 # Functions to compute rates using m-tuple of photon timestamps
 #
-def ph_delay(ph, m):
-    """Return an array of m-photon delays of size ph.size - m + 1."""
+def mtuple_delays(ph, m):
+    """Compute array of m-photons delays of size ph.size - m + 1."""
     return ph[m-1:] - ph[:ph.size-m+1]
 
-def ph_delay_min(ph, m):
-    """Return the min photon delay computed with m photons in `ph`."""
+def mtuple_delays_min(ph, m):
+    """Compute the min m-photons delay in `ph`."""
     if ph.size < m:
         return None
     else:
-        return ph_delay(ph=ph, m=m).min()
+        return mtuple_delays(ph=ph, m=m).min()
 
-def ph_rate(ph, m):
-    """Return an array of m-photons rates of size ph.size - m + 1."""
+def mtuple_rates(ph, m):
+    """Compute array of m-photons rates of size ph.size - m + 1."""
     return m/(ph[m-1:] - ph[:ph.size-m+1])
 
-def ph_rate_t(ph, m):
-    """Return the mean time for each rate computed by `ph_rate`."""
+def mtuple_rates_t(ph, m):
+    """Compute mean time for each rate computed by `mtuple_rates`."""
     return 0.5*(ph[m-1:] + ph[:ph.size-m+1])  # time for rate
 
-def ph_rate_max(ph, m):
-    """Return the max photon rate computed with m photons in `ph`."""
+def mtuple_rates_max(ph, m):
+    """Compute max m-photon rate in `ph`."""
     if ph.size < m:
         return None
     else:
-        return ph_rate(ph=ph, m=m).max()
+        return mtuple_rates(ph=ph, m=m).max()
 
 
 ##
