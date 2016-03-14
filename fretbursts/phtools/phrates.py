@@ -103,7 +103,7 @@ def kde_gaussian(timestamps, tau, time_axis=None):
 
     Computes KDE rates of `timestamps` using a Gaussian kernel::
 
-        kernel = exp( -(t - t0)^2 / (2 * tau^2)))
+        kernel = exp( -(t - t0)^2 / (2 * tau^2)) )
 
     The rate is computed for each time in `time_axis`.
     When ``time_axis`` is None them ``timestamps`` is used also as time axis.
