@@ -40,6 +40,36 @@ from math import exp, fabs
 
 
 ##
+# Functions to compute rates using m-tuple of photon timestamps
+#
+def ph_delay(ph, m):
+    """Return an array of m-photon delays of size ph.size - m + 1."""
+    return ph[m-1:] - ph[:ph.size-m+1]
+
+def ph_delay_min(ph, m):
+    """Return the min photon delay computed with m photons in `ph`."""
+    if ph.size < m:
+        return None
+    else:
+        return ph_delay(ph=ph, m=m).min()
+
+def ph_rate(ph, m):
+    """Return an array of m-photons rates of size ph.size - m + 1."""
+    return m/(ph[m-1:] - ph[:ph.size-m+1])
+
+def ph_rate_t(ph, m):
+    """Return the mean time for each rate computed by `ph_rate`."""
+    return 0.5*(ph[m-1:] + ph[:ph.size-m+1])  # time for rate
+
+def ph_rate_max(ph, m):
+    """Return the max photon rate computed with m photons in `ph`."""
+    if ph.size < m:
+        return None
+    else:
+        return ph_rate(ph=ph, m=m).max()
+
+
+##
 # General purpose functions to compute rates
 #
 @numba.jit

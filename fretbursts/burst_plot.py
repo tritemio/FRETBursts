@@ -53,6 +53,7 @@ import seaborn as sns
 # Local imports
 from .ph_sel import Ph_sel
 from . import burstlib as bl
+from .phtools import phrates
 from . import burstlib_ext as bext
 from . import background as bg
 from .utils.misc import pprint, HistData, _is_list_of_arrays
@@ -496,10 +497,10 @@ def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
                        'time range increase `max_num_ph`.') % tmax,
                       UserWarning)
     ph_times = ph_times[iph1:iph2]
-    rates = 1e-3*bl.ph_rate(ph_times, m)/d.clk_p
+    rates = 1e-3*phrates.ph_rate(ph_times, m)/d.clk_p
     if invert:
         rates *= -1
-    times = bl.ph_rate_t(ph_times, m)*d.clk_p
+    times = phrates.ph_rate_t(ph_times, m)*d.clk_p
 
     # Plot ratetrace
     plot_style_ = dict(linestyle='-', linewidth=1.2, marker=None)

@@ -39,7 +39,7 @@ from .phtools.burstsearch import (
     # Photon counting function,
     mch_count_ph_in_bursts
     )
-
+from .phtools import phrates
 from . import background as bg
 from . import select_bursts
 from . import fit
@@ -118,32 +118,6 @@ def top_tail(nx, a=0.1):
     assert a > 0 and a < 1
     return np.r_[[n[n > n.max()*(1-a)].mean() for n in nx]]
 
-# Quick functions to calculate rate-trace from ph_times
-def ph_delay(ph, m):
-    """Return an array of m-photon delays of size ph.size - m + 1."""
-    return ph[m-1:] - ph[:ph.size-m+1]
-
-def ph_delay_min(ph, m):
-    """Return the min photon delay computed with m photons in `ph`."""
-    if ph.size < m:
-        return None
-    else:
-        return ph_delay(ph=ph, m=m).max()
-
-def ph_rate(ph, m):
-    """Return an array of m-photons rates of size ph.size - m + 1."""
-    return m/(ph[m-1:] - ph[:ph.size-m+1])
-
-def ph_rate_t(ph, m):
-    """Return the mean time for each rate computed by `ph_rate`."""
-    return 0.5*(ph[m-1:] + ph[:ph.size-m+1])  # time for rate
-
-def ph_rate_max(ph, m):
-    """Return the max photon rate computed with m photons in `ph`."""
-    if ph.size < m:
-        return None
-    else:
-        return ph_rate(ph=ph, m=m).max()
 
 ##
 # Per-burst quatitites from ph-data arrays (timestamps, lifetime, etc..)
@@ -2385,7 +2359,7 @@ class Data(DataContainer):
                 See :mod:`fretbursts.ph_sel` for details.
         """
         ph_sel = self._fix_ph_sel(ph_sel)
-        Max_Rate = self.calc_burst_ph_func(func=ph_rate_max,
+        Max_Rate = self.calc_burst_ph_func(func=phrates.ph_rate_max,
                                            func_kw=dict(m=m),
                                            ph_sel=ph_sel, compact=compact)
         Max_Rate = [mr/self.clk_p - bg[bp] for bp, bg, mr in
