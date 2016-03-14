@@ -512,12 +512,12 @@ def test_phrates_kde(data):
         # Test consistency of kde_laplace_nph and (kde_laplace, kde_rect)
         rates = phrates.kde_laplace(ph, tau)
         nrect = phrates.kde_rect(ph, tau*10)
-        ratesl, nph = phrates.kde_laplace_nph(ph, tau)
+        ratesl, nph = phrates.nb.kde_laplace_nph(ph, tau)
         assert (rates == ratesl).all()
         assert (nph == nrect).all()
 
         # Test consistency of kde_laplace and _kde_laplace_self_numba
-        ratesl2, nph2 = phrates.nb._kde_laplace_self_numba(ph, tau)
+        ratesl2, nph2 = phrates.nb.kde_laplace_self_numba(ph, tau)
         assert (nph2 == nrect).all()
         assert (ratesl2 == rates).all()
 
