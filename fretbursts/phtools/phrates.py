@@ -7,7 +7,7 @@
 This module provides functions to compute photon rates from timestamps
 arrays. Different methods to compute rates are implemented:
 
-1. Consecutive set of *m* timestamps ("sliding m-tuple") [TODO, move from burstlib]
+1. Consecutive set of *m* timestamps ("sliding m-tuple")
 2. KDE-based methods with Gaussian or Laplace distribution or rectangular
    kernels.
 
@@ -70,10 +70,9 @@ def mtuple_rates_max(ph, m):
 
 
 ##
-# General purpose functions to compute rates
+# Functions to compute rates using KDE
 #
-@numba.jit
-def _kde_laplace_numba(timestamps, tau, time_axis=None):
+def kde_laplace(timestamps, tau, time_axis=None):
     """Computes exponential KDE for `timestamps` evaluated at `time_axis`.
 
     Computes KDE rates of `timestamps` using a symmetric-exponential kernel
@@ -97,6 +96,55 @@ def _kde_laplace_numba(timestamps, tau, time_axis=None):
         exponential kernels). To obtain rates in Hz divide the
         array by `2*tau` (or other conventional x*tau duration).
     """
+    return _kde_laplace_numba(timestamps, tau, time_axis)
+
+def kde_gaussian(timestamps, tau, time_axis=None):
+    """Computes Gaussian KDE for `timestamps` evaluated at `time_axis`.
+
+    Computes KDE rates of `timestamps` using a Gaussian kernel.
+
+    The rate is computed for each time in `time_axis`.
+    When ``time_axis`` is None them ``timestamps`` is used also as time axis.
+
+    Arguments:
+        timestamps (array): arrays of photon timestamps
+        tau (float): sigma of the Gaussian kernel
+        time_axis (array or None): array of time points where the rate is
+            computed. If None, uses `timestamps` as time axis.
+
+    Returns:
+        rates (array): non-normalized rates (just the sum of the
+        Gaussian kernels). To obtain rates in Hz divide the
+        array by `2.5*tau`.
+    """
+    return _kde_gaussian_numba(timestamps, tau, time_axis)
+
+def kde_rect(timestamps, tau, time_axis=None):
+    """Computes KDE with rect kernel for `timestamps` evaluated at `time_axis`.
+
+    Computes KDE rates of `timestamps` using a rectangular kernel.
+
+    The rate is computed for each time in `time_axis`.
+    When ``time_axis`` is None them ``timestamps`` is used also as time axis.
+
+    Arguments:
+        timestamps (array): arrays of photon timestamps
+        tau (float): duration of the rectangular kernel
+        time_axis (array or None): array of time points where the rate is
+            computed. If None, uses `timestamps` as time axis.
+
+    Returns:
+        rates (array): non-normalized rates (just the sum of the
+        rectangular kernels). To obtain rates in Hz divide the
+        array by `tau`.
+    """
+    return _kde_rect_numba(timestamps, tau, time_axis)
+
+
+@numba.jit
+def _kde_laplace_numba(timestamps, tau, time_axis=None):
+    """Computes exponential KDE using numba optimization.
+    """
     if time_axis is None:
         time_axis = timestamps
     t_size = time_axis.size
@@ -119,23 +167,7 @@ def _kde_laplace_numba(timestamps, tau, time_axis=None):
 
 @numba.jit
 def _kde_gaussian_numba(timestamps, tau, time_axis=None):
-    """Computes Gaussian KDE for `timestamps` evaluated at `time_axis`.
-
-    Computes KDE rates of `timestamps` using a Gaussian kernel.
-
-    The rate is computed for each time in `time_axis`.
-    When ``time_axis`` is None them ``timestamps`` is used also as time axis.
-
-    Arguments:
-        timestamps (array): arrays of photon timestamps
-        tau (float): sigma of the Gaussian kernel
-        time_axis (array or None): array of time points where the rate is
-            computed. If None, uses `timestamps` as time axis.
-
-    Returns:
-        rates (array): non-normalized rates (just the sum of the
-        Gaussian kernels). To obtain rates in Hz divide the
-        array by `2.5*tau`.
+    """Computes Gaussian KDE using numba optimization.
     """
     if time_axis is None:
         time_axis = timestamps
@@ -159,23 +191,7 @@ def _kde_gaussian_numba(timestamps, tau, time_axis=None):
 
 @numba.jit
 def _kde_rect_numba(timestamps, tau, time_axis=None):
-    """Computes KDE with rect kernel for `timestamps` evaluated at `time_axis`.
-
-    Computes KDE rates of `timestamps` using a rectangular kernel.
-
-    The rate is computed for each time in `time_axis`.
-    When ``time_axis`` is None them ``timestamps`` is used also as time axis.
-
-    Arguments:
-        timestamps (array): arrays of photon timestamps
-        tau (float): duration of the rectangular kernel
-        time_axis (array or None): array of time points where the rate is
-            computed. If None, uses `timestamps` as time axis.
-
-    Returns:
-        rates (array): non-normalized rates (just the sum of the
-        rectangular kernels). To obtain rates in Hz divide the
-        array by `tau`.
+    """Computes rectangular KDE using numba optimization.
     """
     if time_axis is None:
         time_axis = timestamps
@@ -194,10 +210,6 @@ def _kde_rect_numba(timestamps, tau, time_axis=None):
 
     return rates
 
-kde_laplace = _kde_laplace_numba
-kde_gaussian = _kde_gaussian_numba
-kde_rect = _kde_rect_numba
-
 ##
 # Functions evaluating rates at the same location as timestamps
 #
@@ -210,7 +222,7 @@ def _kde_laplace_self(ph, tau):
         kernel = exp( -|t - t0| / tau)
 
     The rate is evaluated for each element in `ph` (that's why name ends
-    with ``_self``).
+    with ``_self``). This function only uses numpy (no numba).
 
     Arguments:
         ph (array): arrays of photon timestamps
