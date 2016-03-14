@@ -491,7 +491,21 @@ def test_burst_recompute_index(data):
 #        assert  bursts_sel1 == bursts_sel2
 #        assert  bursts_sel == bursts_sel1
 
-def test_phrates(data):
+def test_phrates_mtuple(data):
+    d = data
+    m = 10
+    max_num_ph = 20001
+    for ph in d.iter_ph_times():
+        phc = ph[:max_num_ph]
+        rates = phrates.ph_rate(phc, m)
+        delays = phrates.ph_delay(phc, m)
+        t_rates = 0.5 * (phc[m-1:] + phc[:-m+1])
+        assert phrates.ph_rate_max(phc, m) == rates.max()
+        assert phrates.ph_delay_min(phc, m) == delays.min()
+        assert (rates == m/delays).all()
+        assert (phrates.ph_rate_t(phc, m) == t_rates).all()
+
+def test_phrates_kde(data):
     d = data
     tau = 5000  # 5000 * 12.5ns = 6.25 us
     for ph in d.iter_ph_times():
