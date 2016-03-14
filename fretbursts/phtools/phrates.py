@@ -38,6 +38,7 @@ import numba
 from math import exp, fabs
 from .phrates_numba import (_kde_laplace_numba, _kde_gaussian_numba,
                             _kde_rect_numba)
+import phrates_c as cy
 
 
 ##
