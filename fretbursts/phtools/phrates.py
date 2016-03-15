@@ -75,15 +75,13 @@ def mtuple_rates_max(ph, m):
 def kde_laplace(timestamps, tau, time_axis=None):
     """Computes exponential KDE for `timestamps` evaluated at `time_axis`.
 
-    Computes KDE rates of `timestamps` using a symmetric-exponential kernel
-    (i.e. laplace distribution)::
+    Computes KDE rates of `timestamps` using a laplace distribution kernel
+    (i.e. symmetric-exponential)::
 
         kernel = exp( -|t - t0| / tau)
 
-    The rate is computed for each time in `time_axis`.
-    When ``time_axis`` is None them ``timestamps`` is used also as time axis.
-    For a similar function returning also the number of photons used to
-    compute each rate see :func:`kde_laplace_nph`.
+    The rate is computed for each time point in `time_axis`.
+    When ``time_axis`` is None, then ``timestamps`` is used as time axis.
 
     Arguments:
         timestamps (array): arrays of photon timestamps
@@ -105,8 +103,8 @@ def kde_gaussian(timestamps, tau, time_axis=None):
 
         kernel = exp( -(t - t0)^2 / (2 * tau^2)) )
 
-    The rate is computed for each time in `time_axis`.
-    When ``time_axis`` is None them ``timestamps`` is used also as time axis.
+    The rate is computed for each time point in `time_axis`.
+    When ``time_axis`` is None, then ``timestamps`` is used as time axis.
 
     Arguments:
         timestamps (array): arrays of photon timestamps
@@ -127,8 +125,8 @@ def kde_rect(timestamps, tau, time_axis=None):
     Computes KDE rates of `timestamps` using a rectangular kernel of
     amplitude 1 and duration `tau`.
 
-    The rate is computed for each time in `time_axis`.
-    When ``time_axis`` is None them ``timestamps`` is used also as time axis.
+    The rate is computed for each time point in `time_axis`.
+    When ``time_axis`` is None, then ``timestamps`` is used as time axis.
 
     Arguments:
         timestamps (array): arrays of photon timestamps
