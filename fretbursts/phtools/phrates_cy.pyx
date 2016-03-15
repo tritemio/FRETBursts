@@ -34,7 +34,6 @@ cdef _kde_gaussian_cy(DTYPE_t[:] timestamps, DTYPE_t tau, DTYPE_t[:] time_axis):
 
         for itx in range(ineg, ipos):
             rates[it] += exp(-((timestamps[itx] - t)**2)/tau2)
-
     return rates
 
 cdef _kde_laplace_cy(DTYPE_t[:] timestamps, DTYPE_t tau, DTYPE_t[:] time_axis):
