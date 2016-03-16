@@ -122,8 +122,8 @@ def kde_gaussian(timestamps, tau, time_axis=None):
 def kde_rect(timestamps, tau, time_axis=None):
     """Computes KDE with rect kernel for `timestamps` evaluated at `time_axis`.
 
-    Computes KDE rates of `timestamps` using a rectangular kernel of
-    amplitude 1 and duration `tau`.
+    Computes KDE rates of `timestamps` using a rectangular kernel which is
+    1 in the range `[-tau/2, tau/2]` and 0 otherwise.
 
     The rate is computed for each time point in `time_axis`.
     When ``time_axis`` is None, then ``timestamps`` is used as time axis.
