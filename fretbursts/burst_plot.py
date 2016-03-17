@@ -1829,7 +1829,7 @@ def _calc_vmin(vmax, vmax_threshold, vmin_default):
 def alex_jointplot(d, i=0, gridsize=50, cmap='Spectral_r', kind='hex',
                    vmax_fret=True, vmax_threshold=10,
                    vmin_default=0, vmin=None, cmap_compensate=False,
-                   joint_kws=None, marginal_kws=None, histcolor_id=1):
+                   joint_kws=None, marginal_kws=None, histcolor_id=0):
     """Plot an ALEX join plot: an E-S 2D histograms with marginal E and S.
 
     This function plots a jointplot: a main 2D histogram (hexbin plot)
