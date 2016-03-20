@@ -31,12 +31,27 @@
           <h1>
 <a id="fretbursts" class="anchor" href="#fretbursts" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>FRETBursts</h1>
 
+<p><a href="https://zenodo.org/badge/latestdoi/5991/tritemio/FRETBursts"><img src="https://zenodo.org/badge/5991/tritemio/FRETBursts.svg" alt="DOI"></a>
+<a href="https://travis-ci.org/tritemio/FRETBursts"><img src="https://travis-ci.org/tritemio/FRETBursts.svg?branch=master" alt="Build Status"></a></p>
+
 <blockquote>
 <p><em>Quick links: <a href="http://fretbursts.readthedocs.org/">Reference documentation</a>, <a href="https://github.com/tritemio/FRETBursts_notebooks#fretbursts-notebooks">FRETBursts tutorials</a>, <a href="http://dx.doi.org/10.1101/039198">bioRxiv paper</a></em></p>
 </blockquote>
 
 <h2>
-<a id="hot-news" class="anchor" href="#hot-news" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Hot News</h2>
+<a id="latest-news" class="anchor" href="#latest-news" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Latest News</h2>
+
+<h4>
+<a id="2016-03-20" class="anchor" href="#2016-03-20" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>2016-03-20</h4>
+
+<p>New online service to run FRETBursts without installation:</p>
+
+<ul>
+<li><a href="https://github.com/tritemio/FRETBursts_notebooks#run-online">FRETBursts Online Demo</a></li>
+</ul>
+
+<h4>
+<a id="2016-02-19" class="anchor" href="#2016-02-19" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>2016-02-19</h4>
 
 <p>Check out our new paper describing smFRET bursts analysis and FRETBursts on the bioRxiv:</p>
 
@@ -58,23 +73,41 @@ open source software for burst analysis of freely-diffusing
 <a href="http://en.wikipedia.org/wiki/Single-molecule_FRET">single-molecule FRET</a>
 (smFRET) experiments.</p>
 
+<h3>
+<a id="fretbursts-and-reproducibility" class="anchor" href="#fretbursts-and-reproducibility" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>FRETBursts and reproducibility</h3>
+
 <p>FRETBursts is an effort to bring
 <a href="http://dx.doi.org/10.1371/journal.pcbi.1003285">reproducible computing</a>
 to the field of single-molecule confocal microscopy. It provides
 a well-tested implementation of state-of-the-art algorithms
 for confocal smFRET analysis.
-FRETBursts is opensource and contributions are welcome.
-The authors are committed to promptly fix bugs whenever discovered.</p>
+The strong focus on computational reproducibility is
+reflected in the notebook-based interface.
+By leveraging a workflow based on <a href="http://ipython.org/notebook.html">Jupyter Notebook</a>,
+FRETBursts facilitates saving all the analysis
+parameters, comments and results in a single re-runnable document.</p>
 
 <p>FRETBursts has full supports for <a href="http://photon-hdf5.org/">Photon-HDF5</a> files:
 an open file format for single-molecule fluorescence experiments
 (see the <a href="http://dx.doi.org/10.1101/026484">Biophys. J. paper</a>).</p>
 
-<p>FRETBursts issues can be reported and discussed on the
-<a href="https://github.com/tritemio/FRETBursts/issues?state=open">issue tracker</a>.
-Fixes or enhancements can be sent with a <a href="https://help.github.com/articles/creating-a-pull-request">github pull request</a>.
-Small corrections can be made directly online
-(by clicking on the GitHub edit button of a specific file).</p>
+<h3>
+<a id="feedback-and-contributions" class="anchor" href="#feedback-and-contributions" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Feedback and Contributions</h3>
+
+<p>FRETBursts is open source and openly developed on GitHub.</p>
+
+<p>We encourage users to report issues or ask questions using the
+<a href="https://github.com/tritemio/FRETBursts/issues?state=open">GitHub Issue</a>.
+In the open source spirit, contributions are welcome and 
+managed using <a href="https://help.github.com/articles/creating-a-pull-request">GitHub Pull Request</a>.
+Any level of contribution is accepted, from fixing typos, improving the docs
+(most editing can be done online directly)
+or implementing new features (see <a href="https://help.github.com/articles/fork-a-repo/">github help page</a>). 
+For questions on how to contribute
+please open a <a href="https://github.com/tritemio/FRETBursts/issues?state=open">GitHub Issue</a>.</p>
+
+<h3>
+<a id="techinical-features" class="anchor" href="#techinical-features" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Techinical features</h3>
 
 <p>FRETBursts allows to analyze both <a href="http://dx.doi.org/10.1126/science.283.5408.1676">single-spot</a>
 and <a href="http://dx.doi.org/10.1117/12.2003704">multi-spot smFRET</a> data.
@@ -85,16 +118,16 @@ scheme is supported.</p>
 
 <ul>
 <li>background estimation as a function of time (for example in 30s windows)</li>
-<li>sliding-window burst search with adaptive (background-dependent) rate-threshold. No timetrace binning required.</li>
-<li>burst corrections: background, D-spectral leakage (bleed-through), A-direct excitation,
-gamma-factor</li>
+<li>sliding-window burst search with adaptive (background-dependent) rate-threshold.
+No timetrace binning required. Both single (APBS) and dual-channel burst search (DCBS).</li>
+<li>burst corrections: background, D-spectral leakage (bleed-through),
+A-direct excitation, gamma-factor.</li>
 <li>per-burst statistics (# photons, burst duration, E, S, peak rate in burst, etc...)</li>
 <li>post-burst-search <a href="http://fretbursts.readthedocs.org/en/latest/burst_selection.html">selection functions</a>
 (for ex.: <a href="http://fretbursts.readthedocs.org/en/latest/burst_selection.html#fretbursts.select_bursts.size">burst size</a>,
 <a href="http://fretbursts.readthedocs.org/en/latest/burst_selection.html#fretbursts.select_bursts.width">burst width</a>,
 <a href="http://fretbursts.readthedocs.org/en/latest/burst_selection.html#fretbursts.select_bursts.ES">E, S</a>, ...).
-Defining a new burst selection
-criterium requires only a couple of lines of code.</li>
+Defining a new burst selection criterium requires only a few lines of code.</li>
 <li>
 <a href="http://fretbursts.readthedocs.org/en/latest/fit.html">fit routines</a> for FRET efficiency
 (<a href="http://fretbursts.readthedocs.org/en/latest/fit.html#fitting-e-or-s-histograms">multi-model histogram fit</a>,
@@ -102,15 +135,21 @@ criterium requires only a couple of lines of code.</li>
 <a href="http://fretbursts.readthedocs.org/en/latest/data_class.html#fretbursts.burstlib.Data.fit_E_m">weighted least squares models</a>,
 <a href="http://fretbursts.readthedocs.org/en/latest/data_class.html#fretbursts.burstlib.Data.fit_E_two_gauss_EM">weighted expectation maximization</a>,
 etc...)</li>
+<li>Plot function: FRETBursts includes
+<a href="https://github.com/tritemio/FRETBursts/blob/master/fretbursts/burst_plot.py">a large set</a>
+of modular
+<a href="http://fretbursts.readthedocs.org/en/latest/files_description.html#module-fretbursts.burst_plot">plot functions</a>
+for background, time-traces, rate-traces, E, S, ALEX histograms,
+weighted kernel density estimation (<a href="http://en.wikipedia.org/wiki/Kernel_density_estimation">KDE</a>)
+and more. Thanks to the excellent <a href="http://matplotlib.org/">Matplotlib</a> library,
+FRETBursts can produce publication-quality plots out of the box.</li>
 </ul>
 
-<p>Moreover FRETBursts includes
-<a href="https://github.com/tritemio/FRETBursts/blob/master/fretbursts/burst_plot.py">a large set</a> of modular
-<a href="http://fretbursts.readthedocs.org/en/latest/files_description.html#module-fretbursts.burst_plot">plot functions</a> for
-background, time-traces, rate-traces, E, S, ALEX histograms, weighted kernel
-density estimation (<a href="http://en.wikipedia.org/wiki/Kernel_density_estimation">KDE</a>)
-and more. Thanks to the excellent <a href="http://matplotlib.org/">Matplotlib</a> library,
-FRETBursts can produce publication-quality plots out of the box.</p>
+<p>Additionally FRETBursts includes notebooks to perform
+<a href="http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%20Burst%20Variance%20Analysis.ipynb">Burst Variance Analysis (BVA)</a>
+<a href="http://doi.org/10.1016/j.bpj.2011.01.066">(Torella 2011)</a>
+and <a href="http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%202CDE%20Method.ipynb">2CDE</a>
+<a href="http://doi.org/10.1016/j.bpj.2011.11.4025">(Tomov 2012)</a>.</p>
 
 <h2>
 <a id="motivations" class="anchor" href="#motivations" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Motivations</h2>
