@@ -6,8 +6,16 @@ FRETBursts
 
 > *Quick links: [Reference documentation](http://fretbursts.readthedocs.org/), [FRETBursts tutorials](https://github.com/tritemio/FRETBursts_notebooks#fretbursts-notebooks), [bioRxiv paper](http://dx.doi.org/10.1101/039198)*
 
-Hot News
---------
+Hot News!
+---------
+
+### 2016-03-20
+New online service to run FRETBursts without installation:
+
+- [FRETBursts Online Demo](https://github.com/tritemio/FRETBursts_notebooks#run-online)
+
+
+### 2016-02-19
 
 Check out our new paper describing smFRET bursts analysis and FRETBursts on the bioRxiv:
 
@@ -28,23 +36,36 @@ open source software for burst analysis of freely-diffusing
 [single-molecule FRET](http://en.wikipedia.org/wiki/Single-molecule_FRET)
 (smFRET) experiments.
 
+### FRETBursts and reproducibility
+
 FRETBursts is an effort to bring
 [reproducible computing](http://dx.doi.org/10.1371/journal.pcbi.1003285)
 to the field of single-molecule confocal microscopy. It provides
 a well-tested implementation of state-of-the-art algorithms
 for confocal smFRET analysis.
-FRETBursts is opensource and contributions are welcome.
-The authors are committed to promptly fix bugs whenever discovered.
+The strong focus on computational reproducibility is
+reflected in the notebook-based interface.
+By leveraging a workflow based on [Jupyter Notebook](http://ipython.org/notebook.html),
+FRETBursts facilitates saving all the analysis
+parameters, comments and results in a single re-runnable document.
 
-FRETBursts has full supports for [Photon-HDF5](http://photon-hdf5.org/) files: 
-an open file format for single-molecule fluorescence experiments 
+FRETBursts has full supports for [Photon-HDF5](http://photon-hdf5.org/) files:
+an open file format for single-molecule fluorescence experiments
 (see the [Biophys. J. paper](http://dx.doi.org/10.1101/026484)).
 
-FRETBursts issues can be reported and discussed on the
-[issue tracker](https://github.com/tritemio/FRETBursts/issues?state=open).
-Fixes or enhancements can be sent with a [github pull request](https://help.github.com/articles/creating-a-pull-request).
-Small corrections can be made directly online
-(by clicking on the GitHub edit button of a specific file).
+### Feedback and Contributions
+
+FRETBursts is open source and openly developed on GitHub.
+
+We encourage users to report issues or ask questions using the
+[GitHub Issue](https://github.com/tritemio/FRETBursts/issues?state=open).
+In the open source spirit, contributions are welcome and are
+managed using [github pull request](https://help.github.com/articles/creating-a-pull-request).
+Any level of contribution is accepted, from fixing typos, improving the docs
+or implementing new features. For any question on how to contribute
+please open a new [pGitHub Issue](https://github.com/tritemio/FRETBursts/issues?state=open).
+
+### Techinical features
 
 FRETBursts allows to analyze both [single-spot](http://dx.doi.org/10.1126/science.283.5408.1676)
 and [multi-spot smFRET](http://dx.doi.org/10.1117/12.2003704) data.
@@ -54,30 +75,36 @@ scheme is supported.
 Main analysis features includes:
 
 - background estimation as a function of time (for example in 30s windows)
-- sliding-window burst search with adaptive (background-dependent) rate-threshold. No timetrace binning required.
-- burst corrections: background, D-spectral leakage (bleed-through), A-direct excitation,
-gamma-factor
+- sliding-window burst search with adaptive (background-dependent) rate-threshold.
+  No timetrace binning required. Both single (APBS) and dual-channel burst search (DCBS).
+- burst corrections: background, D-spectral leakage (bleed-through),
+  A-direct excitation, gamma-factor.
 - per-burst statistics (# photons, burst duration, E, S, peak rate in burst, etc...)
 - post-burst-search [selection functions](http://fretbursts.readthedocs.org/en/latest/burst_selection.html)
   (for ex.: [burst size](http://fretbursts.readthedocs.org/en/latest/burst_selection.html#fretbursts.select_bursts.size),
   [burst width](http://fretbursts.readthedocs.org/en/latest/burst_selection.html#fretbursts.select_bursts.width),
   [E, S](http://fretbursts.readthedocs.org/en/latest/burst_selection.html#fretbursts.select_bursts.ES), ...).
-  Defining a new burst selection
-criterium requires only a couple of lines of code.
+  Defining a new burst selection criterium requires only a few lines of code.
 - [fit routines](http://fretbursts.readthedocs.org/en/latest/fit.html) for FRET efficiency
   ([multi-model histogram fit](http://fretbursts.readthedocs.org/en/latest/fit.html#fitting-e-or-s-histograms),
   [MLE Poisson models](http://fretbursts.readthedocs.org/en/latest/data_class.html#fretbursts.burstlib.Data.fit_E_ML_poiss),
   [weighted least squares models](http://fretbursts.readthedocs.org/en/latest/data_class.html#fretbursts.burstlib.Data.fit_E_m),
   [weighted expectation maximization](http://fretbursts.readthedocs.org/en/latest/data_class.html#fretbursts.burstlib.Data.fit_E_two_gauss_EM),
   etc...)
+- Plot function: FRETBursts includes
+  [a large set](https://github.com/tritemio/FRETBursts/blob/master/fretbursts/burst_plot.py)
+  of modular
+  [plot functions](http://fretbursts.readthedocs.org/en/latest/files_description.html#module-fretbursts.burst_plot)
+  for background, time-traces, rate-traces, E, S, ALEX histograms,
+  weighted kernel density estimation ([KDE](http://en.wikipedia.org/wiki/Kernel_density_estimation))
+  and more. Thanks to the excellent [Matplotlib](http://matplotlib.org/) library,
+  FRETBursts can produce publication-quality plots out of the box.
 
-Moreover FRETBursts includes
-[a large set](https://github.com/tritemio/FRETBursts/blob/master/fretbursts/burst_plot.py) of modular
-[plot functions](http://fretbursts.readthedocs.org/en/latest/files_description.html#module-fretbursts.burst_plot) for
-background, time-traces, rate-traces, E, S, ALEX histograms, weighted kernel
-density estimation ([KDE](http://en.wikipedia.org/wiki/Kernel_density_estimation))
-and more. Thanks to the excellent [Matplotlib](http://matplotlib.org/) library,
-FRETBursts can produce publication-quality plots out of the box.
+Additionally FRETBursts includes notebooks to perform
+[Burst Variance Analysis (BVA)](http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%20Burst%20Variance%20Analysis.ipynb)
+[(Torella 2011)](http://doi.org/10.1016/j.bpj.2011.01.066)
+and [2CDE](http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%202CDE%20Method.ipynb)
+[(Tomov 2012)](http://doi.org/10.1016/j.bpj.2011.11.4025).
 
 Motivations
 -----------
