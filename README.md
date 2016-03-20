@@ -6,8 +6,8 @@ FRETBursts
 
 > *Quick links: [Reference documentation](http://fretbursts.readthedocs.org/), [FRETBursts tutorials](https://github.com/tritemio/FRETBursts_notebooks#fretbursts-notebooks), [bioRxiv paper](http://dx.doi.org/10.1101/039198)*
 
-Hot News!
----------
+Latest News
+-----------
 
 #### 2016-03-20
 New online service to run FRETBursts without installation:
