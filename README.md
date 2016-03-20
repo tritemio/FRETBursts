@@ -24,7 +24,7 @@ Check out our new paper describing smFRET bursts analysis and FRETBursts on the 
 See also this [blog post](http://tritemio.github.io/smbits/2016/02/19/fretbursts/) announcing it.
 
 
-Project description
+Project Description
 -------------------
 
 <div style="float: right; margin-left: 30px;">
@@ -36,7 +36,7 @@ open source software for burst analysis of freely-diffusing
 [single-molecule FRET](http://en.wikipedia.org/wiki/Single-molecule_FRET)
 (smFRET) experiments.
 
-### FRETBursts and reproducibility
+### FRETBursts and Reproducibility
 
 FRETBursts is an effort to bring
 [reproducible computing](http://dx.doi.org/10.1371/journal.pcbi.1003285)
@@ -59,15 +59,15 @@ FRETBursts is open source and openly developed on GitHub.
 
 We encourage users to report issues or ask questions using the
 [GitHub Issue](https://github.com/tritemio/FRETBursts/issues?state=open).
-In the open source spirit, contributions are welcome and 
+In the open source spirit, contributions are welcome and
 managed using [GitHub Pull Request](https://help.github.com/articles/creating-a-pull-request).
 Any level of contribution is accepted, from fixing typos, improving the docs
 (most editing can be done online directly)
-or implementing new features (see [github help page](https://help.github.com/articles/fork-a-repo/)). 
+or implementing new features (see [github help page](https://help.github.com/articles/fork-a-repo/)).
 For questions on how to contribute
 please open a [GitHub Issue](https://github.com/tritemio/FRETBursts/issues?state=open).
 
-### Technical features
+### Technical Features
 
 FRETBursts allows to analyze both [single-spot](http://dx.doi.org/10.1126/science.283.5408.1676)
 and [multi-spot smFRET](http://dx.doi.org/10.1117/12.2003704) data.
@@ -104,9 +104,9 @@ Main analysis features includes:
 
 Additionally FRETBursts includes notebooks to perform
 [Burst Variance Analysis (BVA)](http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%20Burst%20Variance%20Analysis.ipynb)
-[(Torella 2011)](http://doi.org/10.1016/j.bpj.2011.01.066)
+([Torella 2011](http://doi.org/10.1016/j.bpj.2011.01.066))
 and [2CDE](http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%202CDE%20Method.ipynb)
-[(Tomov 2012)](http://doi.org/10.1016/j.bpj.2011.11.4025).
+([Tomov 2012)](http://doi.org/10.1016/j.bpj.2011.11.4025)).
 
 Motivations
 -----------
@@ -157,7 +157,7 @@ For installation instructions see:
 
 * [FRETBursts documentation: Getting started](http://fretbursts.readthedocs.org/en/latest/getting_started.html)
 
-## Getting started
+## Getting Started
 
 The official FRETBursts documentation is built and hosted by ReadTheDocs:
 
@@ -198,7 +198,7 @@ Notebooks that execute the unit tests can be found in
 In the same folder a notebook for regression testing is provided.
 
 
-## Acknowledgements
+## Acknowledgments
 
 This work was supported by NIH grants R01 GM069709 and R01 GM095904.
 
