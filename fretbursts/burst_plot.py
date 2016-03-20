@@ -1212,9 +1212,8 @@ def plot_ES_selection(ax, E1, E2, S1, S2, rect=True, **kwargs):
     This function plots a rectangle and inscribed ellipsis with x-axis limits
     (E1, E2) and y-axsis limits (S1, S2).
 
-    Note that, a dict with keys (E1, E2, S1, S2, rect) can be both passed to
-    :func:`fretbursts.select_bursts.ES` to apply a selection, and to
-    `plot_ES_selection` to plot it.
+    Note that, a dict with keys (E1, E2, S1, S2, rect) can be also passed to
+    :func:`fretbursts.select_bursts.ES` to apply a selection.
 
     Parameters:
         ax (matplotlib axis): the axis where the rectangle is plotted.
@@ -1227,8 +1226,10 @@ def plot_ES_selection(ax, E1, E2, S1, S2, rect=True, **kwargs):
         **kwargs: other keywords passed to both matplotlib's `Rectangle`
             and `Ellipse`.
 
-    Any additional keyword argument specifies the matplotlib patch style
-    for both the rectangle and the ellipsis.
+    See also:
+        For selecting bursts according to (`E1`, `E2`, `S1`, `S2`, `rect`) see:
+
+        - :func:`fretbursts.select_bursts.ES`
     """
     if rect:
         rect_color, ellips_color = blue, 'gray'

@@ -52,9 +52,14 @@ def S(d, ich=0, S1=-np.inf, S2=np.inf):
     return burst_mask, ''
 
 def ES(d, ich=0, E1=-np.inf, E2=np.inf, S1=-np.inf, S2=np.inf, rect=True):
-    """Select bursts with E between E1 and E2 and S between S1 and S2.
+    """Select bursts with E between `E1` and `E2` and S between `S1` and `S2`.
 
     When `rect` is True the selection is rectangular otherwise is elliptical.
+
+    See also:
+        For plotting the ES region selected by (`E1`, `E2`, `S1`, `S2`, `rect`):
+
+        - :func:`fretbursts.burst_plot.plot_ES_selection`
     """
     assert E1 <= E2, 'Threshold E1 (%.2f) must be <= of E2 (%.2f)' % (E1, E2)
     assert S1 <= S2, 'Threshold S1 (%.2f) must be <= of S2 (%.2f)' % (S1, S2)
