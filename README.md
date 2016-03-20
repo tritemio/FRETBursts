@@ -106,7 +106,7 @@ Additionally FRETBursts includes notebooks to perform
 [Burst Variance Analysis (BVA)](http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%20Burst%20Variance%20Analysis.ipynb)
 ([Torella 2011](http://doi.org/10.1016/j.bpj.2011.01.066))
 and [2CDE](http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%202CDE%20Method.ipynb)
-([Tomov 2012)](http://doi.org/10.1016/j.bpj.2011.11.4025)).
+([Tomov 2012](http://doi.org/10.1016/j.bpj.2011.11.4025)).
 
 Motivations
 -----------
