@@ -67,7 +67,7 @@ or implementing new features (see [github help page](https://help.github.com/art
 For questions on how to contribute
 please open a [GitHub Issue](https://github.com/tritemio/FRETBursts/issues?state=open).
 
-### Techinical features
+### Technical features
 
 FRETBursts allows to analyze both [single-spot](http://dx.doi.org/10.1126/science.283.5408.1676)
 and [multi-spot smFRET](http://dx.doi.org/10.1117/12.2003704) data.
