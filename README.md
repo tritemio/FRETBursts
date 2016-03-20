@@ -49,9 +49,9 @@ By leveraging a workflow based on [Jupyter Notebook](http://ipython.org/notebook
 FRETBursts facilitates saving all the analysis
 parameters, comments and results in a single re-runnable document.
 
-FRETBursts has full supports for [Photon-HDF5](http://photon-hdf5.org/) files:
+FRETBursts has full supports for [Photon-HDF5](http://photon-hdf5.org/),
 an open file format for single-molecule fluorescence experiments
-(see the [Biophys. J. paper](http://dx.doi.org/10.1101/026484)).
+([Ingargiola 2016](http://dx.doi.org/10.1101/026484)).
 
 ### Feedback and Contributions
 
