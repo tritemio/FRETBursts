@@ -9,13 +9,13 @@ FRETBursts
 Hot News!
 ---------
 
-### 2016-03-20
+#### 2016-03-20
 New online service to run FRETBursts without installation:
 
 - [FRETBursts Online Demo](https://github.com/tritemio/FRETBursts_notebooks#run-online)
 
 
-### 2016-02-19
+#### 2016-02-19
 
 Check out our new paper describing smFRET bursts analysis and FRETBursts on the bioRxiv:
 
@@ -59,11 +59,13 @@ FRETBursts is open source and openly developed on GitHub.
 
 We encourage users to report issues or ask questions using the
 [GitHub Issue](https://github.com/tritemio/FRETBursts/issues?state=open).
-In the open source spirit, contributions are welcome and are
-managed using [github pull request](https://help.github.com/articles/creating-a-pull-request).
+In the open source spirit, contributions are welcome and 
+managed using [GitHub Pull Request](https://help.github.com/articles/creating-a-pull-request).
 Any level of contribution is accepted, from fixing typos, improving the docs
-or implementing new features. For any question on how to contribute
-please open a new [pGitHub Issue](https://github.com/tritemio/FRETBursts/issues?state=open).
+(most editing can be done online directly)
+or implementing new features (see [github help page](https://help.github.com/articles/fork-a-repo/)). 
+For questions on how to contribute
+please open a [GitHub Issue](https://github.com/tritemio/FRETBursts/issues?state=open).
 
 ### Techinical features
 
