@@ -1224,6 +1224,8 @@ def plot_ES_selection(ax, E1, E2, S1, S2, rect=True, **kwargs):
             used to plot the rectangle.
         rect (bool): if True, the rectangle is highlighted and the ellipsis is
             grey. The color are swapped otherwise.
+        **kwargs: other keywords passed to both matplotlib's `Rectangle`
+            and `Ellipse`.
 
     Any additional keyword argument specifies the matplotlib patch style
     for both the rectangle and the ellipsis.
