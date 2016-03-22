@@ -1021,17 +1021,35 @@ class Data(DataContainer):
                         beta=None):
         """Return gamma corrected burst sizes for channel `ich`.
 
-        The gamma corrected size is computed as::
+        The gamma corrected size is computed according to one of these two
+        definitions::
 
-            1) nd + na/gamma  (so th1 is the min. burst size for donly bursts)
-            2) nd*gamma1 + na (so th1 is the min. burst size for high FRET
-            bursts)
+            1) nd + na/gamma
+            2) nd*gamma1 + na
 
-        If `gamma1` is not None, the definition (2) is used.
+        When `gamma1` is None, the definition (1) is used. In this case,
+        the corrected burst size tends to the raw burst size for D-only
+        bursts.
+
+        When `gamma1` is not None, the definition (2) is used. In this case,
+        the corrected burst size tends to the raw burst size for high-FRET
+        bursts.
+
         If `d.ALEX` and `add_naa` are True::
 
             1) if beta is None: add `naa` to burst size.
             2) if beta is not None: add `naa/(gamma*beta)` to burst size.
+
+        Arguments:
+            ich (int): the spot number, only relevant for multi-spot.
+                In single-spot data there is only CH0 so this argument
+                may be omitted. Default 0.
+            add_naa (boolean): when True, add AexAem photons when computing
+                burst size. Default False.
+            gamma, gamma1 (floats): coefficient for gamma correction of burst
+                sizes. See explaination above.
+            beta (float or None): optional beta correction factor for burst
+                size. See explaination above.
 
         Returns
             Array of burst sizes for channel `ich`.

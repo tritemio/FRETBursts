@@ -119,10 +119,27 @@ def naa(d, ich=0, th1=20, th2=np.inf):
 
 def size(d, ich=0, th1=20, th2=np.inf, gamma=1., gamma1=None,
          add_naa=False, beta=None):
-    """Select bursts with burst sizes between th1 and th2.
+    """Select bursts with burst sizes (i.e. counts) between `th1` and `th2`.
 
-    The parameters `gamma`, `gamma1`, `add_naa` and `beta` are passed to
-    :meth:`fretbursts.burstlib.Data.burst_sizes_ich` to compute the burst size.
+    The burst size is the number of photon in a burst. By default it
+    includes all photons during donor excitation (`Dex`).
+    To add AexAem photon to the burst size use `add_naa=True`.
+
+    Arguments:
+        d (Data object): the object containing the measurement.
+        ich (int): the spot number, only relevant for multi-spot. In single-spot
+            data there is only CH0 so this argument may be omitted. Default 0.
+        th1, th2 (floats): select bursts with size larger than `th1`
+            and smaller than `th2`.
+        add_naa (boolean): when True, add AexAem photons when computing burst
+            burst size. Default False.
+        gamma, gamma1, beta (floats): these arguments are used to compute
+            gamma- and beta-corrected burst sizes. See
+            :meth:`fretbursts.burstlib.Data.burst_sizes_ich` for details.
+
+    Returns:
+        A tuple containing an array (the burst mask) and a string which
+        briefly describe the selection.
     """
     assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
     burst_size = d.burst_sizes_ich(ich, gamma, gamma1, add_naa, beta)
