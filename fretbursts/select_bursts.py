@@ -123,7 +123,7 @@ def size(d, ich=0, th1=20, th2=np.inf, gamma=1., gamma1=None,
 
     The burst size is the number of photon in a burst. By default it
     includes all photons during donor excitation (`Dex`).
-    To add AexAem photon to the burst size use `add_naa=True`.
+    To add *AexAem* photons to the burst size use `add_naa=True`.
 
     Arguments:
         d (Data object): the object containing the measurement.
