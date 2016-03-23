@@ -2472,7 +2472,7 @@ class Data(DataContainer):
         if 'bg_corrected' in self and self.bg_corrected:
             s += " bg"
         if 'leakage_corrected' in self and self.leakage_corrected:
-            s += " Lk%.3f" % np.mean(self.leakage)
+            s += " Lk%.3f" % np.mean(self.leakage*100)
         if 'dir_ex_corrected' in self and self.dir_ex_corrected:
             s += " dir%.1f" % (self.dir_ex*100)
         if 'dithering' in self and self.dithering:
