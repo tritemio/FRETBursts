@@ -14,6 +14,7 @@ New online service to run FRETBursts without installation:
 
 - [FRETBursts Online Demo](https://github.com/tritemio/FRETBursts_notebooks#run-online)
 
+For more info see this [blog post](http://tritemio.github.io/smbits/2016/03/22/binder-fretbursts/).
 
 #### 2016-02-19
 
