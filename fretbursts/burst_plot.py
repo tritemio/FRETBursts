@@ -432,6 +432,38 @@ def timetrace(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
               #dd_plot_style={}, ad_plot_style={}, aa_plot_style={}
              ):
     """Plot the timetraces (histogram) of photon timestamps.
+
+    Arguments:
+        d (Data object): the measurement's data to plot.
+        i (int): the channel to plot. Default 0.
+        binwidth (float): the bin width (seconds) of the timetrace histogram.
+        bins (array or None): If not None, defines the bin edges for the
+            timetrace (overriding `binwidth`). If None, `binwidth` is use
+            to generate uniform bins.
+        tmin, tmax (float): min and max time (seconds) to include in the
+            timetrace. Note that a long time range and a small `binwidth`
+            can require a significant amount of memory.
+        bursts (bool): if True, plot the burst start-stop times.
+        burst_picker (bool): if True, enable the ability to click on bursts
+            to obtain burst info. This function requires the matplotlib's QT
+            backend.
+        scroll (bool): if True, activate a scrolling bar to quickly scroll
+            through the timetrace. This function requires the matplotlib's QT
+            backend.
+        show_rates (bool): if True, plot the burst search threshold rate.
+        F (bool): if `show_rate` is True, show a rate `F` times larger
+            than the background rate.
+        rate_th_style (dict): matplotlib style for the rate line.
+        show_aa (bool): if True, plot a timetrace for the AexAem photons.
+            If False (default), plot timetraces only for DexDem and DexAem
+            streams.
+        legend (bool): whether to show the legend or not.
+        set_ax_limits (bool): if True, set the xlim to zoom on a small portion
+            of timetrace. If False, do not set the xlim, display the full
+            timetrace.
+        burst_color (string): string containing the the HEX RGB color to use
+            to highlight the burst regions.
+        plot_style (dict): matplotlib's style for the timetrace lines.
     """
     # Plot bursts
     if bursts:
@@ -1210,7 +1242,7 @@ def plot_ES_selection(ax, E1, E2, S1, S2, rect=True, **kwargs):
     """Plot an overlay ROI on top of an E-S plot (i.e. ALEX histogram).
 
     This function plots a rectangle and inscribed ellipsis with x-axis limits
-    (E1, E2) and y-axsis limits (S1, S2).
+    (E1, E2) and y-axis limits (S1, S2).
 
     Note that, a dict with keys (E1, E2, S1, S2, rect) can be also passed to
     :func:`fretbursts.select_bursts.ES` to apply a selection.
@@ -1838,7 +1870,7 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='Spectral_r', kind='hex',
     This function plots a jointplot: a main 2D histogram (hexbin plot)
     for E-S and the marginal histograms for E and S separately.
     The 2D histogram is an hexbin plot, i.e. the bin shape is hexagonal
-    that has the advantage to reduce artifacts due to discretizations.
+    that has the advantage to reduce artifacts due to discretization.
 
     Arguments:
         d (Data object): the variable containing the bursts to plot
