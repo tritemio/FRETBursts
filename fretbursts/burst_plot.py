@@ -450,7 +450,7 @@ def timetrace(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
         scroll (bool): if True, activate a scrolling bar to quickly scroll
             through the timetrace. This function requires the matplotlib's QT
             backend.
-        show_rates (bool): if True, plot the burst search threshold rate.
+        show_rate_th (bool): if True, plot the burst search threshold rate.
         F (bool): if `show_rate` is True, show a rate `F` times larger
             than the background rate.
         rate_th_style (dict): matplotlib style for the rate line.
@@ -568,8 +568,38 @@ def ratetrace(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
               show_aa=True, legend=False, set_ax_limits=True,
               #dd_plot_style={}, ad_plot_style={}, aa_plot_style={}
               burst_color='#BBBBBB'):
-    """Plot the ratetraces of photon timestamps.
+    """Plot the rate timetraces of photon timestamps.
+
+    Arguments:
+        d (Data object): the measurement's data to plot.
+        i (int): the channel to plot. Default 0.
+        max_num_ph (int): Clip the rate timetrace after the
+            max number of photons `max_num_ph` is reached.
+        tmin, tmax (float): min and max time (seconds) to include in the
+            timetrace. Note that a long time range and a small `binwidth`
+            can require a significant amount of memory.
+        bursts (bool): if True, plot the burst start-stop times.
+        burst_picker (bool): if True, enable the ability to click on bursts
+            to obtain burst info. This function requires the matplotlib's QT
+            backend.
+        scroll (bool): if True, activate a scrolling bar to quickly scroll
+            through the timetrace. This function requires the matplotlib's QT
+            backend.
+        show_rate_th (bool): if True, plot the burst search threshold rate.
+        F (bool): if `show_rate` is True, show a rate `F` times larger
+            than the background rate.
+        rate_th_style (dict): matplotlib style for the rate line.
+        show_aa (bool): if True, plot a timetrace for the AexAem photons.
+            If False (default), plot timetraces only for DexDem and DexAem
+            streams.
+        legend (bool): whether to show the legend or not.
+        set_ax_limits (bool): if True, set the xlim to zoom on a small portion
+            of timetrace. If False, do not set the xlim, display the full
+            timetrace.
+        burst_color (string): string containing the the HEX RGB color to use
+            to highlight the burst regions.
     """
+
     # Plot bursts
     if bursts:
         t_max_clk = int(tmax/d.clk_p)
