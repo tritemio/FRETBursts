@@ -185,7 +185,7 @@ def plot_alternation_hist_usalex(d, bins=None, ax=None, ich=0,
     offset = d.get('offset', 0)
     ph_times_t, det_t, period = d.ph_times_t[ich], d.det_t[ich], d.alex_period
     d_em_t = (det_t == d_ch)
-    hist_style_ = dict(bins=bins, alpha=0.5, histtype='stepfilled', lw=1.3)
+    hist_style_ = dict(bins=bins, histtype='step', lw=2, alpha=0.9)
     hist_style_.update(hist_style)
 
     span_style_ = dict(alpha=0.2)
@@ -231,7 +231,7 @@ def plot_alternation_hist_nsalex(d, bins=None, ax=None, ich=0,
     A_ON = [(A_ON_multi[i], A_ON_multi[i+1]) for i in range(0, len(A_ON_multi), 2)]
 
     d_ch, a_ch = d._det_donor_accept_multich[ich]
-    hist_style_ = dict(bins=bins, alpha=0.8, histtype='step', lw=1.3)
+    hist_style_ = dict(bins=bins, histtype='step', lw=2, alpha=0.9)
     hist_style_.update(hist_style)
 
     span_style_ = dict(alpha=0.2)
