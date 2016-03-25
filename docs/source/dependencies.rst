@@ -3,7 +3,7 @@ FRETBursts Dependencies
 
 For documentation purposes, this is the list of dependencies to run FRETBursts:
 
-- Python 2.7
+- Python 2.7 or 3.4+
 - Numpy 1.6 or newer
 - Scipy 0.13 or newer
 - Matplotlib 1.3 or newer, with QT4 backend (either PyQT4 or PySide).
@@ -19,8 +19,7 @@ If you want to compile the cython extensions (optional) you also need:
 
 For developing FRETBursts you should also install
 
-- sphinx 1.2.2 with the napoleon extension (sphinxcontrib-napoleon) to
-  build this documentation.
+- sphinx 1.3+ (we use napoleon extension) to build this documentation.
 - pytest to execute the unit tests.
 
 Note that, unless you know what you are doing, you should never install these
