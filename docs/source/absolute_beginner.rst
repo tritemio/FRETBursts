@@ -15,21 +15,22 @@ notebook here:
 
    <a href="http://jupyter-notebook-beginner-guide.readthedocs.org/" target="_blank">Jupyter/IPython Notebook Quick Start Guide</a>
 
-Be sure you can start Jupyter Notebook application and open a notebook before
-moving to the next section.
+Once you are able start Jupyter Notebook application and open
+a notebook you can move to the next section.
 
 Installing FRETBursts
 ---------------------
 
-To install FRETBursts you need to type the following commands in a terminal
+To install FRETBursts, make sure you close Jupyter Notebook, then
+type the following commands in a terminal
 (i.e. ``cmd`` on Windows or ``Terminal`` on OSX)::
 
     conda config --add channels tritemio
     conda install fretbursts
 
-The installation should take a few seconds. If you notice
-any error please report it by opening a new issue on the
-`FRETBursts GitHub page <https://github.com/tritemio/FRETBursts>`_.
+The installation should take a few seconds.
+If you notice any error please report it by opening a new issue on the
+`FRETBursts GitHub Issues <https://github.com/tritemio/FRETBursts/issues>`_.
 
 Running FRETBursts tutorial notebook
 ------------------------------------
@@ -39,8 +40,13 @@ Download the ZIP file of
 and extract it inside a folder accessible by the Jupyter Notebook App.
 
 Next, in the new Jupyter Notebook Dashboard click on the folder containing
-the FRETBursts notebooks and open the us-ALEX tutorial and follow the
-instructions therein.
+the FRETBursts notebooks.
+
+For first time users, we recommend to start from the notebook:
+
+- `FRETBursts - us-ALEX smFRET burst analysis <http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%2520-%2520us-ALEX%2520smFRET%2520burst%2520analysis.ipynb>`__
+
+and follow the instructions therein.
 
 Remember, to run the notebooks step-by-step (one cell a time) keep pressing
 *shift + enter*. To run the entire notebook in a single step click on menu
