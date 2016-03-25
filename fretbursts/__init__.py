@@ -4,22 +4,9 @@
 # Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
- FRETBursts - A single-molecule FRET burst analysis toolkit.
+FRETBursts - A single-molecule FRET burst analysis toolkit.
 
- Copyright (C) 2014-2016 Antonino Ingargiola <tritemio@gmail.com>
-
-
- You can import this package as:
-
-     from fretbursts import *
-
- or as:
-
-     import fretbursts as fb
-
- The loader script `load_fretbursts.py` uses the former import line
- to load the common namespace used in the example notebooks.
-
+Copyright (C) 2014-2016 Antonino Ingargiola <tritemio@gmail.com>
 """
 
 from __future__ import print_function, absolute_import
@@ -31,7 +18,7 @@ del get_versions
 
 ## Citation information
 _CITATION = """
-   FRETBursts: Open Source Burst Analysis Toolkit for Confocal Single-Molecule FRET.
+   FRETBursts: An Open Source Toolkit for Analysis of Freely-Diffusing Single-Molecule FRET
    Ingargiola et al. (2016). http://dx.doi.org/10.1101/039198 """
 
 _INFO_CITATION = (' You are running FRETBursts (version {}).\n\n'
