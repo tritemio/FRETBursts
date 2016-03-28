@@ -9,7 +9,7 @@ For documentation purposes, this is the list of dependencies to run FRETBursts:
 - Matplotlib 1.3 or newer, with QT4 backend (either PyQT4 or PySide).
 - IPython 1.x (2.x recommended)
 - PyTables 3.x. To load/save the :ref:`Photon-HDF5 <hdf5-format>`.
-- lmfit 0.8 or newer, used for flexible histogram fitting.
+- lmfit 0.9.3+, used for flexible histogram fitting.
 - Pandas, currently used just for nice table representations.
 
 If you want to compile the cython extensions (optional) you also need:
