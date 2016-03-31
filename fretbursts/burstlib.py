@@ -674,7 +674,7 @@ class Data(DataContainer):
     def __init__(self, leakage=0., gamma=1., dir_ex=0., **kwargs):
         # Default values
         init_kw = dict(ALEX=False, _leakage=float(leakage), _gamma=float(gamma),
-                       _dir_ex=dir_ex, _chi_ch=1., s=[])
+                       _dir_ex=float(dir_ex), _chi_ch=1., s=[])
         # Override with user data
         init_kw.update(**kwargs)
         DataContainer.__init__(self, **init_kw)
@@ -2212,13 +2212,6 @@ class Data(DataContainer):
         self.add(_leakage=np.asfarray(leakage), leakage_corrected=True)
         self._update_corrections()
 
-    def update_bt(self, BT):
-        """Deprecated. Use .update_leakage() instead.
-        """
-        print('WARNING: The method .update_bt() is deprecated. ')
-        print('Use .update_leakage() instead.')
-        self.update_leakage(BT)
-
     @property
     def dir_ex(self):
         """Direct excitation correction factor."""
@@ -2232,7 +2225,7 @@ class Data(DataContainer):
         """Apply/update direct excitation correction with value `dir_ex`.
         """
         assert np.size(dir_ex) == 1
-        self.add(_dir_ex=dir_ex, dir_ex_corrected=True)
+        self.add(_dir_ex=float(dir_ex), dir_ex_corrected=True)
         self._update_corrections()
 
     @property
@@ -2249,6 +2242,7 @@ class Data(DataContainer):
         msg = 'chi_ch is a per-channel correction and must have size == nch.'
         assert np.size(chi_ch) == self.nch, ValueError(msg)
         self.add(_chi_ch=np.asfarray(chi_ch))
+        if 'mburst' in self:
             self.calc_fret(corrections=False)
 
     @property
