@@ -2145,8 +2145,8 @@ class Data(DataContainer):
 
         `chi_ch` is a ch-dependent prefactor for gamma used to correct
         the dispersion of fitted E peaks (`E_fit`).
-        `chi_ch` is returned, to apply the correction use `update_chi_ch()`.
-        See also notebook: Gamma corrections.
+        This method returns `chi_ch`. To apply the correction assign the array
+        to the `Data.chi_ch` attribute.
         """
         if 'E_fit' not in self:
             print("ERROR: E_fit values not found. Call a `.fit_E_*` first.")
@@ -2197,7 +2197,7 @@ class Data(DataContainer):
 
     @property
     def leakage(self):
-        """Spectral leakage (bleedthrough) of D emission in the A channel.
+        """Spectral leakage (bleed-through) of D emission in the A channel.
         """
         return self._leakage
 
