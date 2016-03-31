@@ -1174,7 +1174,7 @@ class Data(DataContainer):
         #       (and S if ALEX). We need to update gamma because, in general,
         #       gamma can be an array with a value for each ch.
         if update_gamma:
-            dc.update_gamma(np.mean(self.get_gamma_array()))
+            dc._update_gamma(np.mean(self.get_gamma_array()))
         return dc
 
     ##
@@ -2203,9 +2203,9 @@ class Data(DataContainer):
 
     @leakage.setter
     def leakage(self, leakage):
-        self.update_leakage(leakage)
+        self._update_leakage(leakage)
 
-    def update_leakage(self, leakage):
+    def _update_leakage(self, leakage):
         """Apply/update leakage (or bleed-through) correction.
         """
         assert (np.size(leakage) == 1) or (np.size(leakage) == self.nch)
@@ -2226,9 +2226,9 @@ class Data(DataContainer):
 
     @dir_ex.setter
     def dir_ex(self, value):
-        self.update_dir_ex(value)
+        self._update_dir_ex(value)
 
-    def update_dir_ex(self, dir_ex):
+    def _update_dir_ex(self, dir_ex):
         """Apply/update direct excitation correction with value `dir_ex`.
         """
         assert np.size(dir_ex) == 1
@@ -2242,14 +2242,14 @@ class Data(DataContainer):
 
     @chi_ch.setter
     def chi_ch(self, value):
-        self.update_chi_ch(value)
+        self._update_chi_ch(value)
 
-    def update_chi_ch(self, chi_ch):
+    def _update_chi_ch(self, chi_ch):
         """Change the `chi_ch` value and recompute FRET."""
         msg = 'chi_ch is a per-channel correction and must have size == nch.'
         assert np.size(chi_ch) == self.nch, ValueError(msg)
         self.add(_chi_ch=np.asfarray(chi_ch))
-        self.calc_fret(corrections=False)
+            self.calc_fret(corrections=False)
 
     @property
     def gamma(self):
@@ -2258,9 +2258,9 @@ class Data(DataContainer):
 
     @gamma.setter
     def gamma(self, value):
-        self.update_gamma(value)
+        self._update_gamma(value)
 
-    def update_gamma(self, gamma):
+    def _update_gamma(self, gamma):
         """Change the `gamma` value and recompute FRET."""
         assert (np.size(gamma) == 1) or (np.size(gamma) == self.nch)
         self.add(_gamma=np.asfarray(gamma))
@@ -2414,28 +2414,28 @@ class Data(DataContainer):
             self.dither(mute=mute)
         if corrections:
             self.corrections(mute=mute)
-        self.calculate_fret_eff()
+        self._calculate_fret_eff()
         if self.ALEX:
-            self.calculate_stoich()
-            #self.calc_alex_hist()
+            self._calculate_stoich()
+            #self._calc_alex_hist()
         for attr in ['E_fitter', 'S_fitter', 'ES_binwidth', 'ES_hist']:
             if attr in self:
                 self.delete(attr)
 
-    def calculate_fret_eff(self):
+    def _calculate_fret_eff(self):
         """Compute FRET efficiency (`E`) for each burst."""
         G = self.get_gamma_array()
         E = [na/(g*nd + na) for nd, na, g in zip(self.nd, self.na, G)]
         self.add(E=E)
 
-    def calculate_stoich(self):
+    def _calculate_stoich(self):
         """Compute "stoichiometry" (the `S` parameter) for each burst."""
         G = self.get_gamma_array()
         S = [(g*d + a)/(g*d + a + aa) for d, a, aa, g in
              zip(self.nd, self.na, self.naa, G)]
         self.add(S=S)
 
-    def calc_alex_hist(self, binwidth=0.05):
+    def _calc_alex_hist(self, binwidth=0.05):
         """Compute the ALEX histogram with given bin width `bin_step`"""
         if 'ES_binwidth' in self and self.ES_binwidth == binwidth:
             return
