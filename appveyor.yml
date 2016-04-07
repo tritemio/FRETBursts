@@ -35,7 +35,8 @@ install:
   - python setup.py clean --all
 
 before_test:
-  - mkdir "data"
+  - cd c:\projects\FRETBursts\notebooks
+  - mkdir data
   - cd data
   - dir
   - ps: wget http://files.figshare.com/2182604/12d_New_30p_320mW_steer_3.hdf5 -OutFile 12d_New_30p_320mW_steer_3.hdf5
