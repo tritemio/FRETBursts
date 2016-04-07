@@ -48,7 +48,7 @@ test_script:
   - py.test -v
 
 after_test:
-  - python setup bdist_wheel
+  - python setup.py bdist_wheel
 
 artifacts:
   # bdist_wheel puts your built wheel in the dist directory
