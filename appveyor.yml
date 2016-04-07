@@ -28,11 +28,21 @@ install:
   - conda config --add channels tritemio
   - "conda create -q -n test-environment python=%PYTHON_VERSION% numpy scipy pandas matplotlib pytables pytest pyqt seaborn lmfit cython numba"
   - activate test-environment
+  - dir
+  - cd c:\projects\FRETBursts
+  - dir
+  - python setup.py build
+  - python setup.py install
 
 before_test:
-  - mkdir "notebooks\data"
-  - cd notebooks\data
-  - ps: wget http://files.figshare.com/2182604/12d_New_30p_320mW_steer_3.hdf5
+  - cd c:\projects\FRETBursts\notebooks\
+  - dir
+  - mkdir "data"
+  - cd data
+  - dir
+  - ps: wget http://files.figshare.com/2182604/12d_New_30p_320mW_steer_3.hdf5 -OutFile 12d_New_30p_320mW_steer_3.hdf5
+  - ps: wget http://files.figshare.com/2182601/0023uLRpitc_NTP_20dT_0.5GndCl.hdf5 -OutFile 0023uLRpitc_NTP_20dT_0.5GndCl.hdf5
 
 test_script:
+  - cd c:\projects\FRETBursts
   - py.test -v
