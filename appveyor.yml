@@ -3,17 +3,18 @@ build: false
 environment:
   matrix:
     - PYTHON: "C:\\Python27-x64"
-      PYTHON_VERSION: "2.7.8"
+      PYTHON_VERSION: "2.7"
       PYTHON_ARCH: "64"
       MINICONDA: C:\Miniconda-x64
 
     - PYTHON: "C:\\Python34-x64"
-      PYTHON_VERSION: "3.4.1"
+      PYTHON_VERSION: "3.4"
       PYTHON_ARCH: "64"
       MINICONDA: C:\Miniconda3-x64
+      DISTUTILS_USE_SDK: "1"
 
     - PYTHON: "C:\\Python35-x64"
-      PYTHON_VERSION: "3.5.1"
+      PYTHON_VERSION: "3.5"
       PYTHON_ARCH: "64"
       MINICONDA: C:\Miniconda35-x64
 
@@ -28,14 +29,14 @@ install:
   - conda config --add channels tritemio
   - "conda create -q -n test-environment python=%PYTHON_VERSION% numpy scipy pandas matplotlib pytables pytest pyqt seaborn lmfit cython numba"
   - activate test-environment
-  - cd c:\projects\FRETBursts
+  - cd %APPVEYOR_BUILD_FOLDER%
   - dir
-  - python setup.py build
+  - build.cmd python setup.py build
   - pip install .
   - python setup.py clean --all
 
 before_test:
-  - cd c:\projects\FRETBursts\notebooks
+  - cd %APPVEYOR_BUILD_FOLDER%\notebooks
   - mkdir data
   - cd data
   - dir
@@ -43,5 +44,12 @@ before_test:
   - ps: wget http://files.figshare.com/2182601/0023uLRpitc_NTP_20dT_0.5GndCl.hdf5 -OutFile 0023uLRpitc_NTP_20dT_0.5GndCl.hdf5
 
 test_script:
-  - cd c:\projects\FRETBursts
+  - cd %APPVEYOR_BUILD_FOLDER%
   - py.test -v
+
+after_test:
+  - python setup bdist_wheel
+
+artifacts:
+  # bdist_wheel puts your built wheel in the dist directory
+  - path: dist\*
