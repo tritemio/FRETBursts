@@ -481,7 +481,7 @@ class Bursts(object):
         a "full" timestamps array of size `mask.size`.
 
         This is useful when performing burst search on a timestamps selection
-        and we want to tranform the burst data to use the index of the "full"
+        and we want to transform the burst data to use the index of the "full"
         timestamps array.
 
         Arguments:
@@ -513,7 +513,7 @@ class Bursts(object):
 #        for i, burst in enumerate(self):
 #            # The first index ([0]) accesses the tuple returned by nonzero.
 #            # The second index ([0] or [-1]) accesses the array inside the
-#            # tuple. THis array can have size > 1 when burst start or stop
+#            # tuple. This array can have size > 1 when burst start or stop
 #            # happens on a repeated timestamp.
 #            out[i].istart = np.nonzero(times_reduced == burst.start)[0][0]
 #            out[i].istop = np.nonzero(times_reduced == burst.stop)[0][-1]
