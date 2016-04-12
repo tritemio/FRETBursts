@@ -240,10 +240,9 @@ def fuse_bursts_direct(bursts, ms=0, clk_p=12.5e-9, verbose=True):
 
     Parameters:
         bursts (BurstsGap object): bursts to be fused.
-            See `burstseach.burstseachlib.py` for details.
-        ms (float):
-            minimum waiting time between bursts (in millisec). Burst closer
-            than that will be fuse in a single burst.
+            See `phtools.burstsearch` for details.
+        ms (float): minimum waiting time between bursts (in millisec).
+            Bursts closer than that will be fused in a single burst.
         clk_p (float): clock period or timestamp units in seconds.
         verbose (bool): if True print a summary of fused bursts.
 
@@ -306,9 +305,9 @@ def fuse_bursts_iter(bursts, ms=0, clk_p=12.5e-9, verbose=True):
 
     Parameters:
         bursts (BurstsGap object): bursts to be fused.
-            See `burstseach.burstseachlib.py` for details.
+            See `phtools.burstsearch` for details.
         ms (float): minimum waiting time between bursts (in millisec).
-            Burst closer than that will be fuse in a single burst.
+            Bursts closer than that will be fused in a single burst.
         clk_p (float): clock period or timestamp units in seconds.
         verbose (bool): if True print a summary of fused bursts.
 
@@ -342,9 +341,9 @@ def b_fuse(bursts, ms=0, clk_p=12.5e-9):
 
     Parameters:
         bursts (BurstsGap object): bursts to be fused.
-            See `burstseach.burstseachlib.py` for details.
+            See `phtools.burstsearch` for details.
         ms (float): minimum waiting time between bursts (in millisec).
-            Burst closer than that will be fuse in a single burst.
+            Bursts closer than that will be fused in a single burst.
         clk_p (float): clock period or timestamp units in seconds.
 
     Returns:
