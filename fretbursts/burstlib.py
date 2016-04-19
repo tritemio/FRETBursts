@@ -1612,14 +1612,20 @@ class Data(DataContainer):
                                       ph_sel)
         return BG[ph_sel]
 
-    def _calc_T(self, m, P, F=1., ph_sel=Ph_sel('all')):
+    def _calc_T(self, m, P, F=1., ph_sel=Ph_sel('all'), c=-1):
         """If P is None use F, otherwise uses both P *and* F (F defaults to 1).
+
+        When P is None, compute the time lag T for burst search according to::
+
+            T = (m - 1 - c) / (F * bg_rate)
+
         """
         # Regardless of F and P sizes, FF and PP are arrays with size == nch
         FF = self._param_as_mch_array(F)
         PP = self._param_as_mch_array(P)
         if P is None:
-            find_T = lambda m, Fi, Pi, bg: m/(bg*Fi)  # NOTE: ignoring P_i
+            # NOTE: ignoring P_i
+            find_T = lambda m, Fi, Pi, bg: (m - 1 - c) / (bg * Fi)
         else:
             if F != 1:
                 print("WARNING: BS prob. th. with modified BG rate (F=%.1f)" \
@@ -1636,10 +1642,14 @@ class Data(DataContainer):
         self.add(TT=TT, T=T, bg_bs=bg_bs, FF=FF, PP=PP, F=F, P=P,
                  rate_th=rate_th)
 
-    def _burst_search_rate(self, m, L, min_rate_cps, ph_sel=Ph_sel('all'),
+    def _burst_search_rate(self, m, L, min_rate_cps, c=-1, ph_sel=Ph_sel('all'),
                            compact=False, index_allph=True, verbose=True,
                            pure_python=False):
         """Compute burst search using a fixed minimum photon rate.
+
+        The burst starts when, for `m` consecutive photons::
+
+            (m - 1 - c) / (t[last] - t[first]) >= min_rate_cps
 
         Arguments:
             min_rate_cps (float or array): minimum photon rate for burst start
@@ -1649,7 +1659,7 @@ class Data(DataContainer):
 
         Min_rate_cps = self._param_as_mch_array(min_rate_cps)
         mburst = []
-        T_clk = (m/Min_rate_cps)/self.clk_p
+        T_clk = (m - 1 - c) / Min_rate_cps / self.clk_p
         for ich, t_clk in enumerate(T_clk):
             ph_bs = ph = self.get_ph_times(ich=ich, ph_sel=ph_sel)
             if compact:
@@ -1726,7 +1736,7 @@ class Data(DataContainer):
 
     def burst_search(self, L=None, m=10, F=6., P=None, min_rate_cps=None,
                      ph_sel=Ph_sel('all'), compact=False, index_allph=True,
-                     computefret=True, max_rate=False, dither=False,
+                     c=-1, computefret=True, max_rate=False, dither=False,
                      pure_python=False, verbose=False, mute=False):
         """Performs a burst search with specified parameters.
 
@@ -1770,6 +1780,11 @@ class Data(DataContainer):
                 and stop (`istart`, `istop`) are relative to the full
                 timestamp array. If False, the indexes are relative to
                 timestamps selected by the `ph_sel` argument.
+            c (float): correction factor used in the relation between
+                rate and time-lags.
+                `c` affects the computation of the burst-search parameter `T`.
+                When `F` is not None, `T = (m - 1 - c) / (F * bg_rate)`.
+                When using `min_rate_cps`, `T = (m - 1 - c) / min_rate_cps`.
             computefret (bool): if True (default) compute donor and acceptor
                 counts, apply corrections (background, leakage, direct
                 excitation) and compute E (and S). If False, skip all these
@@ -1801,13 +1816,13 @@ class Data(DataContainer):
         if L is None: L = m
         if min_rate_cps is not None:
             # Saves rate_th in self
-            self._burst_search_rate(m=m, L=L, min_rate_cps=min_rate_cps,
+            self._burst_search_rate(m=m, L=L, min_rate_cps=min_rate_cps, c=c,
                                     ph_sel=ph_sel, compact=compact,
                                     index_allph=index_allph,
                                     verbose=verbose, pure_python=pure_python)
         else:
             # Compute TT, saves P and F in self
-            self._calc_T(m=m, P=P, F=F, ph_sel=ph_sel)
+            self._calc_T(m=m, P=P, F=F, ph_sel=ph_sel, c=c)
             # Use TT and compute mburst
             self._burst_search_TT(L=L, m=m, ph_sel=ph_sel, compact=compact,
                                   index_allph=index_allph, verbose=verbose,
