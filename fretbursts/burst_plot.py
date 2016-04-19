@@ -1894,7 +1894,8 @@ def _calc_vmin(vmax, vmax_threshold, vmin_default):
 def alex_jointplot(d, i=0, gridsize=50, cmap='Spectral_r', kind='hex',
                    vmax_fret=True, vmax_threshold=10,
                    vmin_default=0, vmin=None, cmap_compensate=False,
-                   joint_kws=None, marginal_kws=None, histcolor_id=0):
+                   joint_kws=None, marginal_kws=None, histcolor_id=0,
+                   rightside_text=False):
     """Plot an ALEX join plot: an E-S 2D histograms with marginal E and S.
 
     This function plots a jointplot: a main 2D histogram (hexbin plot)
@@ -1929,6 +1930,9 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='Spectral_r', kind='hex',
         histcolor_id (int): the colormap passes as `cmap` is divided in
             12 colors. `histcolor_id` is the index of the color to be used
             for the marginal 1D histogram. Default 1.
+        rightside_text (bool): when True, print the measurement name on
+            the right side of the figure. When False (default) no additional
+            text is printed.
 
     .. seealso::
         The `Seaborn documentation <http://web.stanford.edu/~mwaskom/software/seaborn/index.html>`__
@@ -1983,6 +1987,9 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='Spectral_r', kind='hex',
                template='{stat}: {val}')
     colorbar = kind.startswith('hex')
     _alex_plot_style(g, colorbar=colorbar)
+    if rightside_text:
+        plt.text(1.15, 0.6, d.name, transform=g.fig.transFigure, fontsize=14,
+                 bbox=dict(edgecolor='r', facecolor='none', lw=1.3, alpha=0.5))      
     return g
 
 def _register_colormaps():
