@@ -715,7 +715,7 @@ def join_data(d_list, gap=1):
 
     return new_d
 
-def burst_search_and_gate(dx, F=6, m=10, min_rate_cps=None,
+def burst_search_and_gate(dx, F=6, m=10, min_rate_cps=None, c=-1,
                           ph_sel1=Ph_sel(Dex='DAem'),
                           ph_sel2=Ph_sel(Aex='Aem'), compact=False, mute=False):
     """Return a Data object containing bursts obtained by and-gate burst-search.
@@ -734,9 +734,12 @@ def burst_search_and_gate(dx, F=6, m=10, min_rate_cps=None,
             search. Background estimation must be performed before the search.
         F (float): Burst search parameter F.
         m (int): Burst search parameter m.
-        min_rate (float or list/array): min. rate in cps for burst detection.
-            If not None has the precedence over `F`.
+        min_rate_cps (float or list/array): min. rate in cps for burst detection.
+            If not None, min_rate_cps overrides any value passed in `F`.
             If non-scalar, it must contain one rate per each channel.
+        c (float): parameter used set the definition of the rate estimatator.
+            See `c` parameter in :meth:`.burstlib.Data.burst_search`
+            for details.
         ph_sel1 (Ph_sel object): photon selections used for bursts search 1.
         ph_sel2 (Ph_sel object): photon selections used for bursts search 2.
         mute (bool): if True nothing is printed. Default: False.
@@ -750,10 +753,10 @@ def burst_search_and_gate(dx, F=6, m=10, min_rate_cps=None,
     dx_a = dx.copy(mute=mute)
     dx_and = dx.copy(mute=mute)
 
-    dx_d.burst_search(L=m, m=m, F=F, min_rate_cps=min_rate_cps,
+    dx_d.burst_search(L=m, m=m, F=F, min_rate_cps=min_rate_cps, c=c,
                       ph_sel=ph_sel1, compact=compact, computefret=False,
                       mute=mute)
-    dx_a.burst_search(L=m, m=m, F=F, min_rate_cps=min_rate_cps,
+    dx_a.burst_search(L=m, m=m, F=F, min_rate_cps=min_rate_cps, c=c,
                       ph_sel=ph_sel2, compact=compact, computefret=False,
                       mute=mute)
 
