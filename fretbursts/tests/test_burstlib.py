@@ -502,7 +502,8 @@ def test_phrates_mtuple(data):
         t_rates = 0.5 * (phc[m-1:] + phc[:-m+1])
         assert phrates.mtuple_rates_max(phc, m) == rates.max()
         assert phrates.mtuple_delays_min(phc, m) == delays.min()
-        assert (rates == m/delays).all()
+        assert phrates.default_c == 1
+        assert (rates == (m - 1 - phrates.default_c) / delays).all()
         assert (phrates.mtuple_rates_t(phc, m) == t_rates).all()
 
 def test_phrates_kde(data):
