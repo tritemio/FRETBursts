@@ -2376,7 +2376,8 @@ class Data(DataContainer):
                            self.mburst)]
         return results_mch
 
-    def calc_max_rate(self, m, ph_sel=Ph_sel('all'), compact=False):
+    def calc_max_rate(self, m, ph_sel=Ph_sel('all'), compact=False, 
+                      c=phrates.default_c):
         """Compute the max m-photon rate reached in each burst.
 
         Arguments:
@@ -2386,7 +2387,7 @@ class Data(DataContainer):
         """
         ph_sel = self._fix_ph_sel(ph_sel)
         Max_Rate = self.calc_burst_ph_func(func=phrates.mtuple_rates_max,
-                                           func_kw=dict(m=m),
+                                           func_kw=dict(m=m, c=c),
                                            ph_sel=ph_sel, compact=compact)
         Max_Rate = [mr/self.clk_p - bg[bp] for bp, bg, mr in
                     zip(self.bp, self.bg_from(ph_sel), Max_Rate)]

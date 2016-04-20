@@ -38,6 +38,7 @@ except ImportError:
 else:
     has_numba = True
 
+default_c = 1
 
 ##
 # Functions to compute rates using m-tuple of photon timestamps
@@ -69,7 +70,7 @@ def mtuple_delays_min(ph, m):
     else:
         return mtuple_delays(ph=ph, m=m).min()
 
-def mtuple_rates(ph, m, c=1):
+def mtuple_rates(ph, m, c=default_c):
     """Compute the instantaneous rates for timestamps in `ph` using `m` photons.
 
     Compute the rates for all the consecutive sets of *m* photons. Noting that
@@ -103,7 +104,7 @@ def mtuple_rates_t(ph, m):
     """Compute mean time for each rate computed by `mtuple_rates`."""
     return 0.5*(ph[m-1:] + ph[:ph.size-m+1])  # time for rate
 
-def mtuple_rates_max(ph, m):
+def mtuple_rates_max(ph, m, c=default_c):
     """Compute max m-photon rate in `ph`."""
     if ph.size < m:
         return None
