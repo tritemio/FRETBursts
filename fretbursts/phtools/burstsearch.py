@@ -4,9 +4,9 @@
 # Copyright (C) 2014-2016 Antonino Ingargiola <tritemio@gmail.com>
 #
 """
-This module provides the low-level (or core)
+The module :mod:`phtools.burstsearch` provides the low-level (or core)
 burst search and photon counting functions.
-It also provides :class:`Bursts`, a container for a set of bursts.
+This module also provides :class:`Bursts`, a container for a set of bursts.
 :class:`Bursts` provides attributes for the main burst quatitites (`istart`,
 `istop`, `start`, `stop`, `counts`,  `width`, etc...). It implements the
 iterator interface (iterate burst by burst). Moreover :class:`Bursts` can
