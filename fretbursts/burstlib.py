@@ -2376,7 +2376,7 @@ class Data(DataContainer):
                            self.mburst)]
         return results_mch
 
-    def calc_max_rate(self, m, ph_sel=Ph_sel('all'), compact=False, 
+    def calc_max_rate(self, m, ph_sel=Ph_sel('all'), compact=False,
                       c=phrates.default_c):
         """Compute the max m-photon rate reached in each burst.
 
@@ -2384,6 +2384,10 @@ class Data(DataContainer):
             m (int): number of timestamps to use to compute the rate
             ph_sel (Ph_sel object): object defining the photon selection.
                 See :mod:`fretbursts.ph_sel` for details.
+            c (float): this parameter is used in the definition of the
+                rate estimator which is
+                `(m - 1 - c) / t[last] - t[first]`.
+                For more details see :func:`.phtools.phrates.mtuple_rates`.
         """
         ph_sel = self._fix_ph_sel(ph_sel)
         Max_Rate = self.calc_burst_ph_func(func=phrates.mtuple_rates_max,
