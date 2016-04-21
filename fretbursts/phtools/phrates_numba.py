@@ -1,5 +1,5 @@
 """
-Numba-optimized version of functions to compute photon rates.
+Numba-optimized version of functions to compute KDE-based photon rates.
 """
 
 from __future__ import division
