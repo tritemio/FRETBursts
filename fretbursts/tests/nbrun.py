@@ -9,9 +9,9 @@ The executed notebooks are saved with a '-out' suffix.
 Usage:
 
     nbrun.py notebook_folder ouput_folder
-    
-"""
 
+"""
+from __future__ import print_function
 import os
 import time
 import nbformat
