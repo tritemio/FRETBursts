@@ -47,6 +47,7 @@ before_test:
 test_script:
   - cd %APPVEYOR_BUILD_FOLDER%
   - py.test -v
+  - python fretbursts/tests/nbrun.py notebooks
 
 after_test:
   - python setup.py bdist_wheel
