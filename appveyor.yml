@@ -52,6 +52,7 @@ test_script:
   - python ../fretbursts/tests/nbrun.py
 
 after_test:
+  - cd %APPVEYOR_BUILD_FOLDER%
   - python setup.py bdist_wheel
 
 artifacts:
