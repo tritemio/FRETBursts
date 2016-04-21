@@ -27,7 +27,7 @@ install:
   - conda update -q conda
   - conda info -a
   - conda config --add channels tritemio
-  - "conda create -q -n test-environment python=%PYTHON_VERSION% numpy scipy pandas matplotlib pytables pytest pyqt seaborn lmfit cython numba nbconvert"
+  - "conda create -q -n test-environment python=%PYTHON_VERSION% numpy scipy pandas matplotlib pytables pytest pyqt seaborn lmfit cython numba nbconvert ipykernel"
   - activate test-environment
   - python --version
   - cd %APPVEYOR_BUILD_FOLDER%
