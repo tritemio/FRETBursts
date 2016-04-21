@@ -27,3 +27,7 @@ MANIFEST
 docs_html/
 .coverage
 notebooks/out
+notebooks/wip
+.cache
+*.csv
+_*
