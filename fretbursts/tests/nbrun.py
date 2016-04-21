@@ -40,9 +40,10 @@ def run_notebook(notebook_name, nb_suffix='-out', out_path='.', timeout=3600,
     nb_name_output = os.path.join(out_path, nb_name_output)
     print('- Executing: ', nb_name_input)
 
-    if execute_kwargs is None:
-        execute_kwargs = {}
-    ep = ExecutePreprocessor(timeout=timeout, **execute_kwargs)
+    execute_kwargs_ = dict(kernel_name = 'python%d' % sys.version_info[0])
+    if execute_kwargs is not None:
+        execute_kwargs_.update(execute_kwargs)
+    ep = ExecutePreprocessor(timeout=timeout, **execute_kwargs_)
     nb = nbformat.read(nb_name_input, as_version=4)
 
     start_time = time.time()
