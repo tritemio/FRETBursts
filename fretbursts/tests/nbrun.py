@@ -38,7 +38,7 @@ def run_notebook(notebook_name, nb_suffix='-out', out_path='.', timeout=3600,
     nb_name_input = notebook_name + '.ipynb'
     nb_name_output = notebook_name + '%s.ipynb' % nb_suffix
     nb_name_output = os.path.join(out_path, nb_name_output)
-    print('- Executing: ', nb_name_input, flush=True)
+    print('- Executing: ', nb_name_input)
 
     if execute_kwargs is None:
         execute_kwargs = {}
@@ -63,7 +63,7 @@ def run_notebook(notebook_name, nb_suffix='-out', out_path='.', timeout=3600,
     finally:
         # Save the notebook even when it raises an error
         nbformat.write(nb, nb_name_output)
-        print('* Output: ', nb_name_output, flush=True)
+        print('* Output: ', nb_name_output)
 
 if __name__ == '__main__':
     from pathlib import Path
@@ -81,5 +81,5 @@ if __name__ == '__main__':
     pathlist = list(Path(path).glob('*.ipynb'))
     for nbpath in pathlist:
         if not (nbpath.stem.endswith('-out') or nbpath.stem.startswith('_')):
-            print(flush=True)
+            print()
             run_notebook(nbpath, out_path=out_path)
