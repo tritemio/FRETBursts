@@ -9,7 +9,7 @@ The `fretmath` module contains functions to compute corrected FRET efficiency
 from the proximity ratio and vice-versa.
 
 For derivation see notebook: "Derivation of FRET and S correction formulas.ipynb"
-(`link <http://nbviewer.ipython.org/github/tritemio/notebooks/blob/master/Derivation%20of%20FRET%20and%20S%20correction%20formulas.ipynb>`__).
+(`link <http://nbviewer.jupyter.org/github/tritemio/notebooks/blob/master/Derivation%20of%20FRET%20and%20S%20correction%20formulas.ipynb>`__).
 
 """
 
@@ -137,28 +137,31 @@ def dir_ex_uncorrect_E(E, dir_ex_t):
         E = np.asarray(E)
     return (E + dir_ex_t) / (dir_ex_t + 1)
 
-def correct_S(Sraw, nd, naa, gamma, d_exAA, Lk):
+def correct_S(Eraw, Sraw, gamma, leakage, dir_ex_t):
     """Correct S values for gamma, leakage and direct excitation.
 
     Arguments:
-        Sraw (scalar or array): uncorrected ("raw") S after background
-            correction, but no gamma, leakage or direct excitation.
-        nd (scalar or array): donor counts during donor excitation
-            (background corrected).
-        naa (scalar or array): acceptor counts during acceptor excitation
-            (background corrected)
-        gamma (float): gamma factor
-        leakage (float): leakage coefficient
-        dir_exAA (float): coefficient expressing the direct excitation as
-            function of the acceptor counts during acceptor excitation:
-            n_dir = dir_exAA * naa.
+        Eraw (scalar or array): uncorrected ("raw") E after only background
+            correction (no gamma, leakage or direct excitation).
+        Sraw (scalar or array): uncorrected ("raw") S after only background
+            correction (no gamma, leakage or direct excitation).
+        gamma (float): gamma factor.
+        leakage (float): donor emission leakage into the acceptor channel.
+        dir_ex_t (float): direct acceptor excitation by donor laser.
+            Defined as ``n_dir = dir_ex_t * (na + g nd)``. The dir_ex_t
+            coefficient is the ratio between D and A absorbtion cross-sections
+            at the donor-excitation wavelength.
 
     Returns
         Corrected S (stoichiometry), same size as `Sraw`.
     """
-    x = nd - gamma*nd + d_exAA*naa
-    y = Lk*Sraw*nd - Lk*nd
-    return (Sraw*naa + x*(Sraw - 1) + y)/(naa + x*(Sraw - 1) + y)
+    if isinstance(Eraw, (list, tuple)):
+        Eraw = np.asarray(Eraw)
+    if isinstance(Sraw, (list, tuple)):
+        Sraw = np.asarray(Sraw)
+    return (*(Eraw*leakage - Eraw*gamma + Eraw - leakage + gamma) /
+            (Eraw*leakage*Sraw - Eraw*Sraw*gamma + Eraw*Sraw - leakage*Sraw -
+             Sraw*dir_ex_t + Sraw*gamma - Sraw + dir_ex_t + 1))
 
 
 def test_fretmath():
