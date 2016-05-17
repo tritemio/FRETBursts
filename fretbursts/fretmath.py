@@ -159,10 +159,15 @@ def correct_S(Eraw, Sraw, gamma, leakage, dir_ex_t):
         Eraw = np.asarray(Eraw)
     if isinstance(Sraw, (list, tuple)):
         Sraw = np.asarray(Sraw)
-    return (*(Eraw*leakage - Eraw*gamma + Eraw - leakage + gamma) /
+    return (Sraw*(Eraw*leakage - Eraw*gamma + Eraw - leakage + gamma) /
             (Eraw*leakage*Sraw - Eraw*Sraw*gamma + Eraw*Sraw - leakage*Sraw -
              Sraw*dir_ex_t + Sraw*gamma - Sraw + dir_ex_t + 1))
 
+def uncorrect_S(E_R, S, gamma, L_k, d_dirT):
+    """Function used to test :func:`correct_S`."""
+    return (S*(d_dirT + 1) /
+            (-E_R*L_k*S + E_R*L_k + E_R*S*gamma - E_R*S - E_R*gamma +
+             E_R + L_k*S - L_k + S*d_dirT - S*gamma + S + gamma))
 
 def test_fretmath():
     """Run a few consistency checks for the correction functions.
@@ -218,7 +223,28 @@ def test_fretmath():
         E2 = uncorrect_E_gamma_leak_dir(Ex, dir_ex_t=dir_ex_t)
         assert np.allclose(E1, E2)
 
+    # Test S correction
+    np.random.seed(1)
+    Ex = np.arange(-0.2, 1.2, 0.01)
+    Sx = np.arange(-0.2, 1.2, 0.01)
+    np.random.shuffle(Ex)
+    np.random.shuffle(Sx)
 
+    gamma_ = 1
+    leakage_ = 0
+    dir_ex_t_ = 0
+    S_corr = correct_S(Ex, Sx, gamma_, leakage_, dir_ex_t_)
+    S_uncorr = uncorrect_S(Ex, S_corr, gamma_, leakage_, dir_ex_t_)
+    assert np.allclose(S_corr, Sx)
+    assert np.allclose(S_uncorr, Sx)
+
+    gamma_ = 0.7
+    leakage_ = 0.05
+    dir_ex_t_ = 0.1
+    S_corr = correct_S(Ex, Sx, gamma_, leakage_, dir_ex_t_)
+    S_uncorr = uncorrect_S(Ex, S_corr, gamma_, leakage_, dir_ex_t_)
+    assert np.allclose(S_uncorr, Sx)
+    assert (S_corr.min() > -0.5) and (S_corr.max() < 1.5)
 
 if __name__ == '__main__':
     test_fretmath()
