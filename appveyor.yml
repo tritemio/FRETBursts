@@ -29,6 +29,7 @@ install:
   - conda config --add channels tritemio
   - "conda create -q -n test-environment python=%PYTHON_VERSION% numpy scipy pandas matplotlib pytables pytest pyqt seaborn lmfit cython numba nbconvert ipykernel ipywidgets"
   - activate test-environment
+  - python -m pip install --upgrade pip
   - ps: 'if($env:PYTHON_VERSION -eq "2.7"){pip install pathlib}'
   - python --version
   - cd %APPVEYOR_BUILD_FOLDER%
