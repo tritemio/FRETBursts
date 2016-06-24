@@ -210,13 +210,12 @@ def factory_two_gaussians(add_bridge=False, p1_center=0.1, p2_center=0.9,
 
 def factory_three_gaussians(p1_center=0., p2_center=0.5, p3_center=1,
                             sigma=0.05):
-    """Return a 2-Gaussian + (optional) bridge model that can fit data.
+    """Return a 3-Gaussian model that can fit data.
 
-    Arguments:
-        add_bridge (bool): if True adds a bridge function between the two
-            gaussian peaks. If False the model has only two Gaussians.
-
-    The other arguments are initial values for the model parameters.
+    The other arguments are initial values for the `center` for each
+    Gaussian component plus an single `sigma` argument that is used
+    as initial sigma for all the Gaussians. Note that during the fitting
+    the sigma of each Gaussian is varied independently.
 
     Returns
         An `lmfit.Model` object with all the parameters already initialized.
