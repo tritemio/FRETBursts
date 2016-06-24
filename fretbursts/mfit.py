@@ -43,6 +43,9 @@ def gaussian(x, center, sigma, amplitude=1):
 def asym_gaussian(x, center, sigma1, sigma2, amplitude):
     """A asymmetric gaussian function composed by two gaussian halves.
 
+    This function is composed from two gaussians joined at their peak, so that
+    the left and right side decay with different sigmas.
+
     Arguments:
         x (array): 1-D array for the independent variable
         center (float): function peak position
@@ -64,12 +67,12 @@ def asym_gaussian(x, center, sigma1, sigma2, amplitude):
 def bridge_function(x, center1, center2, sigma1, sigma2, amplitude):
     """A "bridge" function, complementary of two gaussian peaks.
 
-    Let `g` be a Gaussian function (with apmplitude = 1), the bridge function
-    is defined as:
+    Let `g` be a Gaussian function (with amplitude = 1), the bridge function
+    is defined as::
 
         amplitude * (1 - g(x, center1, sigma1) - g(x, center2, sigma2))
 
-    for center1 < x < center2. The function is 0 otherwise.
+    for `center1 < x < center2`. The function is 0 otherwise.
 
     Arguments:
         x (array): 1-D array for the independent variable
@@ -160,6 +163,17 @@ def factory_asym_gaussian(center=0.1, sigma1=0.1, sigma2=0.1, amplitude=1):
 def factory_two_gaussians(add_bridge=False, p1_center=0.1, p2_center=0.9,
                           p1_sigma=0.03, p2_sigma=0.03):
     """Return a 2-Gaussian + (optional) bridge model that can fit data.
+
+    When adding the "bridge" (i.e. a plateau between the two peaks) the
+    bridge component is a function that is non-zero only between `p1_center`
+    and `p2_center` and is defined as::
+
+        amplitude * (1 - g(x, p1_center, p1_sigma) - g(x, p1_center, p2_sigma))
+
+    where `g` is a gaussian function with amplitude = 1. Note that both
+    centers and sigmas parameters are the same that define the adjacent
+    Gaussian peaks. The "bridge" function is implemented in
+    :func:`bridge_function`.
 
     Arguments:
         add_bridge (bool): if True adds a bridge function between the two

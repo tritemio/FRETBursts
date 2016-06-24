@@ -30,3 +30,13 @@ that return pre-initialized models for fitting E and S data.
 
 .. autofunction:: factory_three_gaussians
 
+
+Utility functions
+-----------------
+
+The following functions are utility functions used to build the
+the model functions (i.e. the "factory functions") for the fitting.
+
+.. autofunction:: bridge_function
+
+.. autofunction:: asym_gaussian
