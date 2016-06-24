@@ -164,22 +164,27 @@ def factory_two_gaussians(add_bridge=False, p1_center=0.1, p2_center=0.9,
                           p1_sigma=0.03, p2_sigma=0.03):
     """Return a 2-Gaussian + (optional) bridge model that can fit data.
 
-    When adding the "bridge" (i.e. a plateau between the two peaks) the
-    bridge component is a function that is non-zero only between `p1_center`
-    and `p2_center` and is defined as::
+    The optional "bridge" component (i.e. a plateau between the two peaks)
+    is a function that is non-zero only between `p1_center` and `p2_center`
+    and is defined as::
 
-        amplitude * (1 - g(x, p1_center, p1_sigma) - g(x, p1_center, p2_sigma))
+        br_amplitude * (1 - g(x, p1_center, p1_sigma) - g(x, p1_center, p2_sigma))
 
-    where `g` is a gaussian function with amplitude = 1. Note that both
-    centers and sigmas parameters are the same that define the adjacent
-    Gaussian peaks. The "bridge" function is implemented in
-    :func:`bridge_function`.
+    where `g` is a gaussian function with amplitude = 1 and `br_amplitude`
+    is the height of the plateau and the only additional parameter introduced
+    by the bridge. Note that both centers and sigmas parameters in the bridge
+    are the same ones of the adjacent Gaussian peaks. Therefore a
+    2-Gaussian + bridge model has 7 free parameters: 3 for each Gaussian and
+    an additional one for the bridge.
+    The bridge function is implemented in :func:`bridge_function`.
 
     Arguments:
+        p1_center, p2_center (float): initial values for the centers of the
+            two Gaussian components.
+        p1_sigma, p2_sigma (float): initial values for the sigmas of the
+            two Gaussian components.
         add_bridge (bool): if True adds a bridge function between the two
             gaussian peaks. If False the model has only two Gaussians.
-
-    The other arguments are initial values for the model parameters.
 
     Returns
         An `lmfit.Model` object with all the parameters already initialized.
