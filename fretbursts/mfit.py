@@ -333,13 +333,17 @@ class FitterBase(object):
 
 
 class MultiFitter(FitterBase):
-    """A class for histogram, fit, KDE multiple datasets contained in a list.
+    """A class handling a list of 1-D datasets (histogramming, KDE, fitting).
 
-    Starting from the datasets in the `data_list` this class allows to
-    conveniently compute histogram and KDE.
-
-    The histograms can be then fitted with an model (lmfit.Model).
-    From the KDEs we can fit the peak position in a range.
+    This class takes a list of 1-D arrays of samples (such as E values
+    per burst). The list contains one 1-D array for each channel in
+    a multispot experiment. In single-spot experiments the list contains only
+    one array of samples.
+    For each dataset in the list, this class compute histograms, KDEs and
+    fits (both histogram fit and KDE maximum). The list of datasets is
+    stored in the attribute `data_list`.
+    The histograms can be fitted with an arbitrary model (lmfit.Model).
+    The KDEs we can be fit the peak position in a range.
 
     Optionally weights can be assigned to each element in a dataset.
     To assign weights assigning the `.weights` attribute with a list of arrays;
