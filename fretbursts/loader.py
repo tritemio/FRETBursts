@@ -496,7 +496,8 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
         a_ex = a_ex[mask]
 
     assert d_em.sum() + a_em.sum() == ph_times.size
-    assert (d_em * a_em).any() is False
+    assert (d_em + a_em).all()       # masks fill the total array
+    assert not (d_em * a_em).any()   # no photon is both D and A
     assert a_ex.size == a_em.size == d_ex.size == d_em.size == ph_times.size
     print("#donor: %d  #acceptor: %d \n" % (d_em.sum(), a_em.sum()))
 
@@ -607,8 +608,8 @@ def nsalex_apply_period(d, delete_ph_t=True):
     # Apply selection to the emission masks
     d_em = d_ch_mask_t[mask]
     a_em = a_ch_mask_t[mask]
-    assert (d_em + a_em).all()
-    assert not (d_em * a_em).any()
+    assert (d_em + a_em).all()       # masks fill the total array
+    assert not (d_em * a_em).any()   # no photon is both D and A
 
     # Apply selection to the excitation masks
     d_ex = d_ex_mask_t[mask]
