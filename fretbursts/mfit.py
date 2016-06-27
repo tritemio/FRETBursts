@@ -343,12 +343,12 @@ class MultiFitter(FitterBase):
     fits (both histogram fit and KDE maximum). The list of datasets is
     stored in the attribute `data_list`.
     The histograms can be fitted with an arbitrary model (lmfit.Model).
-    The KDEs we can be fit the peak position in a range.
+    From KDEs the peak position in a range can be estimated.
 
     Optionally weights can be assigned to each element in a dataset.
-    To assign weights assigning the `.weights` attribute with a list of arrays;
-    Corresponding arrays in `.weights` and `.data_list` must have the same
-    size.
+    To assign weights a user can assign the `.weights` attribute with a list
+    of arrays; corresponding arrays in `.weights` and `.data_list` must have
+    the same size.
 
     Alternatively a function returning the weights can be used. In this case,
     the method `.set_weights_func` allows to set the function to be called
