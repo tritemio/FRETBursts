@@ -499,8 +499,6 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
     assert (d_em + a_em).all()       # masks fill the total array
     assert not (d_em * a_em).any()   # no photon is both D and A
     assert a_ex.size == a_em.size == d_ex.size == d_em.size == ph_times.size
-    print("#donor: %d  #acceptor: %d \n" % (d_em.sum(), a_em.sum()))
-
     d.add(ph_times_m=[ph_times],
           D_em=[d_em], A_em=[a_em], D_ex=[d_ex], A_ex=[a_ex])
 
@@ -652,3 +650,10 @@ def alex_apply_period(d, delete_ph_t=True):
     else:
         apply_period_func = usalex_apply_period
     apply_period_func(d, delete_ph_t=delete_ph_t)
+    msg = ('# Total photons (after ALEX selection):  {:10,}\n'
+           '#  D  photons in D+A excitation periods: {:10,}\n'
+           '#  A  photons in D+A excitation periods: {:10,}\n'
+           '# D+A photons in  D  excitation period:  {:10,}\n'
+           '# D+A photons in  A  excitation period:  {:10,}\n')
+    print(msg.format(d.ph_times_m[0].size, d.D_em[0].sum(), d.A_em[0].sum(),
+                     d.D_ex[0].sum(), d.A_ex[0].sum()))
