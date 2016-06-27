@@ -38,7 +38,7 @@ from .phtools.burstsearch import (
     bsearch,
     # Photon counting function,
     mch_count_ph_in_bursts
-    )
+)
 from .phtools import phrates
 from . import background as bg
 from . import select_bursts
@@ -83,7 +83,7 @@ def isarray(obj):
     return hasattr(obj, '__array__')
 
 
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  BURST SELECTION FUNCTIONS
 #
 
@@ -98,7 +98,7 @@ def Sel(d_orig, filter_fun, negate=False, nofret=False, **kwargs):
     return d_sel
 
 
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Bursts and Timestamps utilities
 #
 def get_alex_fraction(on_range, alex_period):
@@ -106,9 +106,9 @@ def get_alex_fraction(on_range, alex_period):
     """
     assert len(on_range) == 2
     if on_range[0] < on_range[1]:
-        fraction = (on_range[1] - on_range[0])/alex_period
+        fraction = (on_range[1] - on_range[0]) / alex_period
     else:
-        fraction = (alex_period + on_range[1] - on_range[0])/alex_period
+        fraction = (alex_period + on_range[1] - on_range[0]) / alex_period
     return fraction
 
 def top_tail(nx, a=0.1):
@@ -116,7 +116,7 @@ def top_tail(nx, a=0.1):
     nx is one of nd, na, nt from Data() (list of burst size in each ch).
     """
     assert a > 0 and a < 1
-    return np.r_[[n[n > n.max()*(1-a)].mean() for n in nx]]
+    return np.r_[[n[n > n.max() * (1 - a)].mean() for n in nx]]
 
 
 ##
@@ -148,7 +148,7 @@ def _ph_times_compact(ph_times_sel, alex_period, excitation_width):
     #   ph_times_sel = ph_times_sel - gaps
     #
     # As a memory optimization the `-gaps` array is reused inplace
-    times_minusgaps = (ph_times_sel // alex_period)*(-1 * excitation_width)
+    times_minusgaps = (ph_times_sel // alex_period) * (-1 * excitation_width)
     # The formula is ph_times_sel = ph_times_sel - "gaps"
     times_minusgaps += ph_times_sel
     return times_minusgaps
@@ -360,7 +360,7 @@ def b_fuse(bursts, ms=0, clk_p=12.5e-9):
     second_bursts = buffer_mask[:-1]
 
     # Keep only the first pair in case of more than 2 consecutive bursts
-    first_bursts ^= (second_bursts*first_bursts)
+    first_bursts ^= (second_bursts * first_bursts)
     # note that previous in-place operation also modifies `second_bursts`
 
     both_bursts = first_bursts + second_bursts
@@ -391,12 +391,12 @@ def b_fuse(bursts, ms=0, clk_p=12.5e-9):
 def mch_fuse_bursts(MBurst, ms=0, clk_p=12.5e-9, verbose=True):
     """Multi-ch version of `fuse_bursts`. `MBurst` is a list of Bursts objects.
     """
-    mburst = [b.copy() for b in MBurst] # safety copy
+    mburst = [b.copy() for b in MBurst]  # safety copy
     new_mburst = []
     ch = 0
     for mb in mburst:
         ch += 1
-        pprint(" - - - - - CHANNEL %2d - - - - \n" % ch,  not verbose)
+        pprint(" - - - - - CHANNEL %2d - - - - \n" % ch, not verbose)
         if mb.num_bursts == 0:
             continue
         new_bursts = fuse_bursts_iter(mb, ms=ms, clk_p=clk_p, verbose=verbose)
@@ -413,7 +413,7 @@ def burst_stats(mburst, clk_p):
                              if len(b) > 0]).T
     mean_burst_delay = np.array([np.diff(b[:, 0]).mean() for b in mburst
                                  if len(b) > 0])
-    return (clk_to_s(width_stats, clk_p)*1e3, height_stats,
+    return (clk_to_s(width_stats, clk_p) * 1e3, height_stats,
             clk_to_s(mean_burst_delay, clk_p))
 
 
@@ -707,7 +707,7 @@ class Data(DataContainer):
         pprint('Deep copy executed.\n', mute)
         new_d = Data(**self)  # this make a shallow copy (like a pointer)
 
-        ## Deep copy (not just reference) or array data
+        # Deep copy (not just reference) or array data
         for field in self.burst_fields + self.bg_fields:
             # Making sure k is defined
             if field in self:
@@ -1014,7 +1014,7 @@ class Data(DataContainer):
     def burst_widths(self):
         """List of arrays of burst duration in seconds. One array per channel.
         """
-        return [bursts.width*self.clk_p for bursts in self.mburst]
+        return [bursts.width * self.clk_p for bursts in self.mburst]
 
     def burst_sizes_ich(self, ich=0, gamma=1., gamma1=None, add_naa=False,
                         beta=None):
@@ -1054,13 +1054,13 @@ class Data(DataContainer):
             Array of burst sizes for channel `ich`.
         """
         if gamma1 is not None:
-            burst_size = self.nd[ich]*gamma1 + self.na[ich]
+            burst_size = self.nd[ich] * gamma1 + self.na[ich]
         else:
-            burst_size = self.nd[ich] + self.na[ich]/gamma
+            burst_size = self.nd[ich] + self.na[ich] / gamma
         if self.ALEX and add_naa:
             naa = self.naa[ich]
             if beta is not None:
-                naa = naa/(gamma*beta)
+                naa = naa / (gamma * beta)
             burst_size += naa
         return burst_size
 
@@ -1088,8 +1088,8 @@ class Data(DataContainer):
         """Return new Data object with bursts between `N1` and `N2`
         `N1` and `N2` can be scalars or lists (one per ch).
         """
-        if np.isscalar(N1): N1 = [N1]*self.nch
-        if np.isscalar(N2): N2 = [N2]*self.nch
+        if np.isscalar(N1): N1 = [N1] * self.nch
+        if np.isscalar(N2): N2 = [N2] * self.nch
         assert len(N1) == len(N2) == self.nch
         d = Data(**self)
         d.add(mburst=[b[n1:n2].copy() for b, n1, n2 in zip(d.mburst, N1, N2)])
@@ -1098,7 +1098,7 @@ class Data(DataContainer):
         d.add(na=[na[n1:n2] for na, n1, n2 in zip(d.na, N1, N2)])
         if self.ALEX:
             d.add(naa=[aa[n1:n2] for aa, n1, n2 in zip(d.naa, N1, N2)])
-        d.calc_fret() # recalc fret efficiency
+        d.calc_fret()  # recalculate fret efficiency
         return d
 
     def delete_burst_data(self):
@@ -1124,7 +1124,7 @@ class Data(DataContainer):
         assert time_s1 < self.time_max
 
         t1_clk, t2_clk = int(time_s1 / self.clk_p), int(time_s2 / self.clk_p)
-        masks = [(ph >= t1_clk)*(ph < t2_clk) for ph in self.iter_ph_times()]
+        masks = [(ph >= t1_clk) * (ph < t2_clk) for ph in self.iter_ph_times()]
 
         new_d = Data(**self)
         for name in self.ph_fields:
@@ -1159,7 +1159,7 @@ class Data(DataContainer):
         indexsort = np.lexsort((bursts.stop, bursts.start))
         dc.add(mburst=[bursts[indexsort]])
 
-        ich_burst = [i*np.ones(nb) for i, nb in enumerate(self.num_bursts)]
+        ich_burst = [i * np.ones(nb) for i, nb in enumerate(self.num_bursts)]
         dc.add(ich_burst=np.hstack(ich_burst)[indexsort])
 
         for name in self.burst_fields:
@@ -1217,12 +1217,12 @@ class Data(DataContainer):
             element.
         """
         period = self.bp[ich]
-        w = self.mburst[ich].width*self.clk_p
-        bg_a = self.bg_ad[ich][period]*w
-        bg_d = self.bg_dd[ich][period]*w
+        w = self.mburst[ich].width * self.clk_p
+        bg_a = self.bg_ad[ich][period] * w
+        bg_d = self.bg_dd[ich][period] * w
         res = [self.nd[ich], self.na[ich]]
         if self.ALEX and alex_naa:
-            bg_aa = self.bg_aa[ich][period]*w
+            bg_aa = self.bg_aa[ich][period] * w
             res.extend([self.naa[ich], bg_d, bg_a, bg_aa])
         else:
             res.extend([bg_d, bg_a])
@@ -1330,7 +1330,7 @@ class Data(DataContainer):
             for ich, ph in enumerate(self.iter_ph_times(ph_sel=ph_sel)):
                 if ph.size > 0:
                     bg_rate, _ = bg.exp_fit(ph, tail_min_us=tail_min_us0)
-                    th_us[ich] = 1e6*F_bg/bg_rate
+                    th_us[ich] = 1e6 * F_bg / bg_rate
             Th_us[ph_sel] = th_us
         # Save the input used to generate Th_us
         self.add(bg_auto_th_us0=tail_min_us0, bg_auto_F_bg=F_bg)
@@ -1349,11 +1349,11 @@ class Data(DataContainer):
         elif np.size(tail_min_us) == n_streams:
             tail_min_us = np.asarray(tail_min_us)
         elif np.size(tail_min_us) != n_streams:
-            raise ValueError('Wrong tail_min_us length (%d).' %\
+            raise ValueError('Wrong tail_min_us length (%d).' %
                              len(tail_min_us))
         Th_us = {}
         for i, key in enumerate(self.ph_streams):
-            Th_us[key] = np.ones(self.nch)*tail_min_us[i]
+            Th_us[key] = np.ones(self.nch) * tail_min_us[i]
         # Save the input used to generate Th_us
         self.add(bg_th_us_user=tail_min_us)
         return Th_us
@@ -1468,7 +1468,7 @@ class Data(DataContainer):
             for ip in range(nperiods):
                 i0 = i1
                 i1 += counts[ip]
-                lim.append((i0, i1-1))
+                lim.append((i0, i1 - 1))
                 ph_p.append((ph_ch[i0], ph_ch[i1-1]))
 
                 ph_i = ph_ch[i0:i1]
@@ -1533,14 +1533,15 @@ class Data(DataContainer):
         and self.Ph_p are being computed.
         """
         ph_sel = self._fix_ph_sel(ph_sel)
-        if self.bg_ph_sel == ph_sel: return
+        if self.bg_ph_sel == ph_sel:
+            return
 
-        pprint(" - Recomputing background limits for %s ... " % \
-                str(ph_sel), mute)
-        bg_time_clk = self.bg_time_s/self.clk_p
+        pprint(" - Recomputing background limits for %s ... " %
+               str(ph_sel), mute)
+        bg_time_clk = self.bg_time_s / self.clk_p
         Lim, Ph_p = [], []
         for ph_ch, lim in zip(self.iter_ph_times(ph_sel), self.Lim):
-            bins = np.arange(self.nperiods + 1)*bg_time_clk
+            bins = np.arange(self.nperiods + 1) * bg_time_clk
             # Note: histogram bins are half-open, e.g. [a, b)
             counts, _ = np.histogram(ph_ch, bins=bins)
             lim, ph_p = [], []
@@ -1548,7 +1549,7 @@ class Data(DataContainer):
             for ip in range(self.nperiods):
                 i0 = i1
                 i1 += counts[ip]
-                lim.append((i0, i1-1))
+                lim.append((i0, i1 - 1))
                 ph_p.append((ph_ch[i0], ph_ch[i1-1]))
             Lim.append(lim)
             Ph_p.append(ph_p)
@@ -1568,7 +1569,7 @@ class Data(DataContainer):
             if b.num_bursts > 0:
                 istart = b.istart
                 for i, (l0, l1) in enumerate(lim):
-                    p[(istart >= l0)*(istart <= l1)] = i
+                    p[(istart >= l0) * (istart <= l1)] = i
             P.append(p)
         self.add(bp=P)
 
@@ -1628,7 +1629,7 @@ class Data(DataContainer):
             find_T = lambda m, Fi, Pi, bg: (m - 1 - c) / (bg * Fi)
         else:
             if F != 1:
-                print("WARNING: BS prob. th. with modified BG rate (F=%.1f)" \
+                print("WARNING: BS prob. th. with modified BG rate (F=%.1f)"
                       % F)
             find_T = lambda m, Fi, Pi, bg: find_optimal_T_bga(bg*Fi, m, 1-Pi)
         TT, T, rate_th = [], [], []
@@ -1638,7 +1639,7 @@ class Data(DataContainer):
             Tch = find_T(m, F_ch, P_ch, bg_ch)
             TT.append(Tch)
             T.append(Tch.mean())
-            rate_th.append(np.mean(m/Tch))
+            rate_th.append(np.mean(m / Tch))
         self.add(TT=TT, T=T, bg_bs=bg_bs, FF=FF, PP=PP, F=F, P=P,
                  rate_th=rate_th)
 
@@ -1664,7 +1665,7 @@ class Data(DataContainer):
             ph_bs = ph = self.get_ph_times(ich=ich, ph_sel=ph_sel)
             if compact:
                 ph_bs = self._ph_times_compact(ph, ph_sel)
-            label = '%s CH%d' % (ph_sel, ich+1) if verbose else None
+            label = '%s CH%d' % (ph_sel, ich + 1) if verbose else None
             burstarray = bsearch(ph_bs, L, m, t_clk, label=label, verbose=verbose)
             if burstarray.size > 1:
                 bursts = bslib.Bursts(burstarray)
@@ -1673,7 +1674,7 @@ class Data(DataContainer):
             else:
                 bursts = bslib.Bursts.empty()
             mburst.append(bursts)
-        self.add(mburst=mburst, rate_th=Min_rate_cps, T=T_clk*self.clk_p)
+        self.add(mburst=mburst, rate_th=Min_rate_cps, T=T_clk * self.clk_p)
         if ph_sel != Ph_sel('all') and index_allph:
             self._fix_mburst_from(ph_sel=ph_sel)
 
@@ -1813,7 +1814,8 @@ class Data(DataContainer):
         pprint(" - Performing burst search (verbose=%s) ..." % verbose, mute)
         # Erase any previous burst data
         self.delete_burst_data()
-        if L is None: L = m
+        if L is None:
+            L = m
         if min_rate_cps is not None:
             # Saves rate_th in self
             self._burst_search_rate(m=m, L=L, min_rate_cps=min_rate_cps, c=c,
@@ -1887,22 +1889,22 @@ class Data(DataContainer):
         if self.ALEX:
             # The "new style" would be:
             #Mask = [m for m in self.iter_ph_masks(Ph_sel(Dex='Dem'))]
-            Mask = [d_em*d_ex for d_em, d_ex in zip(self.D_em, self.D_ex)]
+            Mask = [d_em * d_ex for d_em, d_ex in zip(self.D_em, self.D_ex)]
             nd = mch_count_ph_in_bursts(self.mburst, Mask)
 
-            Mask = [a_em*d_ex for a_em, d_ex in zip(self.A_em, self.D_ex)]
+            Mask = [a_em * d_ex for a_em, d_ex in zip(self.A_em, self.D_ex)]
             na = mch_count_ph_in_bursts(self.mburst, Mask)
 
-            Mask = [a_em*a_ex for a_em, a_ex in zip(self.A_em, self.A_ex)]
+            Mask = [a_em * a_ex for a_em, a_ex in zip(self.A_em, self.A_ex)]
             naa = mch_count_ph_in_bursts(self.mburst, Mask)
             self.add(naa=naa)
 
             if alex_all:
-                Mask = [d_em*a_ex for d_em, a_ex in zip(self.D_em, self.A_ex)]
+                Mask = [d_em * a_ex for d_em, a_ex in zip(self.D_em, self.A_ex)]
                 nda = mch_count_ph_in_bursts(self.mburst, Mask)
                 self.add(nda=nda)
 
-            nt = [d+a+aa for d, a, aa in zip(nd, na, naa)]
+            nt = [d + a + aa for d, a, aa in zip(nd, na, naa)]
             assert (nt[0] == na[0] + nd[0] + naa[0]).all()
         self.add(nd=nd, na=na, nt=nt,
                  bg_corrected=False, leakage_corrected=False,
@@ -1921,7 +1923,8 @@ class Data(DataContainer):
             mute (bool): if True suppress any printed output.
 
         """
-        if ms < 0: return self
+        if ms < 0:
+            return self
         mburst = mch_fuse_bursts(self.mburst, ms=ms, clk_p=self.clk_p)
         new_d = Data(**self)
         for k in ['E', 'S', 'nd', 'na', 'naa', 'nt', 'lsb', 'bp']:
@@ -2013,7 +2016,7 @@ class Data(DataContainer):
         See also:
             :meth:`Data.select_bursts`, :meth:`Data.select_bursts_mask_apply`
         """
-        ## Create the list of bool masks for the bursts selection
+        # Create the list of bool masks for the bursts selection
         if args is None:
             args = tuple()
         M = [filter_fun(self, i, *args, **kwargs) for i in range(self.nch)]
@@ -2055,10 +2058,10 @@ class Data(DataContainer):
         See also:
             :meth:`Data.select_bursts`, :meth:`Data.select_mask`
         """
-        ## Attributes of ds point to the same objects of self
+        # Attributes of ds point to the same objects of self
         ds = Data(**self)
 
-        ## Copy the per-burst fields that must be filtered
+        ##Copy the per-burst fields that must be filtered
         used_fields = [field for field in Data.burst_fields if field in self]
         for name in used_fields:
 
@@ -2066,11 +2069,12 @@ class Data(DataContainer):
             # the old list that is also in the original object.
             # The list is initialized with empty arrays because this is the
             # valid value when a ch has no bursts.
-            ds.add(**{name: [np.array([])]*self.nch})
+            ds.add(**{name: [np.array([])] * self.nch})
 
             # Assign the new data
             for ich, mask in enumerate(masks):
-                if self[name][ich].size == 0: continue # -> no bursts in ch
+                if self[name][ich].size == 0:
+                    continue  # -> no bursts in ch
                 # Note that boolean masking implies numpy array copy
                 # On the contrary slicing only makes a new view of the array
                 ds[name][ich] = self[name][ich][mask]
@@ -2079,7 +2083,7 @@ class Data(DataContainer):
         if computefret:
             ds.calc_fret(count_ph=False)
         # Add the annotation about the filter function
-        ds.s = list(self.s + [str_sel]) # using append would modify also self
+        ds.s = list(self.s + [str_sel])  # using append would modify also self
         return ds
 
     ##
@@ -2088,11 +2092,13 @@ class Data(DataContainer):
     def background_correction(self, relax_nt=False, mute=False):
         """Apply background correction to burst sizes (nd, na,...)
         """
-        if self.bg_corrected: return -1
+        if self.bg_corrected:
+            return -1
         pprint("   - Applying background correction.\n", mute)
         self.add(bg_corrected=True)
         for ich, bursts in enumerate(self.mburst):
-            if bursts.num_bursts == 0: continue  # if no bursts skip this ch
+            if bursts.num_bursts == 0:
+                continue  # if no bursts skip this ch
             period = self.bp[ich]
             nd, na, bg_d, bg_a, width = self.expand(ich, width=True)
             nd -= bg_d
@@ -2111,14 +2117,17 @@ class Data(DataContainer):
     def leakage_correction(self, mute=False):
         """Apply leakage correction to burst sizes (nd, na,...)
         """
-        if self.leakage_corrected: return -1
+        if self.leakage_corrected:
+            return -1
         pprint("   - Applying leakage correction.\n", mute)
         Lk = self.get_leakage_array()
         for i, num_bursts in enumerate(self.num_bursts):
-            if num_bursts == 0: continue  # if no bursts skip this ch
-            self.na[i] -= self.nd[i]*Lk[i]
+            if num_bursts == 0:
+                continue  # if no bursts skip this ch
+            self.na[i] -= self.nd[i] * Lk[i]
             self.nt[i] = self.nd[i] + self.na[i]
-            if self.ALEX: self.nt[i] += self.naa[i]
+            if self.ALEX:
+                self.nt[i] += self.naa[i]
         self.add(leakage_corrected=True)
 
     def direct_excitation_correction(self, mute=False):
@@ -2126,13 +2135,16 @@ class Data(DataContainer):
 
         The applied correction is: na -= naa*dir_ex
         """
-        if self.dir_ex_corrected: return -1
+        if self.dir_ex_corrected:
+            return -1
         pprint("   - Applying direct excitation correction.\n", mute)
         for i, num_bursts in enumerate(self.num_bursts):
-            if num_bursts == 0: continue  # if no bursts skip this ch
-            self.na[i] -= self.naa[i]*self.dir_ex
+            if num_bursts == 0:
+                continue  # if no bursts skip this ch
+            self.na[i] -= self.naa[i] * self.dir_ex
             self.nt[i] = self.nd[i] + self.na[i]
-            if self.ALEX: self.nt[i] += self.naa[i]
+            if self.ALEX:
+                self.nt[i] += self.naa[i]
         self.add(dir_ex_corrected=True)
 
     def dither(self, lsb=2, mute=False):
@@ -2140,18 +2152,19 @@ class Data(DataContainer):
 
         The dithering amplitude is the range -0.5*lsb .. 0.5*lsb.
         """
-        if self.dithering: return -1
+        if self.dithering:
+            return -1
         pprint("   - Applying burst-size dithering.\n", mute)
         self.add(dithering=True)
         for nd, na in zip(self.nd, self.na):
-            nd += lsb*(np.random.rand(nd.size)-0.5)
-            na += lsb*(np.random.rand(na.size)-0.5)
+            nd += lsb * (np.random.rand(nd.size) - 0.5)
+            na += lsb * (np.random.rand(na.size) - 0.5)
         if self.ALEX:
             for naa in self.naa:
-                naa += lsb*(np.random.rand(naa.size)-0.5)
+                naa += lsb * (np.random.rand(naa.size) - 0.5)
             if 'nda' in self:
                 for nda in self.nda:
-                    nda += lsb*(np.random.rand(nda.size)-0.5)
+                    nda += lsb * (np.random.rand(nda.size) - 0.5)
         self.add(lsb=lsb)
 
     def calc_chi_ch(self):
@@ -2167,7 +2180,7 @@ class Data(DataContainer):
             return
 
         EE = self.E_fit.mean()  # Mean E value among the CH
-        chi_ch = (1/EE - 1)/(1/self.E_fit - 1)
+        chi_ch = (1/EE - 1) / (1/self.E_fit - 1)
         return chi_ch
 
     def corrections(self, mute=False):
@@ -2191,8 +2204,8 @@ class Data(DataContainer):
         Differently from :meth:`corrections`, this allows to recompute
         corrections that have already been applied.
         """
-        if 'mburst' not in self: return  # no burst search performed yet
-
+        if 'mburst' not in self:
+            return  # no burst search performed yet
         old_bg_corrected = self.bg_corrected
         old_leakage_corrected = self.leakage_corrected
         old_dir_ex_corrected = self.dir_ex_corrected
@@ -2297,7 +2310,7 @@ class Data(DataContainer):
         Each element of the returned array is multiplied by `chi_ch`.
         """
         leakage = self.leakage
-        Lk = np.r_[[leakage]*self.nch] if np.size(leakage) == 1 else leakage
+        Lk = np.r_[[leakage] * self.nch] if np.size(leakage) == 1 else leakage
         Lk *= self.chi_ch
         return Lk
 
@@ -2334,7 +2347,7 @@ class Data(DataContainer):
             background = {Ph_sel('all'): bg_d + bg_a,
                           Ph_sel(Dex='Dem'): bg_d, Ph_sel(Dex='Aem'): bg_a}
 
-            sbr.append(signal[ph_sel]/background[ph_sel])
+            sbr.append(signal[ph_sel] / background[ph_sel])
         self.add(sbr=sbr)
         return sbr
 
@@ -2393,7 +2406,7 @@ class Data(DataContainer):
         Max_Rate = self.calc_burst_ph_func(func=phrates.mtuple_rates_max,
                                            func_kw=dict(m=m, c=c),
                                            ph_sel=ph_sel, compact=compact)
-        Max_Rate = [mr/self.clk_p - bg[bp] for bp, bg, mr in
+        Max_Rate = [mr / self.clk_p - bg[bp] for bp, bg, mr in
                     zip(self.bp, self.bg_from(ph_sel), Max_Rate)]
         params = dict(m=m, ph_sel=ph_sel, compact=compact)
         self.add(max_rate=Max_Rate, max_rate_params=params)
@@ -2438,13 +2451,13 @@ class Data(DataContainer):
     def _calculate_fret_eff(self):
         """Compute FRET efficiency (`E`) for each burst."""
         G = self.get_gamma_array()
-        E = [na/(g*nd + na) for nd, na, g in zip(self.nd, self.na, G)]
+        E = [na / (g*nd + na) for nd, na, g in zip(self.nd, self.na, G)]
         self.add(E=E)
 
     def _calculate_stoich(self):
         """Compute "stoichiometry" (the `S` parameter) for each burst."""
         G = self.get_gamma_array()
-        S = [(g*d + a)/(g*d + a + aa) for d, a, aa, g in
+        S = [(g*d + a) / (g*d + a + aa) for d, a, aa, g in
              zip(self.nd, self.na, self.naa, G)]
         self.add(S=S)
 
@@ -2457,8 +2470,8 @@ class Data(DataContainer):
                        zip(self.E, self.S)]
         E_bins, S_bins = ES_hist_tot[0][1], ES_hist_tot[0][2]
         ES_hist = [h[0] for h in ES_hist_tot]
-        E_ax = E_bins[:-1] + 0.5*binwidth
-        S_ax = S_bins[:-1] + 0.5*binwidth
+        E_ax = E_bins[:-1] + 0.5 * binwidth
+        S_ax = S_bins[:-1] + 0.5 * binwidth
         self.add(ES_hist=ES_hist, E_bins=E_bins, S_bins=S_bins,
                  E_ax=E_ax, S_ax=S_ax, ES_binwidth=binwidth)
 
@@ -2470,10 +2483,10 @@ class Data(DataContainer):
         """
         name = "" if noname else self.name
         s = name
-        if 'L' in self: # burst search has been done
+        if 'L' in self:  # burst search has been done
             if 'rate_th' in self:
                 s += " BS_%s L%d m%d MR%d" % (self.ph_sel, self.L, self.m,
-                                              np.mean(self.rate_th)*1e-3)
+                                              np.mean(self.rate_th) * 1e-3)
             else:
                 P_str = '' if self.P is None else ' P%s' % self.P
                 s += " BS_%s L%d m%d F%.1f%s" % \

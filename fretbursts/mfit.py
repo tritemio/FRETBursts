@@ -38,7 +38,7 @@ def find_max(x, y, xmin=None, xmax=None):
 def gaussian(x, center, sigma, amplitude=1):
     """A gaussian function. Parameters: `center`, `sigma`, `amplitude`.
     """
-    return amplitude*np.exp(-(x - center)**2/(2*sigma**2))
+    return amplitude * np.exp(-(x - center)**2/(2*sigma**2))
 
 def asym_gaussian(x, center, sigma1, sigma2, amplitude):
     """A asymmetric gaussian function composed by two gaussian halves.
@@ -333,7 +333,7 @@ class FitterBase(object):
 
 
 class MultiFitter(FitterBase):
-    """A class handling a list of 1-D datasets (histogramming, KDE, fitting).
+    """A class handling a list of 1-D datasets for histogramming, KDE, fitting.
 
     This class takes a list of 1-D arrays of samples (such as E values
     per burst). The list contains one 1-D array for each channel in
@@ -481,7 +481,7 @@ class MultiFitter(FitterBase):
 
 def plot_mfit(fitter, ich=0, residuals=False, ax=None, plot_kde=False,
               plot_model=True, return_fig=False, bins=None):
-    """Plot data histogram and fitted model from a `MultiFiter` object.
+    """Plot data histogram and fitted model from a :class:`MultiFitter` object.
 
     Assumes data between 0 and 1 and a two peaks model with parameters
     `p1_center` and `p2_center`.
@@ -490,8 +490,7 @@ def plot_mfit(fitter, ich=0, residuals=False, ax=None, plot_kde=False,
         A matplotlib figure object.
     """
     if ax is None:
-        fig = plt.figure(figsize=(7, 4.5))
-        ax = fig.add_subplot(111)
+        fig, ax = plt.subplots(figsize=(7, 4.5))
     else:
         fig = ax.figure
 
