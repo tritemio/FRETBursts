@@ -9,6 +9,9 @@ For a more general explanation of burst search concepts see
 `(Ingargiola 2016) <http://dx.doi.org/10.1101/039198>`__.
 For usage examples see the
 `us-ALEX notebook <http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%2520-%2520us-ALEX%2520smFRET%2520burst%2520analysis.ipynb>`__.
+An analysis of implementation performances of the
+:ref:`low-level burst search <burstsearch_core>` can be found in this blog post:
+`Optimizing burst search in python <http://tritemio.github.io/smbits/2015/12/06/optimize-burst-search-python/>`__.
 
 
 Defining the rate estimator
@@ -82,19 +85,21 @@ When not specified, the default value of :math:`c=-1` is used.
 This choice preserves backward compatibility with results obtained
 with FRETBursts 0.5.5 or earlier.
 
+.. _burstsearch_core:
+
 The Core Algorithm
 ------------------
 
 The different types of burst search described in the previous sections
 are implemented calling the same low-level burst search function which
-implements the core algorithm. Here we explain in details the core
-algorithm.
+implements the core "sliding window" algorithm.
+Here we explain in details this core algorithm.
 
 The low-level burst search takes as an input the array of (monotonically
 increasing) photon timestamps, as well as two other arguments *m*
 (the number of timestamps) and *T* (the time window).
-Starting from the the first element we consider all the m-tuple of timestamps
-[0..m-1], [1..m], etc.
+Starting from the the first element of the array,
+we consider all the m-tuple of timestamps [0..m-1], [1..m], etc.
 
 **Point 1.** For each m-tuple if the timestamps are contained in
 a time window smaller or equal to *T* we mark a burst start at the position
@@ -131,7 +136,9 @@ the m-tuple is contained in a window larger than *T*.
 The previous function is implemented in :func:`phtools.burstsearch.bsearch_py`
 (pure python version) and in :func:`phtools.burstsearch_c.bsearch_c`
 (optimized cython version). Several tests make sure that the two functions
-return numerically identical results.
+return numerically identical results. An analysis of performance of
+of different implementations can be found in this blog post:
+`Optimizing burst search in python <http://tritemio.github.io/smbits/2015/12/06/optimize-burst-search-python/>`__.
 
 Burst Fusion
 ------------
