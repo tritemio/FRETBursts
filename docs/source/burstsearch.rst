@@ -3,7 +3,7 @@
 Burst Search in FRETBursts
 ==========================
 
-This section describes some details and convention used to implement burst
+This section describes details and conventions used to implement burst
 search in FRETBursts.
 For a more general explanation of burst search concepts see
 `(Ingargiola 2016) <http://dx.doi.org/10.1101/039198>`__.
@@ -81,6 +81,78 @@ The parameter :math:`c` can be specified when performing burst search.
 When not specified, the default value of :math:`c=-1` is used.
 This choice preserves backward compatibility with results obtained
 with FRETBursts 0.5.5 or earlier.
+
+The Core Algorithm
+------------------
+
+The different types of burst search described in the previous sections
+are implemented calling the same low-level burst search function which
+implements the core algorithm. Here we explain in details the core
+algorithm.
+
+The low-level burst search takes as an input the array of (monotonically
+increasing) photon timestamps, as well as two other arguments *m*
+(the number of timestamps) and *T* (the time window).
+Starting from the the first element we consider all the m-tuple of timestamps
+[0..m-1], [1..m], etc.
+
+**Point 1.** For each m-tuple if the timestamps are contained in
+a time window smaller or equal to *T* we mark a burst start at the position
+of the first timestamp in the current m-tuple. Otherwise we take the next
+m-tuple and repeat the check.
+
+Once a burst starts we keep "sliding" the m-tuple one timestamp a time.
+If the current m-tuple is still contained in a windows o duration *T*
+the burst continues. When the current m-tuple is contained in a window
+larger than *T* the burst ends. When this happens, the last timestamp
+in a burst is the (m-1)-th timestamp of current m-tuple (i.e. the last
+timestamps of the **previous**  m-tuple which was still contained in a
+window *T*). After the burst ends we continue checking as in point 1
+the next m-tuple, that is shifted by only one
+timestamp (i.e. there is no jump when the burst ends).
+
+At this point it can happen that the current m-tuple is contained in *T*
+and a new burst starts right away. In this situation the new bursts will
+have m-2 timestamps overlapping with the previous one.
+
+At the end on the timestamp array, if a burst is currently started we end it
+by marking the last timestamp as burst stop. The set of bursts obtained
+in this way has the minimum-rate property, i.e. all the m-tuple of
+consecutive timestamps in any burst are guaranteed to be contained in a
+windows *T* or smaller. Conversely, a few bursts will overlap and thus share
+some timestamps. If the user wants to avoid overlapping bursts a
+burst fusion steps must be applied as described in next section. Note,
+however, that after fusing overlapping bursts at least one m-tuple
+inside each fused burst will not have the minimum-rate property, i.e.
+the m-tuple is contained in a window larger than *T*.
+
+.. py:currentmodule:: fretbursts
+
+The previous function is implemented in :func:`phtools.burstsearch.bsearch_py`
+(pure python version) and in :func:`phtools.burstsearch_c.bsearch_c`
+(optimized cython version). Several tests make sure that the two functions
+return numerically identical results.
+
+Burst Fusion
+------------
+
+Burst fusion is an operation which fuses consecutive bursts if the
+start of the second bursts minus the end of the first burst
+(called burst separation) is <=
+of a fusion time $t_f$. When bursts are overlapping (see previous
+section) the burst separation is negative. Therefore to avoid
+overlapping bursts we need to apply fusion with separation of 0.
+Note that with this condition, if a bursts ends on a timestamp which
+is the start of the next burst (i.e. 1 overlapping photon) the two
+bursts will be fused. Conversely if one burst ends and the next burst
+starts one photon later (0 overlapping photons) the two bursts will
+be kept separated. In this latter case there will be no timestamp
+between the end of the previous burst and the start of the next one.
+
+.. py:currentmodule:: fretbursts.burstlib
+
+To perform burst fusion use the method :meth:`Data.fuse_bursts`.
+
 
 Low-level burst search functions
 --------------------------------

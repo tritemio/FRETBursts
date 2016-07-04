@@ -525,17 +525,17 @@ def calc_mdelays_hist(d, ich=0, m=10, period=(0, -1), bins_s=(0, 10, 0.02),
             (included) is used.
         bins_s (3-element tuple): start, stop and step for the bins
         ph_sel (Ph_sel object): photon selection to use.
+
     Returns:
         Tuple of values:
-
-            * bin_x (array): array of bins centers
-            * histograms_y (array): arrays of histograms, contains 1 or 2
-              histograms (when `bursts` is False or True)
-            * bg_dist (random distribution): erlang distribution with same
-              rate as background (kcps)
-            * a, rate_kcps (floats, optional): amplitude and rate for an
-              Erlang distribution fitted to the histogram for
-              bin_x > bg_mean*bg_F. Returned only if `bg_fit` is True.
+        * bin_x (array): array of bins centers
+        * histograms_y (array): arrays of histograms, contains 1 or 2
+          histograms (when `bursts` is False or True)
+        * bg_dist (random distribution): erlang distribution with same
+          rate as background (kcps)
+        * a, rate_kcps (floats, optional): amplitude and rate for an
+          Erlang distribution fitted to the histogram for
+          bin_x > bg_mean*bg_F. Returned only if `bg_fit` is True.
     """
     assert ph_sel in [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
     if np.size(period) == 1: period = (period, period)
