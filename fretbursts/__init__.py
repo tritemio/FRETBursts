@@ -19,7 +19,7 @@ del get_versions
 ## Citation information
 _CITATION = """
    FRETBursts: An Open Source Toolkit for Analysis of Freely-Diffusing Single-Molecule FRET
-   Ingargiola et al. (2016). http://dx.doi.org/10.1101/039198 """
+   Ingargiola et al. (2016). http://dx.doi.org/10.1371/journal.pone.0160716 """
 
 _INFO_CITATION = (' You are running FRETBursts (version {}).\n\n'
                   ' If you use this software please cite the following'
