@@ -8,6 +8,10 @@ FRETBursts
 
 Latest News
 -----------
+#### 2016-08-17
+Our software paper describing FRETBursts is finally peer-reviewed and published by PLOS ONE:
+
+- [FRETBursts: An Open Source Toolkit for Analysis of Freely-Diffusing Single-Molecule FRET](http://dx.doi.org/10.1371/journal.pone.0160716), DOI:10.1371/journal.pone.0160716
 
 #### 2016-03-20
 New online service to run FRETBursts without installation:
