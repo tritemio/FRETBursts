@@ -1,7 +1,8 @@
 #
 # FRETBursts - A single-molecule FRET burst analysis toolkit.
 #
-# Copyright (C) 2014 Antonino Ingargiola <tritemio@gmail.com>
+# Copyright (C) 2014-2016 The Regents of the University of California,
+#               Antonino Ingargiola <tritemio@gmail.com>
 #
 """
 This module contains a function to store :class:`fretbursts.burstlib.Data`

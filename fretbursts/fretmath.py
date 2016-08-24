@@ -2,7 +2,8 @@
 #
 # FRETBursts - A single-molecule FRET burst analysis toolkit.
 #
-# Copyright (C) 2014-2016 Antonino Ingargiola <tritemio@gmail.com>
+# Copyright (C) 2014-2016 The Regents of the University of California,
+#               Antonino Ingargiola <tritemio@gmail.com>
 #
 """
 The `fretmath` module contains functions to compute corrected FRET efficiency
