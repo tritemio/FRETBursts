@@ -2,7 +2,7 @@
 #
 # FRETBursts - A single-molecule FRET burst analysis toolkit.
 #
-# Copyright (C) 2014-2016 The Regents of the University of California,
+# Copyright (C) 2013-2016 The Regents of the University of California,
 #               Antonino Ingargiola <tritemio@gmail.com>
 #
 """
