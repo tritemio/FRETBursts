@@ -53,6 +53,7 @@ setup(name = project_name,
       download_url = 'http://tritemio.github.io/FRETBursts/',
       install_requires = ['numpy', 'scipy', 'matplotlib', 'lmfit', 'seaborn',
                           'phconvert', 'future'],
+      include_package_data = True,
       license = 'GPLv2',
       description = ("Burst analysis toolkit for single and multi-spot "
                      "smFRET data."),
