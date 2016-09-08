@@ -14,14 +14,10 @@ build:
 requirements:
   build:
     - python
-    - libpython    [win64 and py27]
     - setuptools
     - future
     - cython
-    - numpy
-    - scipy
-    - mock
-    - nose
+    - numpy x.x
     - matplotlib
     - seaborn
     - lmfit
@@ -30,43 +26,23 @@ requirements:
   run:
     - python
     - future
-    - numpy
+    - numpy x.x
     - scipy
-    - mock
-    - nose
+    - pyqt
     - matplotlib
     - seaborn
-    - pyqt
-    - pytables
     - pandas
     - numba
     - lmfit
     - phconvert
 
-
 test:
-  # Python imports
-  imports:
+   imports:
     - fretbursts
     - fretbursts.phtools.phrates
 
-  # commands:
-    # You can put test commands to be run here.  Use this to test that the
-    # entry points work.
-
-
-  # You can also put a file called run_test.py in the recipe that will be run
-  # at test time.
-
-  # requires:
-    # Put any additional test requirements here.  For example
-    # - nose
 
 about:
   home: http://github.com/tritemio/FRETBursts/
   license: GPLv2
-  summary: 'Burst analysis toolkit for single and multi-spot smFRET data.'
-
-# See
-# http://docs.continuum.io/conda/build.html for
-# more information about meta.yaml
+  summary: 'Burst analysis software for single and multi-spot smFRET data.'
