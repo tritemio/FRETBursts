@@ -6,7 +6,7 @@ Burst Search in FRETBursts
 This section describes details and conventions used to implement burst
 search in FRETBursts.
 For a more general explanation of burst search concepts see
-`(Ingargiola 2016) <http://dx.doi.org/10.1101/039198>`__.
+`(Ingargiola PLOS ONE 2016) <http://dx.doi.org/10.1101/039198>`__.
 For usage examples see the
 `us-ALEX notebook <http://nbviewer.ipython.org/urls/raw.github.com/tritemio/FRETBursts_notebooks/master/notebooks/FRETBursts%2520-%2520us-ALEX%2520smFRET%2520burst%2520analysis.ipynb>`__.
 An analysis of implementation performances of the

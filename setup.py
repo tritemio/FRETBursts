@@ -13,6 +13,12 @@ FRETBursts
 single-molecule FRET (smFRET) measurements. It can analyze both single-spot
 and multi-spot smFRET data with or without alternating laser excitation (ALEX).
 
+From more info please refer to:
+
+- **FRETBursts: An Open Source Toolkit for Analysis of Freely-Diffusing Single-Molecule FRET**
+  *Ingargiola et. al.* (2016). PLoS ONE doi: `10.1371/journal.pone.0160716 <10.1371/journal.pone.0160716>`__.
+
+
 Quick links:
 
 - `FRETBursts Homepage <http://tritemio.github.io/FRETBursts/>`_
