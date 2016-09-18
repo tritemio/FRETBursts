@@ -617,33 +617,58 @@ def burst_data_period_mean(dx, burst_data):
             mean_burst_data[ich, iperiod] = b_data_ch[period == iperiod].mean()
     return mean_burst_data
 
-def join_data(d_list, gap=1):
+def join_data(d_list, gap=0):
     """Joins burst data of different measurements in a single `Data` object.
 
-    This function requires that all the passed data objects use the same
-    period (bg_time_s). For each measurement, the time of burst start is
-    offset by the duration of the previous measurement + an additional `gap`.
+    Merge a list of `Data` objects (i.e. a set of different measurements)
+    into a single `Data` object containing all the bursts (like it was a
+    single acquisition).
+    The `Data` objects to be merged need to already contain burst data.
+    The input `Data` objects are required to have undergone background
+    estimation (all with the same background period) and burst search.
+    For each measurement, the time of burst start is offset by the duration
+    of the previous measurement + an additional `gap` (which is 0 by
+    default).
 
     The index of the first/last photon in the burst (`istart` and `iend`)
     are kept unmodified and refer to the original timestamp array.
     The timestamp arrays are not copied: the new `Data` object will
     not contain any timestamp arrays (ph_times_m). This may cause errors when
-    calling functions that require the timestamps data.
+    calling functions that require the timestamps data such as burst search.
 
     The background arrays (bg, bg_dd, etc...) are concatenated. The burst
     attribute `bp` is updated to refer to these new concatenated arrays.
     The attributes `Lim` and `Ph_p` are concatenated and left unchanged.
     Therefore different sections will refer to different original timestamp
-    arrays.
-
-    A new attribute (`i_origin`), containing for each burst the index of the
-    original data object in the list, is saved in the returned object.
+    arrays. The retuned `Data` object will have a new attribute `i_origin`,
+    containing, for each burst, the index of the original data object
+    in the list.
 
     Arguments:
         d_list (list of Data objects): the list of measurements to concatenate.
+        gap (float): the time delay (or gap) in seconds to add to each
+            concatenated measurement.
 
     Returns:
         A `Data` object containing bursts from the all the objects in `d_list`.
+        This object will not contain timestamps, therefore it is possible
+        to perform burst selections but not a new burst serach.
+
+    Example:
+        If `d1` and `d2` are two measurements to concatenate::
+
+            file_list = ['filename1', 'filename2']
+            d_list = [loader.photon_hdf5(f) for f in file_list]
+
+            for dx in d_list:
+                loader.alex_apply_period(dx)
+                dx.calc_bg(bg.exp_fit, time_s=30, tail_min_us='auto', F_bg=1.7)
+                dx.burst_search()
+
+            d_merged = bext.join_data(d_list)
+
+        `d_merged` will contain bursts from both input files.
+
     """
     from itertools import islice
 
