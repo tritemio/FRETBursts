@@ -10,11 +10,10 @@ before_install:
     - chmod +x miniconda.sh
     - ./miniconda.sh -b
     - export PATH=/home/travis/miniconda3/bin:$PATH
-    - conda config --add channels tritemio
+    - conda config --add channels conda-forge
 
 install:
-    - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy pandas matplotlib pytables pytest pyqt seaborn lmfit cython numba
-    - pip install phconvert
+    - conda install --yes python=$TRAVIS_PYTHON_VERSION pip scipy pandas matplotlib pyqt seaborn lmfit cython numba phconvert pytest 
     - python setup.py build
     - pip install .
     - rm -rf build/
