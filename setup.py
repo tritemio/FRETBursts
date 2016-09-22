@@ -24,6 +24,8 @@ Quick links:
 - `FRETBursts Homepage <http://tritemio.github.io/FRETBursts/>`_
 - `FRETBursts Reference Documentation <http://fretbursts.readthedocs.org>`_
 - `FRETBursts Tutorials <https://github.com/tritemio/FRETBursts_notebooks>`_
+
+See also `Release Notes <>`__.
 """
 
 ## Configuration to build Cython extensions
