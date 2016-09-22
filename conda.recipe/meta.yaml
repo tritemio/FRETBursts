@@ -28,7 +28,7 @@ requirements:
     - future
     - numpy x.x
     - scipy
-    - pyqt
+    - pyqt 4*
     - matplotlib
     - seaborn
     - pandas
