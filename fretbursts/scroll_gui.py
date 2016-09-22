@@ -18,9 +18,13 @@ from builtins import range, zip
 
 import numpy as np
 try:
-    from PyQt4 import QtGui, QtCore
+    from PyQt5 import QtWidgets, QtCore
+    QtGui = QtWidgets
 except ImportError:
-    from PySide import QtGui, QtCore
+    try:
+        from PyQt4 import QtGui, QtCore
+    except ImportError:
+        from PySide import QtGui, QtCore
 
 from .utils.misc import pprint
 

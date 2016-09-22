@@ -41,16 +41,19 @@ def gui_fname(dir=None):
     Select a file via a dialog and return the file name.
     """
     try:
-        from PySide import QtGui
+        from PyQt5.QtWidgets import QApplication, QFileDialog
     except ImportError:
-        from PyQt4 import QtGui
+        try:
+            from PyQt4.QtGui import QApplication, QFileDialog
+        except ImportError:
+            from PySide.QtGui import QApplication, QFileDialog
 
     if dir is None:
-        dir ='./'
+        dir = './'
 
-    app = QtGui.QApplication([dir])
-    fname = QtGui.QFileDialog.getOpenFileName(None, "Select a file...",
-            dir, filter="All files (*)")
+    app = QApplication([dir])
+    fname = QFileDialog.getOpenFileName(None, "Select a file...",
+                                        dir, filter="All files (*)")
 
     if isinstance(fname, tuple):
         return fname[0]
