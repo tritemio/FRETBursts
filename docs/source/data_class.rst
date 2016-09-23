@@ -41,6 +41,8 @@ methods providing summary information on the measurement:
 
     .. automethod:: burst_sizes_ich
 
+    .. automethod:: get_naa_corrected
+
     .. autoattribute:: burst_widths
 
     .. automethod:: ph_in_bursts_ich

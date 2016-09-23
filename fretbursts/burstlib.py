@@ -1017,55 +1017,87 @@ class Data(DataContainer):
         """
         return [bursts.width * self.clk_p for bursts in self.mburst]
 
-    def burst_sizes_ich(self, ich=0, gamma=1., gamma1=None, add_naa=False,
-                        beta=None):
+    def burst_sizes_ich(self, ich=0, gamma=1., add_naa=False,
+                        beta=1., donor_ref=True):
         """Return gamma corrected burst sizes for channel `ich`.
 
-        The gamma corrected size is computed according to one of these two
-        definitions::
+        If `donor_ref == True` (default) the gamma corrected burst size is
+        computed according to::
 
-            1) nd + na/gamma
-            2) nd*gamma1 + na
+            1) nd + na / gamma
 
-        When `gamma1` is None, the definition (1) is used. In this case,
-        the corrected burst size tends to the raw burst size for D-only
-        bursts.
+        Otherwise, if `donor_ref == False`, the gamma corrected burst size is::
 
-        When `gamma1` is not None, the definition (2) is used. In this case,
-        the corrected burst size tends to the raw burst size for high-FRET
-        bursts.
+            2) nd * gamma  + na
 
-        If `d.ALEX` and `add_naa` are True::
+        With the definition (1) the corrected burst size is equal to the raw
+        burst size for zero-FRET or D-only bursts (that's why is `donor_ref`).
+        With the definition (2) the corrected burst size is equal to the raw
+        burst size for 100%%-FRET bursts.
 
-            1) if beta is None: add `naa` to burst size.
-            2) if beta is not None: add `naa/(gamma*beta)` to burst size.
+        In an ALEX measurement, use `add_naa = True` to add counts from
+        AexAem stream to the returned burst size. The argument `gamma` and
+        `beta` are used to correctly scale `naa` so that it become commensurate
+        with the Dex corrected burst size. In particular, when using
+        definition 1 (`donor_ref == True`, default), total burst size is::
+
+            (nd + na/gamma) + naa / (beta * gamma)
+
+        Conversely, when using definition 2 (`donor_ref == False`), the
+        total burst size is::
+
+            (nd * gamma + na) + naa / beta
 
         Arguments:
             ich (int): the spot number, only relevant for multi-spot.
-                In single-spot data there is only CH0 so this argument
-                may be omitted. Default 0.
-            add_naa (boolean): when True, add AexAem photons when computing
-                burst size. Default False.
-            gamma, gamma1 (floats): coefficient for gamma correction of burst
-                sizes. See explaination above.
-            beta (float or None): optional beta correction factor for burst
-                size. See explaination above.
+                In single-spot data there is only one channel (`ich=0`)
+                so this argument may be omitted. Default 0.
+            add_naa (boolean): when True, add a term for AexAem photons when
+                computing burst size. Default False.
+            gamma (float): coefficient for gamma correction of burst
+                sizes. Default: 1. For more info see explanation above.
+            beta (float): beta correction factor used for the AexAem term
+                of the burst size. Default 1. If `add_naa = False` or
+                measurement is not ALEX this argument is ignored.
+                For more info see explanation above.
 
         Returns
             Array of burst sizes for channel `ich`.
+
+        See also :meth:`fretbursts.burstlib.Data.get_naa_corrected`.
         """
-        if gamma1 is not None:
-            burst_size = self.nd[ich] * gamma1 + self.na[ich]
-        else:
+        if donor_ref:
             burst_size = self.nd[ich] + self.na[ich] / gamma
+        else:
+            burst_size = self.nd[ich] * gamma + self.na[ich]
+
         if self.ALEX and add_naa:
-            naa = self.naa[ich]
-            if beta is not None:
-                naa = naa / (gamma * beta)
-            burst_size += naa
+            kws = dict(ich=ich, gamma=gamma, beta=beta, donor_ref=donor_ref)
+            burst_size += self.get_naa_corrected(**kws)
         return burst_size
 
-    def burst_sizes(self, gamma=1., gamma1=None, add_naa=False, beta=None):
+    def get_naa_corrected(self, ich=0, gamma=1., beta=1., donor_ref=True):
+        """Return corrected naa array for channel `ich`.
+
+        Arguments:
+            ich (int): the spot number, only relevant for multi-spot.
+            gamma (floats): gamma-factor to use in computing the corrected naa.
+            beta (float): beta-factor to use in computing the corrected naa.
+            donor_ref (bool): Select the convention for `naa` correction.
+                If True (default), uses `naa / (beta * gamma)`. Otherwise,
+                uses `naa / beta`. A consistent convention should be used
+                for the corrected Dex burst size in orther to make it
+                commensurable with naa.
+
+        See also :meth:`fretbursts.burstlib.Data.burst_sizes_ich`.
+        """
+        if donor_ref:
+            naa_term = self.naa[ich] / (gamma * beta)
+        else:
+            naa_term = self.naa[ich] / beta
+        return naa_term
+
+    def burst_sizes(self, gamma=1., add_naa=False, beta=1., donor_ref=True):
         """Return gamma corrected burst sizes for all the channel.
 
         Compute burst sizes by calling :meth:`burst_sizes_ich` for each
@@ -1074,7 +1106,8 @@ class Data(DataContainer):
         Returns
             List of arrays of burst sizes, one array per channel.
         """
-        kwargs = dict(gamma=gamma, gamma1=gamma1, add_naa=add_naa, beta=beta)
+        kwargs = dict(gamma=gamma, add_naa=add_naa, beta=beta,
+                      donor_ref=donor_ref)
         bsize_list = [self.burst_sizes_ich(ich, **kwargs) for ich in
                       range(self.nch)]
         return np.array(bsize_list)
@@ -2257,6 +2290,16 @@ class Data(DataContainer):
         self._update_corrections()
 
     @property
+    def beta(self):
+        """Beta factor used to correct S."""
+        return self._beta
+
+    @beta.setter
+    def beta(self, value):
+        assert np.size(value) == 1
+        self.add(_beta=float(value))
+
+    @property
     def chi_ch(self):
         """Per-channel relative gamma factor."""
         return self._chi_ch
@@ -2458,7 +2501,7 @@ class Data(DataContainer):
     def _calculate_stoich(self):
         """Compute "stoichiometry" (the `S` parameter) for each burst."""
         G = self.get_gamma_array()
-        S = [(g*d + a) / (g*d + a + aa) for d, a, aa, g in
+        S = [(g*d + a) / (g*d + a + aa/self.beta) for d, a, aa, g in
              zip(self.nd, self.na, self.naa, G)]
         self.add(S=S)
 

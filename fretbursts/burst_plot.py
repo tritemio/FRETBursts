@@ -779,7 +779,8 @@ def hist_width(d, i=0, bins=(0, 10, 0.025), pdf=True, weights=None,
 
 
 def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, weights=None,
-                    yscale='log', gamma=1, add_naa=False, label_prefix=None,
+                    yscale='log', gamma=1, add_naa=False, beta=1.,
+                    donor_ref=True, label_prefix=None,
                     color=None, plot_style=None):
     """Plot histogram of burst brightness, i.e. burst size / duration.
 
@@ -790,8 +791,10 @@ def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, weights=None,
             then is interpreted as (start, stop, step) values.
         add_naa (bool): if True `naa` is added to the burst size, if False
             the burst size is `nd*gamma + na`.
-        gamma (float): gamma factor used to compute the corrected burst
-            size `nd*gamma + na`.
+        gamma, beta (floats): factors used to compute the corrected burst
+            size. See :meth:`fretbursts.burstlib.Data.burst_sizes_ich`.
+        donor_ref (bool): convention used for corrected burst size computation.
+            See :meth:`fretbursts.burstlib.Data.burst_sizes_ich` for details.
         label_prefix (string or None): a custom prefix for the legend label.
         color (string or tuple or None): matplotlib color used for the plot.
         pdf (bool): if True, normalize the histogram to obtain a PDF.
@@ -803,14 +806,13 @@ def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, weights=None,
         plot_style = {}
 
     burst_widths = d.mburst[i].width*d.clk_p*1e3
-    sizes = d.burst_sizes_ich(ich=i, gamma=gamma, add_naa=add_naa)
+    sizes = d.burst_sizes_ich(ich=i, gamma=gamma, beta=beta, add_naa=add_naa,
+                              donor_ref=donor_ref)
     brightness = sizes / burst_widths
-    label = 'nd + na'
-    if gamma != 1:
-        label = "%.2f %s" % (gamma, label)
+    label = 'nd + na/g' if donor_ref else 'g*nd + na'
     if add_naa:
-        label += " + naa"
-    label = '(' + label + ')/w'
+        label += " + naa/(b*g)" if donor_ref else ' + naa/b'
+    label = '(' + label + ') / w'
     if label_prefix is not None:
         label = label_prefix + ' ' + label
 
@@ -826,8 +828,8 @@ def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, weights=None,
 
 
 def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
-              yscale='log', gamma=1, add_naa=False, label_prefix=None,
-              legend=True, color=None, plot_style=None):
+              yscale='log', gamma=1, add_naa=False, beta=1, donor_ref=True,
+              label_prefix=None, legend=True, color=None, plot_style=None):
     """Plot histogram of burst sizes.
 
     Parameters:
@@ -842,8 +844,11 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
             Dex-Aem, Aex-Aem).
         add_naa (bool): if True `naa` is added to the burst size, if False
             the burst size is `nd + na`. Ignored when `which` != 'all'.
-        gamma (float): gamma factor used to compute the corrected burst
-            size `nd*gamma + na`. Ignored when `which` != 'all'.
+        gamma, beta (floats): factors used to compute the corrected burst
+            size. Ignored when `which` != 'all'.
+            See :meth:`fretbursts.burstlib.Data.burst_sizes_ich`.
+        donor_ref (bool): convention used for corrected burst size computation.
+            See :meth:`fretbursts.burstlib.Data.burst_sizes_ich` for details.
         label_prefix (string or None): a custom prefix for the legend label.
         color (string or tuple or None): matplotlib color used for the plot.
         pdf (bool): if True, normalize the histogram to obtain a PDF.
@@ -858,12 +863,11 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
     which_dict = {'all': 'k', 'nd': green, 'na': red, 'naa': purple}
     assert which in which_dict
     if which == 'all':
-        sizes = d.burst_sizes_ich(ich=i, gamma=gamma, add_naa=add_naa)
-        label = 'nd + na'
-        if gamma != 1:
-            label = "%.2f %s" % (gamma, label)
+        sizes = d.burst_sizes_ich(ich=i, gamma=gamma, add_naa=add_naa,
+                                  beta=beta, donor_ref=donor_ref)
+        label = 'nd + na/g' if donor_ref else 'g*nd + na'
         if add_naa:
-            label += " + naa"
+            label += " + naa/(b*g)" if donor_ref else ' + naa/b'
     else:
         sizes = d[which][i]
         label = which

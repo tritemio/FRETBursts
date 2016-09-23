@@ -112,14 +112,33 @@ def na(d, ich=0, th1=20, th2=np.inf):
     bursts_mask = (d.na[ich] >= th1)*(d.na[ich] <= th2)
     return bursts_mask, ''
 
-def naa(d, ich=0, th1=20, th2=np.inf):
-    """Select bursts with (naa >= th1) and (naa <= th2)."""
+def naa(d, ich=0, th1=20, th2=np.inf, gamma=1., beta=1., donor_ref=True):
+    """Select bursts with (naa >= th1) and (naa <= th2).
+
+    The `naa` quantity can be optionally corrected using gamma and beta factors.
+
+    Arguments:
+        th1, th2 (floats): lower (`th1`) and upper (`th2`) constrain for
+            selecting `naa`. By default `th2 = inf` (i.e. no upper limit).
+        gamma, beta (floats): arguments used to compute gamma- and
+            beta-corrected burst sizes. See
+            :meth:`fretbursts.burstlib.Data.burst_sizes_ich` for details.
+        donor_ref (bool): Select the convention for `naa` correction.
+            If True (default), uses `naa / (beta * gamma)`. Otherwise,
+            uses `naa / beta`. It is suggested to use the same `donor_ref`
+            convention when combining `Dex size` and `naa` burst selections
+            so that the thresholds values of the two selections will be
+            commensurable.
+            See :meth:`fretbursts.burstlib.Data.get_naa_corrected` for details.
+    """
     assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
-    bursts_mask = (d.naa[ich] >= th1)*(d.naa[ich] <= th2)
+    kws = dict(ich=ich, gamma=gamma, beta=beta, donor_ref=donor_ref)
+    naa_term = d.get_naa_corrected(**kws)
+    bursts_mask = (naa_term >= th1) * (naa_term <= th2)
     return bursts_mask, ''
 
-def size(d, ich=0, th1=20, th2=np.inf, gamma=1., gamma1=None,
-         add_naa=False, beta=None):
+def size(d, ich=0, th1=20, th2=np.inf, gamma=1., add_naa=False, beta=1.,
+         donor_ref=True):
     """Select bursts with burst sizes (i.e. counts) between `th1` and `th2`.
 
     The burst size is the number of photon in a burst. By default it
@@ -131,19 +150,22 @@ def size(d, ich=0, th1=20, th2=np.inf, gamma=1., gamma1=None,
         ich (int): the spot number, only relevant for multi-spot. In single-spot
             data there is only CH0 so this argument may be omitted. Default 0.
         th1, th2 (floats): select bursts with size larger than `th1`
-            and smaller than `th2`.
+            and smaller than `th2`. Default `th2 = inf` (i.e. no upper limit).
         add_naa (boolean): when True, add AexAem photons when computing burst
             burst size. Default False.
-        gamma, gamma1, beta (floats): these arguments are used to compute
-            gamma- and beta-corrected burst sizes. See
+        gamma, beta (floats): arguments used to compute gamma- and
+            beta-corrected burst sizes. See
             :meth:`fretbursts.burstlib.Data.burst_sizes_ich` for details.
+        donor_ref (bool): Select the convention for `naa` correction.
+            See :meth:`fretbursts.burstlib.Data.burst_sizes_ich` for details.
 
     Returns:
         A tuple containing an array (the burst mask) and a string which
         briefly describe the selection.
     """
     assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
-    burst_size = d.burst_sizes_ich(ich, gamma, gamma1, add_naa, beta)
+    kws = dict(gamma=gamma, add_naa=add_naa, beta=beta, donor_ref=donor_ref)
+    burst_size = d.burst_sizes_ich(**kws)
     if d.nch > 1 and (np.size(th1) == d.nch): th1 = th1[ich]
     if d.nch > 1 and (np.size(th2) == d.nch): th2 = th2[ich]
     bursts_mask = (burst_size >= th1)*(burst_size <= th2)
@@ -178,35 +200,36 @@ def peak_phrate(d, ich=0, th1=0, th2=np.inf):
     mask = (rate >= th1)*(rate <= th2)
     return mask, ''
 
-def brightness(d, ich=0, th1=0, th2=np.inf, add_naa=False, gamma=1):
+def brightness(d, ich=0, th1=0, th2=np.inf, add_naa=False, gamma=1, beta=1,
+               donor_ref=True):
     """Select bursts with size/width between th1 and th2 (cps).
     """
-    sizes = d.burst_sizes(gamma=gamma, add_naa=add_naa)[ich]
+    sizes = d.burst_sizes_ich(ich=ich, gamma=gamma, add_naa=add_naa, beta=beta,
+                              donor_ref=donor_ref)
     brightness = sizes/d.burst_widths[ich]
     mask = (brightness >= th1)*(brightness <= th2)
     return mask, ''
 
 
-def nda_percentile(d, ich=0, q=50, low=False, gamma=1., gamma1=None,
-                   add_naa=False):
+def nda_percentile(d, ich=0, q=50, low=False, gamma=1., add_naa=False):
     """Select bursts with SIZE >= q-percentile (or <= if `low` is True)
 
-    `gamma`, `gamma1` and `add_naa` are passed to
+    `gamma` and `add_naa` are passed to
     :meth:`fretbursts.burstlib.Data.burst_sizes_ich` to compute the burst size.
     """
-    burst_size = d.burst_sizes_ich(ich, gamma, gamma1, add_naa)
+    burst_size = d.burst_sizes_ich(ich, gamma=gamma, add_naa=add_naa)
     q_percentile = np.percentile(burst_size, q=q)
     if low: bursts_mask = (burst_size <= q_percentile)
     else: bursts_mask = (burst_size >= q_percentile)
     return bursts_mask, 'perc%d' % q
 
-def topN_nda(d, ich=0, N=500, gamma=1., gamma1=None, add_naa=False):
+def topN_nda(d, ich=0, N=500, gamma=1., add_naa=False):
     """Select the N biggest bursts in the channel.
 
-    `gamma`, `gamma1` and `add_naa` are passed to
+    `gamma` and `add_naa` are passed to
     :meth:`fretbursts.burstlib.Data.burst_sizes_ich` to compute the burst size.
     """
-    burst_size = d.burst_sizes_ich(ich, gamma, gamma1, add_naa)
+    burst_size = d.burst_sizes_ich(ich, gamma=gamma, add_naa=add_naa)
     index_sorted = burst_size.argsort()
     burst_mask = np.zeros(burst_size.size, dtype=bool)
     burst_mask[index_sorted[-N:]] = True
