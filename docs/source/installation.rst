@@ -20,14 +20,9 @@ The preferred way to to install and keep FRETBursts updated is through
 If you haven't done it already, please install the python3 version of
 `Continuum Anaconda distribution <https://www.continuum.io/downloads>`__
 (legacy python2 works too but is less updated).
-Then, only the first time, add the "channel" containing the FRETBursts
-packages::
+Then, you can install or upgrade FRETBursts with::
 
-    conda config --add channels tritemio
-
-After that, to install or upgrade FRETBursts use::
-
-    conda install fretbursts
+    conda install fretbursts -c conda-forge
 
 After the installation, it is recommended that you download and run the
 `FRETBursts notebooks <https://github.com/tritemio/FRETBursts_notebooks/archive/master.zip>`__

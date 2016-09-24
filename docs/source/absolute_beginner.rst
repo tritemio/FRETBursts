@@ -25,8 +25,7 @@ To install FRETBursts, make sure you close Jupyter Notebook, then
 type the following commands in a terminal
 (i.e. ``cmd`` on Windows or ``Terminal`` on OSX)::
 
-    conda config --add channels tritemio
-    conda install fretbursts
+    conda install fretbursts -c conda-forge
 
 The installation should take a few seconds.
 If you notice any error please report it by opening a new issue on the
