@@ -740,7 +740,7 @@ def test_E_and_S_with_corrections(data):
     d.beta = beta
     for E, S, nd, na, naa in zip(d.E, d.S, d.nd, d.na, d.naa):
         assert (E == na / (nd * gamma + na)).all()
-        assert S == (gamma * nd + na) / (gamma * nd + na + naa / beta)
+        assert (S == (gamma * nd + na) / (gamma * nd + na + naa / beta)).all()
 
 
 def test_burst_size_da(data):
