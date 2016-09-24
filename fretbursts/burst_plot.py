@@ -789,10 +789,9 @@ def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, weights=None,
         i (int): channel index
         bins (array or None): array of bin edges. If len(bins) == 3
             then is interpreted as (start, stop, step) values.
-        add_naa (bool): if True `naa` is added to the burst size, if False
-            the burst size is `nd*gamma + na`.
         gamma, beta (floats): factors used to compute the corrected burst
             size. See :meth:`fretbursts.burstlib.Data.burst_sizes_ich`.
+        add_naa (bool): if True, include `naa` to the total burst size.
         donor_ref (bool): convention used for corrected burst size computation.
             See :meth:`fretbursts.burstlib.Data.burst_sizes_ich` for details.
         label_prefix (string or None): a custom prefix for the legend label.
@@ -842,11 +841,10 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
             `d.burst_sizes()` (by default nd + na); 'nd', 'na', 'naa' get
             counts from `d.nd`, `d.na`, `d.naa` (respectively Dex-Dem,
             Dex-Aem, Aex-Aem).
-        add_naa (bool): if True `naa` is added to the burst size, if False
-            the burst size is `nd + na`. Ignored when `which` != 'all'.
         gamma, beta (floats): factors used to compute the corrected burst
             size. Ignored when `which` != 'all'.
             See :meth:`fretbursts.burstlib.Data.burst_sizes_ich`.
+        add_naa (bool): if True, include `naa` to the total burst size.
         donor_ref (bool): convention used for corrected burst size computation.
             See :meth:`fretbursts.burstlib.Data.burst_sizes_ich` for details.
         label_prefix (string or None): a custom prefix for the legend label.
@@ -1994,7 +1992,7 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='Spectral_r', kind='hex',
     _alex_plot_style(g, colorbar=colorbar)
     if rightside_text:
         plt.text(1.15, 0.6, d.name, transform=g.fig.transFigure, fontsize=14,
-                 bbox=dict(edgecolor='r', facecolor='none', lw=1.3, alpha=0.5))      
+                 bbox=dict(edgecolor='r', facecolor='none', lw=1.3, alpha=0.5))
     return g
 
 def _register_colormaps():

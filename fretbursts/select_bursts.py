@@ -117,7 +117,7 @@ def naa(d, ich=0, th1=20, th2=np.inf, gamma=1., beta=1., donor_ref=True):
     The `naa` quantity can be optionally corrected using gamma and beta factors.
 
     Arguments:
-        th1, th2 (floats): lower (`th1`) and upper (`th2`) constrain for
+        th1, th2 (floats): lower (`th1`) and upper (`th2`) bounds for
             selecting `naa`. By default `th2 = inf` (i.e. no upper limit).
         gamma, beta (floats): arguments used to compute gamma- and
             beta-corrected burst sizes. See
@@ -148,8 +148,8 @@ def size(d, ich=0, th1=20, th2=np.inf, gamma=1., add_naa=False, beta=1.,
         d (Data object): the object containing the measurement.
         ich (int): the spot number, only relevant for multi-spot. In single-spot
             data there is only CH0 so this argument may be omitted. Default 0.
-        th1, th2 (floats): select bursts with size larger than `th1`
-            and smaller than `th2`. Default `th2 = inf` (i.e. no upper limit).
+        th1, th2 (floats): select bursts with ``th1 <= size <= th2``.
+            Default `th2 = inf` (i.e. no upper limit).
         add_naa (boolean): when True, add AexAem photons when computing burst
             burst size. Default False.
         gamma, beta (floats): arguments used to compute gamma- and
@@ -176,7 +176,7 @@ def size(d, ich=0, th1=20, th2=np.inf, gamma=1., add_naa=False, beta=1.,
     return bursts_mask, s + str_G(gamma, donor_ref)
 
 def width(d, ich=0, th1=0.5, th2=np.inf):
-    """Select bursts with width between th1 and th2 (ms)."""
+    """Select bursts with (width >= th1) and (width <= th2), in ms."""
     assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
     th1, th2 = th1*1e-3/d.clk_p, th2*1e-3/d.clk_p
     burst_width = d.mburst[ich].width

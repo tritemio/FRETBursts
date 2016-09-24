@@ -1024,26 +1024,26 @@ class Data(DataContainer):
         If `donor_ref == True` (default) the gamma corrected burst size is
         computed according to::
 
-            1) nd + na / gamma
+            1)    nd + na / gamma
 
         Otherwise, if `donor_ref == False`, the gamma corrected burst size is::
 
-            2) nd * gamma  + na
+            2)    nd * gamma  + na
 
         With the definition (1) the corrected burst size is equal to the raw
         burst size for zero-FRET or D-only bursts (that's why is `donor_ref`).
         With the definition (2) the corrected burst size is equal to the raw
-        burst size for 100%%-FRET bursts.
+        burst size for 100%-FRET bursts.
 
         In an ALEX measurement, use `add_naa = True` to add counts from
         AexAem stream to the returned burst size. The argument `gamma` and
         `beta` are used to correctly scale `naa` so that it become commensurate
         with the Dex corrected burst size. In particular, when using
-        definition 1 (`donor_ref == True`, default), total burst size is::
+        definition (1) (i.e. `donor_ref = True`, default), total burst size is::
 
             (nd + na/gamma) + naa / (beta * gamma)
 
-        Conversely, when using definition 2 (`donor_ref == False`), the
+        Conversely, when using definition (2) (`donor_ref = False`), the
         total burst size is::
 
             (nd * gamma + na) + naa / beta
@@ -1086,7 +1086,7 @@ class Data(DataContainer):
             donor_ref (bool): Select the convention for `naa` correction.
                 If True (default), uses `naa / (beta * gamma)`. Otherwise,
                 uses `naa / beta`. A consistent convention should be used
-                for the corrected Dex burst size in orther to make it
+                for the corrected Dex burst size in order to make it
                 commensurable with naa.
 
         See also :meth:`fretbursts.burstlib.Data.burst_sizes_ich`.
