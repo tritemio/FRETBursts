@@ -332,15 +332,25 @@ def test_burst_sizes(data):
     # Smoke test
     plain_sizes = data.burst_sizes()
     assert len(plain_sizes) == data.nch
-    # Test gamma and gamma1 arguments
-    bs1 = data.burst_sizes_ich(gamma=0.5)
-    bs2 = data.burst_sizes_ich(gamma1=0.5)
-    assert np.allclose(bs1, bs2/0.5)
+    # Test gamma and donor_ref arguments
+    bs1 = data.burst_sizes_ich(gamma=0.5, donor_ref=True)
+    bs2 = data.burst_sizes_ich(gamma1=0.5, donor_ref=False)
+    assert np.allclose(bs1, bs2 / 0.5)
     # Test add_naa
     if data.ALEX:
         bs_no_naa = data.burst_sizes_ich(add_naa=False)
         bs_naa = data.burst_sizes_ich(add_naa=True)
         assert np.allclose(bs_no_naa + data.naa_, bs_naa)
+
+        # Test beta and donor_ref arguments with gamma=1
+        naa1 = data.get_naa_corrected(beta=0.8, donor_ref=True)
+        naa2 = data.get_naa_corrected(beta=0.8, donor_ref=False)
+        assert np.allclose(naa1, naa2)
+
+        # Test beta and donor_ref arguments with gamma=0.5
+        naa1 = data.get_naa_corrected(gamma=0.5, beta=0.8, donor_ref=True)
+        naa2 = data.get_naa_corrected(gamma=0.5, beta=0.8, donor_ref=False)
+        assert np.allclose(naa1 * 0.5, naa2)
 
 def test_leakage(data):
     """
@@ -361,9 +371,11 @@ def test_gamma(data):
     """
     # burst search, then set gamma
     data.burst_search()
+    E0 = list(data.E)
     data.gamma = 0.5
     E1 = list(data.E)
-    # set leakage, then burst search
+    assert not list_array_equal(E0, E1)
+    # burst search after setting gamma
     data.burst_search()
     E2 = list(data.E)
     assert list_array_equal(E1, E2)
@@ -375,12 +387,30 @@ def test_dir_ex(data_1ch):
     data = data_1ch
     # burst search, then set dir_ex
     data.burst_search()
+    na0 = list(data.na)
     data.dir_ex = 0.05
     na1 = list(data.na)
-    # set leakage, then burst search
+    assert not list_array_equal(na0, na1)
+    # burst search after setting dir_ex
     data.burst_search()
     na2 = list(data.na)
     assert list_array_equal(na1, na2)
+
+def test_beta(data_1ch):
+    """
+    Test setting beta before and after burst search
+    """
+    data = data_1ch
+    # burst search, then set beta
+    data.burst_search()
+    S0 = list(data.S)
+    data.beta = 0.7
+    S1 = list(data.S)
+    assert not list_array_equal(S0, S1)
+    # burst search after setting beta
+    data.burst_search()
+    S2 = list(data.S)
+    assert list_array_equal(S1, S2)
 
 def test_bursts_interface(data):
     d = data
@@ -701,6 +731,17 @@ def test_burst_search_consistency(data):
         assert np.all(tot_size <= istop - istart + 1)
         start, stop, width = mb.start, mb.stop, mb.width
         assert np.all(width <= stop - start)
+
+def test_E_and_S_with_corrections(data):
+    d = data
+    gamma = 0.5
+    beta = 0.7
+    d.gamma = gamma
+    d.beta = beta
+    for E, S, nd, na, naa in zip(d.E, d.S, d.nd, d.na, d.naa):
+        assert (E == na / (nd * gamma + na)).all()
+        assert S == (gamma * nd + na) / (gamma * nd + na + naa / beta)
+
 
 def test_burst_size_da(data):
     """Test that nd + na with no corrections is equal to b_size(mburst).

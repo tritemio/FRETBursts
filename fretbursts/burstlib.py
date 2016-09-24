@@ -2234,6 +2234,9 @@ class Data(DataContainer):
         Checks the flags .bg_corrected, .leakage_corrected, .dir_ex_corrected,
         .dithering and recomputes the correction if the corresponding flag
         is True (i.e. if the correction was already applied).
+        Note that this method is not used for gamma and beta corrections
+        because these do not affect the `nd`, `na` and `naa` quantities but
+        are only applied when computing E, S and corrected size.
 
         Differently from :meth:`corrections`, this allows to recompute
         corrections that have already been applied.
@@ -2291,13 +2294,21 @@ class Data(DataContainer):
 
     @property
     def beta(self):
-        """Beta factor used to correct S."""
+        """Beta factor used to correct S (compensates Dex and Aex unbalance).
+        """
         return self._beta
 
     @beta.setter
     def beta(self, value):
-        assert np.size(value) == 1
-        self.add(_beta=float(value))
+        self._update_beta(value)
+
+    def _update_beta(self, beta):
+        """Change the `beta` value and recompute E and S."""
+        assert np.size(beta) == 1
+        self.add(_beta=float(beta))
+        if 'mburst' in self:
+            # Recompute E and S and delete fitter objects
+            self.calc_fret(corrections=False)
 
     @property
     def chi_ch(self):
@@ -2309,16 +2320,18 @@ class Data(DataContainer):
         self._update_chi_ch(value)
 
     def _update_chi_ch(self, chi_ch):
-        """Change the `chi_ch` value and recompute FRET."""
+        """Change the `chi_ch` value and recompute E and S."""
         msg = 'chi_ch is a per-channel correction and must have size == nch.'
         assert np.size(chi_ch) == self.nch, ValueError(msg)
         self.add(_chi_ch=np.asfarray(chi_ch))
         if 'mburst' in self:
+            # Recompute E and S and delete fitter objects
             self.calc_fret(corrections=False)
 
     @property
     def gamma(self):
-        """Gamma correction factor (i.e. D vs A channel imbalance)."""
+        """Gamma correction factor (compensates DexDem and DexAem unbalance).
+        """
         return self._gamma
 
     @gamma.setter
@@ -2326,10 +2339,11 @@ class Data(DataContainer):
         self._update_gamma(value)
 
     def _update_gamma(self, gamma):
-        """Change the `gamma` value and recompute FRET."""
+        """Change the `gamma` value and recompute E and S."""
         assert (np.size(gamma) == 1) or (np.size(gamma) == self.nch)
         self.add(_gamma=np.asfarray(gamma))
         if 'mburst' in self:
+            # Recompute E and S and delete fitter objects
             self.calc_fret(corrections=False)
 
     def get_gamma_array(self):
