@@ -334,7 +334,7 @@ def test_burst_sizes(data):
     assert len(plain_sizes) == data.nch
     # Test gamma and donor_ref arguments
     bs1 = data.burst_sizes_ich(gamma=0.5, donor_ref=True)
-    bs2 = data.burst_sizes_ich(gamma1=0.5, donor_ref=False)
+    bs2 = data.burst_sizes_ich(gamma=0.5, donor_ref=False)
     assert np.allclose(bs1, bs2 / 0.5)
     # Test add_naa
     if data.ALEX:

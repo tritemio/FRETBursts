@@ -33,11 +33,10 @@ from .utils.misc import clk_to_s as _clk_to_s
 #  BURSTS SELECTION FUNCTIONS
 #
 
-def str_G(gamma, gamma1):
-    """Return a string to indicate if and how gamma or gamma1 were used."""
-    if gamma1 is None: s = "G%.1f" % gamma
-    else: s = "G1_%.1f" % gamma1
-    return s
+def str_G(gamma, donor_ref):
+    """A string indicating gamma value and convention for burst size correction.
+    """
+    return "Gd%.1f" % gamma if donor_ref else "Ga_%.1f" % gamma
 
 ## Selection on E or S values
 def E(d, ich=0, E1=-np.inf, E2=np.inf):
@@ -166,12 +165,15 @@ def size(d, ich=0, th1=20, th2=np.inf, gamma=1., add_naa=False, beta=1.,
     assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
     kws = dict(gamma=gamma, add_naa=add_naa, beta=beta, donor_ref=donor_ref)
     burst_size = d.burst_sizes_ich(**kws)
-    if d.nch > 1 and (np.size(th1) == d.nch): th1 = th1[ich]
-    if d.nch > 1 and (np.size(th2) == d.nch): th2 = th2[ich]
-    bursts_mask = (burst_size >= th1)*(burst_size <= th2)
+    if d.nch > 1 and (np.size(th1) == d.nch):
+        th1 = th1[ich]
+    if d.nch > 1 and (np.size(th2) == d.nch):
+        th2 = th2[ich]
+    bursts_mask = (burst_size >= th1) * (burst_size <= th2)
     s = "size_th%d" % th1
-    if th2 < 1000: s +="_th2_%d" % th2
-    return bursts_mask, s+str_G(gamma, gamma1)
+    if th2 < 1000:
+        s += "_th2_%d" % th2
+    return bursts_mask, s + str_G(gamma, donor_ref)
 
 def width(d, ich=0, th1=0.5, th2=np.inf):
     """Select bursts with width between th1 and th2 (ms)."""
@@ -233,7 +235,7 @@ def topN_nda(d, ich=0, N=500, gamma=1., add_naa=False):
     index_sorted = burst_size.argsort()
     burst_mask = np.zeros(burst_size.size, dtype=bool)
     burst_mask[index_sorted[-N:]] = True
-    return burst_mask, 'topN%d%s' % (N, str_G(gamma,gamma1))
+    return burst_mask, 'topN%d%s' % (N, str_G(gamma, True))
 
 def topN_max_rate(d, ich=0, N=500):
     """Select `N` bursts with the highest max burst rate.
