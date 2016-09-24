@@ -674,7 +674,7 @@ class Data(DataContainer):
     def __init__(self, leakage=0., gamma=1., dir_ex=0., **kwargs):
         # Default values
         init_kw = dict(ALEX=False, _leakage=float(leakage), _gamma=float(gamma),
-                       _dir_ex=float(dir_ex), _chi_ch=1., s=[])
+                       _dir_ex=float(dir_ex), _beta=1., _chi_ch=1., s=[])
         # Override with user data
         init_kw.update(**kwargs)
         DataContainer.__init__(self, **init_kw)
