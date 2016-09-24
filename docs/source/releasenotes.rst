@@ -1,8 +1,8 @@
 FRETBursts Release Notes
 ========================
 
-Version 0.5.7 (Sep. 2016) UNRELEASED
-------------------------------------
+Version 0.5.7 (Sep. 2016) RC1
+-----------------------------
 
 Refactoring and expansion of gamma and beta corrections.
 
@@ -38,18 +38,18 @@ Installation via conda-forge
 
 Since version 0.5.6 we started distributing conda packages for FRETBursts
 through the `conda-forge <https://conda-forge.github.io/>`__ channel
-(a community supported repository).
+(a community supported repository, as opposed to a private channel we were using before).
 To install or update FRETBursts you should now use::
 
     conda install fretbursts -c conda-forge
 
-Using the conda-forge channel simplifies our realease process since
+Using the conda-forge channel simplifies our release process since
 their infrastructure automatically builds packages for multiple
 platforms and python versions. Please report any issues in installing
 or upgrading FRETBursts on the
 `GitHub Issues <https://github.com/tritemio/FRETBursts/issues>`__ page.
 
-Fro more detailed installation instructions see the
+For more detailed installation instructions see the
 `Getting Started <http://fretbursts.readthedocs.io/en/latest/getting_started.html>`__
 documentation.
 
