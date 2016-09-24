@@ -26,7 +26,7 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
-  - conda config --add channels conda-forge
+  - conda config --append channels conda-forge
   - "conda create -q -n test-environment python=%PYTHON_VERSION% pip scipy pandas matplotlib pyqt seaborn lmfit cython numba nbconvert pytest phconvert ipykernel ipywidgets"
   - activate test-environment
   - python -m pip install --upgrade pip
