@@ -738,9 +738,12 @@ def test_E_and_S_with_corrections(data):
     beta = 0.7
     d.gamma = gamma
     d.beta = beta
-    for E, S, nd, na, naa in zip(d.E, d.S, d.nd, d.na, d.naa):
+    for i, (E, nd, na) in enumerate(zip(d.E, d.nd, d.na)):
         assert (E == na / (nd * gamma + na)).all()
-        assert (S == (gamma * nd + na) / (gamma * nd + na + naa / beta)).all()
+        if d.ALEX:
+            naa = d.naa[i]
+            assert (d.S[i] == (gamma * nd + na) /
+                              (gamma * nd + na + naa / beta)).all()
 
 
 def test_burst_size_da(data):
