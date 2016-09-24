@@ -37,6 +37,7 @@ Table of Contents
 
     getting_started
     reference_manual
+    releasenotes
     cython
 
 Indices and tables
@@ -45,4 +46,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
