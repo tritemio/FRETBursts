@@ -53,7 +53,7 @@ Burst Weights
 Functions that accept weights don't accept the gamma1 argument anymore,
 but they don't (yet) support the arguments `donor_ref` and `beta`.
 As a result, for the purpose of weighting, there is only one expression
-for corrected burst size (``na + gamma*nd``), with the option to ``naa``
+for corrected burst size (``na + gamma*nd``), with the option to add ``naa``
 but without beta correction.
 
 
