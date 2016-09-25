@@ -1,8 +1,8 @@
 FRETBursts Release Notes
 ========================
 
-Version 0.5.7 (Sep. 2016) RC1
------------------------------
+Version 0.5.7 (Sep. 2016)
+-------------------------
 
 Refactoring and expansion of gamma and beta corrections.
 
