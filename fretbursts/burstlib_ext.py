@@ -330,7 +330,36 @@ def calc_bg_brute(dx, min_ph_delay_list=None, return_all=False,
 
 
 def burst_data(dx, ich=0, include_bg=False, include_ph_index=False):
-    """Return a pandas DataFrame (one row per bursts) with all the burst data.
+    """Return a table (`pd.DataFrame`) of burst data (one row per burst).
+
+    Columns include:
+
+    - *nd*, *na*, *naa*: burst counts in DexDem, DexAem, AexAem
+      photon streams.
+    - *t_start*, *t_stop*: time (in seconds) of first and last photon inside
+      the burst
+    - *width_ms*: burst duration in milliseconds
+    - *size_raw*: uncorrected total counts in the burst
+
+    Optional columns include:
+
+    - *i_start*, *i_stop*: index of burst start and stop relative to the
+      original timestamps array (requires `include_ph_index=True`)
+    - *bg_dd*, *bg_ad*, *bg_aa*: background contribution in the DexDem, DexAem,
+      AexAem photon stream (requires `include_bg=True`)
+
+    If the peak photon-counts in each bursts has been computed (see
+    :meth:`fretbursts.burstlib.Data.calc_max_rate`), it will
+    be included as a column called *max_rate*.
+
+    Arguments:
+        include_bg (bool): if True includes additional columns for burst
+            background (see above). Default False.
+        include_ph_index (bool): if True includes additional two columns for
+            index of first and last timestamp in each burst. Default False.
+
+    Return:
+        A pandas's DataFrame containing burst data (one row per burst).
     """
     if dx.ALEX:
         nd, na, naa, bg_d, bg_a, bg_aa, wid = dx.expand(ich=ich, alex_naa=True,
@@ -341,8 +370,8 @@ def burst_data(dx, ich=0, include_bg=False, include_ph_index=False):
         nt = nd + na
 
     size_raw = dx.mburst[ich].counts
-    t_start = dx.mburst[ich].start*dx.clk_p
-    t_end = dx.mburst[ich].stop*dx.clk_p
+    t_start = dx.mburst[ich].start * dx.clk_p
+    t_end = dx.mburst[ich].stop * dx.clk_p
     i_start = dx.mburst[ich].istart
     i_end = dx.mburst[ich].istop
     #asym = asymmetry(dx, dropnan=False)
@@ -598,7 +627,7 @@ def calc_mdelays_hist(d, ich=0, m=10, period=(0, -1), bins_s=(0, 10, 0.02),
     return results
 
 def burst_data_period_mean(dx, burst_data):
-    """Compute mean `bursts_data` in each period.
+    """Compute mean `burst_data` in each period.
 
     Arguments:
         dx (Data object): contains the burst data to process
