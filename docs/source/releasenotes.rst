@@ -1,6 +1,12 @@
 FRETBursts Release Notes
 ========================
 
+Version 0.5.8 (Sep. 2016)
+-------------------------
+
+Fix a bug introduced in 0.5.7 in burst selection by size in multispot data.
+See `this commit <https://github.com/tritemio/FRETBursts/commit/f05e807cbd032e748580af9cc310585bcde97e40>`__.
+
 Version 0.5.7 (Sep. 2016)
 -------------------------
 
