@@ -163,7 +163,8 @@ def size(d, ich=0, th1=20, th2=np.inf, gamma=1., add_naa=False, beta=1.,
         briefly describe the selection.
     """
     assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
-    kws = dict(gamma=gamma, add_naa=add_naa, beta=beta, donor_ref=donor_ref)
+    kws = dict(ich=ich, gamma=gamma, add_naa=add_naa, beta=beta,
+               donor_ref=donor_ref)
     burst_size = d.burst_sizes_ich(**kws)
     if d.nch > 1 and (np.size(th1) == d.nch):
         th1 = th1[ich]
