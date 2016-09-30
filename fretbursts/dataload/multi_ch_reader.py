@@ -19,33 +19,38 @@ import numpy as np
 
 from ..utils.misc import pprint
 
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  DATA LOADING
 #
+
 def read_int32_int32_file(fname, n_bytes_to_read=-1):
     """Read the data file with 32+32 bit format (int32 version)."""
-    try: f = open(fname, 'rb')
+    try:
+        f = open(fname, 'rb')
     except IOError:
         fname += '.dat'
         f = open(fname, 'rb')
 
-    ## Reading the header
-    l1 = f.readline(); l2 = f.readline(); l3 = f.readline()
-    words_per_photon = l2.split()[-1]
+    # Reading the header
+    lines = [f.readline() for _ in range(3)]
+    words_per_photon = lines[1].split()[-1]
     assert words_per_photon == b'2'
 
-    ##  Reading data in int32
+    #  Reading data in int32
     bytes_in_file = os.path.getsize(fname) - f.tell()
     if n_bytes_to_read < 4:
         n_bytes_to_read = bytes_in_file
-    N_bytes = (int(min(n_bytes_to_read, bytes_in_file))//4)*4
-    data = np.ndarray(shape=(N_bytes/4,), dtype='>i4', buffer=f.read(N_bytes))
-    detector = data[::2]+1
-    ph_times = (data[1::2]-data[1])
-    assert ((detector < 17)*(detector >= 0)).all()
+    N_bytes = (int(min(n_bytes_to_read, bytes_in_file)) // 4) * 4
+    data = np.ndarray(shape=(N_bytes // 4,), dtype='>i4',
+                      buffer=f.read(N_bytes))
+    detector = data[::2] + 1
+    ph_times = (data[1::2] - data[1])
+    assert ((detector < 17) * (detector >= 0)).all()
     return ph_times, detector.astype('uint8')
 
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  DATA CONVERSION
 #
 
@@ -195,4 +200,3 @@ if __name__ == '__main__':
 
     ## NOTE: write a compare function that takes into account same timestamps
     ##       in donor and acceptor ch.
-
