@@ -1,11 +1,18 @@
 FRETBursts Release Notes
 ========================
 
-Version 0.5.8 (Sep. 2016)
+Version 0.5.9 (Sep. 2016)
 -------------------------
 
-Fix a bug introduced in 0.5.7 in burst selection by size in multispot data.
-See `this commit <https://github.com/tritemio/FRETBursts/commit/f05e807cbd032e748580af9cc310585bcde97e40>`__.
+- Added support for pyqt and qt 5+.
+- Fix burst selection with multispot data.
+  See `this commit <https://github.com/tritemio/FRETBursts/commit/f05e807cbd032e748580af9cc310585bcde97e40>`__.
+
+There may still be some glitches when using
+the QT5 GUIs from the notebook, but installing (and importing) FRETBursts
+does not require QT4 anymore (QT5 is the current default in anaconda).
+Please report any issue.
+
 
 Version 0.5.7 (Sep. 2016)
 -------------------------
