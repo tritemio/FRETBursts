@@ -99,7 +99,7 @@ def bridge_function(x, center1, center2, sigma1, sigma2, amplitude):
 def bridge_function2(x, center1, center2, sigma1, sigma2, amplitude):
     """A "bridge" function, geometric complementary of two gaussian peaks.
 
-    Let `g` be a Gaussian function (with apmplitude = 1), the bridge function
+    Let `g` be a Gaussian function (with amplitude = 1), the bridge function
     is defined as:
 
         amplitude * (1 - g(x, center1, sigma1)) * (1 - g(x, center2, sigma2))
@@ -383,7 +383,7 @@ class MultiFitter(FitterBase):
 
         The kwargs and `bins` are passed to `numpy.histogram`.
         """
-        ## Check if the same histogram is alredy computed
+        # Check if the same histogram is already computed
         if self._hist_computed:
             if bins is None and self.hist_binwidth == binwidth:
                 return
@@ -414,7 +414,7 @@ class MultiFitter(FitterBase):
 
         Arguments:
             weight_func (function): function that returns the weights
-            weight_kwargs (dict): keywork arguments to be passed to
+            weight_kwargs (dict): keyword arguments to be passed to
                 `weight_func`.
         """
         self.weights = []

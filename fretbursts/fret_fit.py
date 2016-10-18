@@ -178,7 +178,7 @@ def get_dist_euclid(nd, na, E_fit=None, slope=None):
     return distances
 
 def get_weights(nd, na, weights, naa=0, gamma=1., widths=None):
-    """Return burst weigths computed according to different criteria.
+    """Return burst weights computed according to different criteria.
 
     The burst size is computed as `nd*gamma + na + naa`.
 
@@ -199,7 +199,7 @@ def get_weights(nd, na, weights, naa=0, gamma=1., widths=None):
             weights = 'brightness'.
 
     Returns:
-        1D array of weigths, one element per burst.
+        1D array of weights, one element per burst.
     """
     nt = nd*gamma + na + naa
     if weights is None:           # all weights the same
