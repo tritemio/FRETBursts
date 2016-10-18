@@ -2055,9 +2055,12 @@ class Data(DataContainer):
             args = tuple()
         M = [filter_fun(self, i, *args, **kwargs) for i in range(self.nch)]
         # Make sure the selection function has the right return signature
-        assert np.all([isinstance(m[1], str) for m in M])
-        # Make sure boolean masks have all the right size
-        assert np.all([m[0].size == nb for m, nb in zip(M, self.num_bursts)])
+        msg = 'The second argument returned by `%s` must be a string.'
+        assert np.all([isinstance(m[1], str) for m in M]), msg % filter_fun
+        # Make sure all boolean masks have the right size
+        msg = "Boolean masks size returned by `%s` don't match the # of bursts."
+        assert np.all([m[0].size == n for m, n in zip(M, self.num_bursts)]), (
+            msg % filter_fun)
         Masks = [-m[0] if negate else m[0] for m in M]
         str_sel = M[0][1]
         if return_str:
