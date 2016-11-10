@@ -146,6 +146,14 @@ def _compute_acceptor_emission_mask(data, ich):
         raise NotImplementedError('Detectors dtype must be 1-byte.')
     donor, accept = data._det_donor_accept_multich[ich]
 
+    # Remove counts not associated with D or A channels
+    if len(np.unique(data.detectors[ich])) > 2:
+        mask = (data.detectors[ich] == donor) + (data.detectors[ich] == accept)
+        data.detectors[ich] = data.detectors[ich][mask]
+        data.ph_times_m[ich] = data.ph_times_m[ich][mask]
+        if 'nanotimes' in data:
+            data.nanotimes[ich] = data.nanotimes[ich][mask]
+
     # From `detectors` compute boolean mask `A_em`
     if accept == 0 or donor == 0:
         # In this case we create the boolean mask in-place
