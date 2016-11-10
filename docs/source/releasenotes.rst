@@ -1,6 +1,15 @@
 FRETBursts Release Notes
 ========================
 
+Version 0.6 (Nov. 2016)
+-----------------------
+
+- Detect and handle smFRET files with counts not only in D or A channels
+  (`f0e33d <https://github.com/tritemio/FRETBursts/commit/f0e33d855d6dfb31c89f282b249f80d845472124>`__).
+- Better error message when a burst filtering function fails
+  (`c7826d <https://github.com/tritemio/FRETBursts/commit/c7826d5190a034578b1fdb9c4325f8fbfe2c01d4>`__).
+
+
 Version 0.5.9 (Sep. 2016)
 -------------------------
 
