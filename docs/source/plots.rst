@@ -54,6 +54,10 @@ Bursts: tail distributions
 Others
 ~~~~~~
 
+.. autofunction:: hist_interphoton_single
+
+.. autofunction:: hist_interphoton
+
 .. autofunction:: hist_bg_single
 
 .. autofunction:: hist_bg
@@ -97,6 +101,3 @@ Scatter plots
 .. autofunction:: scatter_naa_nt
 
 .. autofunction:: scatter_alex
-
-
-

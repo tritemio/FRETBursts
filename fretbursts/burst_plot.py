@@ -1321,28 +1321,52 @@ def get_ES_range():
         print('E1={E1:.3}, E2={E2:.3}, S1={S1:.3}, S2={S2:.3}'.format(**sel))
     return sel
 
-def hist_bg_single(d, i=0, period=0, binwidth=1e-4, bins=None, tmax=0.01,
-                   ph_sel=Ph_sel('all'), show_fit=True, yscale='log',
-                   manual_rate=None, manual_tau_th=500,
-                   xscale='linear', plot_style=None, fit_style=None):
-    """Plot histogram of photon interval for a single photon streams.
 
-    Optionally plots the fitted background.
+def hist_interphoton_single(d, i=0, binwidth=1e-4, tmax=0.1, bins=None,
+                            ph_sel=Ph_sel('all'), period=None,
+                            yscale='log', xscale='linear',
+                            plot_style=None):
+    """Plot histogram of interphoton delays for a single photon streams.
+
+    Arguments:
+        d (Data object): the input data.
+        i (int): the channel for which the plot must be done. Default is 0.
+            For single-spot data the only valid value is 0.
+        binwidth (float): histogram bin width in seconds.
+        tmax (float): maximum time delay in the histogram (seconds). The
+            plotted histogram may be further trimmed to the smallest delay
+            with counts > 0 if this delay happens to be smaller than `tmax`.
+        bins (array or None): specifies the bin edged (in seconds). When
+            `bins` is not None then the arguments `binwidth` and `tmax`
+            are ignored. When `bins` is None, the bin edges are computed
+            from the `binwidth` and `tmax` arguments.
+        ph_sel (Ph_sel object): photon stream for which plotting the histogram
+        period (int): the background period to use for plotting the histogram.
+            The background period is a time-slice of the measurement from which
+            timestamps are taken. If `period` is None (default) the
+            time-windows is the full measurement.
+        yscale (string): scale for the y-axis. Valid values include 'log' and
+            'linear'. Default 'log'.
+        xscale (string): scale for the x-axis. Valid values include 'log' and
+            'linear'. Default 'linear'.
+        plot_style (dict): keyword arguments to be passed to matplotlib's
+            `plot` function. Used to customize the plot style.
     """
-
     # If `bins` is not passed or is a scalar create the `bins` array
     if bins is None:
-        bins = np.arange(0, tmax + binwidth, binwidth)
-    elif np.size(bins) == 1:
-        warnings.warn('`bins` is a scalar, `tmax` will be ignored.')
-        bins = np.arange(0, bins*binwidth, binwidth)
-    t_ax = bins[:-1] + 0.5*binwidth
+        # Shift by half clk_p to avoid "beatings" in the distribution
+        bins = np.arange(0, tmax + binwidth, binwidth) - 0.5 * d.clk_p
+    else:
+        warnings.warn('Using `bins` and ignoring `tmax` and `binwidth`.')
+    t_ax = bins[:-1] + 0.5 * binwidth
 
     # Compute histograms
-    ph_times_period = d.get_ph_times_period(ich=i, period=period,
-                                            ph_sel=ph_sel)
-    delta_ph_t_period = np.diff(ph_times_period)*d.clk_p
-    counts, _ = np.histogram(delta_ph_t_period, bins=bins)
+    if period is None:
+        ph_times = d.get_ph_times(ich=i, ph_sel=ph_sel)
+    else:
+        ph_times = d.get_ph_times_period(ich=i, period=period, ph_sel=ph_sel)
+    delta_ph_t = np.diff(ph_times) * d.clk_p
+    counts, _ = np.histogram(delta_ph_t, bins=bins)
 
     # Max index with counts > 0
     n_trim = np.trim_zeros(counts).size + 1
@@ -1353,51 +1377,140 @@ def hist_bg_single(d, i=0, period=0, binwidth=1e-4, bins=None, tmax=0.01,
         plot_style_['color'] = _ph_sel_color_dict[ph_sel]
         plot_style_['label'] = _ph_sel_label_dict[ph_sel]
     plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
-    plot(t_ax[:n_trim]*1e3, counts[:n_trim], **plot_style_)
+    plot(t_ax[:n_trim] * 1e3, counts[:n_trim], **plot_style_)
+
+    if yscale == 'log':
+        gca().set_yscale(yscale)
+        plt.ylim(1)
+        _plot_status['hist_interphoton_single'] = {'autoscale': False}
+    if xscale == 'log':
+        gca().set_xscale(yscale)
+        plt.xlim(0.5 * binwidth)
+        _plot_status['hist_interphoton_single'] = {'autoscale': False}
+    plt.xlabel('Inter-photon delays (ms)')
+    plt.ylabel('# Delays')
+    # Return interal variables so that other functions can extend the plot
+    return dict(counts=counts, n_trim=n_trim, plot_style_=plot_style_, t_ax=t_ax)
+
+
+def hist_interphoton(d, i=0, binwidth=1e-4, tmax=0.1, bins=None, period=None,
+                     yscale='log', xscale='linear', plot_style=None,
+                     show_da=False, legend=True):
+    """Plot histogram of photon interval for different photon streams.
+
+    Arguments:
+        d (Data object): the input data.
+        i (int): the channel for which the plot must be done. Default is 0.
+            For single-spot data the only valid value is 0.
+        binwidth (float): histogram bin width in seconds.
+        tmax (float): maximum time delay in the histogram. Note that the
+            plotted histogram may also be trimmed to the smallest delay
+            with counts > 0 if this delay happens to be smaller than `tmax`.
+        bins (array or None): specifies the bin edged (in seconds). When
+            `bins` is not None then the arguments `binwidth` and `tmax`
+            are ignored. When `bins` is None, the bin edges are computed
+            from the `binwidth` and `tmax` arguments.
+        period (int): the background period to use for plotting the histogram.
+            The background period is a time-slice of the measurement from which
+            timestamps are taken. If `period` is None (default) the
+            time-windows is the full measurement.
+        yscale (string): scale for the y-axis. Valid values include 'log' and
+            'linear'. Default 'log'.
+        xscale (string): scale for the x-axis. Valid values include 'log' and
+            'linear'. Default 'linear'.
+        plot_style (dict): keyword arguments to be passed to matplotlib's
+            `plot` function. Used to customize the plot style.
+        show_da (bool): If False (default) do not plot the AexDem photon stream.
+            Ignored when measurement is not ALEX.
+        legend (bool): If True (default) plot a legend.
+    """
+    # Plot multiple timetraces
+    ph_sel_list = [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
+    if d.ALEX:
+        ph_sel_list.append(Ph_sel(Aex='Aem'))
+        if show_da:
+            ph_sel_list.append(Ph_sel(Aex='Dem'))
+
+    for ix, ph_sel in enumerate(ph_sel_list):
+        if not bl.mask_empty(d.get_ph_mask(i, ph_sel=ph_sel)):
+            hist_interphoton_single(d, i=i, binwidth=binwidth, tmax=tmax,
+                                    bins=bins, period=period, ph_sel=ph_sel,
+                                    yscale=yscale, xscale=xscale,
+                                    plot_style=plot_style)
+    if legend:
+        plt.legend(loc='best', fancybox=True)
+
+    if yscale == 'log' or xscale == 'log':
+        _plot_status['hist_interphoton'] = {'autoscale': False}
+
+
+def hist_bg_single(d, i=0, binwidth=1e-4, tmax=0.01, bins=None,
+                   ph_sel=Ph_sel('all'), period=0,
+                   yscale='log', xscale='linear', plot_style=None,
+                   show_fit=True, fit_style=None, manual_rate=None):
+    """Plot histogram of photon interval for a single photon streams.
+
+    Optionally plots the fitted background as an exponential curve.
+    Most arguments are described in :func:`hist_interphoton_single`.
+    In the following we document only the additional arguments.
+
+    Arguments:
+        show_fit (bool): If True shows the fitted background rate as an
+            exponential distribution.
+        manual_rate (float or None): When not None use this value as background
+            rate (ignoring the value saved in Data).
+        fit_style (dict): arguments passed to matplotlib's `plot` for
+            for plotting the exponential curve.
+
+    For a description of all the other arguments see
+    :func:`hist_interphoton_single`.
+    """
+    hist = hist_interphoton_single(d, i=i, binwidth=binwidth, tmax=tmax,
+                                   bins=bins, ph_sel=ph_sel, period=period,
+                                   yscale=yscale, xscale=xscale,
+                                   plot_style=None)
 
     if show_fit or manual_rate is not None:
         # Compute the fit function
         if manual_rate is not None:
             bg_rate = manual_rate
-            tau_th = manual_tau_th*1e-6
         else:
             bg_rate = d.bg_from(ph_sel)[i][period]
-            tau_th = d.bg_th_us[ph_sel][i]*1e-6
+        tau_th = bg_rate * 1e-6
 
-        i_tau_th = np.searchsorted(t_ax, tau_th)
-        counts_integral = counts[i_tau_th:].sum()
-        y_fit = np.exp(- t_ax * bg_rate)
-        y_fit *= counts_integral/y_fit[i_tau_th:].sum()
+        i_tau_th = np.searchsorted(hist['t_ax'], tau_th)
+        counts_integral = hist['counts'][i_tau_th:].sum()
+        y_fit = np.exp(- hist['t_ax'] * bg_rate)
+        y_fit *= counts_integral / y_fit[i_tau_th:].sum()
 
         # Plot
-        fit_style_ = dict(plot_style_)
+        fit_style_ = dict(hist['plot_style_'])
         fit_style_.update(linestyle='-', marker='', label='auto')
         fit_style_.update(_normalize_kwargs(fit_style, kind='line2d'))
         if fit_style_['label'] is 'auto':
-            plt_label = plot_style_.get('label', None)
+            plt_label = hist['plot_style_'].get('label', None)
             label = str(ph_sel) if plt_label is None else plt_label
-            fit_style_['label'] = '%s, %.2f kcps' % (label,
-                                                     bg_rate*1e-3)
-        plot(t_ax[:n_trim]*1e3, y_fit[:n_trim], **fit_style_)
-
-    if yscale == 'log':
-        gca().set_yscale(yscale)
-        plt.ylim(1)
-        _plot_status['hist_bg_single'] = {'autoscale': False}
-    if xscale == 'log':
-        gca().set_xscale(yscale)
-        plt.xlim(0.5*binwidth)
-        _plot_status['hist_bg_single'] = {'autoscale': False}
-    plt.xlabel('Inter-photon delay (ms)')
-    plt.ylabel('# Delays')
+            fit_style_['label'] = '%s, %.2f kcps' % (label, bg_rate * 1e-3)
+        n_trim = hist['n_trim']
+        plot(hist['t_ax'][:n_trim] * 1e3, y_fit[:n_trim], **fit_style_)
 
 
-def hist_bg(d, i=0, period=0, binwidth=1e-4, bins=None, tmax=0.01,
-            show_da=False, show_fit=True, yscale='log', xscale='linear',
-            plot_style=None, fit_style=None, legend=True):
+def hist_bg(d, i=0, binwidth=1e-4, tmax=0.01, bins=None, period=0,
+            yscale='log', xscale='linear', plot_style=None,
+            show_da=False, legend=True, show_fit=True, fit_style=None):
     """Plot histogram of photon interval for different photon streams.
 
     Optionally plots the fitted background.
+    Most arguments are described in :func:`hist_interphoton`.
+    In the following we document only the additional arguments.
+
+    Arguments:
+        show_fit (bool): If True shows the fitted background rate as an
+            exponential distribution.
+        fit_style (dict): arguments passed to matplotlib's `plot` for
+            for plotting the exponential curve.
+
+    For a description of all the other arguments see :func:`hist_interphoton`.
     """
     # Plot multiple timetraces
     ph_sel_list = [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
@@ -1417,6 +1530,7 @@ def hist_bg(d, i=0, period=0, binwidth=1e-4, bins=None, tmax=0.01,
 
     if yscale == 'log' or xscale == 'log':
         _plot_status['hist_bg'] = {'autoscale': False}
+
 
 def hist_ph_delays(
         d, i=0, time_min_s=0, time_max_s=30, bin_width_us=10, mask=None,
