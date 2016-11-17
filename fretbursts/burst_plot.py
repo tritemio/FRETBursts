@@ -1351,7 +1351,7 @@ def hist_interphoton_single(d, i=0, binwidth=1e-4, tmax=None, bins=None,
             'linear'. Default 'log'.
         xscale (string): scale for the x-axis. Valid values include 'log' and
             'linear'. Default 'linear'.
-        xunit (string): unit used for the x-axis. Valis values are 's', 'ms',
+        xunit (string): unit used for the x-axis. Valid values are 's', 'ms',
             'us', 'ns'. Default 'ms'.
         plot_style (dict): keyword arguments to be passed to matplotlib's
             `plot` function. Used to customize the plot style.
@@ -1434,12 +1434,12 @@ def hist_interphoton(d, i=0, binwidth=1e-4, tmax=None, bins=None, period=None,
             'linear'. Default 'log'.
         xscale (string): scale for the x-axis. Valid values include 'log' and
             'linear'. Default 'linear'.
-        xunit (string): unit used for the x-axis. Valis values are 's', 'ms',
+        xunit (string): unit used for the x-axis. Valid values are 's', 'ms',
             'us', 'ns'. Default 'ms'.
         plot_style (dict): keyword arguments to be passed to matplotlib's
             `plot` function. Used to customize the plot style.
         show_da (bool): If False (default) do not plot the AexDem photon stream.
-            Ignored when measurement is not ALEX.
+            Ignored when the measurement is not ALEX.
         legend (bool): If True (default) plot a legend.
     """
     # Plot multiple timetraces
