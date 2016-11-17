@@ -1324,7 +1324,7 @@ def get_ES_range():
 
 def hist_interphoton_single(d, i=0, binwidth=1e-4, tmax=0.1, bins=None,
                             ph_sel=Ph_sel('all'), period=None,
-                            yscale='log', xscale='linear',
+                            yscale='log', xscale='linear', xunit='ms',
                             plot_style=None):
     """Plot histogram of interphoton delays for a single photon streams.
 
@@ -1349,9 +1349,14 @@ def hist_interphoton_single(d, i=0, binwidth=1e-4, tmax=0.1, bins=None,
             'linear'. Default 'log'.
         xscale (string): scale for the x-axis. Valid values include 'log' and
             'linear'. Default 'linear'.
+        xunit (string): unit used for the x-axis. Valis values are 's', 'ms',
+            'us', 'ns'. Default 'ms'.
         plot_style (dict): keyword arguments to be passed to matplotlib's
             `plot` function. Used to customize the plot style.
     """
+    unit_dict = {'s': 1, 'ms': 1e3, 'us': 1e6, 'ns': 1e9}
+    assert xunit in unit_dict
+    scalex = unit_dict[xunit]
     # If `bins` is not passed or is a scalar create the `bins` array
     if bins is None:
         # Shift by half clk_p to avoid "beatings" in the distribution
@@ -1377,7 +1382,7 @@ def hist_interphoton_single(d, i=0, binwidth=1e-4, tmax=0.1, bins=None,
         plot_style_['color'] = _ph_sel_color_dict[ph_sel]
         plot_style_['label'] = _ph_sel_label_dict[ph_sel]
     plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
-    plot(t_ax[:n_trim] * 1e3, counts[:n_trim], **plot_style_)
+    plot(t_ax[:n_trim] * scalex, counts[:n_trim], **plot_style_)
 
     if yscale == 'log':
         gca().set_yscale(yscale)
@@ -1387,14 +1392,15 @@ def hist_interphoton_single(d, i=0, binwidth=1e-4, tmax=0.1, bins=None,
         gca().set_xscale(yscale)
         plt.xlim(0.5 * binwidth)
         _plot_status['hist_interphoton_single'] = {'autoscale': False}
-    plt.xlabel('Inter-photon delays (ms)')
+    plt.xlabel('Inter-photon delays (%s)' % xunit.replace('us', 'μs'))
     plt.ylabel('# Delays')
     # Return interal variables so that other functions can extend the plot
-    return dict(counts=counts, n_trim=n_trim, plot_style_=plot_style_, t_ax=t_ax)
+    return dict(counts=counts, n_trim=n_trim, plot_style_=plot_style_,
+                t_ax=t_ax, scalex=scalex)
 
 
 def hist_interphoton(d, i=0, binwidth=1e-4, tmax=0.1, bins=None, period=None,
-                     yscale='log', xscale='linear', plot_style=None,
+                     yscale='log', xscale='linear', xunit='ms', plot_style=None,
                      show_da=False, legend=True):
     """Plot histogram of photon interval for different photon streams.
 
@@ -1418,6 +1424,8 @@ def hist_interphoton(d, i=0, binwidth=1e-4, tmax=0.1, bins=None, period=None,
             'linear'. Default 'log'.
         xscale (string): scale for the x-axis. Valid values include 'log' and
             'linear'. Default 'linear'.
+        xunit (string): unit used for the x-axis. Valis values are 's', 'ms',
+            'us', 'ns'. Default 'ms'.
         plot_style (dict): keyword arguments to be passed to matplotlib's
             `plot` function. Used to customize the plot style.
         show_da (bool): If False (default) do not plot the AexDem photon stream.
@@ -1435,7 +1443,7 @@ def hist_interphoton(d, i=0, binwidth=1e-4, tmax=0.1, bins=None, period=None,
         if not bl.mask_empty(d.get_ph_mask(i, ph_sel=ph_sel)):
             hist_interphoton_single(d, i=i, binwidth=binwidth, tmax=tmax,
                                     bins=bins, period=period, ph_sel=ph_sel,
-                                    yscale=yscale, xscale=xscale,
+                                    yscale=yscale, xscale=xscale, xunit=xunit,
                                     plot_style=plot_style)
     if legend:
         plt.legend(loc='best', fancybox=True)
@@ -1446,7 +1454,7 @@ def hist_interphoton(d, i=0, binwidth=1e-4, tmax=0.1, bins=None, period=None,
 
 def hist_bg_single(d, i=0, binwidth=1e-4, tmax=0.01, bins=None,
                    ph_sel=Ph_sel('all'), period=0,
-                   yscale='log', xscale='linear', plot_style=None,
+                   yscale='log', xscale='linear', xunit='ms', plot_style=None,
                    show_fit=True, fit_style=None, manual_rate=None):
     """Plot histogram of photon interval for a single photon streams.
 
@@ -1492,11 +1500,12 @@ def hist_bg_single(d, i=0, binwidth=1e-4, tmax=0.01, bins=None,
             label = str(ph_sel) if plt_label is None else plt_label
             fit_style_['label'] = '%s, %.2f kcps' % (label, bg_rate * 1e-3)
         n_trim = hist['n_trim']
-        plot(hist['t_ax'][:n_trim] * 1e3, y_fit[:n_trim], **fit_style_)
+        plot(hist['t_ax'][:n_trim] * hist['scalex'], y_fit[:n_trim],
+             **fit_style_)
 
 
 def hist_bg(d, i=0, binwidth=1e-4, tmax=0.01, bins=None, period=0,
-            yscale='log', xscale='linear', plot_style=None,
+            yscale='log', xscale='linear', xunit='ms', plot_style=None,
             show_da=False, legend=True, show_fit=True, fit_style=None):
     """Plot histogram of photon interval for different photon streams.
 
@@ -1522,7 +1531,7 @@ def hist_bg(d, i=0, binwidth=1e-4, tmax=0.01, bins=None, period=0,
     for ix, ph_sel in enumerate(ph_sel_list):
         if not bl.mask_empty(d.get_ph_mask(i, ph_sel=ph_sel)):
             hist_bg_single(d, i=i, period=period, binwidth=binwidth,
-                           bins=bins, tmax=tmax, ph_sel=ph_sel,
+                           bins=bins, tmax=tmax, ph_sel=ph_sel, xunit=xunit,
                            show_fit=show_fit, yscale=yscale, xscale=xscale,
                            plot_style=plot_style, fit_style=fit_style)
     if legend:
