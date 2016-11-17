@@ -1485,7 +1485,7 @@ def hist_bg_single(d, i=0, binwidth=1e-4, tmax=0.01, bins=None,
     """
     hist = hist_interphoton_single(d, i=i, binwidth=binwidth, tmax=tmax,
                                    bins=bins, ph_sel=ph_sel, period=period,
-                                   yscale=yscale, xscale=xscale,
+                                   yscale=yscale, xscale=xscale, xunit=xunit,
                                    plot_style=None)
 
     if show_fit or manual_rate is not None:
