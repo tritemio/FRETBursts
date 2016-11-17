@@ -1,10 +1,18 @@
 FRETBursts Release Notes
 ========================
 
-Version 0.6 (Nov. 2016)
------------------------
+Version 0.6 (*under development*)
+---------------------------------
 
-- Detect and handle smFRET files with counts not only in D or A channels
+
+- Add new plot functions
+  `hist_interphoton <http://fretbursts.readthedocs.io/en/latest/plots.html#fretbursts.burst_plot.hist_interphoton>`__
+  and `hist_interphoton_single <http://fretbursts.readthedocs.io/en/latest/plots.html#fretbursts.burst_plot.hist_interphoton_single>`__
+  to plot the interphoton delay distribution. In previous versions the
+  function `hist_bg` (and `hist_bg_single`) did the same plot but required
+  the background to be fitted. `hist_interphoton*` do not require any prior
+  background fit and also have a cleaner and improved API.
+ - Detect and handle smFRET files (no ALEX) with counts not only in D or A channels
   (`f0e33d <https://github.com/tritemio/FRETBursts/commit/f0e33d855d6dfb31c89f282b249f80d845472124>`__).
 - Better error message when a burst filtering function fails
   (`c7826d <https://github.com/tritemio/FRETBursts/commit/c7826d5190a034578b1fdb9c4325f8fbfe2c01d4>`__).
