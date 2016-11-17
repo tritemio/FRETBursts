@@ -1322,7 +1322,7 @@ def get_ES_range():
     return sel
 
 
-def hist_interphoton_single(d, i=0, binwidth=1e-4, tmax=0.1, bins=None,
+def hist_interphoton_single(d, i=0, binwidth=1e-4, tmax=None, bins=None,
                             ph_sel=Ph_sel('all'), period=None,
                             yscale='log', xscale='linear', xunit='ms',
                             plot_style=None):
@@ -1333,9 +1333,11 @@ def hist_interphoton_single(d, i=0, binwidth=1e-4, tmax=0.1, bins=None,
         i (int): the channel for which the plot must be done. Default is 0.
             For single-spot data the only valid value is 0.
         binwidth (float): histogram bin width in seconds.
-        tmax (float): maximum time delay in the histogram (seconds). The
-            plotted histogram may be further trimmed to the smallest delay
-            with counts > 0 if this delay happens to be smaller than `tmax`.
+        tmax (float or None): max timestamp delay in the histogram (seconds).
+            If None (default), uses the the max timestamp delay in the stream.
+            If not None, the plotted histogram may be further trimmed to
+            the smallest delay with counts > 0 if this delay happens to be
+            smaller than `tmax`.
         bins (array or None): specifies the bin edged (in seconds). When
             `bins` is not None then the arguments `binwidth` and `tmax`
             are ignored. When `bins` is None, the bin edges are computed
@@ -1357,20 +1359,26 @@ def hist_interphoton_single(d, i=0, binwidth=1e-4, tmax=0.1, bins=None,
     unit_dict = {'s': 1, 'ms': 1e3, 'us': 1e6, 'ns': 1e9}
     assert xunit in unit_dict
     scalex = unit_dict[xunit]
-    # If `bins` is not passed or is a scalar create the `bins` array
-    if bins is None:
-        # Shift by half clk_p to avoid "beatings" in the distribution
-        bins = np.arange(0, tmax + binwidth, binwidth) - 0.5 * d.clk_p
-    else:
-        warnings.warn('Using `bins` and ignoring `tmax` and `binwidth`.')
-    t_ax = bins[:-1] + 0.5 * binwidth
 
-    # Compute histograms
+    # Compute interphoton delays
     if period is None:
         ph_times = d.get_ph_times(ich=i, ph_sel=ph_sel)
     else:
         ph_times = d.get_ph_times_period(ich=i, period=period, ph_sel=ph_sel)
     delta_ph_t = np.diff(ph_times) * d.clk_p
+    if tmax is None:
+        tmax = delta_ph_t.max()
+
+    # Compute bin edges if not passed in
+    if bins is None:
+        # Shift by half clk_p to avoid "beatings" in the distribution
+        # due to floating point inaccuracies.
+        bins = np.arange(0, tmax + binwidth, binwidth) - 0.5 * d.clk_p
+    else:
+        warnings.warn('Using `bins` and ignoring `tmax` and `binwidth`.')
+    t_ax = bins[:-1] + 0.5 * binwidth
+
+    # Compute interphoton histogram
     counts, _ = np.histogram(delta_ph_t, bins=bins)
 
     # Max index with counts > 0
@@ -1399,7 +1407,7 @@ def hist_interphoton_single(d, i=0, binwidth=1e-4, tmax=0.1, bins=None,
                 t_ax=t_ax, scalex=scalex)
 
 
-def hist_interphoton(d, i=0, binwidth=1e-4, tmax=0.1, bins=None, period=None,
+def hist_interphoton(d, i=0, binwidth=1e-4, tmax=None, bins=None, period=None,
                      yscale='log', xscale='linear', xunit='ms', plot_style=None,
                      show_da=False, legend=True):
     """Plot histogram of photon interval for different photon streams.
@@ -1409,9 +1417,11 @@ def hist_interphoton(d, i=0, binwidth=1e-4, tmax=0.1, bins=None, period=None,
         i (int): the channel for which the plot must be done. Default is 0.
             For single-spot data the only valid value is 0.
         binwidth (float): histogram bin width in seconds.
-        tmax (float): maximum time delay in the histogram. Note that the
-            plotted histogram may also be trimmed to the smallest delay
-            with counts > 0 if this delay happens to be smaller than `tmax`.
+        tmax (float or None): max timestamp delay in the histogram (seconds).
+            If None (default), uses the the max timestamp delay in the stream.
+            If not None, the plotted histogram may be further trimmed to
+            the smallest delay with counts > 0 if this delay happens to be
+            smaller than `tmax`.
         bins (array or None): specifies the bin edged (in seconds). When
             `bins` is not None then the arguments `binwidth` and `tmax`
             are ignored. When `bins` is None, the bin edges are computed
