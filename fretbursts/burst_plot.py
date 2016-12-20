@@ -1827,32 +1827,32 @@ def scatter_alex(d, i=0, **kwargs):
 #  High-level plot wrappers
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def dplot_48ch(d, func, sharex=True, sharey=True,
+def dplot_48ch(d, func, sharex=True, sharey=True, layout='horiz',
                pgrid=True, figsize=None, AX=None, nosuptitle=False,
-               scale=True, ich=None, **kwargs):
+               scale=True, **kwargs):
     """Plot wrapper for 48-spot measurements. Use `dplot` instead."""
+    msg = "Wrong layout '%s'. Valid values: 'horiz', 'vert', '6x4'."
+    assert (layout.startswith('vert') or layout.startswith('horiz') or
+            layout == '8x6'), (msg % layout)
     global gui_status
-    if ich is None:
-        iter_ch = range(d.nch)
-        if d.nch == 48:
-            top_adjust = 0.95
-            ax_ny, ax_nx = 6, 8
-            if figsize is None:
-                figsize = (20, 16)
-        elif d.nch == 8:
-            top_adjust = 0.93
-            ax_ny, ax_nx = 4, 2
-            if figsize is None:
-                figsize = (12, 9)
-    else:
-        top_adjust = 0.9
-        iter_ch = [ich]
-        ax_ny, ax_nx = 1, 1
+    iter_ch = range(48)
+    top_adjust = 0.95
+    if layout == '8x6':
+        nrows, ncols = 6, 8
         if figsize is None:
-            figsize = (8, 5)
+            figsize = (20, 16)
+    else:
+        nrows, ncols = 4, 12
+        if layout.startswith('vert'):
+            nrows, ncols = ncols, nrows
+            iter_ch = np.arange(48).reshape(4, 12).T.ravel()
+        if figsize is None:
+            figsize = (20, 7)
+            if layout.startswith('vert'):
+                figsize = figsize[1], figsize[0]
 
     if AX is None:
-        fig, AX = plt.subplots(ax_ny, ax_nx, figsize=figsize, sharex=sharex,
+        fig, AX = plt.subplots(nrows, ncols, figsize=figsize, sharex=sharex,
                                sharey=sharey, squeeze=False)
         fig.subplots_adjust(left=0.08, right=0.96, top=top_adjust,
                             bottom=0.07, wspace=0.05)
@@ -1866,24 +1866,27 @@ def dplot_48ch(d, func, sharex=True, sharey=True,
         ax = AX.ravel()[i]
         if i == 0 and not nosuptitle:
             fig.suptitle(d.status())
-        s = u'[%d]' % (ich+1)
-        if 'rate_m' in d: s += (' BG=%.1fk' % (d.rate_m[ich]*1e-3))
-        if b is not None: s += (', #bu=%d' %  b.num_bursts)
-        ax.set_title(s, fontsize=12)
+        s = u'[%d]' % (ich + 1)
+        if 'rate_m' in d: s += (' BG=%.1fk' % (d.rate_m[ich] * 1e-3))
+        if b is not None: s += (', #bu=%d' % b.num_bursts)
+        ax.set_title(s)
         ax.grid(pgrid)
         plt.sca(ax)
         gui_status['first_plot_in_figure'] = (i == 0)
         func(d, ich, **kwargs)
+        if ax.legend_ is not None:
+            ax.legend_.remove()
     [a.set_xlabel('') for a in AX[:-1, :].ravel()]
     [a.set_ylabel('') for a in AX[:, 1:].ravel()]
     if sharex:
         plt.setp([a.get_xticklabels() for a in AX[:-1, :].ravel()],
                  visible=False)
         [a.set_xlabel('') for a in AX[:-1, :].ravel()]
-        if not old_ax: fig.subplots_adjust(hspace=0.15)
+        if not old_ax:
+            fig.subplots_adjust(hspace=0.15)
     if sharey:
         if AX.shape[1] > 1:
-             plt.setp([a.get_yticklabels() for a in AX[:, 1]], visible=False)
+            plt.setp([a.get_yticklabels() for a in AX[:, 1]], visible=False)
         fig.subplots_adjust(wspace=0.08)
 
         func_allows_autoscale = True
