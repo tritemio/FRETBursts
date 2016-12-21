@@ -1100,13 +1100,13 @@ def hist_burst_data(
                                                    kind='line2d'))
         fit_res = fitter.fit_res[i]
         x = fitter.x_axis
-        y = scale*fit_res.model.eval(x=x, **fit_res.values)
+        y = fit_res.model.eval(x=x, **fit_res.values)
         xx, yy = (y, x) if vertical else (x, y)
         ax.plot(xx, yy, **model_plot_style_)
-        if  fit_res.model.components is not None:
+        if fit_res.model.components is not None:
             for component in fit_res.model.components:
                 model_plot_style_.update(ls='--', label='Model component')
-                y = scale*component.eval(x=x, **fit_res.values)
+                y = component.eval(x=x, **fit_res.values)
                 xx, yy = (y, x) if vertical else (x, y)
                 ax.plot(xx, yy, **model_plot_style_)
         if show_model_peaks:
@@ -1120,7 +1120,7 @@ def hist_burst_data(
                                label='KDE')
         kde_plot_style_.update(_normalize_kwargs(kde_plot_style,
                                                  kind='line2d'))
-        y = scale*fitter.kde[i](x)
+        y = scale * fitter.kde[i](x)
         xx, yy = (y, x) if vertical else (x, y)
         ax.plot(xx, yy, **kde_plot_style_)
     if show_kde_peak:
