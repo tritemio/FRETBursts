@@ -140,14 +140,14 @@ def _load_alex_periods_donor_acceptor(data, meas_specs):
         _append_data_ch(data, 'D_ON', D_ON)
         _append_data_ch(data, 'A_ON', A_ON)
 
-def _compute_acceptor_emission_mask(data, ich):
+def _compute_acceptor_emission_mask(data, ich, ondisk):
     """For non-ALEX measurements."""
     if data.detectors[ich].dtype.itemsize != 1:
         raise NotImplementedError('Detectors dtype must be 1-byte.')
     donor, accept = data._det_donor_accept_multich[ich]
 
     # Remove counts not associated with D or A channels
-    if len(np.unique(data.detectors[ich])) > 2:
+    if not ondisk and len(np.unique(data.detectors[ich])) > 2:
         mask = (data.detectors[ich] == donor) + (data.detectors[ich] == accept)
         data.detectors[ich] = data.detectors[ich][mask]
         data.ph_times_m[ich] = data.ph_times_m[ich][mask]
@@ -155,7 +155,7 @@ def _compute_acceptor_emission_mask(data, ich):
             data.nanotimes[ich] = data.nanotimes[ich][mask]
 
     # From `detectors` compute boolean mask `A_em`
-    if accept == 0 or donor == 0:
+    if not ondisk and 0 in (accept, donor):
         # In this case we create the boolean mask in-place
         # using the detectors array
         _append_data_ch(data, 'A_em', data.detectors[ich].view(dtype=bool))
@@ -163,7 +163,7 @@ def _compute_acceptor_emission_mask(data, ich):
             np.logical_not(data.A_em[ich], out=data.A_em[ich])
     else:
         # Create the boolean mask
-        _append_data_ch(data, 'A_em', data.detectors[ich] == accept)
+        _append_data_ch(data, 'A_em', data.detectors[ich][:] == accept)
 
 def _add_usALEX_specs(data, meas_specs):
     try:
@@ -210,7 +210,7 @@ def _photon_hdf5_1ch(h5data, data, ondisk=False, nch=1, ich=0):
         _append_data_ch(data, 'A_em', slice(None))
 
     elif meas_type == 'smFRET':
-        _compute_acceptor_emission_mask(data, ich)
+        _compute_acceptor_emission_mask(data, ich, ondisk=ondisk)
 
     elif meas_type == 'smFRET-usALEX':
         _add_usALEX_specs(data, meas_specs)
