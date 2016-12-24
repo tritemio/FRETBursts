@@ -154,47 +154,52 @@ def test_bg_calc(data):
     assert 'bg_th_us_user' in data
     data.calc_bg(bg.exp_fit, time_s=30, tail_min_us='auto', F_bg=1.7)
 
+
+def test_ph_streams(data):
+    sel = [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
+    if data.ALEX:
+        sel.extend([Ph_sel(Aex='Aem'), Ph_sel(Aex='Dem')])
+    for s in sel:
+        assert s in data.ph_streams
+
+
 def test_bg_from(data):
     """Test the method .bg_from() for all the ph_sel combinations.
     """
     d = data
+    for sel in d.ph_streams:
+        bg = d.bg_from(ph_sel=sel)
+        assert list_array_equal(bg, d.bg[sel])
 
-    bg = d.bg_from(ph_sel=Ph_sel('all'))
-    assert list_array_equal(bg, d.bg)
-    bg = d.bg_from(ph_sel=Ph_sel(Dex='Dem'))
-    assert list_array_equal(bg, d.bg_dd)
-    bg = d.bg_from(ph_sel=Ph_sel(Dex='Aem'))
-    assert list_array_equal(bg, d.bg_ad)
+    if not data.ALEX:
+        assert list_array_equal(d.bg_from(Ph_sel('all')),
+                                d.bg_from(Ph_sel(Dex='DAem')))
+        return
 
-    if not d.ALEX:
-        bg = d.bg_from(ph_sel=Ph_sel(Dex='DAem'))
-        assert list_array_equal(bg, d.bg)
-    else:
-        bg = d.bg_from(ph_sel=Ph_sel(Aex='Dem'))
-        assert list_array_equal(bg, d.bg_da)
-        bg = d.bg_from(ph_sel=Ph_sel(Aex='Aem'))
-        assert list_array_equal(bg, d.bg_aa)
+    bg_dd = d.bg_from(ph_sel=Ph_sel(Dex='Dem'))
+    bg_ad = d.bg_from(ph_sel=Ph_sel(Dex='Aem'))
 
-        bg = d.bg_from(ph_sel=Ph_sel(Dex='DAem'))
-        bg_c = [bg1 + bg2 for bg1, bg2 in zip(d.bg_dd, d.bg_ad)]
-        assert list_array_equal(bg, bg_c)
+    bg = d.bg_from(ph_sel=Ph_sel(Dex='DAem'))
+    assert list_array_equal(bg, [b1 + b2 for b1, b2 in zip(bg_dd, bg_ad)])
 
-        bg = d.bg_from(ph_sel=Ph_sel(Aex='DAem'))
-        bg_c = [bg1 + bg2 for bg1, bg2 in zip(d.bg_da, d.bg_aa)]
-        assert list_array_equal(bg, bg_c)
+    bg_aa = d.bg_from(ph_sel=Ph_sel(Aex='Aem'))
+    bg_da = d.bg_from(ph_sel=Ph_sel(Aex='Dem'))
 
-        bg = d.bg_from(ph_sel=Ph_sel(Dex='Dem', Aex='Dem'))
-        bg_c = [bg1 + bg2 for bg1, bg2 in zip(d.bg_dd, d.bg_da)]
-        assert list_array_equal(bg, bg_c)
+    bg = d.bg_from(ph_sel=Ph_sel(Aex='DAem'))
+    assert list_array_equal(bg, [b1 + b2 for b1, b2 in zip(bg_aa, bg_da)])
 
-        bg = d.bg_from(ph_sel=Ph_sel(Dex='Aem', Aex='Aem'))
-        bg_c = [bg1 + bg2 for bg1, bg2 in zip(d.bg_ad, d.bg_aa)]
-        assert list_array_equal(bg, bg_c)
+    bg = d.bg_from(ph_sel=Ph_sel(Dex='Dem', Aex='Dem'))
+    assert list_array_equal(bg, [b1 + b2 for b1, b2 in zip(bg_dd, bg_da)])
 
-        bg = d.bg_from(ph_sel=Ph_sel(Dex='DAem', Aex='Aem'))
-        bg_c = [bg1 + bg2 + bg3
-                for bg1, bg2, bg3 in zip(d.bg_dd, d.bg_ad, d.bg_aa)]
-        assert list_array_equal(bg, bg_c)
+    bg = d.bg_from(ph_sel=Ph_sel(Dex='Aem', Aex='Aem'))
+    assert list_array_equal(bg, [b1 + b2 for b1, b2 in zip(bg_ad, bg_aa)])
+
+    bg = d.bg_from(ph_sel=Ph_sel(Dex='DAem'))
+    assert list_array_equal(bg, [b1 + b2 for b1, b2 in zip(bg_dd, bg_ad)])
+
+    bg = d.bg_from(ph_sel=Ph_sel(Dex='DAem', Aex='Aem'))
+    bg2 = [b1 + b2 + b3 for b1, b2, b3 in zip(bg_dd, bg_ad, bg_aa)]
+    assert list_array_equal(bg, bg2)
 
 
 def test_iter_ph_times(data):
@@ -291,18 +296,15 @@ def test_burst_search_with_no_bursts(data):
 
 def test_burst_search(data):
     """Smoke test and bg_bs check."""
-    data.burst_search(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Dem'))
-    assert list_equal(data.bg_bs, data.bg_dd)
-    data.burst_search(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Aem'))
-    assert list_equal(data.bg_bs, data.bg_ad)
+    streams = [Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
+    if data.ALEX:
+        streams.extend([Ph_sel(Dex='Aem', Aex='Aem'), Ph_sel(Dex='DAem')])
+    for sel in streams:
+        data.burst_search(L=10, m=10, F=7, ph_sel=sel)
+        assert list_equal(data.bg_bs, data.bg_from(sel))
 
     if data.ALEX:
-        data.burst_search(L=10, m=10, F=7,
-                          ph_sel=Ph_sel(Dex='Aem', Aex='Aem'))
-        bg_Aem = [b1 + b2 for b1, b2 in zip(data.bg_ad, data.bg_aa)]
-        assert list_equal(data.bg_bs, bg_Aem)
         data.burst_search(m=10, F=7, ph_sel=Ph_sel(Dex='DAem'), compact=True)
-
     data.burst_search(L=10, m=10, F=7)
 
 def test_burst_search_and_gate(data_1ch):
@@ -671,12 +673,13 @@ def test_expand(data):
     """Test method `expand()` for `Data()`."""
     d = data
     for ich, bursts in enumerate(d.mburst):
-        if bursts.num_bursts == 0: continue  # if no bursts skip this ch
+        if bursts.num_bursts == 0:
+            continue  # if no bursts skip this ch
         nd, na, bg_d, bg_a, width = d.expand(ich, width=True)
-        width2 = bursts.width*d.clk_p
+        width2 = bursts.width * d.clk_p
         period = d.bp[ich]
-        bg_d2 = d.bg_dd[ich][period] * width2
-        bg_a2 = d.bg_ad[ich][period] * width2
+        bg_d2 = d.bg_from(Ph_sel(Dex='Dem'))[ich][period] * width2
+        bg_a2 = d.bg_from(Ph_sel(Dex='Aem'))[ich][period] * width2
         assert (width == width2).all()
         assert (nd == d.nd[ich]).all() and (na == d.na[ich]).all()
         assert (bg_d == bg_d2).all() and (bg_a == bg_a2).all()
@@ -698,8 +701,8 @@ def test_burst_corrections(data):
         if d.ALEX:
             nda, naa = d.nda[ich], d.naa[ich]
             period = d.bp[ich]
-            bg_da = d.bg_da[ich][period]*width
-            bg_aa = d.bg_aa[ich][period]*width
+            bg_da = d.bg_from(Ph_sel(Aex='Dem'))[ich][period]*width
+            bg_aa = d.bg_from(Ph_sel(Aex='Aem'))[ich][period]*width
             burst_size_raw2 = (nd + na + bg_d + bg_a + lk*nd + nda + naa +
                                bg_da + bg_aa)
             assert np.allclose(burst_size_raw, burst_size_raw2)

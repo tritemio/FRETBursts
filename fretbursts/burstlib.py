@@ -426,9 +426,9 @@ def print_burst_stats(d):
     s += "\nPixel:          "+"%7d "*nch % tuple(range(1, nch+1))
     s += "\n#:              "+"%7d "*nch % tuple([b.num_bursts for b in d.mburst])
     s += "\nT (us) [BS par] "+"%7d "*nch % tuple(np.array(d.T)*1e6)
-    s += "\nBG Rat T (cps): "+"%7d "*nch % tuple(d.rate_m)
-    s += "\nBG Rat D (cps): "+"%7d "*nch % tuple(d.rate_dd)
-    s += "\nBG Rat A (cps): "+"%7d "*nch % tuple(d.rate_ad)
+    s += "\nBG Rat T (cps): "+"%7d "*nch % tuple(d.bg_mean(Ph_sel('all')))
+    s += "\nBG Rat D (cps): "+"%7d "*nch % tuple(d.bg_mean(Ph_sel(Dex='Dem')))
+    s += "\nBG Rat A (cps): "+"%7d "*nch % tuple(d.bg_mean(Ph_sel(Dex='Aem')))
     s += "\n\nBURST WIDTH STATS"
     s += "\nPixel:          "+"%7d "*nch % tuple(range(1, nch+1))
     s += "\nMean (ms):      "+"%7.3f "*nch % tuple(width_ms[0, :])
@@ -557,14 +557,10 @@ class Data(DataContainer):
     is here called background **`period`**.
 
     Attributes:
-        bg (list of arrays):  total background (donor + acceptor) during donor
-            excitation
-        bg_dd (list of arrays): background of donor emission during donor
-            excitation
-        bg_ad (list of arrays): background of acceptor emission during donor
-            excitation
-        bg_aa (list of arrays): background of acceptor emission during
-            acceptor excitation
+        bg (dict): estimated background rates for the different photon streams,
+            channels and background periods. `bg` keys are `Ph_se`l objects
+            and values are lists (one element per channel) of arrays (one
+            element per background period) of background rates.
         nperiods (int): number of periods in which timestamps are split for
             background calculation
         bg_fun (function): function used to compute the background rates
@@ -575,12 +571,10 @@ class Data(DataContainer):
         bg_ph_sel (Ph_sel object): photon selection used by Lim and Ph_p.
             See :mod:`fretbursts.ph_sel` for details.
 
-    Other attributes (per-ch mean of `bg`, `bg_dd`, `bg_ad` and `bg_aa`)::
+    Other attributes (per-ch mean of `bg`)::
 
-        rate_m: array of bg rates for D+A channel pairs (ex. 4 for 4 spots)
-        rate_dd: array of bg rates for D em (and D ex if ALEX)
-        rate_da: array of bg rates for A em (and D ex if ALEX)
-        rate_aa: array of bg rates for A em and A ex (only for ALEX)
+        bg_mean (dict): keys are photon stream and values are lists (one
+            element per channel) of mean background rates.
 
     **Burst search parameters (user input)**
 
@@ -641,11 +635,13 @@ class Data(DataContainer):
                  'A_em', 'D_em', 'A_ex', 'D_ex']
 
     # Attribute names containing background data.
-    # Each attribute is a list (1 element per ch) of sequences (1 element per
-    # background period). For example `.bg` is a list of arrays, while `.Lim`
-    # and `.Ph_p` are lists of lists-of-tuples (one tuple per background
-    # period). These attributes do not exist before computing the background.
-    bg_fields = ['bg', 'bg_dd', 'bg_ad', 'bg_da', 'bg_aa', 'Lim', 'Ph_p']
+    # The attribute `bg` is a dict with photon-selections as keys and
+    # list of arrays as values. Each list contains one element per channel and
+    # each array one element per background period.
+    # The attributes `.Lim`  and `.Ph_p` are lists with one element per channel.
+    # Each element is a lists-of-tuples (one tuple per background period).
+    # These attributes do not exist before computing the background.
+    bg_fields = ['bg', 'Lim', 'Ph_p']
 
     # Attribute names containing per-burst data.
     # Each attribute is a list (1 element per ch) of arrays (1 element
@@ -750,6 +746,8 @@ class Data(DataContainer):
 
     def _fix_ph_sel(self, ph_sel):
         """For non-ALEX data fix Aex to allow stable comparison."""
+        msg = 'Photon selection must be of type `Ph_sel` (it was `%s` instead).'
+        assert isinstance(ph_sel, Ph_sel), (msg % type(ph_sel))
         if self.ALEX or ph_sel.Dex != 'DAem':
             return ph_sel
         else:
@@ -1252,11 +1250,11 @@ class Data(DataContainer):
         """
         period = self.bp[ich]
         w = self.mburst[ich].width * self.clk_p
-        bg_a = self.bg_ad[ich][period] * w
-        bg_d = self.bg_dd[ich][period] * w
+        bg_a = self.bg[Ph_sel(Dex='Aem')][ich][period] * w
+        bg_d = self.bg[Ph_sel(Dex='Dem')][ich][period] * w
         res = [self.nd[ich], self.na[ich]]
         if self.ALEX and alex_naa:
-            bg_aa = self.bg_aa[ich][period] * w
+            bg_aa = self.bg[Ph_sel(Aex='Aem')][ich][period] * w
             res.extend([self.naa[ich], bg_d, bg_a, bg_aa])
         else:
             res.extend([bg_d, bg_a])
@@ -1370,7 +1368,7 @@ class Data(DataContainer):
         self.add(bg_auto_th_us0=tail_min_us0, bg_auto_F_bg=F_bg)
         return Th_us
 
-    def _get_bg_th_arrays(self, tail_min_us):
+    def _get_bg_th_arrays(self, tail_min_us, nperiods):
         """Return a dict of threshold values for background estimation.
 
         The keys are the ph selections in self.ph_streams and the values
@@ -1385,12 +1383,12 @@ class Data(DataContainer):
         elif np.size(tail_min_us) != n_streams:
             raise ValueError('Wrong tail_min_us length (%d).' %
                              len(tail_min_us))
-        Th_us = {}
+        th_us = {}
         for i, key in enumerate(self.ph_streams):
-            Th_us[key] = np.ones(self.nch) * tail_min_us[i]
+            th_us[key] = np.ones(nperiods) * tail_min_us[i]
         # Save the input used to generate Th_us
         self.add(bg_th_us_user=tail_min_us)
-        return Th_us
+        return th_us
 
     def _clean_bg_data(self):
         """Remove background fields specific of only one fit type.
@@ -1463,102 +1461,84 @@ class Data(DataContainer):
         """
         pprint(" - Calculating BG rates ... ")
         self._clean_bg_data()
-
-        if tail_min_us == 'auto':
-            bg_auto_th = True
-            Th_us = self._get_auto_bg_th_arrays(F_bg=F_bg)
-        else:
-            bg_auto_th = False
-            Th_us = self._get_bg_th_arrays(tail_min_us)
-
         kwargs = dict(clk_p=self.clk_p, error_metrics=error_metrics)
         nperiods = self._get_num_periods(time_s)
 
-        BG, BG_dd, BG_ad, BG_da, BG_aa, Lim, Ph_p = [], [], [], [], [], [], []
-        rate_m, rate_dd, rate_ad, rate_da, rate_aa = [], [], [], [], []
-        BG_err, BG_dd_err, BG_ad_err, BG_da_err, BG_aa_err = [], [], [], [], []
+        bg_auto_th = tail_min_us == 'auto'
+        if bg_auto_th:
+            tail_min_us0 = 250
+            self.add(bg_auto_th_us0=250, bg_auto_F_bg=F_bg)
+            auto_th_kwargs = dict(clk_p=self.clk_p, tail_min_us=tail_min_us0)
+            th_us = {}
+            for key in self.ph_streams:
+                th_us[key] = np.zeros(nperiods)
+        else:
+            th_us = self._get_bg_th_arrays(tail_min_us, nperiods)
+
+        Lim, Ph_p = [], []
+        BG, BG_err = [], []
+        Th_us = []
         for ich, ph_ch in enumerate(self.iter_ph_times()):
-            th_us_ch_all = Th_us[Ph_sel('all')][ich]
-            th_us_ch_dd = Th_us[Ph_sel(Dex='Dem')][ich]
-            th_us_ch_ad = Th_us[Ph_sel(Dex='Aem')][ich]
-            if self.ALEX:
-                th_us_ch_da = Th_us[Ph_sel(Aex='Dem')][ich]
-                th_us_ch_aa = Th_us[Ph_sel(Aex='Aem')][ich]
+            masks = {sel: self.get_ph_mask(ich, ph_sel=sel)
+                     for sel in self.ph_streams}
 
-            dd_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Dex='Dem'))
-            ad_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Dex='Aem'))
-            if self.ALEX:
-                da_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Aex='Dem'))
-                aa_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Aex='Aem'))
-
-            bins = (np.arange(nperiods + 1)*time_s + self.time_min)/self.clk_p
+            bins = ((np.arange(nperiods + 1) * time_s + self.time_min) /
+                    self.clk_p)
             # Note: histogram bins are half-open, e.g. [a, b)
             counts, _ = np.histogram(ph_ch, bins=bins)
             lim, ph_p = [], []
-            bg, bg_dd, bg_ad, bg_da, bg_aa = [zeros(nperiods) for _ in range(5)]
-            zeros_list = [zeros(nperiods) for _ in range(5)]
-            bg_err, bg_dd_err, bg_ad_err, bg_da_err, bg_aa_err = zeros_list
+            bg = {sel: np.zeros(nperiods) for sel in self.ph_streams}
+            bg_err = {sel: np.zeros(nperiods) for sel in self.ph_streams}
             i1 = 0
             for ip in range(nperiods):
                 i0 = i1
                 i1 += counts[ip]
                 lim.append((i0, i1 - 1))
-                ph_p.append((ph_ch[i0], ph_ch[i1-1]))
-
+                ph_p.append((ph_ch[i0], ph_ch[i1 - 1]))
                 ph_i = ph_ch[i0:i1]
-                bg[ip], bg_err[ip] = fun(ph_i, tail_min_us=th_us_ch_all,
-                                         **kwargs)
 
-                # This supports cases of D-only or A-only timestamps
-                # where self.A_em[ich] is a bool and not a bool-array
-                # In this case, either `dd_mask` or `ad_mask` is
-                # slice(None) (all-elements selection)
-                if isinstance(dd_mask, slice) and dd_mask == slice(None):
-                    bg_dd[ip], bg_dd_err[ip] = bg[ip], bg_err[ip]
-                    continue
-                if isinstance(ad_mask, slice) and ad_mask == slice(None):
-                    bg_ad[ip], bg_ad_err[ip] = bg[ip], bg_err[ip]
-                    continue
+                for sel in self.ph_streams:
+                    if sel == Ph_sel('all'):
+                        ph_i_sel = ph_i
+                    else:
+                        # This supports cases of D-only or A-only timestamps
+                        # where self.A_em[ich] is a bool and not a bool-array
+                        # In this case, the mask of either DexDem or DexAem is
+                        # slice(None) (all-elements selection).
+                        if (isinstance(masks[sel], slice) and
+                                masks[sel] == slice(None)):
+                            bg[sel][ip] = bg[Ph_sel('all')][ip]
+                            bg_err[sel][ip] = bg_err[Ph_sel('all')][ip]
+                            continue
+                        else:
+                            ph_i_sel = ph_i[masks[sel][i0:i1]]
+                    if ph_i_sel.size > 0:
+                        if bg_auto_th:
+                            _bg, _ = fun(ph_i_sel, **auto_th_kwargs)
+                            th_us[sel][ip] = 1e6 * F_bg / _bg
+                        bg[sel][ip], bg_err[sel][ip] = \
+                            fun(ph_i_sel, tail_min_us=th_us[sel][ip], **kwargs)
 
-                dd_mask_i = dd_mask[i0:i1]
-                if dd_mask_i.any():
-                    bg_dd[ip], bg_dd_err[ip] = fun(
-                        ph_i[dd_mask_i], tail_min_us=th_us_ch_dd, **kwargs)
+            Lim.append(lim)
+            Ph_p.append(ph_p)
+            BG.append(bg)
+            BG_err.append(bg_err)
+            Th_us.append(th_us)
 
-                ad_mask_i = ad_mask[i0:i1]
-                if ad_mask_i.any():
-                    bg_ad[ip], bg_ad_err[ip] = fun(
-                        ph_i[ad_mask_i], tail_min_us=th_us_ch_ad, **kwargs)
+        BG2 = {sel: [b_ch[sel] for b_ch in BG] for sel in self.ph_streams}
+        BG_err2 = {sel: [b_ch[sel] for b_ch in BG_err]
+                   for sel in self.ph_streams}
 
-                if self.ALEX and aa_mask.any():
-                    da_mask_i = da_mask[i0:i1]
-                    bg_da[ip], bg_da_err[ip] = fun(
-                        ph_i[da_mask_i], tail_min_us=th_us_ch_da, **kwargs)
-                    aa_mask_i = aa_mask[i0:i1]
-                    bg_aa[ip], bg_aa_err[ip] = fun(
-                        ph_i[aa_mask_i], tail_min_us=th_us_ch_aa, **kwargs)
+        bg_rate_mean = {}
+        for sel in self.ph_streams:
+            bg_rate_mean[sel] = [bg_ch.mean() for bg_ch in BG2[sel]]
 
-            Lim.append(lim);     Ph_p.append(ph_p)
-            BG.append(bg);       BG_err.append(bg_err)
-            BG_dd.append(bg_dd); BG_dd_err.append(bg_dd_err)
-            BG_ad.append(bg_ad); BG_ad_err.append(bg_ad_err)
-            BG_da.append(bg_da); BG_da_err.append(bg_da_err)
-            BG_aa.append(bg_aa); BG_aa_err.append(bg_aa_err)
-            rate_m.append(bg.mean())
-            rate_dd.append(bg_dd.mean())
-            rate_ad.append(bg_ad.mean())
-            if self.ALEX:
-                rate_da.append(bg_da.mean())
-                rate_aa.append(bg_aa.mean())
-        self.add(bg=BG, bg_dd=BG_dd, bg_ad=BG_ad, bg_da=BG_da, bg_aa=BG_aa,
-                 bg_err=BG_err, bg_dd_err=BG_dd_err, bg_ad_err=BG_ad_err,
-                 bg_da_err=BG_da_err, bg_aa_err=BG_aa_err,
+        self.add(bg=BG2, bg_err=BG_err2, bg_mean=bg_rate_mean,
                  Lim=Lim, Ph_p=Ph_p, nperiods=nperiods,
                  bg_fun=fun, bg_fun_name=fun.__name__,
-                 bg_time_s=time_s, bg_ph_sel=Ph_sel('all'), rate_m=rate_m,
-                 rate_dd=rate_dd, rate_ad=rate_ad,
-                 rate_da=rate_da, rate_aa=rate_aa,
-                 bg_th_us=Th_us, bg_auto_th=bg_auto_th)
+                 bg_time_s=time_s, bg_ph_sel=Ph_sel('all'),
+                 bg_auto_th=bg_auto_th, bg_th_us=Th_us,
+                 )
         pprint("[DONE]\n")
 
     def recompute_bg_lim_ph_p(self, ph_sel, mute=False):
@@ -1619,33 +1599,29 @@ class Data(DataContainer):
         """Return the background rates for the specified photon selection.
         """
         ph_sel = self._fix_ph_sel(ph_sel)
-        if ph_sel == Ph_sel('all'):
-            return self.bg
-
-        BG = {Ph_sel(Dex='Dem'): self.bg_dd,
-              Ph_sel(Dex='Aem'): self.bg_ad}
-        if self.ALEX:
-            bg_Dex = [bg_dd + bg_ad for bg_dd, bg_ad in
-                      zip(self.bg_dd, self.bg_ad)]
-            bg_Aex = [bg_da + bg_aa for bg_da, bg_aa in
-                      zip(self.bg_da, self.bg_aa)]
-            bg_Dem = [bg_dd + bg_da for bg_dd, bg_da in
-                      zip(self.bg_dd, self.bg_da)]
-            bg_Aem = [bg_ad + bg_aa for bg_ad, bg_aa in
-                      zip(self.bg_ad, self.bg_aa)]
-            bg_noDA = [bg_dd + bg_ad + bg_aa for bg_dd, bg_ad, bg_aa in
-                       zip(self.bg_dd, self.bg_ad, self.bg_aa)]
-            BG.update({Ph_sel(Aex='Aem'): self.bg_aa,
-                       Ph_sel(Aex='Dem'): self.bg_da,
-                       Ph_sel(Dex='DAem'): bg_Dex,
-                       Ph_sel(Aex='DAem'): bg_Aex,
-                       Ph_sel(Dex='Dem', Aex='Dem'): bg_Dem,
-                       Ph_sel(Dex='Aem', Aex='Aem'): bg_Aem,
-                       Ph_sel(Dex='DAem', Aex='Aem'): bg_noDA})
-        if ph_sel not in BG:
+        if ph_sel in self.ph_streams:
+            return self.bg[ph_sel]
+        elif ph_sel == Ph_sel(Dex='DAem'):
+            sel = Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')
+            bg = [b1 + b2 for b1, b2 in zip(self.bg[sel[0]], self.bg[sel[1]])]
+        elif ph_sel == Ph_sel(Aex='DAem'):
+            sel = Ph_sel(Aex='Dem'), Ph_sel(Aex='Aem')
+            bg = [b1 + b2 for b1, b2 in zip(self.bg[sel[0]], self.bg[sel[1]])]
+        elif ph_sel == Ph_sel(Dex='Dem', Aex='Dem'):
+            sel = Ph_sel(Dex='Dem'), Ph_sel(Aex='Dem')
+            bg = [b1 + b2 for b1, b2 in zip(self.bg[sel[0]], self.bg[sel[1]])]
+        elif ph_sel == Ph_sel(Dex='Aem', Aex='Aem'):
+            sel = Ph_sel(Dex='Aem'), Ph_sel(Aex='Aem')
+            bg = [b1 + b2 for b1, b2 in zip(self.bg[sel[0]], self.bg[sel[1]])]
+        elif ph_sel == Ph_sel(Dex='DAem', Aex='Aem'):
+            sel = (Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem'), Ph_sel(Aex='Aem'))
+            bg = [b1 + b2 + b3 for b1, b2, b3 in
+                  zip(self.bg[sel[0]], self.bg[sel[1]], self.bg[sel[2]])]
+        else:
             raise NotImplementedError('Photon selection %s not implemented.' %
                                       ph_sel)
-        return BG[ph_sel]
+        return bg
+
 
     def _calc_T(self, m, P, F=1., ph_sel=Ph_sel('all'), c=-1):
         """If P is None use F, otherwise uses both P *and* F (F defaults to 1).
@@ -2144,13 +2120,15 @@ class Data(DataContainer):
             na -= bg_a
             if relax_nt:
                 # This does not guarantee that nt = nd + na
-                self.nt[ich] -= self.bg[ich][period] * width
+                self.nt[ich] -= self.bg[Ph_sel('all')][ich][period] * width
             else:
                 self.nt[ich] = nd + na
             if self.ALEX:
-                self.naa[ich] -= self.bg_aa[ich][period] * width
+                bg_aa = self.bg[Ph_sel(Aex='Aem')]
+                self.naa[ich] -= bg_aa[ich][period] * width
                 if 'nda' in self:
-                    self.nda[ich] -= self.bg_da[ich][period] * width
+                    bg_da = self.bg[Ph_sel(Aex='Dem')]
+                    self.nda[ich] -= bg_da[ich][period] * width
                 self.nt[ich] += self.naa[ich]
 
     def leakage_correction(self, mute=False):

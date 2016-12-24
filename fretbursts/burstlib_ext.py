@@ -728,13 +728,21 @@ def join_data(d_list, gap=0):
 
     # Set the background fields by concatenation along axis = 0
     new_nperiods = np.sum((d.nperiods for d in d_list))
-    for name in Data.bg_fields:
+    for name in ('Lim', 'Ph_p'):
         if name in new_d:
             new_d.add(**{name: []})
             for ich in range(nch):
                 value = np.concatenate([d[name][ich] for d in d_list])
                 new_d[name].append(value)
                 assert new_d[name][ich].shape[0] == new_nperiods
+    if 'bg' in new_d:
+        new_d.add(bg={})
+        for sel in d.bg:
+            new_d.bg[sel] = []
+            for ich in range(nch):
+                value = np.concatenate([d.bg[sel][ich] for d in d_list])
+                new_d.bg[sel].append(value)
+                assert new_d.bg[sel][ich].shape[0] == new_nperiods
 
     # Set the i_origin burst attribute
     new_d.add(i_origin=[])
