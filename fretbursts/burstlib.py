@@ -777,7 +777,7 @@ class Data(DataContainer):
 
         if self._is_allph(ph_sel):
             # Note that slice(None) is equivalent to [:].
-            # Also, numpy arrays are not copies when sliced.
+            # Also, numpy arrays are not copied when sliced.
             # So getting all photons with this mask is efficient
             # Note: the drawback is that the slice cannot be indexed
             #       (where a normal boolean array would)
@@ -826,7 +826,7 @@ class Data(DataContainer):
             return self.get_D_ex(ich) + self.get_A_em(ich) * self.get_A_ex(ich)
 
         else:
-            raise ValueError('Selection not implemented.')
+            raise ValueError('Photon selection not implemented.')
 
     def iter_ph_masks(self, ph_sel=Ph_sel('all')):
         """Iterator returning masks for `ph_sel` photons.
