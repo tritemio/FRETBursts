@@ -153,7 +153,7 @@ def count_ph_in_bursts(bursts, mask):
         A 1D array containing the number of photons in each burst
         counting only photons in the selection mask.
     """
-    num_ph = np.zeros(bursts.num_bursts, dtype=np.int16)
+    num_ph = np.zeros(bursts.num_bursts, dtype=np.int32)
     for i, burst in enumerate(bursts):
         # Counts photons between start and end of current `burst`
         num_ph[i] = mask[burst.istart : burst.istop + 1].sum()
