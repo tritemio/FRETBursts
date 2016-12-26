@@ -137,22 +137,27 @@ def test_time_min_max():
 def test_time_min_max_multispot(data_8ch):
     """Test time_min and time_max for multi-spot data."""
     d = data_8ch
-    assert d.time_max == max(t[-1] for t in d.ph_times_m)*d.clk_p
-    assert d.time_min == min(t[0] for t in d.ph_times_m)*d.clk_p
+    assert d.time_max == max(t[-1] for t in d.ph_times_m) * d.clk_p
+    assert d.time_min == min(t[0] for t in d.ph_times_m) * d.clk_p
+
 
 def test_bg_calc(data):
     """Smoke test bg_calc() and test deletion of bg fields.
     """
     data.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
+    assert 'bg_auto_th_us0' not in data
+    assert 'bg_auto_F_bg' not in data
+    assert 'bg_th_us_user' in data
+
     data.calc_bg(bg.exp_fit, time_s=30, tail_min_us='auto', F_bg=1.7)
     assert 'bg_auto_th_us0' in data
     assert 'bg_auto_F_bg' in data
     assert 'bg_th_us_user' not in data
-    data.calc_bg(bg.exp_fit, time_s=30, tail_min_us=300)
-    assert 'bg_auto_th_us0' not in data
-    assert 'bg_auto_F_bg' not in data
-    assert 'bg_th_us_user' in data
-    data.calc_bg(bg.exp_fit, time_s=30, tail_min_us='auto', F_bg=1.7)
+    data.calc_bg(bg.exp_fit, time_s=30, tail_min_us='auto', F_bg=1.7,
+                 fit_allph=False)
+    streams = [s for s in data.ph_streams if s != Ph_sel('all')]
+    bg_t = [np.sum(data.bg[s][ich] for s in streams) for ich in range(data.nch)]
+    assert list_array_equal(data.bg[Ph_sel('all')], bg_t)
 
 
 def test_ph_streams(data):

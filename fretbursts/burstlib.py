@@ -1420,7 +1420,7 @@ class Data(DataContainer):
         return int(nperiods)
 
     def calc_bg(self, fun, time_s=60, tail_min_us=500, F_bg=2,
-                error_metrics=None):
+                error_metrics=None, fit_allph=True):
         """Compute time-dependent background rates for all the channels.
 
         Compute background rates for donor, acceptor and both detectors.
@@ -1446,6 +1446,9 @@ class Data(DataContainer):
                 threshold.
             error_metrics (string): Specifies the error metric to use.
                 See :func:`fretbursts.background.exp_fit` for more details.
+            fit_allph (bool): if True (default) the background for the
+                all-photon is fitted. If False it is computed as the sum of
+                backgrounds in all the other streams.
 
         The background estimation functions are defined in the module
         `background` (conventionally imported as `bg`).
@@ -1463,6 +1466,7 @@ class Data(DataContainer):
         self._clean_bg_data()
         kwargs = dict(clk_p=self.clk_p, error_metrics=error_metrics)
         nperiods = self._get_num_periods(time_s)
+        streams_noall = [s for s in self.ph_streams if s != Ph_sel('all')]
 
         bg_auto_th = tail_min_us == 'auto'
         if bg_auto_th:
@@ -1497,21 +1501,27 @@ class Data(DataContainer):
                 ph_p.append((ph_ch[i0], ph_ch[i1 - 1]))
                 ph_i = ph_ch[i0:i1]
 
-                for sel in self.ph_streams:
-                    if sel == Ph_sel('all'):
-                        ph_i_sel = ph_i
+                if fit_allph:
+                    sel = Ph_sel('all')
+                    if bg_auto_th:
+                        _bg, _ = fun(ph_i, **auto_th_kwargs)
+                        th_us[sel][ip] = 1e6 * F_bg / _bg
+                    bg[sel][ip], bg_err[sel][ip] = \
+                        fun(ph_i, tail_min_us=th_us[sel][ip], **kwargs)
+
+                for sel in streams_noall:
+                    # This supports cases of D-only or A-only timestamps
+                    # where self.A_em[ich] is a bool and not a bool-array
+                    # In this case, the mask of either DexDem or DexAem is
+                    # slice(None) (all-elements selection).
+                    if (isinstance(masks[sel], slice) and
+                            masks[sel] == slice(None)):
+                        bg[sel][ip] = bg[Ph_sel('all')][ip]
+                        bg_err[sel][ip] = bg_err[Ph_sel('all')][ip]
+                        continue
                     else:
-                        # This supports cases of D-only or A-only timestamps
-                        # where self.A_em[ich] is a bool and not a bool-array
-                        # In this case, the mask of either DexDem or DexAem is
-                        # slice(None) (all-elements selection).
-                        if (isinstance(masks[sel], slice) and
-                                masks[sel] == slice(None)):
-                            bg[sel][ip] = bg[Ph_sel('all')][ip]
-                            bg_err[sel][ip] = bg_err[Ph_sel('all')][ip]
-                            continue
-                        else:
-                            ph_i_sel = ph_i[masks[sel][i0:i1]]
+                        ph_i_sel = ph_i[masks[sel][i0:i1]]
+
                     if ph_i_sel.size > 0:
                         if bg_auto_th:
                             _bg, _ = fun(ph_i_sel, **auto_th_kwargs)
@@ -1519,6 +1529,9 @@ class Data(DataContainer):
                         bg[sel][ip], bg_err[sel][ip] = \
                             fun(ph_i_sel, tail_min_us=th_us[sel][ip], **kwargs)
 
+            if not fit_allph:
+                bg[Ph_sel('all')] += sum(bg[s] for s in streams_noall)
+                bg_err[Ph_sel('all')] += sum(bg_err[s] for s in streams_noall)
             Lim.append(lim)
             Ph_p.append(ph_p)
             BG.append(bg)
@@ -2120,14 +2133,14 @@ class Data(DataContainer):
             na -= bg_a
             if relax_nt:
                 # This does not guarantee that nt = nd + na
-                self.nt[ich] -= self.bg[Ph_sel('all')][ich][period] * width
+                self.nt[ich] -= self.bg_from(Ph_sel('all'))[ich][period] * width
             else:
                 self.nt[ich] = nd + na
             if self.ALEX:
-                bg_aa = self.bg[Ph_sel(Aex='Aem')]
+                bg_aa = self.bg_from(Ph_sel(Aex='Aem'))
                 self.naa[ich] -= bg_aa[ich][period] * width
                 if 'nda' in self:
-                    bg_da = self.bg[Ph_sel(Aex='Dem')]
+                    bg_da = self.bg_from(Ph_sel(Aex='Dem'))
                     self.nda[ich] -= bg_da[ich][period] * width
                 self.nt[ich] += self.naa[ich]
 
