@@ -76,6 +76,7 @@ class Ph_sel(namedtuple('Ph_sel', ['Dex', 'Aex'])):
 
     """
     valid_values = ('DAem', 'Dem', 'Aem', None)
+
     def __new__(cls, Dex=None, Aex=None):
         if Dex is None and Aex is None:
             raise ValueError("You need to specify at least one argument "
@@ -84,7 +85,7 @@ class Ph_sel(namedtuple('Ph_sel', ['Dex', 'Aex'])):
             return super(Ph_sel, cls).__new__(cls, 'DAem', 'DAem')
         if Dex not in cls.valid_values or Aex not in cls.valid_values:
             raise ValueError("Invalid value %s. Valid values are "
-                             "'DAem', 'Dem' or 'Aem' (or None)." %\
+                             "'DAem', 'Dem' or 'Aem' (or None)." %
                              str((Dex, Aex)))
         return super(Ph_sel, cls).__new__(cls, Dex, Aex)
 

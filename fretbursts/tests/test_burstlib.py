@@ -207,21 +207,21 @@ def test_iter_ph_times(data):
 
     for ich, ph in enumerate(d.iter_ph_times(Ph_sel(Dex='Dem'))):
         if d.ALEX:
-            assert (ph == d.ph_times_m[ich][d.D_em[ich]*d.D_ex[ich]]).all()
+            assert (ph == d.ph_times_m[ich][d.D_em[ich] * d.D_ex[ich]]).all()
         else:
             assert (ph == d.ph_times_m[ich][-d.A_em[ich]]).all()
 
     for ich, ph in enumerate(d.iter_ph_times(Ph_sel(Dex='Aem'))):
         if d.ALEX:
-            assert (ph == d.ph_times_m[ich][d.A_em[ich]*d.D_ex[ich]]).all()
+            assert (ph == d.ph_times_m[ich][d.A_em[ich] * d.D_ex[ich]]).all()
         else:
             assert (ph == d.ph_times_m[ich][d.A_em[ich]]).all()
 
     if d.ALEX:
         for ich, ph in enumerate(d.iter_ph_times(Ph_sel(Aex='Dem'))):
-            assert (ph == d.ph_times_m[ich][d.D_em[ich]*d.A_ex[ich]]).all()
+            assert (ph == d.ph_times_m[ich][d.D_em[ich] * d.A_ex[ich]]).all()
         for ich, ph in enumerate(d.iter_ph_times(Ph_sel(Aex='Aem'))):
-            assert (ph == d.ph_times_m[ich][d.A_em[ich]*d.A_ex[ich]]).all()
+            assert (ph == d.ph_times_m[ich][d.A_em[ich] * d.A_ex[ich]]).all()
 
         for ich, ph in enumerate(d.iter_ph_times(Ph_sel(Dex='DAem'))):
             assert (ph == d.ph_times_m[ich][d.D_ex[ich]]).all()
@@ -234,8 +234,8 @@ def test_iter_ph_times(data):
             assert (ph == d.ph_times_m[ich][d.A_em[ich]]).all()
 
         for ich, ph in enumerate(d.iter_ph_times(
-                                    Ph_sel(Dex='DAem', Aex='Aem'))):
-            mask = d.D_ex[ich] + d.A_em[ich]*d.A_ex[ich]
+                Ph_sel(Dex='DAem', Aex='Aem'))):
+            mask = d.D_ex[ich] + d.A_em[ich] * d.A_ex[ich]
             assert (ph == d.ph_times_m[ich][mask]).all()
     else:
         assert list_array_equal(d.iter_ph_times(),
@@ -255,8 +255,8 @@ def test_iter_ph_times_period(data):
 
         ph_sel = Ph_sel(Dex='Dem')
         mask = d.get_ph_mask(ich=ich, ph_sel=ph_sel)
-        for period, ph_period in enumerate(d.iter_ph_times_period(ich=ich,
-                                                    ph_sel=ph_sel)):
+        for period, ph_period in enumerate(
+                d.iter_ph_times_period(ich=ich, ph_sel=ph_sel)):
             istart, iend = d.Lim[ich][period]
             ph_period_test = d.ph_times_m[ich][istart : iend + 1]
             ph_period_test = ph_period_test[mask[istart : iend + 1]]
