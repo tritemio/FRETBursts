@@ -408,12 +408,12 @@ def mch_fuse_bursts(MBurst, ms=0, clk_p=12.5e-9, verbose=True):
 def burst_stats(mburst, clk_p):
     """Compute average duration, size and burst-delay for bursts in mburst.
     """
-    width_stats = np.array([[b[:, 1].mean(), b[:, 1].std()] for b in mburst
-                            if len(b) > 0]).T
-    height_stats = np.array([[b[:, 2].mean(), b[:, 2].std()] for b in mburst
-                             if len(b) > 0]).T
-    mean_burst_delay = np.array([np.diff(b[:, 0]).mean() for b in mburst
-                                 if len(b) > 0])
+    width_stats = np.array([[b.width.mean(), b.width.std()] for b in mburst
+                            if b.num_bursts > 0]).T
+    height_stats = np.array([[b.counts.mean(), b.counts.std()] for b in mburst
+                             if b.num_bursts > 0]).T
+    mean_burst_delay = np.array([b.separation.mean() for b in mburst
+                                 if b.num_bursts > 0])
     return (clk_to_s(width_stats, clk_p) * 1e3, height_stats,
             clk_to_s(mean_burst_delay, clk_p))
 
@@ -426,9 +426,9 @@ def print_burst_stats(d):
     s += "\nPixel:          "+"%7d "*nch % tuple(range(1, nch+1))
     s += "\n#:              "+"%7d "*nch % tuple([b.num_bursts for b in d.mburst])
     s += "\nT (us) [BS par] "+"%7d "*nch % tuple(np.array(d.T)*1e6)
-    s += "\nBG Rat T (cps): "+"%7d "*nch % tuple(d.bg_mean(Ph_sel('all')))
-    s += "\nBG Rat D (cps): "+"%7d "*nch % tuple(d.bg_mean(Ph_sel(Dex='Dem')))
-    s += "\nBG Rat A (cps): "+"%7d "*nch % tuple(d.bg_mean(Ph_sel(Dex='Aem')))
+    s += "\nBG Rat T (cps): "+"%7d "*nch % tuple(d.bg_mean[Ph_sel('all')])
+    s += "\nBG Rat D (cps): "+"%7d "*nch % tuple(d.bg_mean[Ph_sel(Dex='Dem')])
+    s += "\nBG Rat A (cps): "+"%7d "*nch % tuple(d.bg_mean[Ph_sel(Dex='Aem')])
     s += "\n\nBURST WIDTH STATS"
     s += "\nPixel:          "+"%7d "*nch % tuple(range(1, nch+1))
     s += "\nMean (ms):      "+"%7.3f "*nch % tuple(width_ms[0, :])
