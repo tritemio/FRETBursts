@@ -674,6 +674,10 @@ def test_burst_data(data):
     """Smoke test for bext.burst_data()"""
     bext.burst_data(data, include_bg=True, include_ph_index=True)
 
+def test_print_burst_stats(data):
+    """Smoke test for burstlib.print_burst_stats()"""
+    bl.print_burst_stats(data)
+
 def test_expand(data):
     """Test method `expand()` for `Data()`."""
     d = data
