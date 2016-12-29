@@ -136,12 +136,11 @@ def moving_window_chunks(dx, start, stop, step, window=None,
 
     See also: :func:`moving_window_dataframe`.
     """
-    stop = min(int(dx.time_max), stop)
     time_slices = moving_window_startstop(start, stop, step, window)
     dx_slices = []
     for t1, t2 in time_slices:
         dx_slice = dx.select_bursts(select_bursts.time, time_s1=t1, time_s2=t2)
-        dx_slice.name = 'Slice %d-%d s (duration %d s)' % (t1, t2, window)
+        dx_slice.name = 'Slice %d-%d s' % (t1, t2)
         dx_slice.add(slice_tstart=t1 - time_zero, slice_tstop=t2 - time_zero)
         dx_slices.append(dx_slice)
     return dx_slices
