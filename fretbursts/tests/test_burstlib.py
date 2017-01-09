@@ -15,6 +15,8 @@ from builtins import range, zip
 from collections import namedtuple
 import pytest
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 
 import fretbursts.background as bg
 import fretbursts.burstlib as bl
