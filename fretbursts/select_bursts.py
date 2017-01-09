@@ -27,6 +27,7 @@ import numpy as np
 from scipy import stats
 
 from .utils.misc import clk_to_s as _clk_to_s
+from .ph_sel import Ph_sel
 
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -320,7 +321,7 @@ def nt_bg(d, ich=0, F=5):
 ## Selection on burst size vs BG (probabilistic)
 def na_bg_p(d, ich=0, P=0.05, F=1.):
     """Select bursts w/ AD signal using P{F*BG>=na} < P."""
-    accept_ch_bg_rate = d.rate_ad[ich]
+    accept_ch_bg_rate = d.bg_mean(Ph_sel(Dex='Aem'))[ich]
     bursts_width = _clk_to_s(d.mburst[ich].width)
     max_num_bg_ph = stats.poisson(F*accept_ch_bg_rate*bursts_width).isf(P)
     #print("Min num. ph = ",  max_num_bg_ph)
@@ -329,7 +330,7 @@ def na_bg_p(d, ich=0, P=0.05, F=1.):
 
 def nd_bg_p(d, ich=0, P=0.05, F=1.):
     """Select bursts w/ DD signal using P{F*BG>=nd} < P."""
-    donor_ch_bg_rate = d.rate_dd[ich]
+    donor_ch_bg_rate = d.bg_mean(Ph_sel(Dex='Dem'))[ich]
     bursts_width = _clk_to_s(d.mburst[ich].width)
     max_num_bg_ph = stats.poisson(F*donor_ch_bg_rate*bursts_width).isf(P)
     #print("Min num. ph = ", max_num_bg_ph)
@@ -338,7 +339,7 @@ def nd_bg_p(d, ich=0, P=0.05, F=1.):
 
 def naa_bg_p(d, ich=0, P=0.05, F=1.):
     """Select bursts w/ AA signal using P{F*BG>=naa} < P."""
-    A_em_ex_bg_rate = d.rate_aa[ich]
+    A_em_ex_bg_rate = d.bg_mean(Ph_sel(Aex='Aem'))[ich]
     bursts_width = _clk_to_s(d.mburst[ich].width)
     max_num_bg_ph = stats.poisson(F*A_em_ex_bg_rate*bursts_width).isf(P)
     #print("Min num. ph = ", max_num_bg_ph)
@@ -355,57 +356,4 @@ def nt_bg_p(d, ich=0, P=0.05, F=1.):
     #print("Poisson rate = ", bg_rate*bursts_width)
     #print("rate = ", bg_rate)
     bursts_mask = (d.nt[ich] >= max_num_bg_ph)
-    return bursts_mask, ''
-
-
-## Old selection functions
-
-### Selection on burst skeness
-### this uses bleaching() from burstlib_misc.py
-#def centered(d, ich=0, th=0.1):
-#    """Select bursts with absolute value of skewness index less than th."""
-#    skew_index,_,_ = bleaching(d, ich=ich, exclude_nan=False)
-#    bursts_mask = (skew_index <= th)*(skew_index >= -th)
-#    return bursts_mask
-#
-### this uses bleaching() from burstlib_misc.py
-#def skewness(d, ich=0, th1=0.2, th2=1, **kwargs):
-#    """Select bursts with skeness between th1 and th2."""
-#    skew_index,_,_ = bleaching(d, ich=ich, **kwargs)
-#    bursts_mask = (skew_index <= th2)*(skew_index >= th1)
-#    return bursts_mask
-
-def size_noise(d, ich=0, th=2):
-    """Select bursts w/ size th times above the noise on both D and A ch."""
-    burst_width = d.mburst[ich].width
-    noise_d, noise_a = burst_width*d.rate_dd[ich], burst_width*d.rate_ad[ich]
-    bursts_mask = (d.nd[ich] >= th*noise_d)*(d.na[ich] >= th*noise_a)
-    return bursts_mask, ''
-
-def size_noise_or(d, ich=0, th=2):
-    """Select bursts w/ size th times above the noise on D or A ch."""
-    burst_width = d.mburst[ich].width
-    noise_d, noise_a = burst_width*d.rate_dd[ich], burst_width*d.rate_ad[ich]
-    bursts_mask = (d.nd[ich] >= th*noise_d)+(d.na[ich] >= th*noise_a)
-    return bursts_mask, ''
-
-## this uses prob_to_be_bg from burstlib_misc.py
-#def no_bg(d, ich=0, P=0.005, NF=1.):
-#    """Select bursts with prob. to be from BG < P."""
-#    burst_prob = prob_to_be_bg(d, ich=ich, NF=NF)
-#    bursts_mask = (burst_prob < P)
-#    return bursts_mask
-
-def fret_value(d, ich=0, E=0.5, P_th=0.01):
-    """Select bursts with prob. > P_th to have FRET equal to `E`."""
-    bsizes = np.around(d.nd[ich]+d.na[ich]).astype(np.uint16)
-    bursts_mask = np.zeros(bsizes.size, dtype=bool)
-    for burst_size in range(bsizes.min(), bsizes.max()+1):
-        indexes = np.where(bsizes == burst_size)
-        RV = stats.binom(burst_size, E)
-        #accept_num = arange(burst_size+1)
-        #y = RV.cdf(accept_num)
-        #min_accept_num = interp(th, y,accept_num)
-        min_accept_num = RV.ppf(P_th) # ppf: percent point function (cdf^-1)
-        bursts_mask[indexes] = (d.na[ich][indexes] > min_accept_num)
     return bursts_mask, ''

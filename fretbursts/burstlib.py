@@ -1219,7 +1219,7 @@ class Data(DataContainer):
         """
         p_names = ['fname', 'clk_p', 'nch', 'ph_sel', 'L', 'm', 'F', 'P',
                    '_leakage', '_dir_ex', '_gamma', 'bg_time_s', 'nperiods',
-                   'rate_dd', 'rate_ad', 'rate_aa', 'rate_m', 'T', 'rate_th',
+                   'bg_mean', 'T', 'rate_th',
                    'bg_corrected', 'leakage_corrected', 'dir_ex_corrected',
                    'dithering', '_chi_ch', 's', 'ALEX']
         p_dict = dict(self)
