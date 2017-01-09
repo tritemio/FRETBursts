@@ -16,11 +16,12 @@ from collections import namedtuple
 import pytest
 import numpy as np
 
-from fretbursts import loader
-from fretbursts import select_bursts
 import fretbursts.background as bg
 import fretbursts.burstlib as bl
 import fretbursts.burstlib_ext as bext
+import fretbursts.burst_plot as bplt
+from fretbursts import loader
+from fretbursts import select_bursts
 from fretbursts.ph_sel import Ph_sel
 from fretbursts.phtools import phrates
 
@@ -288,6 +289,27 @@ def test_burst_search_with_no_bursts(data):
     # F=600 results in periods with no bursts for the us-ALEX measurement
     # and in no bursts at all for the multi-spot measurements
     data.burst_search(m=10, F=600)
+
+def test_stale_fitter_after_burst_search(data):
+    """Test that E/S_fitter attributes are deleted on burst search."""
+    data.burst_search(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Dem'))
+    bplt.dplot(data, bplt.hist_fret)  # create E_fitter attribute
+    if data.ALEX:
+        bplt.dplot(data, bplt.hist_S)  # create S_fitter attribute
+
+    data.burst_search(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Aem'))
+    assert not hasattr(data, 'E_fitter')
+    if data.ALEX:
+        assert not hasattr(data, 'S_fitter')
+
+    bplt.dplot(data, bplt.hist_fret)  # create E_fitter attribute
+    if data.ALEX:
+        bplt.dplot(data, bplt.hist_S)  # create S_fitter attribute
+
+    data.calc_fret()
+    assert not hasattr(data, 'E_fitter')
+    if data.ALEX:
+        assert not hasattr(data, 'S_fitter')
 
 def test_burst_search(data):
     """Smoke test and bg_bs check."""
