@@ -1331,6 +1331,57 @@ class Data(DataContainer):
     ##
     # Background analysis methods
     #
+    def _obsolete_bg_attr(self, attrname, ph_sel):
+        print('The Data.%s attribute is obsolete. Please use '
+              'Data.bg(%s) instead.' % (attrname, repr(ph_sel)))
+        bg_attrs = ('bg_dd', 'bg_ad', 'bg_da', 'bg_aa')
+        bg_mean_attrs = ('rate_m', 'rate_dd', 'rate_ad', 'rate_da', 'rate_aa')
+        assert attrname in bg_attrs or attrname in bg_mean_attrs
+        if attrname in bg_attrs:
+            bg_field = 'bg'
+        elif attrname in bg_mean_attrs:
+            bg_field = 'bg_mean'
+        if bg_field in self:
+            return self[bg_field][ph_sel]
+        else:
+            raise AttributeError('No attribute `%s` found in Data.' % bg_field)
+
+    @property
+    def rate_m(self):
+        return self._obsolete_bg_attr('rate_m', Ph_sel('all'))
+
+    @property
+    def rate_dd(self):
+        return self._obsolete_bg_attr('rate_dd', Ph_sel(Dex='Dem'))
+
+    @property
+    def rate_ad(self):
+        return self._obsolete_bg_attr('rate_ad', Ph_sel(Dex='Aem'))
+
+    @property
+    def rate_da(self):
+        return self._obsolete_bg_attr('rate_da', Ph_sel(Aex='Dem'))
+
+    @property
+    def rate_aa(self):
+        return self._obsolete_bg_attr('rate_aa', Ph_sel(Aex='Aem'))
+
+    @property
+    def bg_dd(self):
+        return self._obsolete_bg_attr('bg_dd', Ph_sel(Dex='Dem'))
+
+    @property
+    def bg_ad(self):
+        return self._obsolete_bg_attr('bg_ad', Ph_sel(Dex='Aem'))
+
+    @property
+    def bg_da(self):
+        return self._obsolete_bg_attr('bg_da', Ph_sel(Aex='Dem'))
+
+    @property
+    def bg_aa(self):
+        return self._obsolete_bg_attr('bg_aa', Ph_sel(Aex='Aem'))
+
     def calc_bg_cache(self, fun, time_s=60, tail_min_us=500, F_bg=2,
                       recompute=False):
         """Compute time-dependent background rates for all the channels.
