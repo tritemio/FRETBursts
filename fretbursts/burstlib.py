@@ -489,8 +489,9 @@ class DataContainer(dict):
         for k, v in kwargs.items():
             setattr(self, k, v)
 
-    def delete(self, *args, warning=True):
+    def delete(self, *args, **kwargs):
         """Delete an element (attribute and/or dict entry). """
+        warning = kwargs.get('warning', True)
         for name in args:
             try:
                 self.pop(name)
