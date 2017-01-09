@@ -56,22 +56,34 @@ methods providing summary information on the measurement:
     .. automethod:: Name
 
 
-Correction factors
-------------------
+Background rates
+----------------
 
-The following are the various burst correction factors. They are `Data`
-properties, so setting their value automatically updates all the burst
-quantities (including E and S).
+The background is estimated, in each spot and photon stream, in chunks
+of equal duration called *background periods*.
+The background is computed with :meth:`Data.calc_bg` and the estimated rates
+are stored in the following attributes:
 
 .. class:: Data
 
-    .. autoattribute:: gamma
+    .. attribute:: bg (dict):
 
-    .. autoattribute:: leakage
+        A dict containing the estimated background rates for the different
+        photon streams, channels and background periods.
+        Keys are `Ph_sel` objects and values are lists (one element
+        per channel) of arrays (one element per background period)
+        of background rates.
 
-    .. autoattribute:: dir_ex
+    .. attribute:: bg_mean (dict):
 
-    .. autoattribute:: chi_ch
+        A dict similar to :attr:`Data.bg` but containing the mean background
+        rates (averaged across the entire measurement)
+        for the different photon streams and channels.
+
+The attributes `bg_dd`, `bg_ad`, `bg_da`, `bg_aa`,
+`rate_dd`, `rate_ad`, `rate_da`, `rate_aa` and `rate_m` are deprecated
+and will be removed in a future version.
+Please use `Data.bg` and `Data.bg_mean` instead.
 
 
 Analysis methods
@@ -96,8 +108,30 @@ Methods for background estimation, burst search and burst-data calculations.
     .. automethod:: calc_max_rate
 
 
-Burst correction methods
-------------------------
+Burst corrections
+-----------------
+
+Correction factors
+^^^^^^^^^^^^^^^^^^
+
+The following are the various burst correction factors. They are `Data`
+properties, so setting their value automatically updates all the burst
+quantities (including `E` and `S`).
+
+.. class:: Data
+
+    .. autoattribute:: gamma
+
+    .. autoattribute:: leakage
+
+    .. autoattribute:: dir_ex
+
+    .. autoattribute:: chi_ch
+
+
+
+Correction methods
+^^^^^^^^^^^^^^^^^^
 
 List of :class:`Data` methods used to apply burst corrections.
 
@@ -108,6 +142,7 @@ List of :class:`Data` methods used to apply burst corrections.
     .. automethod:: leakage_correction
 
     .. automethod:: dither
+
 
 
 Burst selection methods

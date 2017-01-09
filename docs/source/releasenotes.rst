@@ -4,7 +4,18 @@ FRETBursts Release Notes
 Version 0.6 (*under development*)
 ---------------------------------
 
-
+- Improvements to the layout of 48-spot plots.
+- Simplify background computation avoiding useless recomputations.
+  This results in 3x speed increase for measurement loaded with `ondisk=True`
+  and 30% speed increase when using `ondisk=False`.
+  Now all background rates are stored in the dictionary `Data.bg`,
+  while the mean background rate in the dictionary `Data.bg_mean`.
+  The fields `Data.rate_dd`, `Data.rate_ad`, `Data.rate_da`,
+  `Data.rate_aa` and `Data.rate_m` are now deprecated and will be removed
+  in a future release (see below).
+- Fix loading files with `ondisk=True`. With this option timestamps are not
+  kept in RAM but loaded spot-by-spot when needed. This option has no effect
+  on single-spot measurements but will save RAM in multi-spot measurements.
 - Add new plot functions
   `hist_interphoton <http://fretbursts.readthedocs.io/en/latest/plots.html#fretbursts.burst_plot.hist_interphoton>`__
   and `hist_interphoton_single <http://fretbursts.readthedocs.io/en/latest/plots.html#fretbursts.burst_plot.hist_interphoton_single>`__
@@ -12,10 +23,39 @@ Version 0.6 (*under development*)
   function `hist_bg` (and `hist_bg_single`) did the same plot but required
   the background to be fitted. `hist_interphoton*` do not require any prior
   background fit and also have a cleaner and improved API.
- - Detect and handle smFRET files (no ALEX) with counts not only in D or A channels
+- Detect and handle smFRET files (no ALEX) with counts not only in D or A channels
   (`f0e33d <https://github.com/tritemio/FRETBursts/commit/f0e33d855d6dfb31c89f282b249f80d845472124>`__).
 - Better error message when a burst filtering function fails
   (`c7826d <https://github.com/tritemio/FRETBursts/commit/c7826d5190a034578b1fdb9c4325f8fbfe2c01d4>`__).
+
+Backward-incompatible changes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The background refactor resulted in an incompatible change in the `Data.bg`
+attribute. User upgrading to version 0.6, should replace
+`Data.bg` with `Data.bg[Ph_sel('all')]` in their notebooks. Note that
+no official FRETBursts notebook was using `Data.bg`, so most users will not be
+affected.
+
+The the other background related attributes (bg_dd, bg_ad, bg_da, bg_aa,
+rate_dd, rate_ad, rate_da, rate_aa, rate_m) are still present but deprecated.
+The official FRETBursts notebooks have been updated to use the new
+`Data.bg` and `Data.bg_mean` attributes. When using these deprecated attributes,
+a message will indicate the new syntax. Please update existing notebooks
+to avoid future errors when these attributes will be removed.
+
+Details of changes
+""""""""""""""""""
+
+Before version 0.6, `Data.bg` contained background rates
+fitted for **all-photons** stream. `Data.bg` was a a list of arrays:
+one array per spot, one array element per background period.
+In version 0.6+, `Data.bg` contains the background rates for all the fitted
+photon streams. `Data.bg` is now a dict using `Ph_sel` objects as keys.
+Each dict entry is a list of array, one array per spot and one array element
+per background period. See the
+`docs <>`__
+for more details.
 
 
 Version 0.5.9 (Sep. 2016)
@@ -43,7 +83,7 @@ These changes affected
 several components as described below.
 
 Data Class
-~~~~~~~~~~
+^^^^^^^^^^
 
 - Data methods `Data.burst_sizes_ich` and `Data.burst_sizes`) now accept
   arguments ``gamma``, ``beta`` and ``donor_ref``. The argument ``gamma1``
@@ -66,19 +106,19 @@ Data Class
 
 
 Plot functions
-~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^
 
 Plot functions `hist_size` and `hist_brightness` accept the new arguments
 for corrected burst size (``gamma``, ``beta`` and ``donor_ref``).
 
 Burst selection
-~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^
 
 Burst selection by `size` and `naa` accept the new arguments
 for corrected burst size (``gamma``, ``beta`` and ``donor_ref``).
 
 Burst Weights
-~~~~~~~~~~~~~
+^^^^^^^^^^^^^
 
 Functions that accept weights don't accept the gamma1 argument anymore,
 but they don't (yet) support the arguments `donor_ref` and `beta`.
@@ -90,7 +130,7 @@ but without beta correction.
 All these changes are covered by unit tests.
 
 Installation via conda-forge
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Since version 0.5.6 we started distributing conda packages for FRETBursts
 through the `conda-forge <https://conda-forge.github.io/>`__ channel

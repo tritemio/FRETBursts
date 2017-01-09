@@ -550,17 +550,20 @@ class Data(DataContainer):
 
     **Background Attributes**
 
-    These attributes contain the estimated background rate. Each attribute is
-    a list (one element per channel) of arrays. Each array contains several
-    rates computed every `time_s` seconds of measurements. `time_s` is an
-    argument passed to `.calc_bg()` method. Each `time_s` measurement slice
-    is here called background **`period`**.
+    The background is computed with :meth:`Data.calc_bg`
+    and is estimated in chunks of equal duration called *background periods*.
+    Estimations are performed in each spot and photon stream.
+    The following attributes contain the estimated background rate.
 
     Attributes:
-        bg (dict): estimated background rates for the different photon streams,
-            channels and background periods. `bg` keys are `Ph_se`l objects
+        bg (dict): background rates for the different photon streams,
+            channels and background periods. Keys are `Ph_sel` objects
             and values are lists (one element per channel) of arrays (one
             element per background period) of background rates.
+        bg_mean (dict): mean background rates across the entire measurement
+            for the different photon streams and channels. Keys are `Ph_sel`
+            objects and values are lists (one element per channel) of
+            background rates.
         nperiods (int): number of periods in which timestamps are split for
             background calculation
         bg_fun (function): function used to compute the background rates
@@ -571,10 +574,10 @@ class Data(DataContainer):
         bg_ph_sel (Ph_sel object): photon selection used by Lim and Ph_p.
             See :mod:`fretbursts.ph_sel` for details.
 
-    Other attributes (per-ch mean of `bg`)::
-
-        bg_mean (dict): keys are photon stream and values are lists (one
-            element per channel) of mean background rates.
+    Additionlly, there are a few deprecated attributes (`bg_dd`, `bg_ad`,
+    `bg_da`, `bg_aa`, `rate_dd`, `rate_ad`, `rate_da`, `rate_aa` and `rate_m`)
+    which will be removed in a future version.
+    Please use :attr:`Data.bg` and :attr:`Data.bg_mean` instead.
 
     **Burst search parameters (user input)**
 
@@ -1230,7 +1233,7 @@ class Data(DataContainer):
         return p_dict
 
     def expand(self, ich=0, alex_naa=False, width=False):
-        """Return per-burst D and A sizes (nd, na) and background (bg_d, bg_a).
+        """Return per-burst D and A sizes (nd, na) and their background counts.
 
         This method returns for each bursts the corrected signal counts and
         background counts in donor and acceptor channels. Optionally, the
@@ -1589,6 +1592,7 @@ class Data(DataContainer):
             BG_err.append(bg_err)
             Th_us.append(th_us)
 
+        # BG is a list of dict, let's make it a dict of lists
         BG2 = {sel: [b_ch[sel] for b_ch in BG] for sel in self.ph_streams}
         BG_err2 = {sel: [b_ch[sel] for b_ch in BG_err]
                    for sel in self.ph_streams}
