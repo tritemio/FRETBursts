@@ -489,17 +489,20 @@ class DataContainer(dict):
         for k, v in kwargs.items():
             setattr(self, k, v)
 
-    def delete(self, *args):
+    def delete(self, *args, **kwargs):
         """Delete an element (attribute and/or dict entry). """
+        warning = kwargs.get('warning', True)
         for name in args:
             try:
                 self.pop(name)
             except KeyError:
-                print(' WARNING: Name %s not found (dict).' % name)
+                if warning:
+                    print(' WARNING: Name %s not found (dict).' % name)
             try:
                 delattr(self, name)
             except AttributeError:
-                print(' WARNING: Name %s not found (attr).' % name)
+                if warning:
+                    print(' WARNING: Name %s not found (attr).' % name)
 
 
 class Data(DataContainer):
@@ -1140,6 +1143,9 @@ class Data(DataContainer):
         for name in self.burst_fields + self.burst_metadata:
             if name in self:
                 self.delete(name)
+        for name in ('E_fitter', 'S_fitter'):
+            if hasattr(self, name):
+                delattr(self, name)
 
     ##
     # Methods for high-level data transformation
@@ -2507,9 +2513,12 @@ class Data(DataContainer):
         if self.ALEX:
             self._calculate_stoich()
             #self._calc_alex_hist()
-        for attr in ['E_fitter', 'S_fitter', 'ES_binwidth', 'ES_hist']:
-            if attr in self:
-                self.delete(attr)
+
+        for attr in ('ES_binwidth', 'ES_hist', 'E_fitter', 'S_fitter'):
+            # E_fitter and S_fitter are only attributes
+            # so we cannot use the membership syntax (attr in self)
+            if hasattr(self, attr):
+                self.delete(attr, warning=False)
 
     def _calculate_fret_eff(self):
         """Compute FRET efficiency (`E`) for each burst."""

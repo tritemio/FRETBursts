@@ -1058,7 +1058,7 @@ def hist_burst_data(
         bext.bursts_fitter(d, burst_data=data_name, weights=weights,
                            gamma=gamma, add_naa=add_naa)
 
-    # fitter_name is only a attribute of Data, not a key in the dictionary
+    # fitter_name is only an attribute of Data, not a key in the dictionary
     fitter = getattr(d, fitter_name)
     fitter.histogram(binwidth=binwidth, bins=bins, verbose=verbose)
     if pdf:
