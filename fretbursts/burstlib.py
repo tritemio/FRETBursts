@@ -408,12 +408,12 @@ def mch_fuse_bursts(MBurst, ms=0, clk_p=12.5e-9, verbose=True):
 def burst_stats(mburst, clk_p):
     """Compute average duration, size and burst-delay for bursts in mburst.
     """
-    width_stats = np.array([[b[:, 1].mean(), b[:, 1].std()] for b in mburst
-                            if len(b) > 0]).T
-    height_stats = np.array([[b[:, 2].mean(), b[:, 2].std()] for b in mburst
-                             if len(b) > 0]).T
-    mean_burst_delay = np.array([np.diff(b[:, 0]).mean() for b in mburst
-                                 if len(b) > 0])
+    width_stats = np.array([[b.width.mean(), b.width.std()] for b in mburst
+                            if b.num_bursts > 0]).T
+    height_stats = np.array([[b.counts.mean(), b.counts.std()] for b in mburst
+                             if b.num_bursts > 0]).T
+    mean_burst_delay = np.array([b.separation.mean() for b in mburst
+                                 if b.num_bursts > 0])
     return (clk_to_s(width_stats, clk_p) * 1e3, height_stats,
             clk_to_s(mean_burst_delay, clk_p))
 
@@ -426,9 +426,9 @@ def print_burst_stats(d):
     s += "\nPixel:          "+"%7d "*nch % tuple(range(1, nch+1))
     s += "\n#:              "+"%7d "*nch % tuple([b.num_bursts for b in d.mburst])
     s += "\nT (us) [BS par] "+"%7d "*nch % tuple(np.array(d.T)*1e6)
-    s += "\nBG Rat T (cps): "+"%7d "*nch % tuple(d.rate_m)
-    s += "\nBG Rat D (cps): "+"%7d "*nch % tuple(d.rate_dd)
-    s += "\nBG Rat A (cps): "+"%7d "*nch % tuple(d.rate_ad)
+    s += "\nBG Rat T (cps): "+"%7d "*nch % tuple(d.bg_mean[Ph_sel('all')])
+    s += "\nBG Rat D (cps): "+"%7d "*nch % tuple(d.bg_mean[Ph_sel(Dex='Dem')])
+    s += "\nBG Rat A (cps): "+"%7d "*nch % tuple(d.bg_mean[Ph_sel(Dex='Aem')])
     s += "\n\nBURST WIDTH STATS"
     s += "\nPixel:          "+"%7d "*nch % tuple(range(1, nch+1))
     s += "\nMean (ms):      "+"%7.3f "*nch % tuple(width_ms[0, :])
@@ -553,21 +553,20 @@ class Data(DataContainer):
 
     **Background Attributes**
 
-    These attributes contain the estimated background rate. Each attribute is
-    a list (one element per channel) of arrays. Each array contains several
-    rates computed every `time_s` seconds of measurements. `time_s` is an
-    argument passed to `.calc_bg()` method. Each `time_s` measurement slice
-    is here called background **`period`**.
+    The background is computed with :meth:`Data.calc_bg`
+    and is estimated in chunks of equal duration called *background periods*.
+    Estimations are performed in each spot and photon stream.
+    The following attributes contain the estimated background rate.
 
     Attributes:
-        bg (list of arrays):  total background (donor + acceptor) during donor
-            excitation
-        bg_dd (list of arrays): background of donor emission during donor
-            excitation
-        bg_ad (list of arrays): background of acceptor emission during donor
-            excitation
-        bg_aa (list of arrays): background of acceptor emission during
-            acceptor excitation
+        bg (dict): background rates for the different photon streams,
+            channels and background periods. Keys are `Ph_sel` objects
+            and values are lists (one element per channel) of arrays (one
+            element per background period) of background rates.
+        bg_mean (dict): mean background rates across the entire measurement
+            for the different photon streams and channels. Keys are `Ph_sel`
+            objects and values are lists (one element per channel) of
+            background rates.
         nperiods (int): number of periods in which timestamps are split for
             background calculation
         bg_fun (function): function used to compute the background rates
@@ -578,12 +577,10 @@ class Data(DataContainer):
         bg_ph_sel (Ph_sel object): photon selection used by Lim and Ph_p.
             See :mod:`fretbursts.ph_sel` for details.
 
-    Other attributes (per-ch mean of `bg`, `bg_dd`, `bg_ad` and `bg_aa`)::
-
-        rate_m: array of bg rates for D+A channel pairs (ex. 4 for 4 spots)
-        rate_dd: array of bg rates for D em (and D ex if ALEX)
-        rate_da: array of bg rates for A em (and D ex if ALEX)
-        rate_aa: array of bg rates for A em and A ex (only for ALEX)
+    Additionlly, there are a few deprecated attributes (`bg_dd`, `bg_ad`,
+    `bg_da`, `bg_aa`, `rate_dd`, `rate_ad`, `rate_da`, `rate_aa` and `rate_m`)
+    which will be removed in a future version.
+    Please use :attr:`Data.bg` and :attr:`Data.bg_mean` instead.
 
     **Burst search parameters (user input)**
 
@@ -644,11 +641,13 @@ class Data(DataContainer):
                  'A_em', 'D_em', 'A_ex', 'D_ex']
 
     # Attribute names containing background data.
-    # Each attribute is a list (1 element per ch) of sequences (1 element per
-    # background period). For example `.bg` is a list of arrays, while `.Lim`
-    # and `.Ph_p` are lists of lists-of-tuples (one tuple per background
-    # period). These attributes do not exist before computing the background.
-    bg_fields = ['bg', 'bg_dd', 'bg_ad', 'bg_da', 'bg_aa', 'Lim', 'Ph_p']
+    # The attribute `bg` is a dict with photon-selections as keys and
+    # list of arrays as values. Each list contains one element per channel and
+    # each array one element per background period.
+    # The attributes `.Lim`  and `.Ph_p` are lists with one element per channel.
+    # Each element is a lists-of-tuples (one tuple per background period).
+    # These attributes do not exist before computing the background.
+    bg_fields = ['bg', 'Lim', 'Ph_p']
 
     # Attribute names containing per-burst data.
     # Each attribute is a list (1 element per ch) of arrays (1 element
@@ -753,6 +752,8 @@ class Data(DataContainer):
 
     def _fix_ph_sel(self, ph_sel):
         """For non-ALEX data fix Aex to allow stable comparison."""
+        msg = 'Photon selection must be of type `Ph_sel` (it was `%s` instead).'
+        assert isinstance(ph_sel, Ph_sel), (msg % type(ph_sel))
         if self.ALEX or ph_sel.Dex != 'DAem':
             return ph_sel
         else:
@@ -1042,7 +1043,7 @@ class Data(DataContainer):
         AexAem stream to the returned burst size. The argument `gamma` and
         `beta` are used to correctly scale `naa` so that it become commensurate
         with the Dex corrected burst size. In particular, when using
-        definition (1) (i.e. `donor_ref = True`, default), total burst size is::
+        definition (1) (i.e. `donor_ref = True`), the total burst size is::
 
             (nd + na/gamma) + naa / (beta * gamma)
 
@@ -1104,7 +1105,7 @@ class Data(DataContainer):
         """Return gamma corrected burst sizes for all the channel.
 
         Compute burst sizes by calling :meth:`burst_sizes_ich` for each
-        channel. See :meth:`burst_sizes_ich` for argument description.
+        channel. See :meth:`burst_sizes_ich` for a description of the arguments.
 
         Returns
             List of arrays of burst sizes, one array per channel.
@@ -1227,7 +1228,7 @@ class Data(DataContainer):
         """
         p_names = ['fname', 'clk_p', 'nch', 'ph_sel', 'L', 'm', 'F', 'P',
                    '_leakage', '_dir_ex', '_gamma', 'bg_time_s', 'nperiods',
-                   'rate_dd', 'rate_ad', 'rate_aa', 'rate_m', 'T', 'rate_th',
+                   'bg_mean', 'T', 'rate_th',
                    'bg_corrected', 'leakage_corrected', 'dir_ex_corrected',
                    'dithering', '_chi_ch', 's', 'ALEX']
         p_dict = dict(self)
@@ -1238,7 +1239,7 @@ class Data(DataContainer):
         return p_dict
 
     def expand(self, ich=0, alex_naa=False, width=False):
-        """Return per-burst D and A sizes (nd, na) and background (bg_d, bg_a).
+        """Return per-burst D and A sizes (nd, na) and their background counts.
 
         This method returns for each bursts the corrected signal counts and
         background counts in donor and acceptor channels. Optionally, the
@@ -1258,11 +1259,11 @@ class Data(DataContainer):
         """
         period = self.bp[ich]
         w = self.mburst[ich].width * self.clk_p
-        bg_a = self.bg_ad[ich][period] * w
-        bg_d = self.bg_dd[ich][period] * w
+        bg_a = self.bg[Ph_sel(Dex='Aem')][ich][period] * w
+        bg_d = self.bg[Ph_sel(Dex='Dem')][ich][period] * w
         res = [self.nd[ich], self.na[ich]]
         if self.ALEX and alex_naa:
-            bg_aa = self.bg_aa[ich][period] * w
+            bg_aa = self.bg[Ph_sel(Aex='Aem')][ich][period] * w
             res.extend([self.naa[ich], bg_d, bg_a, bg_aa])
         else:
             res.extend([bg_d, bg_a])
@@ -1339,6 +1340,57 @@ class Data(DataContainer):
     ##
     # Background analysis methods
     #
+    def _obsolete_bg_attr(self, attrname, ph_sel):
+        print('The Data.%s attribute is obsolete. Please use '
+              'Data.bg(%s) instead.' % (attrname, repr(ph_sel)))
+        bg_attrs = ('bg_dd', 'bg_ad', 'bg_da', 'bg_aa')
+        bg_mean_attrs = ('rate_m', 'rate_dd', 'rate_ad', 'rate_da', 'rate_aa')
+        assert attrname in bg_attrs or attrname in bg_mean_attrs
+        if attrname in bg_attrs:
+            bg_field = 'bg'
+        elif attrname in bg_mean_attrs:
+            bg_field = 'bg_mean'
+        if bg_field in self:
+            return self[bg_field][ph_sel]
+        else:
+            raise AttributeError('No attribute `%s` found in Data.' % bg_field)
+
+    @property
+    def rate_m(self):
+        return self._obsolete_bg_attr('rate_m', Ph_sel('all'))
+
+    @property
+    def rate_dd(self):
+        return self._obsolete_bg_attr('rate_dd', Ph_sel(Dex='Dem'))
+
+    @property
+    def rate_ad(self):
+        return self._obsolete_bg_attr('rate_ad', Ph_sel(Dex='Aem'))
+
+    @property
+    def rate_da(self):
+        return self._obsolete_bg_attr('rate_da', Ph_sel(Aex='Dem'))
+
+    @property
+    def rate_aa(self):
+        return self._obsolete_bg_attr('rate_aa', Ph_sel(Aex='Aem'))
+
+    @property
+    def bg_dd(self):
+        return self._obsolete_bg_attr('bg_dd', Ph_sel(Dex='Dem'))
+
+    @property
+    def bg_ad(self):
+        return self._obsolete_bg_attr('bg_ad', Ph_sel(Dex='Aem'))
+
+    @property
+    def bg_da(self):
+        return self._obsolete_bg_attr('bg_da', Ph_sel(Aex='Dem'))
+
+    @property
+    def bg_aa(self):
+        return self._obsolete_bg_attr('bg_aa', Ph_sel(Aex='Aem'))
+
     def calc_bg_cache(self, fun, time_s=60, tail_min_us=500, F_bg=2,
                       recompute=False):
         """Compute time-dependent background rates for all the channels.
@@ -1376,7 +1428,7 @@ class Data(DataContainer):
         self.add(bg_auto_th_us0=tail_min_us0, bg_auto_F_bg=F_bg)
         return Th_us
 
-    def _get_bg_th_arrays(self, tail_min_us):
+    def _get_bg_th_arrays(self, tail_min_us, nperiods):
         """Return a dict of threshold values for background estimation.
 
         The keys are the ph selections in self.ph_streams and the values
@@ -1391,12 +1443,12 @@ class Data(DataContainer):
         elif np.size(tail_min_us) != n_streams:
             raise ValueError('Wrong tail_min_us length (%d).' %
                              len(tail_min_us))
-        Th_us = {}
+        th_us = {}
         for i, key in enumerate(self.ph_streams):
-            Th_us[key] = np.ones(self.nch) * tail_min_us[i]
+            th_us[key] = np.ones(nperiods) * tail_min_us[i]
         # Save the input used to generate Th_us
         self.add(bg_th_us_user=tail_min_us)
-        return Th_us
+        return th_us
 
     def _clean_bg_data(self):
         """Remove background fields specific of only one fit type.
@@ -1428,7 +1480,7 @@ class Data(DataContainer):
         return int(nperiods)
 
     def calc_bg(self, fun, time_s=60, tail_min_us=500, F_bg=2,
-                error_metrics=None):
+                error_metrics=None, fit_allph=True):
         """Compute time-dependent background rates for all the channels.
 
         Compute background rates for donor, acceptor and both detectors.
@@ -1454,6 +1506,9 @@ class Data(DataContainer):
                 threshold.
             error_metrics (string): Specifies the error metric to use.
                 See :func:`fretbursts.background.exp_fit` for more details.
+            fit_allph (bool): if True (default) the background for the
+                all-photon is fitted. If False it is computed as the sum of
+                backgrounds in all the other streams.
 
         The background estimation functions are defined in the module
         `background` (conventionally imported as `bg`).
@@ -1469,102 +1524,95 @@ class Data(DataContainer):
         """
         pprint(" - Calculating BG rates ... ")
         self._clean_bg_data()
-
-        if tail_min_us == 'auto':
-            bg_auto_th = True
-            Th_us = self._get_auto_bg_th_arrays(F_bg=F_bg)
-        else:
-            bg_auto_th = False
-            Th_us = self._get_bg_th_arrays(tail_min_us)
-
         kwargs = dict(clk_p=self.clk_p, error_metrics=error_metrics)
         nperiods = self._get_num_periods(time_s)
+        streams_noall = [s for s in self.ph_streams if s != Ph_sel('all')]
 
-        BG, BG_dd, BG_ad, BG_da, BG_aa, Lim, Ph_p = [], [], [], [], [], [], []
-        rate_m, rate_dd, rate_ad, rate_da, rate_aa = [], [], [], [], []
-        BG_err, BG_dd_err, BG_ad_err, BG_da_err, BG_aa_err = [], [], [], [], []
+        bg_auto_th = tail_min_us == 'auto'
+        if bg_auto_th:
+            tail_min_us0 = 250
+            self.add(bg_auto_th_us0=250, bg_auto_F_bg=F_bg)
+            auto_th_kwargs = dict(clk_p=self.clk_p, tail_min_us=tail_min_us0)
+            th_us = {}
+            for key in self.ph_streams:
+                th_us[key] = np.zeros(nperiods)
+        else:
+            th_us = self._get_bg_th_arrays(tail_min_us, nperiods)
+
+        Lim, Ph_p = [], []
+        BG, BG_err = [], []
+        Th_us = []
         for ich, ph_ch in enumerate(self.iter_ph_times()):
-            th_us_ch_all = Th_us[Ph_sel('all')][ich]
-            th_us_ch_dd = Th_us[Ph_sel(Dex='Dem')][ich]
-            th_us_ch_ad = Th_us[Ph_sel(Dex='Aem')][ich]
-            if self.ALEX:
-                th_us_ch_da = Th_us[Ph_sel(Aex='Dem')][ich]
-                th_us_ch_aa = Th_us[Ph_sel(Aex='Aem')][ich]
+            masks = {sel: self.get_ph_mask(ich, ph_sel=sel)
+                     for sel in self.ph_streams}
 
-            dd_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Dex='Dem'))
-            ad_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Dex='Aem'))
-            if self.ALEX:
-                da_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Aex='Dem'))
-                aa_mask = self.get_ph_mask(ich, ph_sel=Ph_sel(Aex='Aem'))
-
-            bins = (np.arange(nperiods + 1)*time_s + self.time_min)/self.clk_p
+            bins = ((np.arange(nperiods + 1) * time_s + self.time_min) /
+                    self.clk_p)
             # Note: histogram bins are half-open, e.g. [a, b)
             counts, _ = np.histogram(ph_ch, bins=bins)
             lim, ph_p = [], []
-            bg, bg_dd, bg_ad, bg_da, bg_aa = [zeros(nperiods) for _ in range(5)]
-            zeros_list = [zeros(nperiods) for _ in range(5)]
-            bg_err, bg_dd_err, bg_ad_err, bg_da_err, bg_aa_err = zeros_list
+            bg = {sel: np.zeros(nperiods) for sel in self.ph_streams}
+            bg_err = {sel: np.zeros(nperiods) for sel in self.ph_streams}
             i1 = 0
             for ip in range(nperiods):
                 i0 = i1
                 i1 += counts[ip]
                 lim.append((i0, i1 - 1))
-                ph_p.append((ph_ch[i0], ph_ch[i1-1]))
-
+                ph_p.append((ph_ch[i0], ph_ch[i1 - 1]))
                 ph_i = ph_ch[i0:i1]
-                bg[ip], bg_err[ip] = fun(ph_i, tail_min_us=th_us_ch_all,
-                                         **kwargs)
 
-                # This supports cases of D-only or A-only timestamps
-                # where self.A_em[ich] is a bool and not a bool-array
-                # In this case, either `dd_mask` or `ad_mask` is
-                # slice(None) (all-elements selection)
-                if isinstance(dd_mask, slice) and dd_mask == slice(None):
-                    bg_dd[ip], bg_dd_err[ip] = bg[ip], bg_err[ip]
-                    continue
-                if isinstance(ad_mask, slice) and ad_mask == slice(None):
-                    bg_ad[ip], bg_ad_err[ip] = bg[ip], bg_err[ip]
-                    continue
+                if fit_allph:
+                    sel = Ph_sel('all')
+                    if bg_auto_th:
+                        _bg, _ = fun(ph_i, **auto_th_kwargs)
+                        th_us[sel][ip] = 1e6 * F_bg / _bg
+                    bg[sel][ip], bg_err[sel][ip] = \
+                        fun(ph_i, tail_min_us=th_us[sel][ip], **kwargs)
 
-                dd_mask_i = dd_mask[i0:i1]
-                if dd_mask_i.any():
-                    bg_dd[ip], bg_dd_err[ip] = fun(
-                        ph_i[dd_mask_i], tail_min_us=th_us_ch_dd, **kwargs)
+                for sel in streams_noall:
+                    # This supports cases of D-only or A-only timestamps
+                    # where self.A_em[ich] is a bool and not a bool-array
+                    # In this case, the mask of either DexDem or DexAem is
+                    # slice(None) (all-elements selection).
+                    if (isinstance(masks[sel], slice) and
+                            masks[sel] == slice(None)):
+                        bg[sel][ip] = bg[Ph_sel('all')][ip]
+                        bg_err[sel][ip] = bg_err[Ph_sel('all')][ip]
+                        continue
+                    else:
+                        ph_i_sel = ph_i[masks[sel][i0:i1]]
 
-                ad_mask_i = ad_mask[i0:i1]
-                if ad_mask_i.any():
-                    bg_ad[ip], bg_ad_err[ip] = fun(
-                        ph_i[ad_mask_i], tail_min_us=th_us_ch_ad, **kwargs)
+                    if ph_i_sel.size > 0:
+                        if bg_auto_th:
+                            _bg, _ = fun(ph_i_sel, **auto_th_kwargs)
+                            th_us[sel][ip] = 1e6 * F_bg / _bg
+                        bg[sel][ip], bg_err[sel][ip] = \
+                            fun(ph_i_sel, tail_min_us=th_us[sel][ip], **kwargs)
 
-                if self.ALEX and aa_mask.any():
-                    da_mask_i = da_mask[i0:i1]
-                    bg_da[ip], bg_da_err[ip] = fun(
-                        ph_i[da_mask_i], tail_min_us=th_us_ch_da, **kwargs)
-                    aa_mask_i = aa_mask[i0:i1]
-                    bg_aa[ip], bg_aa_err[ip] = fun(
-                        ph_i[aa_mask_i], tail_min_us=th_us_ch_aa, **kwargs)
+            if not fit_allph:
+                bg[Ph_sel('all')] += sum(bg[s] for s in streams_noall)
+                bg_err[Ph_sel('all')] += sum(bg_err[s] for s in streams_noall)
+            Lim.append(lim)
+            Ph_p.append(ph_p)
+            BG.append(bg)
+            BG_err.append(bg_err)
+            Th_us.append(th_us)
 
-            Lim.append(lim);     Ph_p.append(ph_p)
-            BG.append(bg);       BG_err.append(bg_err)
-            BG_dd.append(bg_dd); BG_dd_err.append(bg_dd_err)
-            BG_ad.append(bg_ad); BG_ad_err.append(bg_ad_err)
-            BG_da.append(bg_da); BG_da_err.append(bg_da_err)
-            BG_aa.append(bg_aa); BG_aa_err.append(bg_aa_err)
-            rate_m.append(bg.mean())
-            rate_dd.append(bg_dd.mean())
-            rate_ad.append(bg_ad.mean())
-            if self.ALEX:
-                rate_da.append(bg_da.mean())
-                rate_aa.append(bg_aa.mean())
-        self.add(bg=BG, bg_dd=BG_dd, bg_ad=BG_ad, bg_da=BG_da, bg_aa=BG_aa,
-                 bg_err=BG_err, bg_dd_err=BG_dd_err, bg_ad_err=BG_ad_err,
-                 bg_da_err=BG_da_err, bg_aa_err=BG_aa_err,
+        # BG is a list of dict, let's make it a dict of lists
+        BG2 = {sel: [b_ch[sel] for b_ch in BG] for sel in self.ph_streams}
+        BG_err2 = {sel: [b_ch[sel] for b_ch in BG_err]
+                   for sel in self.ph_streams}
+
+        bg_rate_mean = {}
+        for sel in self.ph_streams:
+            bg_rate_mean[sel] = [bg_ch.mean() for bg_ch in BG2[sel]]
+
+        self.add(bg=BG2, bg_err=BG_err2, bg_mean=bg_rate_mean,
                  Lim=Lim, Ph_p=Ph_p, nperiods=nperiods,
                  bg_fun=fun, bg_fun_name=fun.__name__,
-                 bg_time_s=time_s, bg_ph_sel=Ph_sel('all'), rate_m=rate_m,
-                 rate_dd=rate_dd, rate_ad=rate_ad,
-                 rate_da=rate_da, rate_aa=rate_aa,
-                 bg_th_us=Th_us, bg_auto_th=bg_auto_th)
+                 bg_time_s=time_s, bg_ph_sel=Ph_sel('all'),
+                 bg_auto_th=bg_auto_th, bg_th_us=Th_us,
+                 )
         pprint("[DONE]\n")
 
     def recompute_bg_lim_ph_p(self, ph_sel, mute=False):
@@ -1625,33 +1673,29 @@ class Data(DataContainer):
         """Return the background rates for the specified photon selection.
         """
         ph_sel = self._fix_ph_sel(ph_sel)
-        if ph_sel == Ph_sel('all'):
-            return self.bg
-
-        BG = {Ph_sel(Dex='Dem'): self.bg_dd,
-              Ph_sel(Dex='Aem'): self.bg_ad}
-        if self.ALEX:
-            bg_Dex = [bg_dd + bg_ad for bg_dd, bg_ad in
-                      zip(self.bg_dd, self.bg_ad)]
-            bg_Aex = [bg_da + bg_aa for bg_da, bg_aa in
-                      zip(self.bg_da, self.bg_aa)]
-            bg_Dem = [bg_dd + bg_da for bg_dd, bg_da in
-                      zip(self.bg_dd, self.bg_da)]
-            bg_Aem = [bg_ad + bg_aa for bg_ad, bg_aa in
-                      zip(self.bg_ad, self.bg_aa)]
-            bg_noDA = [bg_dd + bg_ad + bg_aa for bg_dd, bg_ad, bg_aa in
-                       zip(self.bg_dd, self.bg_ad, self.bg_aa)]
-            BG.update({Ph_sel(Aex='Aem'): self.bg_aa,
-                       Ph_sel(Aex='Dem'): self.bg_da,
-                       Ph_sel(Dex='DAem'): bg_Dex,
-                       Ph_sel(Aex='DAem'): bg_Aex,
-                       Ph_sel(Dex='Dem', Aex='Dem'): bg_Dem,
-                       Ph_sel(Dex='Aem', Aex='Aem'): bg_Aem,
-                       Ph_sel(Dex='DAem', Aex='Aem'): bg_noDA})
-        if ph_sel not in BG:
+        if ph_sel in self.ph_streams:
+            return self.bg[ph_sel]
+        elif ph_sel == Ph_sel(Dex='DAem'):
+            sel = Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')
+            bg = [b1 + b2 for b1, b2 in zip(self.bg[sel[0]], self.bg[sel[1]])]
+        elif ph_sel == Ph_sel(Aex='DAem'):
+            sel = Ph_sel(Aex='Dem'), Ph_sel(Aex='Aem')
+            bg = [b1 + b2 for b1, b2 in zip(self.bg[sel[0]], self.bg[sel[1]])]
+        elif ph_sel == Ph_sel(Dex='Dem', Aex='Dem'):
+            sel = Ph_sel(Dex='Dem'), Ph_sel(Aex='Dem')
+            bg = [b1 + b2 for b1, b2 in zip(self.bg[sel[0]], self.bg[sel[1]])]
+        elif ph_sel == Ph_sel(Dex='Aem', Aex='Aem'):
+            sel = Ph_sel(Dex='Aem'), Ph_sel(Aex='Aem')
+            bg = [b1 + b2 for b1, b2 in zip(self.bg[sel[0]], self.bg[sel[1]])]
+        elif ph_sel == Ph_sel(Dex='DAem', Aex='Aem'):
+            sel = (Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem'), Ph_sel(Aex='Aem'))
+            bg = [b1 + b2 + b3 for b1, b2, b3 in
+                  zip(self.bg[sel[0]], self.bg[sel[1]], self.bg[sel[2]])]
+        else:
             raise NotImplementedError('Photon selection %s not implemented.' %
                                       ph_sel)
-        return BG[ph_sel]
+        return bg
+
 
     def _calc_T(self, m, P, F=1., ph_sel=Ph_sel('all'), c=-1):
         """If P is None use F, otherwise uses both P *and* F (F defaults to 1).
@@ -2150,13 +2194,15 @@ class Data(DataContainer):
             na -= bg_a
             if relax_nt:
                 # This does not guarantee that nt = nd + na
-                self.nt[ich] -= self.bg[ich][period] * width
+                self.nt[ich] -= self.bg_from(Ph_sel('all'))[ich][period] * width
             else:
                 self.nt[ich] = nd + na
             if self.ALEX:
-                self.naa[ich] -= self.bg_aa[ich][period] * width
+                bg_aa = self.bg_from(Ph_sel(Aex='Aem'))
+                self.naa[ich] -= bg_aa[ich][period] * width
                 if 'nda' in self:
-                    self.nda[ich] -= self.bg_da[ich][period] * width
+                    bg_da = self.bg_from(Ph_sel(Aex='Dem'))
+                    self.nda[ich] -= bg_da[ich][period] * width
                 self.nt[ich] += self.naa[ich]
 
     def leakage_correction(self, mute=False):

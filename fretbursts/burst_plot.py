@@ -121,19 +121,24 @@ def bsavefig(d, s):
 
 def mch_plot_bg(d, **kwargs):
     """Plot background vs channel for DA, D and A photons."""
-    plot(r_[1:d.nch+1], [b.mean()*1e-3 for b in d.bg], lw=2, color=blue,
+    bg = d.bg_from(Ph_sel('all'))
+    bg_dd = d.bg_from(Ph_sel(Dex='Dem'))
+    bg_ad = d.bg_from(Ph_sel(Dex='Aem'))
+    plot(r_[1:d.nch+1], [b.mean()*1e-3 for b in bg], lw=2, color=blue,
          label=' T', **kwargs)
-    plot(r_[1:d.nch+1], [b.mean()*1e-3 for b in d.bg_dd], color=green, lw=2,
+    plot(r_[1:d.nch+1], [b.mean()*1e-3 for b in bg_dd], color=green, lw=2,
          label=' D', **kwargs)
-    plot(r_[1:d.nch+1], [b.mean()*1e-3 for b in d.bg_ad], color=red, lw=2,
+    plot(r_[1:d.nch+1], [b.mean()*1e-3 for b in bg_ad], color=red, lw=2,
          label=' A', **kwargs)
     xlabel("CH"); ylabel("kcps"); grid(True); legend(loc='best')
     title(d.name)
 
 def mch_plot_bg_ratio(d):
     """Plot ratio of A over D background vs channel."""
+    bg_dd = d.bg_from(Ph_sel(Dex='Dem'))
+    bg_ad = d.bg_from(Ph_sel(Dex='Aem'))
     plot(r_[1:d.nch+1],
-         [ba.mean()/bd.mean() for bd, ba in zip(d.bg_dd, d.bg_ad)],
+         [ba.mean()/bd.mean() for bd, ba in zip(bg_dd, bg_ad)],
          color=green, lw=2, label='A/D')
     xlabel("CH"); ylabel("BG Ratio A/D"); grid(True)
     title("BG Ratio A/D "+d.name)
@@ -668,24 +673,30 @@ def timetrace_fret_scatter(d, i=0, gamma=1., **kwargs):
     plt.scatter(b.start*d.clk_p, d.E[i], **style_kwargs)
     xlabel('Time (s)'); ylabel('E')
 
+
 def timetrace_bg(d, i=0, nolegend=False, ncol=2, plot_style={}):
     """Timetrace of background rates."""
-    t = arange(d.bg[i].size)*d.bg_time_s
+    bg = d.bg_from(Ph_sel('all'))
+    bg_dd = d.bg_from(Ph_sel(Dex='Dem'))
+    bg_ad = d.bg_from(Ph_sel(Dex='Aem'))
+    t = arange(bg[i].size) * d.bg_time_s
     plot_style_ = dict(linewidth=2, marker='o', markersize=6)
     plot_style_.update(_normalize_kwargs(plot_style, kind='line2d'))
-    plot(t, 1e-3*d.bg[i], color='k', label="T: %d cps" % d.rate_m[i],
-         **plot_style_)
-    plot(t, 1e-3*d.bg_dd[i], color=green, label="DD: %d cps" % d.rate_dd[i],
-         **plot_style_)
-    plot(t, 1e-3*d.bg_ad[i], color=red, label="AD: %d cps" % d.rate_ad[i],
-         **plot_style_)
+    label = "T: %d cps" % d.bg_mean[Ph_sel('all')][i]
+    plot(t, 1e-3 * bg[i], color='k', label=label, **plot_style_)
+    label = "DD: %d cps" % d.bg_mean[Ph_sel(Dex='Dem')][i]
+    plot(t, 1e-3 * bg_dd[i], color=green, label=label, **plot_style_)
+    label = "AD: %d cps" % d.bg_mean[Ph_sel(Dex='Aem')][i]
+    plot(t, 1e-3 * bg_ad[i], color=red, label=label, **plot_style_)
     if d.ALEX:
-        plot(t, 1e-3*d.bg_aa[i], label="AA: %d cps" % d.rate_aa[i],
-             color=purple, **plot_style_)
+        bg_aa = d.bg_from(Ph_sel(Aex='Aem'))
+        label = "AA: %d cps" % d.bg_mean[Ph_sel(Aex='Aem')][i]
+        plot(t, 1e-3 * bg_aa[i], label=label, color=purple, **plot_style_)
     if not nolegend:
         legend(loc='best', frameon=False, ncol=ncol)
     xlabel("Time (s)"); ylabel("BG rate (kcps)"); grid(True)
     plt.ylim(ymin=0)
+
 
 def timetrace_b_rate(d, i=0):
     """Timetrace of bursts-per-second in each period."""
@@ -1746,7 +1757,7 @@ def scatter_width_size(d, i=0):
     t_ms = arange(0, 50)
     plot(t_ms, ((d.m)/(d.T[i]))*t_ms*1e-3, '--', lw=2, color='k',
          label='Slope = m/T = min. rate = %1.0f cps' % (d.m/d.T[i]))
-    plot(t_ms, d.rate_m[i]*t_ms*1e-3, '--', lw=2, color=red,
+    plot(t_ms, d.bg_mean[Ph_sel('all')][i]*t_ms*1e-3, '--', lw=2, color=red,
          label='Noise rate: BG*t')
     xlabel('Burst width (ms)'); ylabel('Burst size (# ph.)')
     plt.xlim(0, 10); plt.ylim(0, 300)
@@ -1867,8 +1878,10 @@ def dplot_48ch(d, func, sharex=True, sharey=True, layout='horiz',
         if i == 0 and not nosuptitle:
             fig.suptitle(d.status())
         s = u'[%d]' % (ich + 1)
-        if 'rate_m' in d: s += (' BG=%.1fk' % (d.rate_m[ich] * 1e-3))
-        if b is not None: s += (', #bu=%d' % b.num_bursts)
+        if 'bg_mean' in d:
+            s += (' BG=%.1fk' % (d.bg_mean[Ph_sel('all')][ich] * 1e-3))
+        if b is not None:
+            s += (', #bu=%d' % b.num_bursts)
         ax.set_title(s)
         ax.grid(pgrid)
         plt.sca(ax)
@@ -1896,6 +1909,7 @@ def dplot_48ch(d, func, sharex=True, sharey=True, layout='horiz',
             ax.autoscale(enable=True, axis='y')
     return AX
 
+
 def dplot_8ch(d, func, sharex=True, sharey=True,
               pgrid=True, figsize=(12, 9), nosuptitle=False, AX=None,
               scale=True, **kwargs):
@@ -1920,8 +1934,10 @@ def dplot_8ch(d, func, sharex=True, sharey=True,
         if i == 0 and not nosuptitle:
             fig.suptitle(d.status())
         s = u'[%d]' % (i+1)
-        if 'rate_m' in d: s += (' BG=%.1fk' % (d.rate_m[i]*1e-3))
-        if 'T' in d: s += (u', T=%dμs' % (d.T[i]*1e6))
+        if 'bg_mean' in d:
+            s += (' BG=%.1fk' % (d.bg_mean[Ph_sel('all')][i]*1e-3))
+        if 'T' in d:
+            s += (u', T=%dμs' % (d.T[i]*1e6))
         if b is not None: s += (', #bu=%d' %  b.num_bursts)
         ax.set_title(s, fontsize=12)
         ax.grid(pgrid)
@@ -1947,6 +1963,7 @@ def dplot_8ch(d, func, sharex=True, sharey=True,
             ax.autoscale(enable=True, axis='y')
     return AX
 
+
 def dplot_1ch(d, func, pgrid=True, ax=None,
               figsize=(9, 4.5), fignum=None, nosuptitle=False, **kwargs):
     """Plot wrapper for single-spot measurements. Use `dplot` instead."""
@@ -1957,10 +1974,14 @@ def dplot_1ch(d, func, pgrid=True, ax=None,
     else:
         fig = ax.figure
     s = d.name
-    if 'rate_m' in d: s += (' BG=%.1fk' % (d.rate_m[0]*1e-3))
-    if 'T' in d: s += (u', T=%dμs' % (d.T[0]*1e6))
-    if 'mburst' in d: s += (', #bu=%d' %  d.num_bursts[0])
-    if not nosuptitle: ax.set_title(s, fontsize=12)
+    if 'bg_mean' in d:
+        s += (' BG=%.1fk' % (d.bg_mean[Ph_sel('all')][0] * 1e-3))
+    if 'T' in d:
+        s += (u', T=%dμs' % (d.T[0] * 1e6))
+    if 'mburst' in d:
+        s += (', #bu=%d' % d.num_bursts[0])
+    if not nosuptitle:
+        ax.set_title(s, fontsize=12)
     ax.grid(pgrid)
     plt.sca(ax)
     gui_status['first_plot_in_figure'] = True

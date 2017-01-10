@@ -136,12 +136,11 @@ def moving_window_chunks(dx, start, stop, step, window=None,
 
     See also: :func:`moving_window_dataframe`.
     """
-    stop = min(int(dx.time_max), stop)
     time_slices = moving_window_startstop(start, stop, step, window)
     dx_slices = []
     for t1, t2 in time_slices:
         dx_slice = dx.select_bursts(select_bursts.time, time_s1=t1, time_s2=t2)
-        dx_slice.name = 'Slice %d-%d s (duration %d s)' % (t1, t2, window)
+        dx_slice.name = 'Slice %d-%d s' % (t1, t2)
         dx_slice.add(slice_tstart=t1 - time_zero, slice_tstop=t2 - time_zero)
         dx_slices.append(dx_slice)
     return dx_slices
@@ -728,13 +727,21 @@ def join_data(d_list, gap=0):
 
     # Set the background fields by concatenation along axis = 0
     new_nperiods = np.sum((d.nperiods for d in d_list))
-    for name in Data.bg_fields:
+    for name in ('Lim', 'Ph_p'):
         if name in new_d:
             new_d.add(**{name: []})
             for ich in range(nch):
                 value = np.concatenate([d[name][ich] for d in d_list])
                 new_d[name].append(value)
                 assert new_d[name][ich].shape[0] == new_nperiods
+    if 'bg' in new_d:
+        new_d.add(bg={})
+        for sel in d.bg:
+            new_d.bg[sel] = []
+            for ich in range(nch):
+                value = np.concatenate([d.bg[sel][ich] for d in d_list])
+                new_d.bg[sel].append(value)
+                assert new_d.bg[sel][ich].shape[0] == new_nperiods
 
     # Set the i_origin burst attribute
     new_d.add(i_origin=[])
