@@ -56,36 +56,6 @@ methods providing summary information on the measurement:
     .. automethod:: Name
 
 
-Background rates
-----------------
-
-The background is estimated, in each spot and photon stream, in chunks
-of equal duration called *background periods*.
-The background is computed with :meth:`Data.calc_bg` and the estimated rates
-are stored in the following attributes:
-
-.. class:: Data
-
-    .. attribute:: bg (dict):
-
-        A dict containing the estimated background rates for the different
-        photon streams, channels and background periods.
-        Keys are `Ph_sel` objects and values are lists (one element
-        per channel) of arrays (one element per background period)
-        of background rates.
-
-    .. attribute:: bg_mean (dict):
-
-        A dict similar to :attr:`Data.bg` but containing the mean background
-        rates (averaged across the entire measurement)
-        for the different photon streams and channels.
-
-The attributes `bg_dd`, `bg_ad`, `bg_da`, `bg_aa`,
-`rate_dd`, `rate_ad`, `rate_da`, `rate_aa` and `rate_m` are deprecated
-and will be removed in a future version.
-Please use `Data.bg` and `Data.bg_mean` instead.
-
-
 Analysis methods
 ----------------
 
