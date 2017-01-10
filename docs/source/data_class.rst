@@ -59,7 +59,18 @@ methods providing summary information on the measurement:
 Analysis methods
 ----------------
 
-Methods for background estimation, burst search and burst-data calculations.
+The following methods perform background estimation, burst search and
+burst-data calculations:
+
+- :meth:`Data.calc_bg`
+- :meth:`Data.burst_search`
+- :meth:`Data.calc_fret`
+- :meth:`Data.calc_ph_num`
+- :meth:`Data.fuse_bursts`
+- :meth:`Data.calc_sbr`
+- :meth:`Data.calc_max_rate`
+
+The methods documentation follows:
 
 .. class:: Data
 
@@ -153,8 +164,19 @@ with generic models is now handled with the new
 Data access methods
 -------------------
 
-These methods are used to access (or iterate over) the arrays of timestamps
+The following methods are used to access (or iterate over) the arrays of timestamps
 (for different photon streams), timestamps masks and burst data.
+
+- :meth:`Data.get_ph_times`
+- :meth:`Data.iter_ph_times`
+- :meth:`Data.get_ph_mask`
+- :meth:`Data.iter_ph_masks`
+- :meth:`Data.iter_bursts_ph`
+- :meth:`Data.expand`
+- :meth:`Data.copy`
+- :meth:`Data.slice_ph`
+
+The methods documentation follows:
 
 .. class:: Data
 
