@@ -1040,7 +1040,7 @@ class Data(DataContainer):
         AexAem stream to the returned burst size. The argument `gamma` and
         `beta` are used to correctly scale `naa` so that it become commensurate
         with the Dex corrected burst size. In particular, when using
-        definition (1) (i.e. `donor_ref = True`, default), total burst size is::
+        definition (1) (i.e. `donor_ref = True`), the total burst size is::
 
             (nd + na/gamma) + naa / (beta * gamma)
 
@@ -1102,7 +1102,7 @@ class Data(DataContainer):
         """Return gamma corrected burst sizes for all the channel.
 
         Compute burst sizes by calling :meth:`burst_sizes_ich` for each
-        channel. See :meth:`burst_sizes_ich` for argument description.
+        channel. See :meth:`burst_sizes_ich` for a description of the arguments.
 
         Returns
             List of arrays of burst sizes, one array per channel.
