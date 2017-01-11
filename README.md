@@ -14,6 +14,9 @@ Latest News
 For updates on the latest FRETBursts release see
 [release notes](http://fretbursts.readthedocs.io/en/latest/releasenotes.html).
 
+#### 2017-01-11
+
+FRETBursts version 0.6 [released](http://fretbursts.readthedocs.io/en/latest/releasenotes.html#version-0-6-jan-2017)!
 
 #### 2016-08-17
 Our software paper describing FRETBursts is finally peer-reviewed and published by PLOS ONE:

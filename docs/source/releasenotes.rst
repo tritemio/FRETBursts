@@ -1,8 +1,8 @@
 FRETBursts Release Notes
 ========================
 
-Version 0.6 (*under development*)
----------------------------------
+Version 0.6 (Jan. 2017)
+-----------------------
 
 - Improvements to the layout of 48-spot plots.
 - Simplify background computation avoiding useless recomputations.
