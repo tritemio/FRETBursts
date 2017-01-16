@@ -4,15 +4,16 @@ FRETBursts Release Notes
 Version 0.6 (Jan. 2017)
 -----------------------
 
+.. module:: fretbursts.burstlib
+
 - Improvements to the layout of 48-spot plots.
 - Simplify background computation avoiding useless recomputations.
   This results in 3x speed increase for measurement loaded with `ondisk=True`
   and 30% speed increase when using `ondisk=False`.
-  Now all background rates are stored in the dictionary `Data.bg`,
-  while the mean background rate in the dictionary `Data.bg_mean`.
-  The fields `Data.rate_dd`, `Data.rate_ad`, `Data.rate_da`,
-  `Data.rate_aa` and `Data.rate_m` are now deprecated and will be removed
-  in a future release (see below).
+  Now all background rates are stored in the dictionary :attr:`Data.bg`,
+  while the mean background rate in the dictionary :attr:`Data.bg_mean`.
+  The fields `Data.bg_*` and `Data.rate_*` are now deprecated and will
+  be removed in a future release (see below).
 - Fix loading files with `ondisk=True`. With this option timestamps are not
   kept in RAM but loaded spot-by-spot when needed. This option has no effect
   on single-spot measurements but will save RAM in multi-spot measurements.
@@ -31,7 +32,7 @@ Version 0.6 (Jan. 2017)
 Backward-incompatible changes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The background refactor resulted in an incompatible change in the `Data.bg`
+The background refactor resulted in an incompatible change in the :attr:`Data.bg`
 attribute. User upgrading to version 0.6, should replace
 `Data.bg` with `Data.bg[Ph_sel('all')]` in their notebooks. Note that
 no official FRETBursts notebook was using `Data.bg`, so most users will not be
@@ -40,17 +41,18 @@ affected.
 The the other background related attributes (bg_dd, bg_ad, bg_da, bg_aa,
 rate_dd, rate_ad, rate_da, rate_aa, rate_m) are still present but deprecated.
 The official FRETBursts notebooks have been updated to use the new
-`Data.bg` and `Data.bg_mean` attributes. When using these deprecated attributes,
-a message will indicate the new syntax. Please update existing notebooks
+:attr:`Data.bg` and :attr:`Data.bg_mean` attributes. When using these
+deprecated attributes, a message will indicate the new syntax.
+Please update existing notebooks
 to avoid future errors when these attributes will be removed.
 
 Details of changes
 """"""""""""""""""
 
 Before version 0.6, `Data.bg` contained background rates
-fitted for **all-photons** stream. `Data.bg` was a a list of arrays:
+fitted for **all-photons** stream. `Data.bg` was a list of arrays:
 one array per spot, one array element per background period.
-In version 0.6+, `Data.bg` contains the background rates for all the fitted
+In version 0.6+, `Data.bg` contains the background rates for **all** the fitted
 photon streams. `Data.bg` is now a dict using `Ph_sel` objects as keys.
 Each dict entry is a list of array, one array per spot and one array element
 per background period. See the

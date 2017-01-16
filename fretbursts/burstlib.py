@@ -1514,10 +1514,10 @@ class Data(DataContainer):
         `background` (conventionally imported as `bg`).
 
         Example:
-            Compute background with `bg.exp_fit`, every 20s, with a
-            threshold of 200us for photon waiting times::
+            Compute background with `bg.exp_fit` (inter-photon delays MLE
+            tail fitting), every 30s, with automatic tail-threshold::
 
-               d.calc_bg(bg.exp_fit, time_s=20, tail_min_us=200)
+               d.calc_bg(bg.exp_fit, time_s=20, tail_min_us='auto')
 
         Returns:
             None, all the results are saved in the object itself.
@@ -1829,34 +1829,38 @@ class Data(DataContainer):
         binning the timestamps. The burst starts when the rate of `m`
         photons is above a minimum rate, and stops when the rate falls below
         the threshold. The result of the burst search is stored in the
-        `mburst` attribute (a list of Bursts objects, one per channel) and
-        consit of start and stop times and indexes. By default, after burst
+        `mburst` attribute (a list of Bursts objects, one per channel)
+        containing start/stop times and indexes. By default, after burst
         search, this method computes donor and acceptor counts, it applies
-        the burst corrections (background, leakage, etc...) and computes
-        E (and S in case of ALEX). You can skip these steps passing
+        burst corrections (background, leakage, etc...) and computes
+        E (and S in case of ALEX). You can skip these steps by passing
         `computefret=False`.
 
-        The minimum rate can be explicitly specified (`min_rate`) or computed
-        as a function of the background rate (using `F` or `P`).
+        The minimum rate can be explicitly specified with the `min_rate_cps`
+        argument, or computed as a function of the background rate with the
+        `F` argument.
 
         Parameters:
             m (int): number of consecutive photons used to compute the
-                photon rate.
+                photon rate. Typical values 5-20. Default 10.
             L (int or None): minimum number of photons in burst. If None
-                L = m is used.
+                (default) L = m is used.
             F (float): defines how many times higher than the background rate
                 is the minimum rate used for burst search
-                (min rate = F * bg. rate), assiming that P = None (default).
+                (`min rate = F * bg. rate`), assuming that `P = None` (default).
+                Typical values are 3-9. Default 6.
             P (float): threshold for burst detection expressed as a
                 probability that a detected bursts is not due to a Poisson
                 background. If not None, `P` overrides `F`. Note that the
                 background process is experimentally super-Poisson so this
-                probability is not physically very meaningful.
-            min_rate_cps (float or list/array): min. rate in cps for burst
-                start. If not None has the precedence over `P` and `F`.
-                If non-scalar, contains one rate per each channel.
-            ph_sel (Ph_sel object): object defining the photon selection
-                used for burst search. Default: all photons.
+                probability is not physically very meaningful. Using this
+                argument is discouraged.
+            min_rate_cps (float or list/array): minimum rate in cps for burst
+                start. If not None, it has the precedence over `P` and `F`.
+                If non-scalar, contains one rate per each multispot channel.
+                Typical values range from 20e3 to 100e3.
+            ph_sel (Ph_sel object): defines the "photon selection" (or stream)
+                to be used for burst search. Default: all photons.
                 See :mod:`fretbursts.ph_sel` for details.
             compact (bool): if True, a photon selection of only one excitation
                 period is required and the timestamps are "compacted" by
@@ -1865,22 +1869,21 @@ class Data(DataContainer):
                 and stop (`istart`, `istop`) are relative to the full
                 timestamp array. If False, the indexes are relative to
                 timestamps selected by the `ph_sel` argument.
-            c (float): correction factor used in the relation between
-                rate and time-lags.
+            c (float): correction factor used in the rate vs time-lags relation.
                 `c` affects the computation of the burst-search parameter `T`.
                 When `F` is not None, `T = (m - 1 - c) / (F * bg_rate)`.
                 When using `min_rate_cps`, `T = (m - 1 - c) / min_rate_cps`.
             computefret (bool): if True (default) compute donor and acceptor
                 counts, apply corrections (background, leakage, direct
                 excitation) and compute E (and S). If False, skip all these
-                steps and stop just after the inital burst search.
+                steps and stop just after the initial burst search.
             max_rate (bool): if True compute the max photon rate inside each
                 burst using the same `m` used for burst search. If False
                 (default) skip this step.
-            dither (bool): whether to apply dithering corrections to burst
-                counts. See :meth:`Data.dither`.
+            dither (bool): if True applies dithering corrections to burst
+                counts. Default False. See :meth:`Data.dither`.
             pure_python (bool): if True, uses the pure python functions even
-                when the optimized Cython functions are available.
+                when optimized Cython functions are available.
 
         Note:
             when using `P` or `F` the background rates are needed, so
@@ -1890,7 +1893,7 @@ class Data(DataContainer):
             d.burst_search(m=10, F=6)
 
         Returns:
-            None, all the results are saved in the Data object.
+            None, all the results are saved in the `Data` object.
         """
         ph_sel = self._fix_ph_sel(ph_sel)
         if compact:
@@ -2509,12 +2512,12 @@ class Data(DataContainer):
         """Compute the max m-photon rate reached in each burst.
 
         Arguments:
-            m (int): number of timestamps to use to compute the rate
+            m (int): number of timestamps to use to compute the rate.
+                As for burst search, typical values are 5-20.
             ph_sel (Ph_sel object): object defining the photon selection.
                 See :mod:`fretbursts.ph_sel` for details.
             c (float): this parameter is used in the definition of the
-                rate estimator which is
-                `(m - 1 - c) / t[last] - t[first]`.
+                rate estimator which is `(m - 1 - c) / t[last] - t[first]`.
                 For more details see :func:`.phtools.phrates.mtuple_rates`.
         """
         ph_sel = self._fix_ph_sel(ph_sel)
