@@ -2111,7 +2111,8 @@ class Data(DataContainer):
         msg = 'The second argument returned by `%s` must be a string.'
         assert np.all([isinstance(m[1], str) for m in M]), msg % filter_fun
         # Make sure all boolean masks have the right size
-        msg = "Boolean masks size returned by `%s` don't match the # of bursts."
+        msg = ("The size of boolean masks returned by `%s` needs to match "
+               "the number of bursts.")
         assert np.all([m[0].size == n for m, n in zip(M, self.num_bursts)]), (
             msg % filter_fun)
         Masks = [-m[0] if negate else m[0] for m in M]

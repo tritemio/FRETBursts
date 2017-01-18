@@ -12,7 +12,7 @@ Version 0.6 (Jan. 2017)
   and 30% speed increase when using `ondisk=False`.
   Now all background rates are stored in the dictionary :attr:`Data.bg`,
   while the mean background rate in the dictionary :attr:`Data.bg_mean`.
-  The fields `Data.bg_*` and `Data.rate_*` are now deprecated and will
+  The old attributes `Data.bg_*` and `Data.rate_*` are now deprecated and will
   be removed in a future release (see below).
 - Fix loading files with `ondisk=True`. With this option timestamps are not
   kept in RAM but loaded spot-by-spot when needed. This option has no effect
@@ -44,7 +44,7 @@ The official FRETBursts notebooks have been updated to use the new
 :attr:`Data.bg` and :attr:`Data.bg_mean` attributes. When using these
 deprecated attributes, a message will indicate the new syntax.
 Please update existing notebooks
-to avoid future errors when these attributes will be removed.
+to avoid future errors.
 
 Details of changes
 """"""""""""""""""
@@ -55,9 +55,8 @@ one array per spot, one array element per background period.
 In version 0.6+, `Data.bg` contains the background rates for **all** the fitted
 photon streams. `Data.bg` is now a dict using `Ph_sel` objects as keys.
 Each dict entry is a list of array, one array per spot and one array element
-per background period. See the
-`docs <>`__
-for more details.
+per background period. For more details please refer to the following
+documentation :attr:`Data.bg` and :attr:`Data.bg_mean`.
 
 
 Version 0.5.9 (Sep. 2016)
