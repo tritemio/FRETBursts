@@ -33,7 +33,7 @@ Backward-incompatible changes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The background refactor resulted in an incompatible change in the :attr:`Data.bg`
-attribute. User upgrading to version 0.6, should replace
+attribute. Users upgrading to version 0.6, should replace
 `Data.bg` with `Data.bg[Ph_sel('all')]` in their notebooks. Note that
 no official FRETBursts notebook was using `Data.bg`, so most users will not be
 affected.
