@@ -241,12 +241,14 @@ def photon_hdf5(filename, ondisk=False, strict=False):
     http://photon-hdf5.org/
 
     Arguments:
-        ondisk (bool): if True do not load in the timestamp arrays, just
-            load the array reference. Default False.
+        filename (str or pathlib.Path): path of the data file to be loaded.
+        ondisk (bool): if True, do not load the timestamps in memory
+            using instead references to the HDF5 arrays. Default False.
 
     Returns:
         :class:`fretbursts.burstlib.Data` object containing the data.
     """
+    filename = str(filename)
     assert os.path.isfile(filename), 'File not found.'
     version = phc.hdf5._check_version(filename)
     if version == u'0.2':
