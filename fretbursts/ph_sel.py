@@ -89,10 +89,24 @@ class Ph_sel(namedtuple('Ph_sel', ['Dex', 'Aex'])):
                              str((Dex, Aex)))
         return super(Ph_sel, cls).__new__(cls, Dex, Aex)
 
+    @classmethod
+    def _get_str_mapping(cls, invert=False):
+        mapping = {cls('all'): 'all',
+                   cls(Dex='Dem'): 'DexDem', cls(Dex='Aem'): 'DexAem',
+                   cls(Aex='Aem'): 'AexAem', cls(Aex='Dem'): 'AexDem',
+                   cls(Dex='DAem'): 'Dex', cls(Aex='DAem'): 'Aex',
+                   cls(Dex='Dem', Aex='Dem'): 'Dem',
+                   cls(Dex='Aem', Aex='Aem'): 'Aem',
+                   cls(Dex='DAem', Aex='Aem'): 'DexDAem_AexAem'}
+        if invert:
+            mapping = {v: k for k, v in mapping.items()}
+        return mapping
+
+    @classmethod
+    def from_str(cls, ph_sel_str):
+        str_to_ph_sel = cls._get_str_mapping(invert=True)
+        return str_to_ph_sel[ph_sel_str]
+
     def __str__(self):
-        labels = {Ph_sel('all'): 'all',
-                  Ph_sel(Dex='Dem'): 'DexDem', Ph_sel(Dex='Aem'): 'DexAem',
-                  Ph_sel(Aex='Aem'): 'AexAem', Ph_sel(Aex='Dem'): 'AexDem',
-                  Ph_sel(Dex='DAem'): 'Dex', Ph_sel(Aex='DAem'): 'Aex',
-                  Ph_sel(Dex='DAem', Aex='Aem'): 'DexDAem_AexAem'}
+        labels = self._get_str_mapping()
         return labels.get(self, repr(self))
