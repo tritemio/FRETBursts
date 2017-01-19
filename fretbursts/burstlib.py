@@ -1231,7 +1231,7 @@ class Data(DataContainer):
         from `.name` and `.Name()`.
         """
         p_names = ['fname', 'clk_p', 'nch', 'ph_sel', 'L', 'm', 'F', 'P',
-                   '_leakage', '_dir_ex', '_gamma', 'bg_time_s', 'nperiods',
+                   '_leakage', '_dir_ex', '_gamma', 'bg_time_s',
                    'T', 'rate_th',
                    'bg_corrected', 'leakage_corrected', 'dir_ex_corrected',
                    'dithering', '_chi_ch', 's', 'ALEX']
@@ -1239,7 +1239,8 @@ class Data(DataContainer):
         for name in p_dict.keys():
             if name not in p_names:
                 p_dict.pop(name)
-        p_dict.update(name=self.name, Name=self.Name(), bg_mean=self.bg_mean)
+        p_dict.update(name=self.name, Name=self.Name(), bg_mean=self.bg_mean,
+                      nperiods=self.nperiods)
         return p_dict
 
     def expand(self, ich=0, alex_naa=False, width=False):
@@ -1612,12 +1613,16 @@ class Data(DataContainer):
             Th_us_dol[sel] = [th_ch[sel] for th_ch in Th_us]
 
         self.add(bg=BG_dol, bg_err=BG_err_dol, bg_th_us=Th_us_dol,
-                 Lim=Lim, Ph_p=Ph_p, nperiods=nperiods,
+                 Lim=Lim, Ph_p=Ph_p,
                  bg_fun=fun, bg_fun_name=fun.__name__,
                  bg_time_s=time_s, bg_ph_sel=Ph_sel('all'),
                  bg_auto_th=bg_auto_th,  # bool, True if the using auto-threshold
                  )
         pprint("[DONE]\n")
+
+    @property
+    def nperiods(self):
+        return len(self.bg[Ph_sel('all')][0])
 
     @property
     def bg_mean(self):
