@@ -1397,6 +1397,7 @@ class Data(DataContainer):
         return self._obsolete_bg_attr('bg_aa', Ph_sel(Aex='Aem'))
 
     def calc_bg_cache(self, fun, time_s=60, tail_min_us=500, F_bg=2,
+                      error_metrics=None, fit_allph=True,
                       recompute=False):
         """Compute time-dependent background rates for all the channels.
 
@@ -1413,6 +1414,7 @@ class Data(DataContainer):
         """
         bg_cache.calc_bg_cache(self, fun, time_s=time_s,
                                tail_min_us=tail_min_us, F_bg=F_bg,
+                               error_metrics=error_metrics, fit_allph=fit_allph,
                                recompute=recompute)
 
     def _get_auto_bg_th_arrays(self, F_bg=2, tail_min_us0=250):
