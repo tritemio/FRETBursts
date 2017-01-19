@@ -576,6 +576,10 @@ class Data(DataContainer):
             for **first** and **last** photon of each period.
         bg_ph_sel (Ph_sel object): photon selection used by Lim and Ph_p.
             See :mod:`fretbursts.ph_sel` for details.
+        Th_us (dict): thresholds in us used to select the tail of the
+            interphoton delay distribution. Keys are `Ph_sel` objects
+            and values are lists (one element per channel) of arrays (one
+            element per background period).
 
     Additionlly, there are a few deprecated attributes (`bg_dd`, `bg_ad`,
     `bg_da`, `bg_aa`, `rate_dd`, `rate_ad`, `rate_da`, `rate_aa` and `rate_m`)
@@ -1533,7 +1537,7 @@ class Data(DataContainer):
         bg_auto_th = tail_min_us == 'auto'
         if bg_auto_th:
             tail_min_us0 = 250
-            self.add(bg_auto_th_us0=250, bg_auto_F_bg=F_bg)
+            self.add(bg_auto_th_us0=tail_min_us0, bg_auto_F_bg=F_bg)
             auto_th_kwargs = dict(clk_p=self.clk_p, tail_min_us=tail_min_us0)
             th_us = {}
             for key in self.ph_streams:
@@ -1600,16 +1604,18 @@ class Data(DataContainer):
             BG_err.append(bg_err)
             Th_us.append(th_us)
 
-        # BG is a list of dict, let's make it a Dict Of Lists (DOL)
-        BG_dol = {sel: [b_ch[sel] for b_ch in BG] for sel in self.ph_streams}
-        BG_err_dol = {sel: [b_ch[sel] for b_ch in BG_err]
-                      for sel in self.ph_streams}
+        # Make Dict Of Lists (DOL) from Lists of Dicts
+        BG_dol, BG_err_dol, Th_us_dol = {}, {}, {}
+        for sel in self.ph_streams:
+            BG_dol[sel] = [bg_ch[sel] for bg_ch in BG]
+            BG_err_dol[sel] = [err_ch[sel] for err_ch in BG_err]
+            Th_us_dol[sel] = [th_ch[sel] for th_ch in Th_us]
 
-        self.add(bg=BG_dol, bg_err=BG_err_dol,
+        self.add(bg=BG_dol, bg_err=BG_err_dol, bg_th_us=Th_us_dol,
                  Lim=Lim, Ph_p=Ph_p, nperiods=nperiods,
                  bg_fun=fun, bg_fun_name=fun.__name__,
                  bg_time_s=time_s, bg_ph_sel=Ph_sel('all'),
-                 bg_auto_th=bg_auto_th, bg_th_us=Th_us,
+                 bg_auto_th=bg_auto_th,  # bool, True if the using auto-threshold
                  )
         pprint("[DONE]\n")
 
