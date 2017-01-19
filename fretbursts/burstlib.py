@@ -1187,7 +1187,7 @@ class Data(DataContainer):
         return new_d
 
     def collapse(self, update_gamma=True):
-        """Returns an object with 1-ch data joining the multi-ch data.
+        """Returns an object with 1-spot data joining the multi-spot data.
 
         The argument `update_gamma` (bool, default True) allows to avoid
         recomputing gamma as the average of the original gamma. This flag
@@ -1228,14 +1228,14 @@ class Data(DataContainer):
         """
         p_names = ['fname', 'clk_p', 'nch', 'ph_sel', 'L', 'm', 'F', 'P',
                    '_leakage', '_dir_ex', '_gamma', 'bg_time_s', 'nperiods',
-                   'bg_mean', 'T', 'rate_th',
+                   'T', 'rate_th',
                    'bg_corrected', 'leakage_corrected', 'dir_ex_corrected',
                    'dithering', '_chi_ch', 's', 'ALEX']
         p_dict = dict(self)
         for name in p_dict.keys():
             if name not in p_names:
                 p_dict.pop(name)
-        p_dict.update(name=self.name, Name=self.Name())
+        p_dict.update(name=self.name, Name=self.Name(), bg_mean=self.bg_mean)
         return p_dict
 
     def expand(self, ich=0, alex_naa=False, width=False):
@@ -1351,7 +1351,7 @@ class Data(DataContainer):
         elif attrname in bg_mean_attrs:
             bg_field = 'bg_mean'
         if bg_field in self:
-            return self[bg_field][ph_sel]
+            return getattr(self, bg_field)[ph_sel]
         else:
             raise AttributeError('No attribute `%s` found in Data.' % bg_field)
 
@@ -1463,6 +1463,8 @@ class Data(DataContainer):
         for field in field_list:
             if field in self:
                 self.delete(field)
+        if hasattr(self, '_bg_mean'):
+            delattr(self, '_bg_mean')
 
     def _get_num_periods(self, time_s):
         """Return the number of periods using `time_s` as period duration.
@@ -1598,22 +1600,27 @@ class Data(DataContainer):
             BG_err.append(bg_err)
             Th_us.append(th_us)
 
-        # BG is a list of dict, let's make it a dict of lists
-        BG2 = {sel: [b_ch[sel] for b_ch in BG] for sel in self.ph_streams}
-        BG_err2 = {sel: [b_ch[sel] for b_ch in BG_err]
-                   for sel in self.ph_streams}
+        # BG is a list of dict, let's make it a Dict Of Lists (DOL)
+        BG_dol = {sel: [b_ch[sel] for b_ch in BG] for sel in self.ph_streams}
+        BG_err_dol = {sel: [b_ch[sel] for b_ch in BG_err]
+                      for sel in self.ph_streams}
 
-        bg_rate_mean = {}
-        for sel in self.ph_streams:
-            bg_rate_mean[sel] = [bg_ch.mean() for bg_ch in BG2[sel]]
-
-        self.add(bg=BG2, bg_err=BG_err2, bg_mean=bg_rate_mean,
+        self.add(bg=BG_dol, bg_err=BG_err_dol,
                  Lim=Lim, Ph_p=Ph_p, nperiods=nperiods,
                  bg_fun=fun, bg_fun_name=fun.__name__,
                  bg_time_s=time_s, bg_ph_sel=Ph_sel('all'),
                  bg_auto_th=bg_auto_th, bg_th_us=Th_us,
                  )
         pprint("[DONE]\n")
+
+    @property
+    def bg_mean(self):
+        if 'bg' not in self:
+            raise AttributeError('No background found, compute it first.')
+        if not hasattr(self, '_bg_mean'):
+            self._bg_mean = {k: [bg_ch.mean() for bg_ch in bg_ph_sel]
+                             for k, bg_ph_sel in self.bg.items()}
+        return self._bg_mean
 
     def recompute_bg_lim_ph_p(self, ph_sel, mute=False):
         """Recompute self.Lim and selp.Ph_p relative to ph selection `ph_sel`
