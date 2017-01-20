@@ -50,6 +50,70 @@ Attributes not saved nor restored (so far):
 - bg_fun_name: equal to fun.__name__
 
 
+Burst search caching
+--------------------
+
+Data.burst_search()
+Input arguments: L, m, F, P, min_rate_cps, ph_sel, compact, index_allph, c
+
+Other arguments: computefret=True, max_rate=False, dither=False,
+                 pure_python=False, verbose=False, mute=False
+
+Problem: the background estimation and periods influence burst search.
+    In particular only Data.bg_from(ph_sel) is used. A viable approach is
+    hashing Data.bg_from(ph_sel) and comparing it with the hash stored in the
+    burst-search cache.
+
+Attributes saved:
+    m, L, ph_sel: scalar parameters
+
+    Sets also:
+        bg_corrected=False, leakage_corrected=False,
+        dir_ex_corrected=False, dithering=False
+
+Depending on input executes either:
+
+    1)  _burst_search_rate()
+    or
+    2) _calc_T()
+       _burst_search_TT()
+
+Data._burst_search_rate()
+Attributes saved:
+    T, rate_th: per-spot values
+    mburst: burst data
+
+Data._calc_T():
+Attributes saved:
+    bg_bs, F, P: scalar parameters
+    T, rate_th: per-spot means
+    TT, FF, PP: list of arrays, per-spot and per background period
+
+Data._burst_search_TT()
+Attributes saved:
+    mburst: burst data
+
+Data._calc_burst_period():
+Attributes saved:
+    bp: list of arrays, uses Data.mburst and Data.Lim to compute Data.bp
+
+Plan:
+    - make signature from input args anche check is a matching group exist
+    - if it exist and min_rate_cps is None, check if the background cache
+      matches. It is good to check it also for min_rate_cps because background
+      influences burst corrections.
+    - if background hash matched can load background from cache: mbursts,
+      T, rate_th
+    - If min_rate_cps is None, call Data._calc_T() to recompute attributes:
+      bg_bs, F, P, TT, FF, PP, T, rate_th. Assert that T and rate_th have not
+      changed from previous step.
+    - Call Data._calc_burst_period() to compute Data.bp.
+    - Add to Data m, L, ph_sel (input parameters) and set
+      bg_corrected=False, leakage_corrected=False,
+      dir_ex_corrected=False, dithering=False
+    - execute last part of burst-seach method that need to be refactored in a
+      separate method.
+
 """
 
 from __future__ import absolute_import
@@ -63,6 +127,16 @@ import tables
 from .utils.misc import pprint
 from .ph_sel import Ph_sel
 from .background import exp_fit
+
+
+def bs_to_signature(L, m, F, P, min_rate_cps, ph_sel, compact, index_allph, c):
+    return json.dumps(dict(L=L, m=m, F=F, P=P, min_rate_cps=min_rate_cps,
+                           ph_sel=ph_sel, compact=compact,
+                           index_allph=index_allph, c=c))
+
+
+def bs_from_signature(string):
+    return json.loads(string).items()
 
 
 def bg_to_signature(time_s, tail_min_us, F_bg, error_metrics, fit_allph):
