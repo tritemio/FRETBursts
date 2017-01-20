@@ -1729,7 +1729,7 @@ class Data(DataContainer):
         FF = self._param_as_mch_array(F)
         PP = self._param_as_mch_array(P)
         if P is None:
-            # NOTE: ignoring P_i
+            # NOTE: the following lambda ignores Pi
             find_T = lambda m, Fi, Pi, bg: (m - 1 - c) / (bg * Fi)
         else:
             if F != 1:

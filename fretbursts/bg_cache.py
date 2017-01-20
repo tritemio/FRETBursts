@@ -96,20 +96,11 @@ def _save_bg_data(bg, Lim, Ph_p, bg_calc_kwargs, h5file, bg_auto_th_us0=None):
     bg_group = h5file.create_group('/background', group_name,
                                    createparents=True)
 
-    pprint('\n - Saving Data.bg: ')
-    for ph_sel, value in bg.items():
-        name = 'BG_' + str(ph_sel)
-        pprint(name + ', ')
-        h5file.create_array(bg_group, name, obj=value)
-
-    pprint('\n - Saving Data.Lim and Data.Ph_p: ')
-    for i, (lim, ph_p) in enumerate(zip(Lim, Ph_p)):
-        pprint('%d, ' % i)
-        h5file.create_array(bg_group, 'lim%d' % i, obj=lim)
-        h5file.create_array(bg_group, 'ph_p%d' % i, obj=lim)
-
+    for ph_sel in bg:
+        h5file.create_array(bg_group, 'BG_%s' % str(ph_sel), obj=bg[ph_sel])
+    h5file.create_array(bg_group, 'Lim', obj=Lim)
+    h5file.create_array(bg_group, 'Ph_p', obj=Ph_p)
     if bg_calc_kwargs['tail_min_us'] == 'auto':
-        pprint('\n - Saving Data.bg_auto_th_us0: ')
         assert bg_auto_th_us0 is not None
         h5file.create_array(bg_group, 'bg_auto_th_us0', obj=bg_auto_th_us0)
 
@@ -124,22 +115,16 @@ def _load_bg_data(bg_calc_kwargs, h5file):
     bg_group = h5file.get_node('/background/', group_name)
 
     pprint('\n - Loading bakground data: ')
-    bg, Lim_d, Ph_p_d = {}, {}, {}
+    bg = {}
     for node in bg_group._f_iter_nodes():
         if node._v_name.startswith('BG_'):
-            ph_sel = Ph_sel.from_str(node._v_name[3:])
+            ph_sel = Ph_sel.from_str(node._v_name[len('BG_'):])
             bg[ph_sel] = [np.asfarray(b) for b in node.read()]
-        elif node._v_name.startswith('lim'):
-            ich = int(node._v_name[len('lim'):])
-            Lim_d[ich] = node.read()
-        elif node._v_name.startswith('ph_p'):
-            ich = int(node._v_name[len('ph_p'):])
-            Ph_p_d[ich] = node.read()
-    Lim = [Lim_d[k] for k in sorted(Lim_d.keys())]
-    Ph_p = [Ph_p_d[k] for k in sorted(Ph_p_d.keys())]
 
+    Lim = bg_group.Lim.read()
+    Ph_p = bg_group.Ph_p.read()
     if 'bg_auto_th_us0' in bg_group:
-        bg_auto_th_us0 = bg_group._f_get_child('bg_auto_th_us0').read()
+        bg_auto_th_us0 = bg_group.bg_auto_th_us0.read()
     return bg, Lim, Ph_p, bg_auto_th_us0
 
 
