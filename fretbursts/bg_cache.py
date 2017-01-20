@@ -7,11 +7,8 @@
 This module provides functions to store and load background fit data
 to and from an HDF5 file.
 
-The functions here assume to find an open pyTables file reference in
-the :class:`Data` attribute `.bg_data_file`.
-
-Implementation details
-----------------------
+Background cache implementation
+-------------------------------
 
 Background caching only works when `bg_fun = bg.exp_fit` (MLE tail fit) and
 assumes that `bg_ph_sel == Ph_sel('all')`.
@@ -20,8 +17,8 @@ Background estimation results are indentified by the `Data.calc_bg` arguments::
 
     time_s, tail_min_us, F_bg, error_metrics, fit_allph
 
-These are serialized and used as group name in `/background`.
-The HDF5 file stores::
+These are serialized and used as group name under `/background`.
+This group stores::
 
     bg
 
@@ -45,11 +42,13 @@ The following properties are not stored since they are compute on-fly every time
 - nperiods
 - bg_mean
 
-Attributes not saved and not restored (so far):
+Attributes not saved nor restored (so far):
 
 - Th_us: actual threshold to select the tail of the interphoton delays
   distribution. Dict of lists just like Data.bg.
-- BG_err: metric for fit error estimation. Dict of lists just like Data.bg.
+- bg_err: metric for fit error estimation. Dict of lists just like Data.bg.
+- bg_fun_name: equal to fun.__name__
+
 
 """
 
@@ -66,30 +65,31 @@ from .ph_sel import Ph_sel
 from .background import exp_fit
 
 
-def to_signature(time_s, tail_min_us, F_bg, error_metrics, fit_allph):
+def bg_to_signature(time_s, tail_min_us, F_bg, error_metrics, fit_allph):
     return json.dumps(dict(time_s=time_s, tail_min_us=tail_min_us, F_bg=F_bg,
                            error_metrics=error_metrics, fit_allph=fit_allph))
 
 
-def from_signature(string):
+def bg_from_signature(string):
     return {k: tuple(v) if isinstance(v, list) else v
             for k, v in json.loads(string).items()}
 
 
-def remove_cache(dx):
-    """Remove all the saved background data."""
-    assert 'bg_data_file' in dx
-    pprint(' * Removing all the cached background data ... ')
-    if '/background' in dx.bg_data_file:
-        dx.bg_data_file.remove_node('/background', recursive=True)
-        dx.bg_data_file.flush()
-    pprint('[DONE]\n')
+def _remove_cache_grp(h5file, group):
+    """Remove `group` from `h5file`."""
+    if group in h5file.root:
+        h5file.remove_node(group, recursive=True)
+
+
+def _remove_cache_bg(h5file):
+    """Remove /background from `h5file`."""
+    _remove_cache_grp(h5file, group='/background')
 
 
 def _save_bg_data(bg, Lim, Ph_p, bg_calc_kwargs, h5file, bg_auto_th_us0=None):
     """Save background data to HDF5 file."""
     # Save the bg data
-    group_name = to_signature(**bg_calc_kwargs)
+    group_name = bg_to_signature(**bg_calc_kwargs)
     if _bg_is_cached(h5file, bg_calc_kwargs):
         h5file.remove_node('/background', group_name, recursive=True)
 
@@ -107,7 +107,7 @@ def _save_bg_data(bg, Lim, Ph_p, bg_calc_kwargs, h5file, bg_auto_th_us0=None):
 
 def _load_bg_data(bg_calc_kwargs, h5file):
     """Load background data from a HDF5 file."""
-    group_name = to_signature(**bg_calc_kwargs)
+    group_name = bg_to_signature(**bg_calc_kwargs)
     if group_name not in h5file.root.background:
         msg = 'Group "%s" not found in the HDF5 file.' % group_name
         raise ValueError(msg)
@@ -131,7 +131,7 @@ def _load_bg_data(bg_calc_kwargs, h5file):
 def _bg_is_cached(h5file, bg_calc_kwargs):
     """Returns signature matches a group in /backgroung.
     """
-    group_name = to_signature(**bg_calc_kwargs)
+    group_name = bg_to_signature(**bg_calc_kwargs)
     return ('background' in h5file.root and
             group_name in h5file.root.background)
 

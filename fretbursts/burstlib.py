@@ -1402,9 +1402,9 @@ class Data(DataContainer):
         """Compute time-dependent background rates for all the channels.
 
         This version is the cached version of :meth:`calc_bg`.
-        This method tries to load the background data from the HDF5 file in
-        self.bg_data_file. If a saved background data is not found, it computes
-        the background and stores the data to the HDF5 file.
+        This method tries to load the background data from a cache file.
+        If a saved background data is not found, it computes
+        the background and stores it to disk.
 
         The arguments are the same as :meth:`calc_bg` with the only addition
         of `recompute` (bool) to force a background recomputation even if
