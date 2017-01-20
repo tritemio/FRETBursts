@@ -1951,7 +1951,12 @@ class Data(DataContainer):
         # without doing a new burst search
         self.add(bg_corrected=False, leakage_corrected=False,
                  dir_ex_corrected=False, dithering=False)
+        self._burst_search_postprocess(
+            computefret=computefret, max_rate=max_rate, dither=dither,
+            pure_python=pure_python, mute=mute)
 
+    def _burst_search_postprocess(self, computefret, max_rate, dither,
+                                  pure_python, mute):
         if computefret:
             pprint(" - Counting D and A ph and calculating FRET ... \n", mute)
             self.calc_fret(count_ph=True, corrections=True, dither=dither,
@@ -1959,7 +1964,7 @@ class Data(DataContainer):
             pprint("   [DONE Counting D/A]\n", mute)
         if max_rate:
             pprint(" - Computing max rates in burst ...", mute)
-            self.calc_max_rate(m=m)
+            self.calc_max_rate(m=self.m)
             pprint("[DONE]\n", mute)
 
     def calc_ph_num(self, alex_all=False, pure_python=False):
