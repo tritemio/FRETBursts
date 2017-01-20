@@ -14,6 +14,7 @@ before_install:
 
 install:
     - conda install --yes python=$TRAVIS_PYTHON_VERSION pip scipy pandas matplotlib pyqt seaborn lmfit cython numba phconvert pytest
+    - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then pip install pathlib ; fi
     - python setup.py build
     - pip install .
     - rm -rf build/
@@ -30,5 +31,7 @@ before_script:
 
 script:
     - py.test -v
+    - cd notebooks
+    - python ../fretbursts/tests/nbrun.py
 
 sudo: false
