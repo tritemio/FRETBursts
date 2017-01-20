@@ -157,7 +157,7 @@ def calc_bg_cache(dx, fun, time_s, tail_min_us, F_bg, error_metrics, fit_allph,
         bg, Lim, Ph_p, bg_auto_th_us0 = _load_bg_data(bg_calc_kwargs, h5file)
 
         bg_dict = dict(bg_fun=exp_fit, bg_ph_sel=Ph_sel('all'))     # fixed
-        bg_dict.update(bg=bg, Lim=Lim, Ph_p=Ph_p)
+        bg_dict.update(bg=bg, Lim=Lim, Ph_p=Ph_p, bg_time_s=time_s)
         if bg_calc_kwargs['tail_min_us'] == 'auto':
             bg_dict['bg_auto_F_bg'] = bg_calc_kwargs['F_bg']
             assert bg_auto_th_us0 is not None
