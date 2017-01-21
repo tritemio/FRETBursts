@@ -132,7 +132,7 @@ from .background import exp_fit
 def bs_to_signature(L, m, F, P, min_rate_cps, ph_sel, compact, index_allph, c):
     return json.dumps(dict(L=L, m=m, F=F, P=P, min_rate_cps=min_rate_cps,
                            ph_sel=ph_sel, compact=compact,
-                           index_allph=index_allph, c=c))
+                           index_allph=index_allph, c=c), sort_keys=True)
 
 
 def bs_from_signature(string):
@@ -141,7 +141,8 @@ def bs_from_signature(string):
 
 def bg_to_signature(time_s, tail_min_us, F_bg, error_metrics, fit_allph):
     return json.dumps(dict(time_s=time_s, tail_min_us=tail_min_us, F_bg=F_bg,
-                           error_metrics=error_metrics, fit_allph=fit_allph))
+                           error_metrics=error_metrics, fit_allph=fit_allph),
+                      sort_keys=True)
 
 
 def bg_from_signature(string):
