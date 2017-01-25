@@ -1842,7 +1842,7 @@ def dplot_48ch(d, func, sharex=True, sharey=True, layout='horiz',
                pgrid=True, figsize=None, AX=None, nosuptitle=False,
                scale=True, **kwargs):
     """Plot wrapper for 48-spot measurements. Use `dplot` instead."""
-    msg = "Wrong layout '%s'. Valid values: 'horiz', 'vert', '6x4'."
+    msg = "Wrong layout '%s'. Valid values: 'horiz', 'vert', '8x6'."
     assert (layout.startswith('vert') or layout.startswith('horiz') or
             layout == '8x6'), (msg % layout)
     global gui_status
@@ -1876,6 +1876,70 @@ def dplot_48ch(d, func, sharex=True, sharey=True, layout='horiz',
         b = d.mburst[ich] if 'mburst' in d else None
         ax = AX.ravel()[i]
         if i == 0 and not nosuptitle:
+            fig.suptitle(d.status())
+        s = u'[%d]' % (ich + 1)
+        if 'bg_mean' in d:
+            s += (' BG=%.1fk' % (d.bg_mean[Ph_sel('all')][ich] * 1e-3))
+        if b is not None:
+            s += (', #bu=%d' % b.num_bursts)
+        ax.set_title(s)
+        ax.grid(pgrid)
+        plt.sca(ax)
+        gui_status['first_plot_in_figure'] = (i == 0)
+        func(d, ich, **kwargs)
+        if ax.legend_ is not None:
+            ax.legend_.remove()
+    [a.set_xlabel('') for a in AX[:-1, :].ravel()]
+    [a.set_ylabel('') for a in AX[:, 1:].ravel()]
+    if sharex:
+        plt.setp([a.get_xticklabels() for a in AX[:-1, :].ravel()],
+                 visible=False)
+        [a.set_xlabel('') for a in AX[:-1, :].ravel()]
+        if not old_ax:
+            fig.subplots_adjust(hspace=0.15)
+    if sharey:
+        if AX.shape[1] > 1:
+            plt.setp([a.get_yticklabels() for a in AX[:, 1]], visible=False)
+        fig.subplots_adjust(wspace=0.08)
+
+        func_allows_autoscale = True
+        if func.__name__ in _plot_status:
+            func_allows_autoscale = _plot_status[func.__name__]['autoscale']
+        if scale and func_allows_autoscale:
+            ax.autoscale(enable=True, axis='y')
+    return AX
+
+
+def dplot_16ch(d, func, sharex=True, sharey=True, layout='4x4',
+               pgrid=True, figsize=None, AX=None, suptitle=True,
+               scale=True, **kwargs):
+    """Plot wrapper for 16-spot measurements. Use `dplot` instead."""
+    msg = "Wrong layout '%s'. Valid values: '4x4'."
+    assert layout == '4x4', (msg % layout)
+    global gui_status
+    iter_ch = range(16)
+    top_adjust = 0.95
+    if layout == '4x4':
+        nrows, ncols = 4, 4
+        if figsize is None:
+            figsize = (12, 12)
+    else:
+        raise NotImplemented()
+
+    if AX is None:
+        fig, AX = plt.subplots(nrows, ncols, figsize=figsize, sharex=sharex,
+                               sharey=sharey, squeeze=False)
+        fig.subplots_adjust(left=0.08, right=0.96, top=top_adjust,
+                            bottom=0.07, wspace=0.05)
+        old_ax = False
+    else:
+        fig = AX[0, 0].figure
+        old_ax = True
+
+    for i, ich in enumerate(iter_ch):
+        b = d.mburst[ich] if 'mburst' in d else None
+        ax = AX.ravel()[i]
+        if i == 0 and suptitle:
             fig.suptitle(d.status())
         s = u'[%d]' % (ich + 1)
         if 'bg_mean' in d:
@@ -1994,6 +2058,8 @@ def dplot(d, func, **kwargs):
         return dplot_1ch(d=d, func=func, **kwargs)
     elif d.nch == 8:
         return dplot_8ch(d=d, func=func, **kwargs)
+    elif d.nch == 16:
+        return dplot_16ch(d=d, func=func, **kwargs)
     elif d.nch == 48:
         return dplot_48ch(d=d, func=func, **kwargs)
 
