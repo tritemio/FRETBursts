@@ -1912,12 +1912,11 @@ def dplot_48ch(d, func, sharex=True, sharey=True, layout='horiz',
 
 def dplot_16ch(d, func, sharex=True, sharey=True, ncols=8,
                pgrid=True, figsize=None, AX=None, suptitle=True,
-               scale=True, **kwargs):
+               scale=True, top_adjust=0.93, **kwargs):
     """Plot wrapper for 16-spot measurements. Use `dplot` instead."""
     assert (ncols <= 16), '`ncols` needs to be <= 16.'
     global gui_status
     iter_ch = range(16)
-    top_adjust = 0.95
     nrows = int(np.ceil(d.nch / ncols))
     if figsize is None:
         subplotsize = (3, 3)
