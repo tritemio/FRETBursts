@@ -1877,7 +1877,7 @@ def dplot_48ch(d, func, sharex=True, sharey=True, layout='horiz',
         ax = AX.ravel()[i]
         if i == 0 and not nosuptitle:
             fig.suptitle(d.status())
-        s = u'[%d]' % (ich + 1)
+        s = '[%d]' % ich
         if 'bg_mean' in d:
             s += (' BG=%.1fk' % (d.bg_mean[Ph_sel('all')][ich] * 1e-3))
         if b is not None:
@@ -1941,7 +1941,7 @@ def dplot_16ch(d, func, sharex=True, sharey=True, layout='4x4',
         ax = AX.ravel()[i]
         if i == 0 and suptitle:
             fig.suptitle(d.status())
-        s = u'[%d]' % (ich + 1)
+        s = '[%d]' % ich
         if 'bg_mean' in d:
             s += (' BG=%.1fk' % (d.bg_mean[Ph_sel('all')][ich] * 1e-3))
         if b is not None:
