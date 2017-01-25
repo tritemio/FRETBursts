@@ -1910,19 +1910,18 @@ def dplot_48ch(d, func, sharex=True, sharey=True, layout='horiz',
     return AX
 
 
-def dplot_16ch(d, func, sharex=True, sharey=True, layout='4x4',
+def dplot_16ch(d, func, sharex=True, sharey=True, ncols=8,
                pgrid=True, figsize=None, AX=None, suptitle=True,
                scale=True, **kwargs):
     """Plot wrapper for 16-spot measurements. Use `dplot` instead."""
-    msg = "Wrong layout '%s'. Valid values: '4x4'."
-    assert layout == '4x4', (msg % layout)
+    assert (ncols <= 16), '`ncols` needs to be <= 16.'
     global gui_status
     iter_ch = range(16)
     top_adjust = 0.95
-    if layout == '4x4':
-        nrows, ncols = 4, 4
-        if figsize is None:
-            figsize = (12, 12)
+    nrows = int(np.ceil(d.nch / ncols))
+    if figsize is None:
+        subplotsize = (3, 3)
+        figsize = (subplotsize[0] * ncols, subplotsize[1] * nrows)
     else:
         raise NotImplemented()
 
