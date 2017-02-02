@@ -1921,8 +1921,6 @@ def dplot_16ch(d, func, sharex=True, sharey=True, ncols=8,
     if figsize is None:
         subplotsize = (3, 3)
         figsize = (subplotsize[0] * ncols, subplotsize[1] * nrows)
-    else:
-        raise NotImplemented()
 
     if AX is None:
         fig, AX = plt.subplots(nrows, ncols, figsize=figsize, sharex=sharex,
