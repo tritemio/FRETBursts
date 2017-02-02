@@ -1397,13 +1397,14 @@ class Data(DataContainer):
         return self._obsolete_bg_attr('bg_aa', Ph_sel(Aex='Aem'))
 
     def calc_bg_cache(self, fun, time_s=60, tail_min_us=500, F_bg=2,
+                      error_metrics=None, fit_allph=True,
                       recompute=False):
         """Compute time-dependent background rates for all the channels.
 
         This version is the cached version of :meth:`calc_bg`.
-        This method tries to load the background data from the HDF5 file in
-        self.bg_data_file. If a saved background data is not found, it computes
-        the background and stores the data to the HDF5 file.
+        This method tries to load the background data from a cache file.
+        If a saved background data is not found, it computes
+        the background and stores it to disk.
 
         The arguments are the same as :meth:`calc_bg` with the only addition
         of `recompute` (bool) to force a background recomputation even if
@@ -1413,6 +1414,7 @@ class Data(DataContainer):
         """
         bg_cache.calc_bg_cache(self, fun, time_s=time_s,
                                tail_min_us=tail_min_us, F_bg=F_bg,
+                               error_metrics=error_metrics, fit_allph=fit_allph,
                                recompute=recompute)
 
     def _get_auto_bg_th_arrays(self, F_bg=2, tail_min_us0=250):
@@ -1727,7 +1729,7 @@ class Data(DataContainer):
         FF = self._param_as_mch_array(F)
         PP = self._param_as_mch_array(P)
         if P is None:
-            # NOTE: ignoring P_i
+            # NOTE: the following lambda ignores Pi
             find_T = lambda m, Fi, Pi, bg: (m - 1 - c) / (bg * Fi)
         else:
             if F != 1:
@@ -1949,7 +1951,12 @@ class Data(DataContainer):
         # without doing a new burst search
         self.add(bg_corrected=False, leakage_corrected=False,
                  dir_ex_corrected=False, dithering=False)
+        self._burst_search_postprocess(
+            computefret=computefret, max_rate=max_rate, dither=dither,
+            pure_python=pure_python, mute=mute)
 
+    def _burst_search_postprocess(self, computefret, max_rate, dither,
+                                  pure_python, mute):
         if computefret:
             pprint(" - Counting D and A ph and calculating FRET ... \n", mute)
             self.calc_fret(count_ph=True, corrections=True, dither=dither,
@@ -1957,7 +1964,7 @@ class Data(DataContainer):
             pprint("   [DONE Counting D/A]\n", mute)
         if max_rate:
             pprint(" - Computing max rates in burst ...", mute)
-            self.calc_max_rate(m=m)
+            self.calc_max_rate(m=self.m)
             pprint("[DONE]\n", mute)
 
     def calc_ph_num(self, alex_all=False, pure_python=False):
