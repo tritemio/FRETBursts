@@ -1583,10 +1583,10 @@ class Data(DataContainer):
                     # where self.A_em[ich] is a bool and not a bool-array
                     # In this case, the mask of either DexDem or DexAem is
                     # slice(None) (all-elements selection).
-                    if (isinstance(masks[sel], slice) and
-                            masks[sel] == slice(None)):
-                        bg[sel][ip] = bg[Ph_sel('all')][ip]
-                        bg_err[sel][ip] = bg_err[Ph_sel('all')][ip]
+                    if isinstance(masks[sel], slice):
+                        if masks[sel] == slice(None):
+                            bg[sel][ip] = bg[Ph_sel('all')][ip]
+                            bg_err[sel][ip] = bg_err[Ph_sel('all')][ip]
                         continue
                     else:
                         ph_i_sel = ph_i[masks[sel][i0:i1]]
