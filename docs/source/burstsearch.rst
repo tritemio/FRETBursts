@@ -46,10 +46,10 @@ Conventions in burst search
 ---------------------------
 
 Burst search is mainly performed calling the method
-:meth:`Data.burst_search`. The and-gate burst search function
+:meth:`Data.burst_search`. The AND-gate burst search function
 (:meth:`fretbursts.burstlib_ext.burst_search_and`) calls
 :meth:`Data.burst_search` under the hood, so all the considerations
-below are also valid for the and-gate version.
+below are also valid for the AND-gate version.
 
 With :meth:`Data.burst_search`, you can perform burst search by setting
 a "rate threshold" *F* times larger than the background rate (argument `F`),
@@ -120,7 +120,7 @@ At this point it can happen that the current m-tuple is contained in *T*
 and a new burst starts right away. In this situation the new bursts will
 have m-2 timestamps overlapping with the previous one.
 
-At the end on the timestamp array, if a burst is currently started we end it
+At the end of the timestamp array, if a burst is currently started we end it
 by marking the last timestamp as burst stop. The set of bursts obtained
 in this way has the minimum-rate property, i.e. all the m-tuple of
 consecutive timestamps in any burst are guaranteed to be contained in a
@@ -146,9 +146,9 @@ Burst Fusion
 Burst fusion is an operation which fuses consecutive bursts if the
 start of the second bursts minus the end of the first burst
 (called burst separation) is <=
-of a fusion time $t_f$. When bursts are overlapping (see previous
-section) the burst separation is negative. Therefore to avoid
-overlapping bursts we need to apply fusion with separation of 0.
+of a fusion time :math:`t_f`. When bursts are overlapping (see previous
+section) the burst separation is negative. Therefore, to avoid
+overlapping bursts, we need to apply fusion with separation of 0.
 Note that with this condition, if a bursts ends on a timestamp which
 is the start of the next burst (i.e. 1 overlapping photon) the two
 bursts will be fused. Conversely if one burst ends and the next burst

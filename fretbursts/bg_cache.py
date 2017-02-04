@@ -7,212 +7,246 @@
 This module provides functions to store and load background fit data
 to and from an HDF5 file.
 
-The functions here assume to find an open pyTables file reference in
-the :class:`Data` attribute `.bg_data_file`.
+Background cache implementation
+-------------------------------
+
+Background caching only works when `bg_fun = bg.exp_fit` (MLE tail fit) and
+assumes that `bg_ph_sel == Ph_sel('all')`.
+
+Background estimation results are indentified by the `Data.calc_bg` arguments::
+
+    time_s, tail_min_us, F_bg, error_metrics, fit_allph
+
+These are serialized and used as group name under `/background`.
+This group stores::
+
+    bg
+
+the arrays::
+
+    Lim, Ph_p
+
+and optionally the field `bg_auto_th_us0` used when `tail_min_us == 'auto'`.
+The following `Data` attributes are computed (and not stored):
+
+- bg_th_us_user: is tail_min_us when `tail_min_us != 'auto'`
+- bg_auto_F_bg: is F_bg when `tail_min_us == 'auto'`
+
+Finally the following `Data` attributes are fixed:
+
+- bg_fun: fixed to bg.exp_fit, not saved but implied
+- bg_ph_sel: fixed to Ph_sel('all'), not saved but implied
+
+The following properties are not stored since they are compute on-fly every time:
+
+- nperiods
+- bg_mean
+
+Attributes not saved nor restored (so far):
+
+- Th_us: actual threshold to select the tail of the interphoton delays
+  distribution. Dict of lists just like Data.bg.
+- bg_err: metric for fit error estimation. Dict of lists just like Data.bg.
+- bg_fun_name: equal to fun.__name__
+
+
+Burst search caching
+--------------------
+
+Data.burst_search()
+Input arguments: L, m, F, P, min_rate_cps, ph_sel, compact, index_allph, c
+
+Other arguments: computefret=True, max_rate=False, dither=False,
+                 pure_python=False, verbose=False, mute=False
+
+Problem: the background estimation and periods influence burst search.
+    In particular only Data.bg_from(ph_sel) is used. A viable approach is
+    hashing Data.bg_from(ph_sel) and comparing it with the hash stored in the
+    burst-search cache.
+
+Attributes saved:
+    m, L, ph_sel: scalar parameters
+
+    Sets also:
+        bg_corrected=False, leakage_corrected=False,
+        dir_ex_corrected=False, dithering=False
+
+Depending on input executes either:
+
+    1)  _burst_search_rate()
+    or
+    2) _calc_T()
+       _burst_search_TT()
+
+Data._burst_search_rate()
+Attributes saved:
+    T, rate_th: per-spot values
+    mburst: burst data
+
+Data._calc_T():
+Attributes saved:
+    bg_bs, F, P: scalar parameters
+    T, rate_th: per-spot means
+    TT, FF, PP: list of arrays, per-spot and per background period
+
+Data._burst_search_TT()
+Attributes saved:
+    mburst: burst data
+
+Data._calc_burst_period():
+Attributes saved:
+    bp: list of arrays, uses Data.mburst and Data.Lim to compute Data.bp
+
+Plan:
+    - make signature from input args anche check is a matching group exist
+    - if it exist and min_rate_cps is None, check if the background cache
+      matches. It is good to check it also for min_rate_cps because background
+      influences burst corrections.
+    - if background hash matched can load background from cache: mbursts,
+      T, rate_th
+    - If min_rate_cps is None, call Data._calc_T() to recompute attributes:
+      bg_bs, F, P, TT, FF, PP, T, rate_th. Assert that T and rate_th have not
+      changed from previous step.
+    - Call Data._calc_burst_period() to compute Data.bp.
+    - Add to Data m, L, ph_sel (input parameters) and set
+      bg_corrected=False, leakage_corrected=False,
+      dir_ex_corrected=False, dithering=False
+    - execute last part of burst-seach method that need to be refactored in a
+      separate method.
+
 """
 
-from __future__ import  absolute_import
+from __future__ import absolute_import
 from builtins import range, zip
 
-import os
+from pathlib import Path
+import json
 import numpy as np
+import tables
 
 from .utils.misc import pprint
 from .ph_sel import Ph_sel
+from .background import exp_fit
 
 
-def remove_cache(dx):
-    """Remove all the saved background data."""
-    assert 'bg_data_file' in dx
-    pprint(' * Removing all the cached background data ... ')
-    if '/background' in dx.bg_data_file:
-        dx.bg_data_file.remove_node('/background', recursive=True)
-        dx.bg_data_file.flush()
-    pprint('[DONE]\n')
+def bs_to_signature(L, m, F, P, min_rate_cps, ph_sel, compact, index_allph, c):
+    return json.dumps(dict(L=L, m=m, F=F, P=P, min_rate_cps=min_rate_cps,
+                           ph_sel=ph_sel, compact=compact,
+                           index_allph=index_allph, c=c), sort_keys=True)
 
-def _get_bg_arrays_info(dx):
-    """Return a dict of background numeric data description.
 
-    The keys of the returned dict are names and the values are a string
-    description of numeric data related to the background fit.
-    This info is used to set the title attribute in the HDF5 arrays.
-    """
-    bg_arrays_info = dict(
-        bg = 'BG rate in each CH vs time (Total)',
-        bg_dd = 'BG rate in each CH vs time (D_em during D_ex)',
-        bg_ad = 'BG rate in each CH vs time (A_em during D_ex)',
-        bg_da = 'BG rate in each CH vs time (D_em during A_ex)',
-        bg_aa = 'BG rate in each CH vs time (A_em during A_ex)',
-        Lim = 'Index of first and last timestamp in each period',
-        Ph_p = 'First and last timestamp in each period',
-        nperiods = 'Number of time periods in which BG is computed',
-        bg_time_s = 'Time duration of the period (windows in which computing BG)',
-        bg_auto_th = '1 if the bg threshold was computed automatically, else 0'
-    )
+def bs_from_signature(string):
+    return json.loads(string).items()
 
-    bg_arrays_info_auto = dict(
-        bg_auto_th_us0 = 'Threshold used for the initial bg rate estimation.',
-        bg_auto_F_bg = 'Factor that multiplies the initial rate estimation to '
-                       'get the auto threshold',
-    )
-    bg_arrays_info_noauto = dict(
-        bg_th_us_user = ('Waiting time thresholds for BG fit. '
-                         'This array contains 5 thresholds for different '
-                         'photon selections. In the order: all photons, '
-                         ' D_em-D_ex, A_em-D_ex, D_em-A_ex, A_em-A_ex.')
-    )
 
-    if dx.bg_auto_th:
-        bg_arrays_info.update(**bg_arrays_info_auto)
-    else:
-        bg_arrays_info.update(**bg_arrays_info_noauto)
-    return bg_arrays_info
+def bg_to_signature(time_s, tail_min_us, F_bg, error_metrics, fit_allph):
+    return json.dumps(dict(time_s=time_s, tail_min_us=tail_min_us, F_bg=F_bg,
+                           error_metrics=error_metrics, fit_allph=fit_allph),
+                      sort_keys=True)
 
-def bg_save_hdf5(dx):
+
+def bg_from_signature(string):
+    return {k: tuple(v) if isinstance(v, list) else v
+            for k, v in json.loads(string).items()}
+
+
+def _remove_cache_grp(h5file, group):
+    """Remove `group` from `h5file`."""
+    if group in h5file.root:
+        h5file.remove_node(group, recursive=True)
+
+
+def _remove_cache_bg(h5file):
+    """Remove /background from `h5file`."""
+    _remove_cache_grp(h5file, group='/background')
+
+
+def _save_bg_data(bg, Lim, Ph_p, bg_calc_kwargs, h5file, bg_auto_th_us0=None):
     """Save background data to HDF5 file."""
-    assert 'bg_data_file' in dx
-    assert 'bg' in dx
+    # Save the bg data
+    group_name = bg_to_signature(**bg_calc_kwargs)
+    if _bg_is_cached(h5file, bg_calc_kwargs):
+        h5file.remove_node('/background', group_name, recursive=True)
 
-    bg_arrays_info = _get_bg_arrays_info(dx)
-    bg_attr_names = ['bg_fun', 'bg_fun_name']
-    if '/background' not in dx.bg_data_file:
-        dx.bg_data_file.create_group('/', 'background',
-                                  title='Background estimation data')
-    ## Save the bg data
-    group_name = _get_bg_groupname(dx)
-    if group_name in dx.bg_data_file:
-        dx.bg_data_file.remove_node(group_name, recursive=True)
+    bg_group = h5file.create_group('/background', group_name,
+                                   createparents=True)
 
-    bg_group = dx.bg_data_file.create_group(os.path.dirname(group_name),
-                                         os.path.basename(group_name),
-                                         createparents=True)
-    # Save arrays and scalars
-    pprint('\n - Saving arrays/scalars: ')
-    for name, info in bg_arrays_info.items():
-        pprint(name + ', ')
-        arr = np.array(dx[name])
-        dx.bg_data_file.create_array(bg_group, name, obj=arr, title=info)
+    for ph_sel in bg:
+        h5file.create_array(bg_group, 'BG_%s' % str(ph_sel), obj=bg[ph_sel])
+    h5file.create_array(bg_group, 'Lim', obj=Lim)
+    h5file.create_array(bg_group, 'Ph_p', obj=Ph_p)
+    if bg_calc_kwargs['tail_min_us'] == 'auto':
+        assert bg_auto_th_us0 is not None
+        h5file.create_array(bg_group, 'bg_auto_th_us0', obj=bg_auto_th_us0)
 
-    # Save the attributes
-    pprint('\n - Saving HDF5 attributes: ')
-    for attr in bg_attr_names:
-        pprint(attr + ', ')
-        bg_group._v_attrs[attr] = dx[attr]
-    pprint('\n')
-    dx.bg_data_file.flush()
 
-def bg_load_hdf5(dx, group_name):
+def _load_bg_data(bg_calc_kwargs, h5file):
     """Load background data from a HDF5 file."""
-    assert 'bg_data_file' in dx
-    if group_name not in dx.bg_data_file:
-        pprint('Group "%s" not found in the HDF5 file.' % group_name)
-        return
+    group_name = bg_to_signature(**bg_calc_kwargs)
+    if group_name not in h5file.root.background:
+        msg = 'Group "%s" not found in the HDF5 file.' % group_name
+        raise ValueError(msg)
+    bg_auto_th_us0 = None
+    bg_group = h5file.get_node('/background/', group_name)
 
-    ## Load the bg data
-    bg_arrays = dict()
-    bg_attrs = dict()
+    pprint('\n - Loading bakground data: ')
+    bg = {}
+    for node in bg_group._f_iter_nodes():
+        if node._v_name.startswith('BG_'):
+            ph_sel = Ph_sel.from_str(node._v_name[len('BG_'):])
+            bg[ph_sel] = [np.asfarray(b) for b in node.read()]
 
-    bg_group = dx.bg_data_file.get_node(group_name)
+    Lim = bg_group.Lim.read()
+    Ph_p = bg_group.Ph_p.read()
+    if 'bg_auto_th_us0' in bg_group:
+        bg_auto_th_us0 = bg_group.bg_auto_th_us0.read()
+    return bg, Lim, Ph_p, bg_auto_th_us0
 
-    # Load arrays and scalars
-    pprint('\n - Loading arrays/scalars: ')
-    for node in bg_group._f_list_nodes():
-        name = node.name
-        pprint(name + ', ')
-        #title = node.title
-        arr = bg_group._f_get_child(name)
-        bg_arrays[name] = arr.read()
-    dx.add(**bg_arrays)
 
-    # Load the attributes
-    pprint('\n - Loading HDF5 attributes: ')
-    for attr in bg_group._v_attrs._f_list():
-        pprint(attr + ', ')
-        bg_attrs[attr] = bg_group._v_attrs[attr]
-    dx.add(**bg_attrs)
-    pprint('\n')
-
-    if 'bg_da' not in dx:
-        pprint('   WARNING: Adding missing bg_da as zeros.\n')
-        dx.add(bg_da=[np.zeros(bg.shape) for bg in dx.bg_dd])
-    if 'bg_ph_sel' not in dx:
-        pprint('   WARNING: Adding missing bg_ph_sel.\n')
-        dx.add(bg_ph_sel=Ph_sel('all'))
-
-    pprint(' - Generating additional fields: ')
-    in_map = ['', '_dd', '_ad', '_da', '_aa']
-    out_map = ['_m', '_dd', '_ad', '_da', '_aa']
-    new_attrs = {}
-    for in_s, out_s in zip(in_map, out_map):
-        assert 'bg' + in_s in dx
-        pprint('rate' + out_s + ', ')
-        new_attrs['rate' + out_s] = [bg.mean() for bg in dx['bg' + in_s]]
-    dx.add(**new_attrs)
-    pprint('\n')
-
-def _get_bg_groupname(dx, time_s=None):
-    """Get the HDF5 group name for the background data.
-
-    Arguments:
-        dx (Data): object containing the measurement data
-        time_s (None or float): if None the value is taken from dx.bg_time_s
-    Returns:
-        A string for the background group name.
+def _bg_is_cached(h5file, bg_calc_kwargs):
+    """Returns signature matches a group in /backgroung.
     """
-    if time_s is None and 'bg' not in dx:
-        pprint('You need to compute the background or provide time_s.')
-        return
-    time_slice = time_s if time_s is not None else dx.bg_time_s
-    return '/background/time_%ds' % time_slice
+    group_name = bg_to_signature(**bg_calc_kwargs)
+    return ('background' in h5file.root and
+            group_name in h5file.root.background)
 
-def _bg_is_cached(dx, signature):
-    """Returns wheter background with given `signature` is in disk the cache.
-    """
-    if 'bg_data_file' in dx:
-        bg_groupname = _get_bg_groupname(dx, time_s=signature['time_s'])
-        if bg_groupname in dx.bg_data_file:
-            # At least we have a group with the right time_s
-            # Check whether its signature matches the current one
-            group = dx.bg_data_file.get_node(bg_groupname)
-            if signature == group._v_attrs.signature:
-                return True
-    return False
 
-def _bg_add_signature(dx, signature):
-    """Add the signature attr to current background group.
-    """
-    assert 'bg_data_file' in dx
-    bg_groupname = _get_bg_groupname(dx, time_s=signature['time_s'])
-    assert bg_groupname in dx.bg_data_file
+def get_h5file(dx):
+    datafile = Path(dx.fname)
+    cachefile = datafile.with_name(datafile.stem + '_cache.hdf5')
+    return tables.open_file(str(cachefile), mode='a')
 
-    group = dx.bg_data_file.get_node(bg_groupname)
-    group._v_attrs.signature = signature
-    dx.bg_data_file.flush()
 
-def calc_bg_cache(dx, fun, time_s=60, tail_min_us=500, F_bg=2, recompute=False):
+def calc_bg_cache(dx, fun, time_s, tail_min_us, F_bg, error_metrics, fit_allph,
+                  recompute=False):
     """Cached version of `.calc_bg()` method."""
-
-    curr_call_signature = dict(fun_name=fun.__name__, time_s=time_s,
-                               tail_min_us=tail_min_us, F_bg=F_bg)
-    if _bg_is_cached(dx, curr_call_signature) and not recompute:
+    assert fun == exp_fit, 'Cache only supports the bg.exp_fit function.'
+    assert error_metrics is None, 'Cache only support `error_metrics=None`.'
+    bg_calc_kwargs = dict(time_s=time_s, tail_min_us=tail_min_us,
+                          F_bg=F_bg, error_metrics=error_metrics,
+                          fit_allph=fit_allph)
+    h5file = get_h5file(dx)
+    if _bg_is_cached(h5file, bg_calc_kwargs) and not recompute:
         # Background found in cache. Load it.
         pprint(' * Loading BG rates from cache ... ')
-        bg_groupname = _get_bg_groupname(dx, time_s=time_s)
+        bg, Lim, Ph_p, bg_auto_th_us0 = _load_bg_data(bg_calc_kwargs, h5file)
+
+        bg_dict = dict(bg_fun=exp_fit, bg_ph_sel=Ph_sel('all'))     # fixed
+        bg_dict.update(bg=bg, Lim=Lim, Ph_p=Ph_p, bg_time_s=time_s)
+        if bg_calc_kwargs['tail_min_us'] == 'auto':
+            bg_dict['bg_auto_F_bg'] = bg_calc_kwargs['F_bg']
+            assert bg_auto_th_us0 is not None
+            bg_dict['bg_auto_th_us0'] = bg_auto_th_us0
+        else:
+            bg_dict['bg_th_us_user'] = tail_min_us
         dx._clean_bg_data()
-        bg_load_hdf5(dx, bg_groupname)
+        dx.add(**bg_dict)
         pprint(' [DONE]\n')
     else:
-        # Background not found in cache. Compute it.
-        pprint(' * No cached BG rates, recomputing:\n')
-        dx.calc_bg(fun=fun, time_s=time_s, tail_min_us=tail_min_us, F_bg=F_bg)
-        if 'bg_data_file' in dx:
-            pprint(' * Storing BG  to disk ... ')
-            # And now store it to disk
-            bg_save_hdf5(dx)
-            _bg_add_signature(dx, curr_call_signature)
-            pprint(' [DONE]\n')
-
-
-def test_calc_bg_cache(dx):
-    pass
-
+        pprint(' * Computing BG rates:\n')
+        dx.calc_bg(fun=fun, **bg_calc_kwargs)
+        bg_auto_th_us0 = dx.get('bg_auto_th_us0', None)
+        _save_bg_data(dx.bg, dx.Lim, dx.Ph_p, bg_calc_kwargs, h5file,
+                      bg_auto_th_us0=bg_auto_th_us0)
+        pprint(' [DONE]\n')
+    h5file.close()
