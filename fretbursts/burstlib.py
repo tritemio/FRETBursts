@@ -170,7 +170,7 @@ def iter_bursts_ph(ph_data, bursts, mask=None, compact=False,
         ph_data (1D array): array of photon-data (timestamps, nanotimes).
         bursts (Bursts object): bursts computed from `ph`.
         mask (boolean mask or None): if not None, is a boolean mask
-            to select photons in `ph` (for example Donor-ch photons).
+            to select photons in `ph_data` (for example Donor-ch photons).
         compact (bool): if True, a photon selection of only one excitation
             period is required and the timestamps are "compacted" by
             removing the "gaps" between each excitation period.
