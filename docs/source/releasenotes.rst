@@ -1,6 +1,28 @@
 FRETBursts Release Notes
 ========================
 
+Version 0.6.1 (unreleased)
+-----------------------
+
+For this version of FRETBursts, conda packages are distributed for
+python 2.7, 3.5, 3.6 and numpy 1.11 and 1.12. Packages for python 3.4
+are not provided anymore.
+Python 2.7 is now deprecated. Support for python 2.7 will be removed
+in a future version.
+
+The current release includes the following changes:
+
+- Add plot wrapper for 16-ch data.
+- Improved example notebook showing how to export burst data.
+  See `Exporting Burst Data <https://github.com/tritemio/FRETBursts/blob/49a45dd815b40602c5e754a162c66a837bbd2477/notebooks/Example%20-%20Exporting%20Burst%20Data%20Including%20Timestamps.ipynb>`.
+- Re-enable background rate caching.
+  See `PR #53 <https://github.com/tritemio/FRETBursts/pull/53>`.
+- Support Path objects as filename in `loader.photon_hdf5()`.
+- Improve `Ph_sel` string representation, added factory method `Ph_sel.from_str`
+  and added new tests.
+  See `3dc5f0 <https://github.com/tritemio/FRETBursts/commit/3dc5f078c678ca3c806f49b27223a2e1cd6df64a>`__.
+
+
 Version 0.6 (Jan. 2017)
 -----------------------
 
