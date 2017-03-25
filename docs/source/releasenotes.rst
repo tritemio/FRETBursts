@@ -5,8 +5,8 @@ Version 0.6.1 (unreleased)
 -----------------------
 
 For this version of FRETBursts, conda packages are distributed for
-python 2.7, 3.5, 3.6 and numpy 1.11 and 1.12. Packages for python 3.4
-are not provided anymore.
+python 2.7, 3.5, 3.6 and numpy 1.11 and 1.12. FRETBursts still works
+with python 3.4 but conda packages are not provided anymore.
 Python 2.7 is now deprecated. Support for python 2.7 will be removed
 in a future version.
 
