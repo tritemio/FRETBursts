@@ -12,12 +12,15 @@ in a future version.
 
 The current release includes the following changes:
 
+- Fix access to the deprecated background attributes (introduced in 0.6).
+  See `b850a5 <https://github.com/tritemio/FRETBursts/commit/b850a595033c27cc66f8f4a748b1d0bf68366750`__.
 - Add plot wrapper for 16-ch data.
 - Improved example notebook showing how to export burst data.
   See `Exporting Burst Data <https://github.com/tritemio/FRETBursts/blob/49a45dd815b40602c5e754a162c66a837bbd2477/notebooks/Example%20-%20Exporting%20Burst%20Data%20Including%20Timestamps.ipynb>`__.
 - Re-enable background rate caching.
   See `PR #53 <https://github.com/tritemio/FRETBursts/pull/53>`__.
 - Support Path objects as filename in `loader.photon_hdf5()`.
+  See `201b5c <https://github.com/tritemio/FRETBursts/commit/201b5c089eca0f0867ceb453c3c111c54a21704d>`__.
 - Improve `Ph_sel` string representation, added factory method `Ph_sel.from_str`
   and added new tests.
   See `3dc5f0 <https://github.com/tritemio/FRETBursts/commit/3dc5f078c678ca3c806f49b27223a2e1cd6df64a>`__.
