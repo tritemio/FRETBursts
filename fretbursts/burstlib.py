@@ -1355,10 +1355,14 @@ class Data(DataContainer):
             bg_field = 'bg'
         elif attrname in bg_mean_attrs:
             bg_field = 'bg_mean'
-        if bg_field in self:
-            return getattr(self, bg_field)[ph_sel]
-        else:
-            raise AttributeError('No attribute `%s` found in Data.' % bg_field)
+        try:
+            value = getattr(self, bg_field)[ph_sel]
+        except AttributeError as e:
+            # This only happens when trying to access 'bg' because
+            # 'bg_mean' raises RuntimeError when missing.
+            msg = 'No attribute `%s` found. Please compute background first.'
+            raise RuntimeError(msg % bg_field) from e
+        return value
 
     @property
     def rate_m(self):
@@ -1629,7 +1633,7 @@ class Data(DataContainer):
     @property
     def bg_mean(self):
         if 'bg' not in self:
-            raise AttributeError('No background found, compute it first.')
+            raise RuntimeError('No background found, compute it first.')
         if not hasattr(self, '_bg_mean'):
             self._bg_mean = {k: [bg_ch.mean() for bg_ch in bg_ph_sel]
                              for k, bg_ph_sel in self.bg.items()}

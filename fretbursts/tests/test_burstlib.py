@@ -97,6 +97,19 @@ def list_array_allclose(list1, list2):
 # Test functions
 #
 
+
+def test_bg_compatlayer_for_obsolete_attrs():
+    d = load_dataset_1ch(process=False)
+    attrs = ('bg_dd', 'bg_ad', 'bg_da', 'bg_aa',
+             'rate_m', 'rate_dd', 'rate_ad', 'rate_da', 'rate_aa')
+    for attr in attrs:
+        with pytest.raises(RuntimeError):
+            getattr(d, attr)
+    _alex_process(d)
+    for attr in attrs:
+        assert isinstance(getattr(d, attr), list)
+
+
 def test_ph_times_compact(data_1ch):
     """Test calculation of ph_times_compact."""
     def isinteger(x):
@@ -156,7 +169,7 @@ def test_bg_calc(data):
     assert 'bg_auto_th_us0' in data
     assert 'bg_auto_F_bg' in data
     assert 'bg_th_us_user' not in data
-    
+
     data.calc_bg(bg.exp_fit, time_s=30, tail_min_us='auto', F_bg=1.7,
                  fit_allph=False)
     streams = [s for s in data.ph_streams if s != Ph_sel('all')]
