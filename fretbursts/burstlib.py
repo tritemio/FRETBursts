@@ -1346,7 +1346,7 @@ class Data(DataContainer):
     # Background analysis methods
     #
     def _obsolete_bg_attr(self, attrname, ph_sel):
-        print('The Data.%s attribute is obsolete. Please use '
+        print('The Data.%s attribute is deprecated. Please use '
               'Data.bg(%s) instead.' % (attrname, repr(ph_sel)))
         bg_attrs = ('bg_dd', 'bg_ad', 'bg_da', 'bg_aa')
         bg_mean_attrs = ('rate_m', 'rate_dd', 'rate_ad', 'rate_da', 'rate_aa')
