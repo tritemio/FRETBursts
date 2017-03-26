@@ -2,7 +2,7 @@ FRETBursts Release Notes
 ========================
 
 Version 0.6.1 (unreleased)
------------------------
+--------------------------
 
 For this version of FRETBursts, conda packages are distributed for
 python 2.7, 3.5, 3.6 and numpy 1.11 and 1.12. FRETBursts still works
@@ -13,7 +13,7 @@ in a future version.
 The current release includes the following changes:
 
 - Fix access to the deprecated background attributes (introduced in 0.6).
-  See `b850a5 <https://github.com/tritemio/FRETBursts/commit/b850a595033c27cc66f8f4a748b1d0bf68366750`__.
+  See `b850a5 <https://github.com/tritemio/FRETBursts/commit/b850a595033c27cc66f8f4a748b1d0bf68366750>`__.
 - Add plot wrapper for 16-ch data.
 - Improved example notebook showing how to export burst data.
   See `Exporting Burst Data <https://github.com/tritemio/FRETBursts/blob/49a45dd815b40602c5e754a162c66a837bbd2477/notebooks/Example%20-%20Exporting%20Burst%20Data%20Including%20Timestamps.ipynb>`__.
@@ -62,13 +62,13 @@ Effect on burst search
 """"""""""""""""""""""
 Version 0.6 introduced a small change in how the auto-threshold
 for background estimation is computed. This results in slightly different
-background rates. As a consequence, burst searches setting a threshold 
+background rates. As a consequence, burst searches setting a threshold
 as function of the background, will set a slightly different threshold and
 will find different number of bursts. The difference is not dramatic,
 but can result in slight numeric changes in estimated parameters.
 
 Details of auto-threshold changes
-""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""
 The refactor included a change in how the background is computed when using
 `tail_min_us='auto'`. As before, with this setting, the background is
 estimated iteratively in two steps. A first raw estimation with a fixed

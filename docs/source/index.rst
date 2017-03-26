@@ -8,7 +8,7 @@ Welcome to FRETBursts's documentation!
 
 :Author: Antonino Ingargiola
 :Contact: tritemio@gmail.com
-:Version: |version| (`release notes <https://github.com/tritemio/FRETBursts/releases>`__)
+:Version: |version| (:doc:`release notes <releasenotes>`)
 
 `FRETBursts <http://tritemio.github.io/FRETBursts/>`__ is an open-source (GPLv2) python package for burst analysis of
 freely-diffusing single-molecule FRET data for single and multi-spot experiments.
