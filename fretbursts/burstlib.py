@@ -17,6 +17,7 @@ For usage example see the IPython Notebooks in sub-folder "notebooks".
 """
 
 from __future__ import print_function, absolute_import, division
+from future.utils import raise_from
 from builtins import range, zip
 
 import os
@@ -1361,7 +1362,7 @@ class Data(DataContainer):
             # This only happens when trying to access 'bg' because
             # 'bg_mean' raises RuntimeError when missing.
             msg = 'No attribute `%s` found. Please compute background first.'
-            raise RuntimeError(msg % bg_field) from e
+            raise_from(RuntimeError(msg % bg_field), e)
         return value
 
     @property
