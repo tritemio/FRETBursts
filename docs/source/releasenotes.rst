@@ -33,12 +33,13 @@ Version 0.6 (Jan. 2017)
 
 - Improvements to the layout of 48-spot plots.
 - Simplify background computation avoiding useless recomputations.
-  This results in 3x speed increase for measurement loaded with `ondisk=True`
-  and 30% speed increase when using `ondisk=False`.
+  This results in 3x speed increase in background computation
+  for measurement loaded with `ondisk=True` and 30% speed increase
+  when using `ondisk=False`.
   Now all background rates are stored in the dictionary :attr:`Data.bg`,
   while the mean background rate in the dictionary :attr:`Data.bg_mean`.
-  The old attributes `Data.bg_*` and `Data.rate_*` are now deprecated and will
-  be removed in a future release (see below).
+  The old attributes `Data.bg_*` and `Data.rate_*` have been deprecated
+  and will be removed in a future release (see below).
 - Fix loading files with `ondisk=True`. With this option timestamps are not
   kept in RAM but loaded spot-by-spot when needed. This option has no effect
   on single-spot measurements but will save RAM in multi-spot measurements.
@@ -57,22 +58,49 @@ Version 0.6 (Jan. 2017)
 Backward-incompatible changes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The background refactor resulted in an incompatible change in the :attr:`Data.bg`
-attribute. Users upgrading to version 0.6, should replace
+Effect of burst search
+""""""""""""""""""""""
+Version 0.6 introduced a small change in how the auto-threshold
+for background estimation is computed. This results in slightly different
+background rates. Burst searches setting a threshold as function of the
+background, will set a slightly different threshold and therefore
+will find different number of bursts. The difference is not dramatic,
+but can result in slight numeric changes in estimated parameters.
+
+Details of auto-threshold changes
+""""""""""""""""""""""""""""""""
+The refactor included a change in how the background is computed when using
+`tail_min_us='auto'`. As before, with this setting, the background is
+estimated iteratively in two steps. A first raw estimation with a fixed
+threshold (250us), and second estimation with a threshold function of the
+rate computed in the first step. Before version 0.6, the first step estimated
+a single rate for the whole measurement. Now the first-step estimation is
+performed in each background period separately. As before, the second step
+computes the background separately in each background period.
+This change was motivated by the need of simplify the internal logic
+of background estimation, and to increase the computation efficiency
+and accuracy.
+
+Background attributes
+"""""""""""""""""""""
+The background refactor resulted in an incompatible change in the
+:attr:`Data.bg` attribute. Users upgrading to version 0.6, may need to replace
 `Data.bg` with `Data.bg[Ph_sel('all')]` in their notebooks. Note that
 no official FRETBursts notebook was using `Data.bg`, so most users will not be
 affected.
 
-The the other background related attributes (bg_dd, bg_ad, bg_da, bg_aa,
+Compatibility layer
+"""""""""""""""""""
+All the old background-related attributes (bg_dd, bg_ad, bg_da, bg_aa,
 rate_dd, rate_ad, rate_da, rate_aa, rate_m) are still present but deprecated.
-The official FRETBursts notebooks have been updated to use the new
-:attr:`Data.bg` and :attr:`Data.bg_mean` attributes. When using these
-deprecated attributes, a message will indicate the new syntax.
-Please update existing notebooks
+The same data is now contained in the dictionaries
+:attr:`Data.bg` and :attr:`Data.bg_mean`.
+When using the deprecated attributes, a message will indicate the new syntax.
+If you see the deprecation warning, please update the notebook
 to avoid future errors.
 
-Details of changes
-""""""""""""""""""
+Details of attributes changes
+"""""""""""""""""""""""""""""
 
 Before version 0.6, `Data.bg` contained background rates
 fitted for **all-photons** stream. `Data.bg` was a list of arrays:
@@ -111,7 +139,7 @@ several components as described below.
 Data Class
 ^^^^^^^^^^
 
-- Data methods `Data.burst_sizes_ich` and `Data.burst_sizes`) now accept
+- Methods `Data.burst_sizes_ich` and `Data.burst_sizes` now accept the
   arguments ``gamma``, ``beta`` and ``donor_ref``. The argument ``gamma1``
   was removed.
   The two conventions of corrected burst sizes are chosen with the boolean
