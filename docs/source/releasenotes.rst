@@ -58,12 +58,12 @@ Version 0.6 (Jan. 2017)
 Backward-incompatible changes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Effect of burst search
+Effect on burst search
 """"""""""""""""""""""
 Version 0.6 introduced a small change in how the auto-threshold
 for background estimation is computed. This results in slightly different
-background rates. Burst searches setting a threshold as function of the
-background, will set a slightly different threshold and therefore
+background rates. As a consequence, burst searches setting a threshold 
+as function of the background, will set a slightly different threshold and
 will find different number of bursts. The difference is not dramatic,
 but can result in slight numeric changes in estimated parameters.
 
@@ -77,7 +77,7 @@ rate computed in the first step. Before version 0.6, the first step estimated
 a single rate for the whole measurement. Now the first-step estimation is
 performed in each background period separately. As before, the second step
 computes the background separately in each background period.
-This change was motivated by the need of simplify the internal logic
+This change was motivated by the need to simplify the internal logic
 of background estimation, and to increase the computation efficiency
 and accuracy.
 
@@ -99,7 +99,7 @@ When using the deprecated attributes, a message will indicate the new syntax.
 If you see the deprecation warning, please update the notebook
 to avoid future errors.
 
-Details of attributes changes
+Details of changed attributes
 """""""""""""""""""""""""""""
 
 Before version 0.6, `Data.bg` contained background rates
