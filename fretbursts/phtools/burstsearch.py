@@ -114,14 +114,14 @@ def bsearch_py(times, L, m, T, slice_=None,
             if not above_min_rate_:
                 break
         i_stop = i + m - 2  # index of last ph in burst
-
-        bursts.append((i_start, i_stop, times[i_start], times[i_stop]))
+        if i_stop - i_start + 1 >= L:
+            bursts.append((i_start, i_stop, times[i_start], times[i_stop]))
 
     if above_min_rate_:
         # Correct burst-stop off by 1 when last burst does not finish
         i_start, i_stop, start, stop = bursts.pop()
-        bursts.append((i_start, i_stop + 1,
-                       times[i_start], times[i_stop + 1]))
+        if i_stop - i_start + 1 >= L:
+            bursts.append((i_start, i_stop + 1,times[i_start], times[i_stop + 1]))
 
     bursts = np.array(bursts, dtype='int64')
     if bursts.size > 0:
