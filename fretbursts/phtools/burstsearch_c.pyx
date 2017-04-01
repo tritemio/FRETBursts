@@ -68,12 +68,14 @@ def bsearch_c(np.int64_t[:] times, np.int16_t L, np.int16_t m,
         elif in_burst:
             in_burst = 0
             i_stop = i + m - 2
-            bursts.append((i_start, i_stop,
-                           times[i_start], times[i_stop]))
+            if i_stop - i_start + 1 >= L:
+                bursts.append((i_start, i_stop,
+                               times[i_start], times[i_stop]))
 
     if in_burst:
         i_stop = i + m - 1
-        bursts.append((i_start, i_stop, times[i_start], times[i_stop]))
+        if i_stop - i_start + 1 >= L:
+            bursts.append((i_start, i_stop, times[i_start], times[i_stop]))
 
     return np.array(bursts, dtype='int64')
 
