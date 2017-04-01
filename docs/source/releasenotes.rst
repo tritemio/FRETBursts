@@ -12,6 +12,10 @@ in a future version.
 
 The current release includes the following changes:
 
+- SangYoon Chung (@chungjjang80) found that the `L` argument in
+  burst search was ignored and submitted a fix to the problem in
+  `PR #57 <https://github.com/tritemio/FRETBursts/pull/57>`__.
+  Tests were added to avoid future regressions.
 - Fix access to the deprecated background attributes (introduced in 0.6).
   See `b850a5 <https://github.com/tritemio/FRETBursts/commit/b850a595033c27cc66f8f4a748b1d0bf68366750>`__.
 - Add plot wrapper for 16-ch data.
