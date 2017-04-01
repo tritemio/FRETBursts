@@ -298,6 +298,12 @@ def test_burst_search_py_cy(data):
     data.burst_search(pure_python=False)
     assert np.all(num_bursts1 == data.num_bursts)
     assert mburst1 == data.mburst
+    data.burst_search(L=30, pure_python=True)
+    mburst1 = [b.copy() for b in data.mburst]
+    num_bursts1 = data.num_bursts
+    data.burst_search(L=30, pure_python=False)
+    assert np.all(num_bursts1 == data.num_bursts)
+    assert mburst1 == data.mburst
 
 def test_burst_search_constant_rates(data):
     """Test python and cython burst search with constant threshold."""
@@ -309,6 +315,17 @@ def test_burst_search_constant_rates(data):
     assert (data.num_bursts > 0).all()
     assert np.all(num_bursts1 == data.num_bursts)
     assert mburst1 == data.mburst
+
+def test_burst_search_L(data):
+    """Test burst search with different L arguments."""
+    data.burst_search(L=10)
+    for bursts in data.mburst:
+        assert (bursts.counts >= 10).all()
+    num_bursts1 = data.num_bursts
+    data.burst_search(L=30)
+    for bursts in data.mburst:
+        assert (bursts.counts >= 30).all()
+    assert np.all(num_bursts1 > data.num_bursts)
 
 def test_burst_search_with_no_bursts(data):
     """Smoke test burst search when some periods have no bursts."""
