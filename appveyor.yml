@@ -7,12 +7,6 @@ environment:
       PYTHON_ARCH: "64"
       MINICONDA: C:\Miniconda-x64
 
-    - PYTHON: "C:\\Python34-x64"
-      PYTHON_VERSION: "3.4"
-      PYTHON_ARCH: "64"
-      MINICONDA: C:\Miniconda3-x64
-      DISTUTILS_USE_SDK: "1"
-
     - PYTHON: "C:\\Python35-x64"
       PYTHON_VERSION: "3.5"
       PYTHON_ARCH: "64"
