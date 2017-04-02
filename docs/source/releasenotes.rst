@@ -1,7 +1,7 @@
 FRETBursts Release Notes
 ========================
 
-Version 0.6.1 (unreleased)
+Version 0.6.1 (Apr. 2017)
 --------------------------
 
 For this version of FRETBursts, conda packages are distributed for
