@@ -1834,94 +1834,13 @@ def scatter_alex(d, i=0, **kwargs):
     plt.xlim(-0.2, 1.2); plt.ylim(-0.2, 1.2)
 
 
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  High-level plot wrappers
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def dplot_48ch(d, func, sharex=True, sharey=True, layout='horiz',
-               pgrid=True, figsize=None, AX=None, nosuptitle=False,
-               scale=True, **kwargs):
-    """Plot wrapper for 48-spot measurements. Use `dplot` instead."""
-    msg = "Wrong layout '%s'. Valid values: 'horiz', 'vert', '8x6'."
-    assert (layout.startswith('vert') or layout.startswith('horiz') or
-            layout == '8x6'), (msg % layout)
-    global gui_status
-    iter_ch = range(48)
-    top_adjust = 0.95
-    if layout == '8x6':
-        nrows, ncols = 6, 8
-        if figsize is None:
-            figsize = (20, 16)
-    else:
-        nrows, ncols = 4, 12
-        if layout.startswith('vert'):
-            nrows, ncols = ncols, nrows
-            iter_ch = np.arange(48).reshape(4, 12).T.ravel()
-        if figsize is None:
-            figsize = (20, 7)
-            if layout.startswith('vert'):
-                figsize = figsize[1], figsize[0]
-
-    if AX is None:
-        fig, AX = plt.subplots(nrows, ncols, figsize=figsize, sharex=sharex,
-                               sharey=sharey, squeeze=False)
-        fig.subplots_adjust(left=0.08, right=0.96, top=top_adjust,
-                            bottom=0.07, wspace=0.05)
-        old_ax = False
-    else:
-        fig = AX[0, 0].figure
-        old_ax = True
-
-    for i, ich in enumerate(iter_ch):
-        b = d.mburst[ich] if 'mburst' in d else None
-        ax = AX.ravel()[i]
-        if i == 0 and not nosuptitle:
-            fig.suptitle(d.status())
-        s = '[%d]' % ich
-        if 'bg_mean' in d:
-            s += (' BG=%.1fk' % (d.bg_mean[Ph_sel('all')][ich] * 1e-3))
-        if b is not None:
-            s += (', #bu=%d' % b.num_bursts)
-        ax.set_title(s)
-        ax.grid(pgrid)
-        plt.sca(ax)
-        gui_status['first_plot_in_figure'] = (i == 0)
-        func(d, ich, **kwargs)
-        if ax.legend_ is not None:
-            ax.legend_.remove()
-    [a.set_xlabel('') for a in AX[:-1, :].ravel()]
-    [a.set_ylabel('') for a in AX[:, 1:].ravel()]
-    if sharex:
-        plt.setp([a.get_xticklabels() for a in AX[:-1, :].ravel()],
-                 visible=False)
-        [a.set_xlabel('') for a in AX[:-1, :].ravel()]
-        if not old_ax:
-            fig.subplots_adjust(hspace=0.15)
-    if sharey:
-        if AX.shape[1] > 1:
-            plt.setp([a.get_yticklabels() for a in AX[:, 1]], visible=False)
-        fig.subplots_adjust(wspace=0.08)
-
-        func_allows_autoscale = True
-        if func.__name__ in _plot_status:
-            func_allows_autoscale = _plot_status[func.__name__]['autoscale']
-        if scale and func_allows_autoscale:
-            ax.autoscale(enable=True, axis='y')
-    return AX
-
-
-def dplot_16ch(d, func, sharex=True, sharey=True, ncols=8,
-               pgrid=True, figsize=None, AX=None, suptitle=True,
-               scale=True, top_adjust=0.93, **kwargs):
-    """Plot wrapper for 16-spot measurements. Use `dplot` instead."""
-    assert (ncols <= 16), '`ncols` needs to be <= 16.'
-    global gui_status
-    iter_ch = range(16)
-    nrows = int(np.ceil(d.nch / ncols))
-    if figsize is None:
-        subplotsize = (3, 3)
-        figsize = (subplotsize[0] * ncols, subplotsize[1] * nrows)
-
+def _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
+               sharex, sharey, suptitle, grid, scale,
+               top_adjust=0.95, hspace=0.15, left=0.08, right=0.96):
     if AX is None:
         fig, AX = plt.subplots(nrows, ncols, figsize=figsize, sharex=sharex,
                                sharey=sharey, squeeze=False)
@@ -1943,7 +1862,7 @@ def dplot_16ch(d, func, sharex=True, sharey=True, ncols=8,
         if b is not None:
             s += (', #bu=%d' % b.num_bursts)
         ax.set_title(s)
-        ax.grid(pgrid)
+        ax.grid(grid)
         plt.sca(ax)
         gui_status['first_plot_in_figure'] = (i == 0)
         func(d, ich, **kwargs)
@@ -1968,6 +1887,49 @@ def dplot_16ch(d, func, sharex=True, sharey=True, ncols=8,
         if scale and func_allows_autoscale:
             ax.autoscale(enable=True, axis='y')
     return AX
+
+
+def dplot_48ch(d, func, sharex=True, sharey=True, layout='horiz',
+               grid=True, figsize=None, AX=None, suptitle=True,
+               scale=True, top_adjust=0.95, **kwargs):
+    """Plot wrapper for 48-spot measurements. Use `dplot` instead."""
+    msg = "Wrong layout '%s'. Valid values: 'horiz', 'vert', '8x6'."
+    assert (layout.startswith('vert') or layout.startswith('horiz') or
+            layout == '8x6'), (msg % layout)
+    global gui_status
+    iter_ch = range(48)
+    if layout == '8x6':
+        nrows, ncols = 6, 8
+        if figsize is None:
+            figsize = (20, 16)
+    else:
+        nrows, ncols = 4, 12
+        if layout.startswith('vert'):
+            nrows, ncols = ncols, nrows
+            iter_ch = np.arange(48).reshape(4, 12).T.ravel()
+        if figsize is None:
+            figsize = (20, 7)
+            if layout.startswith('vert'):
+                figsize = figsize[1], figsize[0]
+    return _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
+                      sharex, sharey, suptitle, grid, scale,
+                      top_adjust=top_adjust, hspace=0.15, left=0.08, right=0.96)
+
+
+def dplot_16ch(d, func, sharex=True, sharey=True, ncols=8,
+               pgrid=True, figsize=None, AX=None, suptitle=True,
+               scale=True, top_adjust=0.93, **kwargs):
+    """Plot wrapper for 16-spot measurements. Use `dplot` instead."""
+    assert (ncols <= 16), '`ncols` needs to be <= 16.'
+    global gui_status
+    iter_ch = range(16)
+    nrows = int(np.ceil(d.nch / ncols))
+    if figsize is None:
+        subplotsize = (3, 3)
+        figsize = (subplotsize[0] * ncols, subplotsize[1] * nrows)
+    return _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
+                      sharex, sharey, suptitle, grid, scale,
+                      top_adjust=top_adjust, hspace=0.15, left=0.08, right=0.96)
 
 
 def dplot_8ch(d, func, sharex=True, sharey=True,
