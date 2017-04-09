@@ -66,6 +66,7 @@ def run_notebook(notebook_name, nb_suffix='-out', out_path='.', timeout=3600,
         nbformat.write(nb, nb_name_output)
         print('* Output: ', nb_name_output)
 
+
 if __name__ == '__main__':
     from pathlib import Path
     import sys
@@ -73,11 +74,13 @@ if __name__ == '__main__':
     path = '.'
     if len(sys.argv) > 1:
         path = sys.argv[1]
-        assert os.path.isdir(path), 'Folder "%s" not found.' % path
+        assert Path(path).isdir(), 'Folder "%s" not found.' % path
     out_path = 'out/'
+    if not Path(out_path).exists():
+        os.makedirs(out_path)
     if len(sys.argv) > 2:
         out_path = sys.argv[2]
-        assert os.path.isdir(out_path), 'Folder "%s" not found.' % out_path
+        assert Path(out_path).isdir(), 'Folder "%s" not found.' % out_path
     print('Executing notebooks in "%s"... ' % os.path.abspath(path))
     pathlist = list(Path(path).glob('*.ipynb'))
     for nbpath in pathlist:
