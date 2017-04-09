@@ -48,6 +48,23 @@ except ImportError:
 else:
     has_matplotlib = True
 
+has_qt = True
+try:
+    try:
+        from PyQt5 import QtWidgets, QtCore
+        QtGui = QtWidgets
+    except ImportError:
+        try:
+            from PyQt4 import QtGui, QtCore
+        except ImportError:
+            from PySide import QtGui, QtCore
+except ImportError:
+    # This catches ImportError or other errors due to broken QT installation
+    warnings.warn((' - Cannot import QT, custom GUI widgets disabled.'))
+else:
+    hasqt = False
+
+
 try:
     import lmfit
 except ImportError:
@@ -141,7 +158,8 @@ if has_matplotlib and has_pandas and has_lmfit:
             dplot, dplot_48ch, dplot_8ch, dplot_1ch,
             )
 
-from .utils.gui import OpenFileDialog
+if has_qt:
+    from .utils.gui import OpenFileDialog
 from .utils.misc import download_file
 from .utils import git
 

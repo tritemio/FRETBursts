@@ -30,6 +30,7 @@ before_script:
     - sleep 3
 
 script:
+    - python fretbursts/tests/importtest
     - py.test -v
     - cd notebooks
     - python ../fretbursts/tests/nbrun.py

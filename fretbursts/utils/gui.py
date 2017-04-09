@@ -46,11 +46,7 @@ def gui_fname(dir=None):
         try:
             from PyQt4.QtGui import QApplication, QFileDialog
         except ImportError:
-            try:
-                from PySide.QtGui import QApplication, QFileDialog
-            except ImportError as e:
-                msg = 'You need to install pyqt or pyside to use this GUI.'
-                raise e(msg)
+            from PySide.QtGui import QApplication, QFileDialog
 
     if dir is None:
         dir = './'
