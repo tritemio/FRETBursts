@@ -17,16 +17,23 @@ from __future__ import print_function, absolute_import
 from builtins import range, zip
 
 import numpy as np
-try:
-    from PyQt5 import QtWidgets, QtCore
-    QtGui = QtWidgets
-except ImportError:
-    try:
-        from PyQt4 import QtGui, QtCore
-    except ImportError:
-        from PySide import QtGui, QtCore
-
 from .utils.misc import pprint
+
+hasqt = True
+try:
+    try:
+        from PyQt5 import QtWidgets, QtCore
+        QtGui = QtWidgets
+    except ImportError:
+        try:
+            from PyQt4 import QtGui, QtCore
+        except ImportError:
+            from PySide import QtGui, QtCore
+except ImportError:
+    # This catches ImportError or other errors due to broken QT installation
+    print('WARNING: cannot import QT, custom GUI widgets disabled.')
+    print('Reason QT import failed:', err.message)
+    hasqt = False
 
 
 class RangeToolQT(object):
