@@ -1,6 +1,6 @@
 FRETBursts
 ==========
- 
+
 [![DOI](https://zenodo.org/badge/5991/tritemio/FRETBursts.svg)](https://zenodo.org/badge/latestdoi/5991/tritemio/FRETBursts)
 [![TravisCI Build Status](https://travis-ci.org/tritemio/FRETBursts.svg?branch=master)](https://travis-ci.org/tritemio/FRETBursts)
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/tritemio/fretbursts?branch=master&svg=true)](https://ci.appveyor.com/project/tritemio/fretbursts)
@@ -9,17 +9,13 @@ FRETBursts
 Latest News
 -----------
 
-#### New releases
+#### Latest release 0.6.1 (2017-04-01)
 
 For updates on the latest FRETBursts release see
 [release notes](http://fretbursts.readthedocs.io/en/latest/releasenotes.html).
 
-#### 2017-01-11
-
-FRETBursts version 0.6 [released](http://fretbursts.readthedocs.io/en/latest/releasenotes.html#version-0-6-jan-2017)!
-
 #### 2016-08-17
-Our software paper describing FRETBursts is finally peer-reviewed and published by PLOS ONE:
+Our software paper describing FRETBursts has been peer-reviewed and published by PLOS ONE:
 
 - [FRETBursts: An Open Source Toolkit for Analysis of Freely-Diffusing Single-Molecule FRET](http://dx.doi.org/10.1371/journal.pone.0160716), DOI:10.1371/journal.pone.0160716
 
