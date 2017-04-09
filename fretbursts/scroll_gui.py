@@ -26,7 +26,10 @@ except ImportError:
     try:
         from PyQt4 import QtGui, QtCore
     except ImportError:
-        from PySide import QtGui, QtCore
+        try:
+            from PySide import QtGui, QtCore
+        except ImportError:
+            print('WARNING: QT not installed. No GUI scrolling available.')
 
 
 class RangeToolQT(object):

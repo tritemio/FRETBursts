@@ -48,7 +48,6 @@ except ImportError:
 else:
     has_matplotlib = True
 
-has_qt = True
 try:
     try:
         from PyQt5 import QtWidgets, QtCore
@@ -59,10 +58,11 @@ try:
         except ImportError:
             from PySide import QtGui, QtCore
 except ImportError:
+    has_qt = False
     # This catches ImportError or other errors due to broken QT installation
     warnings.warn((' - Cannot import QT, custom GUI widgets disabled.'))
 else:
-    hasqt = False
+    has_qt = False
 
 
 try:
