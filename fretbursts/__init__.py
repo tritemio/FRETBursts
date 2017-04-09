@@ -136,10 +136,11 @@ from . import burstlib as bl
 from .burstlib import Data, Sel
 from .ph_sel import Ph_sel
 
+if has_pandas and has_lmfit:
+    from . import burstlib_ext as bext
 
 if has_matplotlib and has_pandas and has_lmfit:
     from . import mfit
-    from . import burstlib_ext as bext
     from . import burst_plot as bpl
     from .burst_plot import (
             # Standalone plots as a function of ch
