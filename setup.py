@@ -48,6 +48,8 @@ else:
 cmdclass = versioneer.get_cmdclass()
 if has_cython:
     cmdclass.update(build_ext=build_ext)
+else:
+    print('WARNING: No cython found. Fast routines will not be installed.')
 
 
 setup(name = project_name,
