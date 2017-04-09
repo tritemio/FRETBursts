@@ -74,7 +74,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         path = sys.argv[1]
         assert os.path.isdir(path), 'Folder "%s" not found.' % path
-    out_path = path
+    out_path = 'out/'
     if len(sys.argv) > 2:
         out_path = sys.argv[2]
         assert os.path.isdir(out_path), 'Folder "%s" not found.' % out_path
@@ -83,4 +83,4 @@ if __name__ == '__main__':
     for nbpath in pathlist:
         if not (nbpath.stem.endswith('-out') or nbpath.stem.startswith('_')):
             print()
-            run_notebook(nbpath, out_path=out_path)
+            run_notebook(nbpath, nb_suffix='', out_path=out_path)
