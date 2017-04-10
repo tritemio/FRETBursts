@@ -9,7 +9,7 @@ FRETBursts
 Latest News
 -----------
 
-#### Latest release 0.6.1 (2017-04-01)
+#### Latest release 0.6.2 (2017-04-09)
 
 For updates on the latest FRETBursts release see
 [release notes](http://fretbursts.readthedocs.io/en/latest/releasenotes.html).

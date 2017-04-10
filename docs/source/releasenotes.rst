@@ -1,6 +1,13 @@
 FRETBursts Release Notes
 ========================
 
+Version 0.6.2 (Apr. 2017)
+--------------------------
+
+This is a technical release that removes the hard dependency on QT
+and solves some installation issues due to QT pinning on conda-forge.
+
+
 Version 0.6.1 (Apr. 2017)
 --------------------------
 
