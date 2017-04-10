@@ -24,6 +24,14 @@ else:
     has_matplotlib = True
     matplotlib.use('Agg')  # but if matplotlib is installed, use Agg
 
+try:
+    import numba
+except ImportError:
+    has_numba = False
+else:
+    has_numba = True
+
+
 import fretbursts.background as bg
 import fretbursts.burstlib as bl
 import fretbursts.burstlib_ext as bext
@@ -606,6 +614,7 @@ def test_phrates_mtuple(data):
         assert (rates == (m - 1 - phrates.default_c) / delays).all()
         assert (phrates.mtuple_rates_t(phc, m) == t_rates).all()
 
+if has_numba:
     def test_phrates_kde(data):
         d = data
         tau = 5000  # 5000 * 12.5ns = 6.25 us
@@ -630,20 +639,20 @@ def test_phrates_mtuple(data):
             ratesr = phrates.kde_rect(ph, tau, time_axis=ph+1)
             assert ((ratesr >= 0) * (ratesr < 5e6)).all()
 
-def test_phrates_kde_cy(data):
-    d = data
-    tau = 5000  # 5000 * 12.5ns = 6.25 us
-    for ph in d.iter_ph_times():
-        # Test consistency of kde_laplace_nph and (kde_laplace, kde_rect)
-        ratesg = phrates.nb.kde_gaussian_numba(ph, tau)
-        ratesl = phrates.nb.kde_laplace_numba(ph, tau)
-        ratesr = phrates.nb.kde_rect_numba(ph, tau)
-        ratesgc = phrates.cy.kde_gaussian_cy(ph, tau)
-        rateslc = phrates.cy.kde_laplace_cy(ph, tau)
-        ratesrc = phrates.cy.kde_rect_cy(ph, tau)
-        assert (ratesg == ratesgc).all()
-        assert (ratesl == rateslc).all()
-        assert (ratesr == ratesrc).all()
+    def test_phrates_kde_cy(data):
+        d = data
+        tau = 5000  # 5000 * 12.5ns = 6.25 us
+        for ph in d.iter_ph_times():
+            # Test consistency of kde_laplace_nph and (kde_laplace, kde_rect)
+            ratesg = phrates.nb.kde_gaussian_numba(ph, tau)
+            ratesl = phrates.nb.kde_laplace_numba(ph, tau)
+            ratesr = phrates.nb.kde_rect_numba(ph, tau)
+            ratesgc = phrates.cy.kde_gaussian_cy(ph, tau)
+            rateslc = phrates.cy.kde_laplace_cy(ph, tau)
+            ratesrc = phrates.cy.kde_rect_cy(ph, tau)
+            assert (ratesg == ratesgc).all()
+            assert (ratesl == rateslc).all()
+            assert (ratesr == ratesrc).all()
 
 def test_burst_ph_data_functions(data):
     """Tests the functions that iterate or operate on per-burst "ph-data".
