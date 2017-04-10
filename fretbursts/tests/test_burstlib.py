@@ -15,17 +15,24 @@ from builtins import range, zip
 from collections import namedtuple
 import pytest
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
+
+try:
+    import matplotlib
+except ImportError:
+    has_matplotlib = False  # OK to run tests without matplotlib
+else:
+    has_matplotlib = True
+    matplotlib.use('Agg')  # but if matplotlib is installed, use Agg
 
 import fretbursts.background as bg
 import fretbursts.burstlib as bl
 import fretbursts.burstlib_ext as bext
-import fretbursts.burst_plot as bplt
 from fretbursts import loader
 from fretbursts import select_bursts
 from fretbursts.ph_sel import Ph_sel
 from fretbursts.phtools import phrates
+if has_matplotlib:
+    import fretbursts.burst_plot as bplt
 
 
 # data subdir in the notebook folder
@@ -333,26 +340,27 @@ def test_burst_search_with_no_bursts(data):
     # and in no bursts at all for the multi-spot measurements
     data.burst_search(m=10, F=600)
 
-def test_stale_fitter_after_burst_search(data):
-    """Test that E/S_fitter attributes are deleted on burst search."""
-    data.burst_search(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Dem'))
-    bplt.dplot(data, bplt.hist_fret)  # create E_fitter attribute
-    if data.ALEX:
-        bplt.dplot(data, bplt.hist_S)  # create S_fitter attribute
+if has_matplotlib:
+    def test_stale_fitter_after_burst_search(data):
+        """Test that E/S_fitter attributes are deleted on burst search."""
+        data.burst_search(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Dem'))
+        bplt.dplot(data, bplt.hist_fret)  # create E_fitter attribute
+        if data.ALEX:
+            bplt.dplot(data, bplt.hist_S)  # create S_fitter attribute
 
-    data.burst_search(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Aem'))
-    assert not hasattr(data, 'E_fitter')
-    if data.ALEX:
-        assert not hasattr(data, 'S_fitter')
+        data.burst_search(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Aem'))
+        assert not hasattr(data, 'E_fitter')
+        if data.ALEX:
+            assert not hasattr(data, 'S_fitter')
 
-    bplt.dplot(data, bplt.hist_fret)  # create E_fitter attribute
-    if data.ALEX:
-        bplt.dplot(data, bplt.hist_S)  # create S_fitter attribute
+        bplt.dplot(data, bplt.hist_fret)  # create E_fitter attribute
+        if data.ALEX:
+            bplt.dplot(data, bplt.hist_S)  # create S_fitter attribute
 
-    data.calc_fret()
-    assert not hasattr(data, 'E_fitter')
-    if data.ALEX:
-        assert not hasattr(data, 'S_fitter')
+        data.calc_fret()
+        assert not hasattr(data, 'E_fitter')
+        if data.ALEX:
+            assert not hasattr(data, 'S_fitter')
 
 def test_burst_search(data):
     """Smoke test and bg_bs check."""
@@ -598,29 +606,29 @@ def test_phrates_mtuple(data):
         assert (rates == (m - 1 - phrates.default_c) / delays).all()
         assert (phrates.mtuple_rates_t(phc, m) == t_rates).all()
 
-def test_phrates_kde(data):
-    d = data
-    tau = 5000  # 5000 * 12.5ns = 6.25 us
-    for ph in d.iter_ph_times():
-        # Test consistency of kde_laplace_nph and (kde_laplace, kde_rect)
-        rates = phrates.kde_laplace(ph, tau)
-        nrect = phrates.kde_rect(ph, tau*10)
-        ratesl, nph = phrates.nb.kde_laplace_nph(ph, tau)
-        assert (rates == ratesl).all()
-        assert (nph == nrect).all()
+    def test_phrates_kde(data):
+        d = data
+        tau = 5000  # 5000 * 12.5ns = 6.25 us
+        for ph in d.iter_ph_times():
+            # Test consistency of kde_laplace_nph and (kde_laplace, kde_rect)
+            rates = phrates.kde_laplace(ph, tau)
+            nrect = phrates.kde_rect(ph, tau*10)
+            ratesl, nph = phrates.nb.kde_laplace_nph(ph, tau)
+            assert (rates == ratesl).all()
+            assert (nph == nrect).all()
 
-        # Test consistency of kde_laplace and _kde_laplace_self_numba
-        ratesl2, nph2 = phrates.nb.kde_laplace_self_numba(ph, tau)
-        assert (nph2 == nrect).all()
-        assert (ratesl2 == rates).all()
+            # Test consistency of kde_laplace and _kde_laplace_self_numba
+            ratesl2, nph2 = phrates.nb.kde_laplace_self_numba(ph, tau)
+            assert (nph2 == nrect).all()
+            assert (ratesl2 == rates).all()
 
-        # Smoke test laplace, gaussian, rect with time_axis
-        ratesl = phrates.kde_laplace(ph, tau, time_axis=ph+1)
-        assert ((ratesl >= 0) * (ratesl < 5e6)).all()
-        ratesg = phrates.kde_gaussian(ph, tau, time_axis=ph+1)
-        assert ((ratesg >= 0) * (ratesg < 5e6)).all()
-        ratesr = phrates.kde_rect(ph, tau, time_axis=ph+1)
-        assert ((ratesr >= 0) * (ratesr < 5e6)).all()
+            # Smoke test laplace, gaussian, rect with time_axis
+            ratesl = phrates.kde_laplace(ph, tau, time_axis=ph+1)
+            assert ((ratesl >= 0) * (ratesl < 5e6)).all()
+            ratesg = phrates.kde_gaussian(ph, tau, time_axis=ph+1)
+            assert ((ratesg >= 0) * (ratesg < 5e6)).all()
+            ratesr = phrates.kde_rect(ph, tau, time_axis=ph+1)
+            assert ((ratesr >= 0) * (ratesr < 5e6)).all()
 
 def test_phrates_kde_cy(data):
     d = data

@@ -16,8 +16,13 @@ from builtins import range, zip
 import numpy as np
 import pandas as pd
 import lmfit
-import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
+try:
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+except ImportError:
+    has_matplotlib = False
+else:
+    has_matplotlib = True
 
 from .fit import gaussian_fitting as gf
 
@@ -490,6 +495,8 @@ def plot_mfit(fitter, ich=0, residuals=False, ax=None, plot_kde=False,
     Return
         A matplotlib figure object.
     """
+    if not has_matplotlib:
+        raise RuntimeError('Matplotlib not installed.')
     if ax is None:
         fig, ax = plt.subplots(figsize=(7, 4.5))
     else:
