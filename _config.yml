@@ -1,0 +1,8 @@
+title: FRETBursts
+description: Burst analysis for single and multi-spot smFRET experiments.
+google_analytics: UA-44142116-2
+show_downloads: true
+theme: jekyll-theme-architect
+
+gems:
+  - jekyll-mentions
