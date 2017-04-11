@@ -1,6 +1,17 @@
 FRETBursts Release Notes
 ========================
 
+Version 0.6.3 (Apr. 2017)
+--------------------------
+
+A few more small fixes in this release. If you have any installation
+issue please report it on github.
+
+- Import `OpenFileDialog` when FRETBursts is imported (as in versions < 0.6.2)
+- Fix loading SM files with numpy 1.12
+- Use `phconvert` to decode SM files
+
+
 Version 0.6.2 (Apr. 2017)
 --------------------------
 
