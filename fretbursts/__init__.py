@@ -62,7 +62,7 @@ except ImportError:
     # This catches ImportError or other errors due to broken QT installation
     warnings.warn((' - Cannot import QT, custom GUI widgets disabled.'))
 else:
-    has_qt = False
+    has_qt = True
 
 
 try:
