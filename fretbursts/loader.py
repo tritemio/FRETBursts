@@ -49,11 +49,13 @@ def _is_multich(h5data):
         msg = 'Cannot find a photon_data group.'
         raise phc.hdf5.Invalid_PhotonHDF5(msg)
 
+
 def _append_data_ch(d, name, value):
     if name not in d:
         d.add(**{name: [value]})
     else:
         d[name].append(value)
+
 
 def _load_from_group(d, group, name, dest_name, multich_field=False,
                      ondisk=False, allow_missing=True):
@@ -68,6 +70,7 @@ def _load_from_group(d, group, name, dest_name, multich_field=False,
     else:
         d.add(**{dest_name: node_value})
 
+
 def _append_empy_ch(data):
     # Empty channel, fill it with empty arrays
     ph_times = np.array([], dtype='int64')
@@ -76,7 +79,8 @@ def _append_empy_ch(data):
     a_em = np.array([], dtype=bool)
     _append_data_ch(data, 'A_em', a_em)
 
-def _get_measurement_specs(ph_data):
+
+def _get_measurement_specs(ph_data, setup):
     if 'measurement_specs' not in ph_data:
         # No measurement specs, we will load timestamps and set them all in a
         # conventional photon stream (acceptor emission)
@@ -88,10 +92,33 @@ def _get_measurement_specs(ph_data):
         meas_type = meas_specs.measurement_type.read().decode()
 
     if meas_type not in ['smFRET-1color', 'smFRET',
-                         'smFRET-usALEX', 'smFRET-nsALEX']:
+                         'smFRET-usALEX', 'smFRET-nsALEX', 'generic']:
         raise NotImplementedError('Measurement type "%s" not supported'
                                   ' by FRETBursts.' % meas_type)
+    if meas_type == 'generic':
+        msg = ('This file contains {n} {type} channels.\n'
+               'Unfortunately, the current FRETBursts version only supports\n'
+               '{nvalid} {type} channel.')
+        if setup.num_polarization_ch != 1:
+            raise ValueError(msg.format(n=setup.num_polarization_ch,
+                                        type='polarization', nvalid=1))
+        if setup.num_split_ch != 1:
+            raise ValueError(msg.format(n=setup.num_split_ch,
+                                        type='split', nvalid=1))
+        if setup.num_spectral_ch != 2:
+            raise ValueError(msg.format(n=setup.num_spectral_ch,
+                                        type='spectral', nvalid=2))
+        if not setup.modulated_excitation:
+            meas_type = 'smFRET'
+        elif tuple(setup.excitation_alternated) == (False, True):
+            meas_type = 'usPAX'
+        elif tuple(setup.excitation_alternated) == (True, True):
+            if setup.lifetime:
+                meas_type = 'smFRET-nsALEX'
+            else:
+                meas_type = 'smFRET-usALEX'
     return meas_type, meas_specs
+
 
 def _load_photon_data_arrays(data, ph_data, meas_type, ondisk=False):
     assert 'timestamps' in ph_data
@@ -113,6 +140,7 @@ def _load_photon_data_arrays(data, ph_data, meas_type, ondisk=False):
     # Timestamps are always present, and their units are always present too
     data.add(clk_p=ph_data.timestamps_specs.timestamps_unit.read())
 
+
 def _load_nanotimes_specs(data, ph_data):
     nanot_specs = ph_data.nanotimes_specs
     nanotimes_params = {}
@@ -127,6 +155,7 @@ def _load_nanotimes_specs(data, ph_data):
                 nanotimes_params.update(**{name: value})
     _append_data_ch(data, 'nanotimes_params', nanotimes_params)
 
+
 def _load_alex_periods_donor_acceptor(data, meas_specs):
     # Both us- and ns-ALEX
     try:
@@ -139,6 +168,7 @@ def _load_alex_periods_donor_acceptor(data, meas_specs):
     else:
         _append_data_ch(data, 'D_ON', D_ON)
         _append_data_ch(data, 'A_ON', A_ON)
+
 
 def _compute_acceptor_emission_mask(data, ich, ondisk):
     """For non-ALEX measurements."""
@@ -165,6 +195,7 @@ def _compute_acceptor_emission_mask(data, ich, ondisk):
         # Create the boolean mask
         _append_data_ch(data, 'A_em', data.detectors[ich][:] == accept)
 
+
 def _add_usALEX_specs(data, meas_specs):
     try:
         offset = meas_specs.alex_offset.read()
@@ -173,6 +204,7 @@ def _add_usALEX_specs(data, meas_specs):
         offset = 0
     data.add(offset=offset)
     data.add(alex_period=meas_specs.alex_period.read())
+
 
 def _photon_hdf5_1ch(h5data, data, ondisk=False, nch=1, ich=0):
     data.add(nch=nch)
@@ -185,7 +217,7 @@ def _photon_hdf5_1ch(h5data, data, ondisk=False, nch=1, ich=0):
 
     # Load photon_data group and measurement_specs (if present)
     ph_data = h5data._f_get_child(ph_data_name)
-    meas_type, meas_specs = _get_measurement_specs(ph_data)
+    meas_type, meas_specs = _get_measurement_specs(ph_data, h5data.setup)
 
     # Load photon_data arrays
     _load_photon_data_arrays(data, ph_data, meas_type=meas_type, ondisk=ondisk)
@@ -201,7 +233,7 @@ def _photon_hdf5_1ch(h5data, data, ondisk=False, nch=1, ich=0):
         _append_data_ch(data, 'det_donor_accept', (donor, accept))
 
     # Load alternation definition both for ns-ALEX and us-ALEX
-    if 'ALEX' in meas_type:
+    if 'ALEX' in meas_type or meas_type == 'usPAX':
         _load_alex_periods_donor_acceptor(data, meas_specs)
 
     # Here there are all the special-case for each measurement type
@@ -212,22 +244,21 @@ def _photon_hdf5_1ch(h5data, data, ondisk=False, nch=1, ich=0):
     elif meas_type == 'smFRET':
         _compute_acceptor_emission_mask(data, ich, ondisk=ondisk)
 
-    elif meas_type == 'smFRET-usALEX':
+    elif meas_type == 'smFRET-usALEX' or meas_type == 'usPAX':
         _add_usALEX_specs(data, meas_specs)
 
     elif meas_type == 'smFRET-nsALEX':
         data.add(laser_repetition_rate=meas_specs.laser_repetition_rate.read())
 
     # Set some `data` flags
+    data.add(meas_type=meas_type)
     data.add(ALEX='ALEX' in meas_type)
     data.add(lifetime='nanotimes' in ph_data)
 
 
 def _photon_hdf5_multich(h5data, data, ondisk=True):
-
     ph_times_dict = phc.hdf5.photon_data_mapping(h5data._v_file)
     nch = np.max(list(ph_times_dict.keys())) + 1
-
     for ich in range(nch):
         _photon_hdf5_1ch(h5data, data, ondisk=ondisk, nch=nch, ich=ich)
 

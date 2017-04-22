@@ -22,6 +22,7 @@ from builtins import range, zip
 
 import os
 import hashlib
+from textwrap import dedent
 import numpy as np
 import copy
 from numpy import zeros, size, r_
@@ -1057,6 +1058,10 @@ class Data(DataContainer):
 
             (nd * gamma + na) + naa / beta
 
+        In PAX measurements, the measured AexAem signal is nat = na + naa.
+        So, it is not possible to apply beta correction, and the gamma
+        correction can be applied according to definition (1) only.
+
         Arguments:
             ich (int): the spot number, only relevant for multi-spot.
                 In single-spot data there is only one channel (`ich=0`)
@@ -1083,6 +1088,14 @@ class Data(DataContainer):
         if self.ALEX and add_naa:
             kws = dict(ich=ich, gamma=gamma, beta=beta, donor_ref=donor_ref)
             burst_size += self.get_naa_corrected(**kws)
+        elif self.meas_type == 'usPAX' and add_naa:
+            msg = """\
+            WARNING: Using add_naa is not accurate in usPAX measurements.
+            This is because the DexAem signal will be counted twice and
+            because is not possible to apply gamma and beta corrections."""
+            print(msg)
+            kws = dict(ich=ich, gamma=gamma, beta=beta, donor_ref=donor_ref)
+            burst_size += self.naa[ich]
         return burst_size
 
     def get_naa_corrected(self, ich=0, gamma=1., beta=1., donor_ref=True):
@@ -2003,7 +2016,7 @@ class Data(DataContainer):
                 na = mch_count_ph_in_bursts(self.mburst, A_em)
                 nd = [t - a for t, a in zip(nt, na)]
             assert (nt[0] == na[0] + nd[0]).all()
-        if self.ALEX:
+        if self.ALEX or self.meas_type == 'usPAX':
             # The "new style" would be:
             #Mask = [m for m in self.iter_ph_masks(Ph_sel(Dex='Dem'))]
             Mask = [d_em * d_ex for d_em, d_ex in zip(self.D_em, self.D_ex)]
@@ -2266,7 +2279,10 @@ class Data(DataContainer):
         for i, num_bursts in enumerate(self.num_bursts):
             if num_bursts == 0:
                 continue  # if no bursts skip this ch
-            self.na[i] -= self.naa[i] * self.dir_ex
+            naa = self.naa[i]
+            if self.meas_type == 'usPAX':
+                naa -= self.na[i]
+            self.na[i] -= naa * self.dir_ex
             self.nt[i] = self.nd[i] + self.na[i]
             if self.ALEX:
                 self.nt[i] += self.naa[i]
@@ -2590,7 +2606,7 @@ class Data(DataContainer):
         if corrections:
             self.corrections(mute=mute)
         self._calculate_fret_eff()
-        if self.ALEX:
+        if self.ALEX or self.meas_type == 'usPAX':
             self._calculate_stoich()
             #self._calc_alex_hist()
 
@@ -2603,14 +2619,26 @@ class Data(DataContainer):
     def _calculate_fret_eff(self):
         """Compute FRET efficiency (`E`) for each burst."""
         G = self.get_gamma_array()
-        E = [na / (g*nd + na) for nd, na, g in zip(self.nd, self.na, G)]
+        E = [na / (g * nd + na) for nd, na, g in zip(self.nd, self.na, G)]
         self.add(E=E)
 
     def _calculate_stoich(self):
         """Compute "stoichiometry" (the `S` parameter) for each burst."""
         G = self.get_gamma_array()
-        S = [(g*d + a) / (g*d + a + aa/self.beta) for d, a, aa, g in
-             zip(self.nd, self.na, self.naa, G)]
+        if self.meas_type == 'usPAX':
+            # in PAX self.naa has DAexAem signal, if we call it n_at, then:
+            # self.naa = nat = "naa" + na~
+            # were naa is what we get in ALEX and na~ is Aem signal due to FRET
+            # during DAex period.
+            S = [(g * d + a) / (g * d + aa) for d, a, aa, g in
+                 zip(self.nd, self.na, self.naa, G)]
+        else:
+            # normal ALEX
+            S = [(g * d + a) / (g * d + a + aa / self.beta) for d, a, aa, g in
+                 zip(self.nd, self.na, self.naa, G)]
+        self.add(S=S)
+
+        G = self.get_gamma_array()
         self.add(S=S)
 
     def _calc_alex_hist(self, binwidth=0.05):
