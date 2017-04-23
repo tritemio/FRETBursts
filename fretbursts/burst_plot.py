@@ -1840,7 +1840,7 @@ def scatter_alex(d, i=0, **kwargs):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
-               sharex, sharey, suptitle, grid, scale,
+               sharex, sharey, suptitle, grid, scale, skip_ch=None,
                top_adjust=0.95, hspace=0.15, left=0.08, right=0.96):
     if AX is None:
         fig, AX = plt.subplots(nrows, ncols, figsize=figsize, sharex=sharex,
@@ -1852,9 +1852,14 @@ def _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
         fig = AX[0, 0].figure
         old_ax = True
 
+    if skip_ch is None:
+        skip_ch = []
     for i, ich in enumerate(iter_ch):
-        b = d.mburst[ich] if 'mburst' in d else None
         ax = AX.ravel()[i]
+        if ich in skip_ch:
+            ax.axis('off')
+            continue
+        b = d.mburst[ich] if 'mburst' in d else None
         if i == 0 and suptitle:
             fig.suptitle(d.status())
         s = '[%d]' % ich
@@ -1892,7 +1897,7 @@ def _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
 
 def dplot_48ch(d, func, sharex=True, sharey=True, layout='horiz',
                grid=True, figsize=None, AX=None, suptitle=True,
-               scale=True, top_adjust=0.95, **kwargs):
+               scale=True, skip_ch=None, top_adjust=0.95, **kwargs):
     """Plot wrapper for 48-spot measurements. Use `dplot` instead."""
     msg = "Wrong layout '%s'. Valid values: 'horiz', 'vert', '8x6'."
     assert (layout.startswith('vert') or layout.startswith('horiz') or
@@ -1913,13 +1918,13 @@ def dplot_48ch(d, func, sharex=True, sharey=True, layout='horiz',
             if layout.startswith('vert'):
                 figsize = figsize[1], figsize[0]
     return _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
-                      sharex, sharey, suptitle, grid, scale,
+                      sharex, sharey, suptitle, grid, scale, skip_ch=skip_ch,
                       top_adjust=top_adjust, hspace=0.15, left=0.08, right=0.96)
 
 
 def dplot_16ch(d, func, sharex=True, sharey=True, ncols=8,
                pgrid=True, figsize=None, AX=None, suptitle=True,
-               scale=True, top_adjust=0.93, **kwargs):
+               scale=True, skip_ch=None, top_adjust=0.93, **kwargs):
     """Plot wrapper for 16-spot measurements. Use `dplot` instead."""
     assert (ncols <= 16), '`ncols` needs to be <= 16.'
     global gui_status
@@ -1929,7 +1934,7 @@ def dplot_16ch(d, func, sharex=True, sharey=True, ncols=8,
         subplotsize = (3, 3)
         figsize = (subplotsize[0] * ncols, subplotsize[1] * nrows)
     return _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
-                      sharex, sharey, suptitle, grid, scale,
+                      sharex, sharey, suptitle, grid, scale, skip_ch=skip_ch,
                       top_adjust=top_adjust, hspace=0.15, left=0.08, right=0.96)
 
 
