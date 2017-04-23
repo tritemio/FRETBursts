@@ -687,28 +687,28 @@ class Data(DataContainer):
         init_kw.update(**kwargs)
         DataContainer.__init__(self, **init_kw)
 
-    def __getattr__(self, name):
-        """Single-channel shortcuts for per-channel fields.
-
-        Appending a '_' to a per-channel field avoids specifying the channel.
-        For example use d.nd_ instead if d.nd[0].
-        """
-        msg_missing_attr = "'%s' object has no attribute '%s'" %\
-                           (self.__class__.__name__, name)
-        if name.startswith('_') or not name.endswith('_'):
-            raise AttributeError(msg_missing_attr)
-
-        field = name[:-1]
-        try:
-            value = self.__getitem__(field)
-        except KeyError:
-            raise AttributeError(msg_missing_attr)
-        else:
-            # Support lists, tuples and object with array interface
-            if isinstance(value, (list, tuple)) or isarray(value):
-                if len(value) == self.nch:
-                    return value[0]
-            raise ValueError('Name "%s" is not a per-channel field.' % field)
+    # def __getattr__(self, name):
+    #     """Single-channel shortcuts for per-channel fields.
+    #
+    #     Appending a '_' to a per-channel field avoids specifying the channel.
+    #     For example use d.nd_ instead if d.nd[0].
+    #     """
+    #     msg_missing_attr = "'%s' object has no attribute '%s'" %\
+    #                        (self.__class__.__name__, name)
+    #     if name.startswith('_') or not name.endswith('_'):
+    #         raise AttributeError(msg_missing_attr)
+    #
+    #     field = name[:-1]
+    #     try:
+    #         value = self.__getitem__(field)
+    #     except KeyError:
+    #         raise AttributeError(msg_missing_attr)
+    #     else:
+    #         # Support lists, tuples and object with array interface
+    #         if isinstance(value, (list, tuple)) or isarray(value):
+    #             if len(value) == self.nch:
+    #                 return value[0]
+    #         raise ValueError('Name "%s" is not a per-channel field.' % field)
 
     def copy(self, mute=False):
         """Copy data in a new object. All arrays copied except for ph_times_m
