@@ -2048,12 +2048,14 @@ def _alex_plot_style(g, colorbar=True):
         cax = plt.axes([1., Y[0], (X[1] - X[0]) * 0.045, Y[1] - Y[0]])
         plt.colorbar(cax=cax)
 
-def _hist_bursts_marg(arr, dx, **kwargs):
+
+def _hist_bursts_marg(arr, dx, i, **kwargs):
     """Wrapper to call hist_burst_data() from seaborn plot_marginals().
     """
     vertical = kwargs.get('vertical', False)
     data_name = 'S' if vertical else 'E'
-    hist_burst_data(dx, data_name=data_name, **kwargs)
+    hist_burst_data(dx, i=i, data_name=data_name, **kwargs)
+
 
 def _alex_hexbin_vmax(patches, vmax_fret=True, Smax=0.8):
     """Return max the counts in the E-S hexbin histogram in `patches`.
@@ -2071,6 +2073,7 @@ def _alex_hexbin_vmax(patches, vmax_fret=True, Smax=0.8):
         vmax = counts.max()
     return vmax
 
+
 def _calc_vmin(vmax, vmax_threshold, vmin_default):
     if vmax <= vmax_threshold:
         vmin = vmin_default - 0.5 * vmax
@@ -2080,6 +2083,7 @@ def _calc_vmin(vmax, vmax_threshold, vmin_default):
     else:
         vmin = vmin_default
     return vmin
+
 
 def alex_jointplot(d, i=0, gridsize=50, cmap='Spectral_r', kind='hex',
                    vmax_fret=True, vmax_threshold=10,
@@ -2172,7 +2176,7 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='Spectral_r', kind='hex',
             joint_kws_.update(_normalize_kwargs(joint_kws))
         jplot = g.plot_joint(sns.kdeplot, **joint_kws_)
 
-    g.plot_marginals(_hist_bursts_marg, dx=d, **marginal_kws_)
+    g.plot_marginals(_hist_bursts_marg, dx=d, i=i, **marginal_kws_)
     g.annotate(lambda x, y: x.size, stat='# Bursts',
                template='{stat}: {val}')
     colorbar = kind.startswith('hex')
