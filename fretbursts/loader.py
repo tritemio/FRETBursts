@@ -367,26 +367,12 @@ def usalex(fname, leakage=0, gamma=1., header=None, BT=None):
     return dx
 
 
-def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False, ich=0):
+def _usalex_apply_period_1ch(d, delete_ph_t=True, remove_d_em_a_ex=False,
+                            ich=0):
     """Applies to the Data object `d` the alternation period previously set.
 
-    Note that you first need to load the data in a variable `d` and then
-    set the alternation parameters using `d.add(D_ON=..., A_ON=...)`.
-
-    The typical pattern for loading ALEX data is the following::
-
-        d = loader.photon_hdf5(fname=fname)
-        d.add(D_ON=(2850, 580), A_ON=(900, 2580))
-        alex_plot_alternation(d)
-
-    If the plot looks good, apply the alternation with::
-
-        loader.alex_apply_period(d)
-
-    Now `d` is ready for futher processing such as background estimation,
-    burst search, etc...
-
-    *See also:* :func:`alex_apply_period`.
+    This function operates on a single-channel.
+    See :func:`usalex_apply_period` for details.
     """
     donor_ch, accept_ch = d._det_donor_accept_multich[ich]
     D_ON, A_ON = d._D_ON_multich[ich], d._A_ON_multich[ich]
@@ -458,6 +444,35 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False, ich=0):
         d.delete('det_t')
     return d
 
+
+def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
+    """Applies to the Data object `d` the alternation period previously set.
+
+    Note that you first need to load the data in a variable `d` and then
+    set the alternation parameters using `d.add(D_ON=..., A_ON=...)`.
+
+    The typical pattern for loading ALEX data is the following::
+
+        d = loader.photon_hdf5(fname=fname)
+        d.add(D_ON=(2850, 580), A_ON=(900, 2580))
+        alex_plot_alternation(d)
+
+    If the plot looks good, apply the alternation with::
+
+        loader.alex_apply_period(d)
+
+    Now `d` is ready for futher processing such as background estimation,
+    burst search, etc...
+
+    *See also:* :func:`alex_apply_period`.
+    """
+    for ich in range(d.nch):
+        _usalex_apply_period_1ch(d, remove_d_em_a_ex=remove_d_em_a_ex, ich=ich,
+                                 delete_ph_t=False)
+    if delete_ph_t:
+        d.delete('ph_times_t')
+        d.delete('det_t')
+    return d
 
 ##
 # nsALEX loader functions
