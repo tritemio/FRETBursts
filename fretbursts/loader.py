@@ -19,22 +19,10 @@ from builtins import range, zip
 
 import os
 import numpy as np
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
 import tables
 
 from phconvert.smreader import load_sm
-from .dataload.multi_ch_reader import load_data_ordered16
 from .dataload.spcreader import load_spc
-from .dataload.manta_reader import (load_manta_timestamps,
-                                    load_xavier_manta_data,
-                                    get_timestamps_detectors,
-                                    # process_timestamps,
-                                    process_store,
-                                    load_manta_timestamps_pytables)
-from .utils.misc import pprint, deprecate
 from .burstlib import Data
 from . import loader_legacy
 import phconvert as phc
@@ -309,110 +297,6 @@ def photon_hdf5(filename, ondisk=False, strict=False):
 ##
 # Multi-spot loader functions
 #
-def multispot8(fname, bytes_to_read=-1, swap_D_A=True, leakage=0, gamma=1.):
-    """Load a 8-ch multispot file and return a Data() object. Cached version.
-    """
-    fname_c = fname + '_cache.pickle'
-    try:
-        var = pickle.load(open(fname_c, 'rb'))
-        dx = Data(fname=fname, clk_p=12.5e-9, nch=8, leakage=leakage,
-                  gamma=gamma)
-        dx.add(ph_times_m=var['ph_times_m'], A_em=var['A_em'], ALEX=False)
-        pprint(" - File loaded from cache: %s\n" % fname)
-    except IOError:
-        dx = multispot8_core(fname, bytes_to_read=bytes_to_read,
-                             swap_D_A=swap_D_A, leakage=leakage, gamma=gamma)
-        D = {'ph_times_m': dx.ph_times_m, 'A_em': dx.A_em}
-        pprint(" - Pickling data ... ")
-        pickle.dump(D, open(fname_c, 'wb'), -1)
-        pprint("DONE\n")
-    return dx
-
-load_multispot8 = deprecate(multispot8, "load_multispot8", "loader.multispot8")
-
-def multispot8_core(fname, bytes_to_read=-1, swap_D_A=True, leakage=0,
-                    gamma=1.):
-    """Load a 8-ch multispot file and return a Data() object.
-    """
-    dx = Data(fname=fname, clk_p=12.5e-9, nch=8, leakage=leakage,
-              gamma=gamma)
-    ph_times_m, A_em, ph_times_det = load_data_ordered16(
-        fname=fname, n_bytes_to_read=bytes_to_read, swap_D_A=swap_D_A)
-    dx.add(ph_times_m=ph_times_m, A_em=A_em, ALEX=False)
-    return dx
-
-def multispot48_simple(fname, leakage=0, gamma=1.,
-                       i_start=0, i_stop=None, debug=False):
-    """Load a 48-ch multispot file and return a Data() object.
-    """
-    dx = Data(fname=fname, clk_p=10e-9, nch=48, leakage=leakage, gamma=gamma)
-    ph_times_m, big_fifo, ch_fifo = load_manta_timestamps(
-        fname, i_start=i_start, i_stop=i_stop, debug=debug)
-    A_em = [True] * len(ph_times_m)
-    dx.add(ph_times_m=ph_times_m, A_em=A_em, ALEX=False)
-    big_fifo_full = np.array([b.any() for b in big_fifo]).any()
-    ch_fifo_full = np.array([b.any() for b in ch_fifo]).any()
-    if big_fifo_full:
-        print('WARNING: Big-FIFO full, flags saved in Data()')
-        dx.add(big_fifo=big_fifo)
-    if ch_fifo_full:
-        print('WARNING: CH-FIFO full, flags saved in Data()')
-        dx.add(ch_fifo=ch_fifo)
-    return dx
-
-def multispot48(fname, leakage=0, gamma=1., reprocess=False,
-                i_start=0, i_stop=None, debug=False):
-    """Load a 48-ch multispot file and return a Data() object.
-    """
-    basename, ext = os.path.splitext(fname)
-    fname_h5 = basename + '.hdf5'
-    fname_dat = basename + '.dat'
-
-    def load_dat_file():
-        pprint(' - Loading DAT file: %s ... ' % fname_dat)
-        # Load data from raw file and store it in a HDF5 file
-        data = load_xavier_manta_data(fname_dat, i_start=i_start,
-                                      i_stop=i_stop, debug=debug)
-        pprint('DONE.\n - Extracting timestamps and detectors ... ')
-        timestamps, det = get_timestamps_detectors(data, nbits=24)
-        pprint('DONE.\n - Processing and storing ... ')
-        ph_times_m, big_fifo, ch_fifo = process_store(
-            timestamps, det, out_fname=fname_h5, fifo_flag=True, debug=False)
-        pprint('DONE.\n')
-        return ph_times_m, big_fifo, ch_fifo
-
-    if not (os.path.isfile(fname_dat) or os.path.isfile(fname_h5)):
-        raise IOError('Data file "%s" not found' % basename)
-
-    if os.path.exists(fname_h5) and not reprocess:
-        # There is a HDF5 file
-        try:
-            pprint(' - Loading HDF5 file: %s ... ' % fname_h5)
-            ph_times_m, big_fifo, ch_fifo = \
-                load_manta_timestamps_pytables(fname_h5)
-            pprint('DONE.\n')
-        except tables.HDF5ExtError:
-            pprint('\n  Ops! File may be truncated.\n')
-            ph_times_m, big_fifo, ch_fifo = load_dat_file()
-    else:
-        ph_times_m, big_fifo, ch_fifo = load_dat_file()
-
-    # Current data has only acceptor ch
-    A_em = [True] * len(ph_times_m)
-
-    dx = Data(fname=fname, clk_p=10e-9, nch=48, leakage=leakage, gamma=gamma)
-    dx.add(ph_times_m=ph_times_m, A_em=A_em, ALEX=False,
-           data_file=ph_times_m.data_file, bg_data_file=ph_times_m.data_file)
-    big_fifo_full = np.array([b[:].any() for b in big_fifo]).any()
-    ch_fifo_full = np.array([b[:].any() for b in ch_fifo]).any()
-    if big_fifo_full:
-        print('WARNING: Big-FIFO full, flags saved in Data()')
-        dx.add(big_fifo=big_fifo)
-    if ch_fifo_full:
-        print('WARNING: CH-FIFO full, flags saved in Data()')
-        dx.add(ch_fifo=ch_fifo)
-    return dx
-
 
 ##
 # usALEX loader functions
