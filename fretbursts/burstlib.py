@@ -1316,6 +1316,8 @@ class Data(DataContainer):
                 ph_times = self[ph_times_name]
             except KeyError:
                 pass
+            else:
+                break
 
         if ph_times is not None:
             # This works with both numpy arrays and pytables arrays

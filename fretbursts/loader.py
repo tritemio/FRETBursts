@@ -366,7 +366,8 @@ def usalex(fname, leakage=0, gamma=1., header=None, BT=None):
               ch_labels=labels)
     return dx
 
-def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
+
+def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False, ich=0):
     """Applies to the Data object `d` the alternation period previously set.
 
     Note that you first need to load the data in a variable `d` and then
@@ -387,14 +388,15 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
 
     *See also:* :func:`alex_apply_period`.
     """
-    ich = 0
     donor_ch, accept_ch = d._det_donor_accept_multich[ich]
     D_ON, A_ON = d._D_ON_multich[ich], d._A_ON_multich[ich]
     # Remove eventual ch different from donor or acceptor
-    d_ch_mask_t = (d.det_t[ich] == donor_ch)
-    a_ch_mask_t = (d.det_t[ich] == accept_ch)
+    det_t = d.det_t[ich][:]
+    ph_times_t = d.ph_times_t[ich][:]
+    d_ch_mask_t = (det_t == donor_ch)
+    a_ch_mask_t = (det_t == accept_ch)
     valid_mask = d_ch_mask_t + a_ch_mask_t
-    ph_times_val = d.ph_times_t[ich][valid_mask]
+    ph_times_val = ph_times_t[valid_mask]
     d_ch_mask_val = d_ch_mask_t[valid_mask]
     a_ch_mask_val = a_ch_mask_t[valid_mask]
     assert (d_ch_mask_val + a_ch_mask_val).all()
@@ -435,13 +437,19 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
     assert (d_em + a_em).all()       # masks fill the total array
     assert not (d_em * a_em).any()   # no photon is both D and A
     assert a_ex.size == a_em.size == d_ex.size == d_em.size == ph_times.size
-    d.add(ph_times_m=[ph_times],
-          D_em=[d_em], A_em=[a_em], D_ex=[d_ex], A_ex=[a_ex])
+    _append_data_ch(d, 'ph_times_m', ph_times)
+    _append_data_ch(d, 'D_em', d_em)
+    _append_data_ch(d, 'A_em', a_em)
+    _append_data_ch(d, 'D_ex', d_ex)
+    _append_data_ch(d, 'A_ex', a_ex)
+    assert (len(d.ph_times_m) == len(d.D_em) == len(d.A_em) ==
+            len(d.D_ex) == len(d.A_ex) == ich + 1)
 
     if 'particles_t' in d:
-        particles_val = d.particles_t[ich][valid_mask]
+        particles_t = d.particles_t[ich][:]
+        particles_val = particles_t[valid_mask]
         particles = particles_val[DexAex_mask]
-        d.add(particles=[particles])
+        _append_data_ch(d, 'particles', particles)
 
     assert d.ph_times_m[ich].size == d.A_em[ich].size
 
@@ -580,7 +588,7 @@ def alex_apply_period(d, delete_ph_t=True):
     Now `d` is ready for futher processing such as background estimation,
     burst search, etc...
     """
-    assert d.ALEX
+    assert d.ALEX or 'PAX' in d.meas_type
     if d.lifetime:
         apply_period_func = nsalex_apply_period
     else:
