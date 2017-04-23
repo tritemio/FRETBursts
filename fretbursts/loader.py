@@ -512,6 +512,7 @@ def nsalex(fname):
               det_donor_accept=(4, 6))
     return dx
 
+
 def nsalex_apply_period(d, delete_ph_t=True):
     """Applies to the Data object `d` the alternation period previously set.
 
@@ -582,6 +583,7 @@ def nsalex_apply_period(d, delete_ph_t=True):
         d.delete('det_t')
         d.delete('nanotimes_t')
 
+
 def alex_apply_period(d, delete_ph_t=True):
     """Apply the ALEX period definition set in D_ON and A_ON attributes.
 
@@ -609,10 +611,14 @@ def alex_apply_period(d, delete_ph_t=True):
     else:
         apply_period_func = usalex_apply_period
     apply_period_func(d, delete_ph_t=delete_ph_t)
-    msg = ('# Total photons (after ALEX selection):  {:10,}\n'
-           '#  D  photons in D+A excitation periods: {:10,}\n'
-           '#  A  photons in D+A excitation periods: {:10,}\n'
-           '# D+A photons in  D  excitation period:  {:10,}\n'
-           '# D+A photons in  A  excitation period:  {:10,}\n')
-    print(msg.format(d.ph_times_m[0].size, d.D_em[0].sum(), d.A_em[0].sum(),
-                     d.D_ex[0].sum(), d.A_ex[0].sum()))
+    msg = ('# Total photons (after ALEX selection):  {:12,}\n'
+           '#  D  photons in D+A excitation periods: {:12,}\n'
+           '#  A  photons in D+A excitation periods: {:12,}\n'
+           '# D+A photons in  D  excitation period:  {:12,}\n'
+           '# D+A photons in  A  excitation period:  {:12,}\n')
+    ph_data_size = d.ph_data_sizes.sum()
+    D_em_sum = sum(d_em.sum() for d_em in d.D_em)
+    A_em_sum = sum(a_em.sum() for a_em in d.A_em)
+    D_ex_sum = sum(d_ex.sum() for d_ex in d.D_ex)
+    A_ex_sum = sum(a_ex.sum() for a_ex in d.A_ex)
+    print(msg.format(ph_data_size, D_em_sum, A_em_sum, D_ex_sum, A_ex_sum))
