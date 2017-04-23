@@ -118,7 +118,7 @@ def _load_photon_data_arrays(data, ph_data, meas_type, ondisk=False):
     # fields not mapped use the same name on both Photon-HDF5 and FRETBursts
     mapping = {'timestamps': 'ph_times_m',
                'nanotimes': 'nanotimes', 'particles': 'particles'}
-    if 'ALEX' in meas_type:
+    if 'ALEX' in meas_type or 'PAX' in meas_type:
         mapping = {'timestamps': 'ph_times_t', 'detectors': 'det_t',
                    'nanotimes': 'nanotimes_t', 'particles': 'particles_t'}
 
@@ -147,6 +147,17 @@ def _load_nanotimes_specs(data, ph_data):
     _append_data_ch(data, 'nanotimes_params', nanotimes_params)
 
 
+def _add_usALEX_specs(data, meas_specs):
+    try:
+        offset = meas_specs.alex_offset.read()
+    except tables.NoSuchNodeError:
+        log.warning('    No offset found, assuming offset = 0.')
+        offset = 0
+    data.add(offset=offset)
+    data.add(alex_period=meas_specs.alex_period.read())
+    _load_alex_periods_donor_acceptor(data, meas_specs)
+
+
 def _load_alex_periods_donor_acceptor(data, meas_specs):
     # Both us- and ns-ALEX
     try:
@@ -155,10 +166,19 @@ def _load_alex_periods_donor_acceptor(data, meas_specs):
         A_ON = meas_specs.alex_excitation_period2.read()
     except tables.NoSuchNodeError:
         # But if it fails it's OK, those fields are optional
-        print('WARNING: No alternation defintion found.')
+        msg = """
+        The current file lacks the alternation period defintion.
+        You will need to manually add this info using:
+
+          d.add(D_ON=D_ON, A_ON=A_ON)
+
+        where `d` is a Data object and D_ON/A_ON is a tuple with start/stop
+        values defining the D/A excitation excitation period. Values are in
+        raw timestamps units.
+        """
+        log.warning(msg)
     else:
-        _append_data_ch(data, 'D_ON', D_ON)
-        _append_data_ch(data, 'A_ON', A_ON)
+        data.add(D_ON=D_ON, A_ON=A_ON)
 
 
 def _compute_acceptor_emission_mask(data, ich, ondisk):
@@ -187,17 +207,7 @@ def _compute_acceptor_emission_mask(data, ich, ondisk):
         _append_data_ch(data, 'A_em', data.detectors[ich][:] == accept)
 
 
-def _add_usALEX_specs(data, meas_specs):
-    try:
-        offset = meas_specs.alex_offset.read()
-    except tables.NoSuchNodeError:
-        print('WARNING: No offset found, assuming offset = 0.')
-        offset = 0
-    data.add(offset=offset)
-    data.add(alex_period=meas_specs.alex_period.read())
-
-
-def _photon_hdf5_1ch(h5data, data, ondisk=False, nch=1, ich=0):
+def _photon_hdf5_1ch(h5data, data, ondisk=False, nch=1, ich=0, loadspecs=True):
     data.add(nch=nch)
     ph_data_name = '/photon_data' if nch == 1 else '/photon_data%d' % ich
 
@@ -223,10 +233,6 @@ def _photon_hdf5_1ch(h5data, data, ondisk=False, nch=1, ich=0):
         accept = np.asscalar(meas_specs.detectors_specs.spectral_ch2.read())
         _append_data_ch(data, 'det_donor_accept', (donor, accept))
 
-    # Load alternation definition both for ns-ALEX and us-ALEX
-    if 'ALEX' in meas_type or meas_type == 'usPAX':
-        _load_alex_periods_donor_acceptor(data, meas_specs)
-
     # Here there are all the special-case for each measurement type
     if meas_type == 'smFRET-1color':
         # Non-FRET or unspecified data, assume all photons are "acceptor"
@@ -235,11 +241,12 @@ def _photon_hdf5_1ch(h5data, data, ondisk=False, nch=1, ich=0):
     elif meas_type == 'smFRET':
         _compute_acceptor_emission_mask(data, ich, ondisk=ondisk)
 
-    elif meas_type == 'smFRET-usALEX' or meas_type == 'usPAX':
+    elif loadspecs and (meas_type == 'smFRET-usALEX' or meas_type == 'usPAX'):
         _add_usALEX_specs(data, meas_specs)
 
-    elif meas_type == 'smFRET-nsALEX':
+    elif loadspecs and meas_type == 'smFRET-nsALEX':
         data.add(laser_repetition_rate=meas_specs.laser_repetition_rate.read())
+        _load_alex_periods_donor_acceptor(data, meas_specs)
 
     # Set some `data` flags
     data.add(meas_type=meas_type)
@@ -250,8 +257,10 @@ def _photon_hdf5_1ch(h5data, data, ondisk=False, nch=1, ich=0):
 def _photon_hdf5_multich(h5data, data, ondisk=True):
     ph_times_dict = phc.hdf5.photon_data_mapping(h5data._v_file)
     nch = np.max(list(ph_times_dict.keys())) + 1
-    for ich in range(nch):
-        _photon_hdf5_1ch(h5data, data, ondisk=ondisk, nch=nch, ich=ich)
+    _photon_hdf5_1ch(h5data, data, ondisk=ondisk, nch=nch, ich=0)
+    for ich in range(1, nch):
+        _photon_hdf5_1ch(h5data, data, ondisk=ondisk, nch=nch, ich=ich,
+                         loadspecs=False)
 
 
 def photon_hdf5(filename, ondisk=False, strict=False):
@@ -341,7 +350,7 @@ def usalex(fname, leakage=0, gamma=1., header=None, BT=None):
         leakage = BT
     if header is not None:
         log.warning('    `header` argument ignored. '
-              '         The header length is now computed automatically.')
+                    '    The header length is now computed automatically.')
     print(" - Loading '%s' ... " % fname)
     ph_times_t, det_t, labels = load_sm(fname, return_labels=True)
     print(" [DONE]\n")

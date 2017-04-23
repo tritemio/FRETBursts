@@ -166,7 +166,7 @@ def plot_alternation_hist(d, bins=None, ax=None, **kwargs):
     This function must be called on ALEX data **before** calling
     :func:`fretbursts.loader.alex_apply_period`.
     """
-    assert d.ALEX
+    assert d.ALEX or d.meas_type == 'usPAX'
     if d.lifetime:
         plot_alternation = plot_alternation_hist_nsalex
     else:
@@ -189,7 +189,8 @@ def plot_alternation_hist_usalex(d, bins=None, ax=None, ich=0,
     D_ON, A_ON = d._D_ON_multich[ich], d._A_ON_multich[ich]
     d_ch, a_ch = d._det_donor_accept_multich[ich]
     offset = d.get('offset', 0)
-    ph_times_t, det_t, period = d.ph_times_t[ich], d.det_t[ich], d.alex_period
+    ph_times_t, det_t = d.ph_times_t[ich][:], d.det_t[ich][:]
+    period = d.alex_period
     d_em_t = (det_t == d_ch)
     hist_style_ = dict(bins=bins, histtype='step', lw=2, alpha=0.9, zorder=2)
     hist_style_.update(hist_style)
