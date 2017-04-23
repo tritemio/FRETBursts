@@ -139,10 +139,12 @@ def bs_from_signature(string):
     return json.loads(string).items()
 
 
-def bg_to_signature(time_s, tail_min_us, F_bg, error_metrics, fit_allph):
-    return json.dumps(dict(time_s=time_s, tail_min_us=tail_min_us, F_bg=F_bg,
-                           error_metrics=error_metrics, fit_allph=fit_allph),
-                      sort_keys=True)
+def bg_to_signature(d, time_s, tail_min_us, F_bg, error_metrics, fit_allph):
+    params = dict(time_s=time_s, tail_min_us=tail_min_us, F_bg=F_bg,
+                  error_metrics=error_metrics, fit_allph=fit_allph)
+    if d.ALEX or 'PAX' in d.meas_type:
+        params.update(offset=d.offset, d_on=d.D_ON, a_on=d.A_ON)
+    return json.dumps(params, sort_keys=True)
 
 
 def bg_from_signature(string):
@@ -161,11 +163,12 @@ def _remove_cache_bg(h5file):
     _remove_cache_grp(h5file, group='/background')
 
 
-def _save_bg_data(bg, Lim, Ph_p, bg_calc_kwargs, h5file, bg_auto_th_us0=None):
+def _save_bg_data(d, bg, Lim, Ph_p, bg_calc_kwargs, h5file,
+                  bg_auto_th_us0=None):
     """Save background data to HDF5 file."""
     # Save the bg data
-    group_name = bg_to_signature(**bg_calc_kwargs)
-    if _bg_is_cached(h5file, bg_calc_kwargs):
+    group_name = bg_to_signature(d, **bg_calc_kwargs)
+    if _bg_is_cached(d, h5file, bg_calc_kwargs):
         h5file.remove_node('/background', group_name, recursive=True)
 
     bg_group = h5file.create_group('/background', group_name,
@@ -180,9 +183,9 @@ def _save_bg_data(bg, Lim, Ph_p, bg_calc_kwargs, h5file, bg_auto_th_us0=None):
         h5file.create_array(bg_group, 'bg_auto_th_us0', obj=bg_auto_th_us0)
 
 
-def _load_bg_data(bg_calc_kwargs, h5file):
+def _load_bg_data(d, bg_calc_kwargs, h5file):
     """Load background data from a HDF5 file."""
-    group_name = bg_to_signature(**bg_calc_kwargs)
+    group_name = bg_to_signature(d, **bg_calc_kwargs)
     if group_name not in h5file.root.background:
         msg = 'Group "%s" not found in the HDF5 file.' % group_name
         raise ValueError(msg)
@@ -203,10 +206,10 @@ def _load_bg_data(bg_calc_kwargs, h5file):
     return bg, Lim, Ph_p, bg_auto_th_us0
 
 
-def _bg_is_cached(h5file, bg_calc_kwargs):
+def _bg_is_cached(d, h5file, bg_calc_kwargs):
     """Returns signature matches a group in /backgroung.
     """
-    group_name = bg_to_signature(**bg_calc_kwargs)
+    group_name = bg_to_signature(d, **bg_calc_kwargs)
     return ('background' in h5file.root and
             group_name in h5file.root.background)
 
@@ -226,10 +229,10 @@ def calc_bg_cache(dx, fun, time_s, tail_min_us, F_bg, error_metrics, fit_allph,
                           F_bg=F_bg, error_metrics=error_metrics,
                           fit_allph=fit_allph)
     h5file = get_h5file(dx)
-    if _bg_is_cached(h5file, bg_calc_kwargs) and not recompute:
+    if _bg_is_cached(dx, h5file, bg_calc_kwargs) and not recompute:
         # Background found in cache. Load it.
         pprint(' * Loading BG rates from cache ... ')
-        bg, Lim, Ph_p, bg_auto_th_us0 = _load_bg_data(bg_calc_kwargs, h5file)
+        bg, Lim, Ph_p, bg_auto_th_us0 = _load_bg_data(dx, bg_calc_kwargs, h5file)
 
         bg_dict = dict(bg_fun=exp_fit, bg_ph_sel=Ph_sel('all'))     # fixed
         bg_dict.update(bg=bg, Lim=Lim, Ph_p=Ph_p, bg_time_s=time_s)
@@ -246,7 +249,7 @@ def calc_bg_cache(dx, fun, time_s, tail_min_us, F_bg, error_metrics, fit_allph,
         pprint(' * Computing BG rates:\n')
         dx.calc_bg(fun=fun, **bg_calc_kwargs)
         bg_auto_th_us0 = dx.get('bg_auto_th_us0', None)
-        _save_bg_data(dx.bg, dx.Lim, dx.Ph_p, bg_calc_kwargs, h5file,
+        _save_bg_data(dx, dx.bg, dx.Lim, dx.Ph_p, bg_calc_kwargs, h5file,
                       bg_auto_th_us0=bg_auto_th_us0)
         pprint(' [DONE]\n')
     h5file.close()
