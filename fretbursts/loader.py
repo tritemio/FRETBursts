@@ -99,21 +99,21 @@ def _get_measurement_specs(ph_data, setup):
         msg = ('This file contains {n} {type} channels.\n'
                'Unfortunately, the current FRETBursts version only supports\n'
                '{nvalid} {type} channel.')
-        if setup.num_polarization_ch != 1:
-            raise ValueError(msg.format(n=setup.num_polarization_ch,
+        if setup.num_polarization_ch.read() != 1:
+            raise ValueError(msg.format(n=setup.num_polarization_ch.read(),
                                         type='polarization', nvalid=1))
-        if setup.num_split_ch != 1:
-            raise ValueError(msg.format(n=setup.num_split_ch,
+        if setup.num_split_ch.read() != 1:
+            raise ValueError(msg.format(n=setup.num_split_ch.read(),
                                         type='split', nvalid=1))
-        if setup.num_spectral_ch != 2:
-            raise ValueError(msg.format(n=setup.num_spectral_ch,
+        if setup.num_spectral_ch.read() != 2:
+            raise ValueError(msg.format(n=setup.num_spectral_ch.read(),
                                         type='spectral', nvalid=2))
-        if not setup.modulated_excitation:
+        if not setup.modulated_excitation.read():
             meas_type = 'smFRET'
-        elif tuple(setup.excitation_alternated) == (False, True):
+        elif tuple(setup.excitation_alternated.read()) == (False, True):
             meas_type = 'usPAX'
-        elif tuple(setup.excitation_alternated) == (True, True):
-            if setup.lifetime:
+        elif tuple(setup.excitation_alternated.read()) == (True, True):
+            if setup.lifetime.read():
                 meas_type = 'smFRET-nsALEX'
             else:
                 meas_type = 'smFRET-usALEX'
