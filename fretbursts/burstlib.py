@@ -674,7 +674,7 @@ class Data(DataContainer):
 
     @property
     def ph_streams(self):
-        if self.ALEX:
+        if self.ALEX or 'usPAX' in self.meas_type:
             return self._ph_streams
         else:
             return [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
@@ -760,14 +760,14 @@ class Data(DataContainer):
         """For non-ALEX data fix Aex to allow stable comparison."""
         msg = 'Photon selection must be of type `Ph_sel` (it was `%s` instead).'
         assert isinstance(ph_sel, Ph_sel), (msg % type(ph_sel))
-        if self.ALEX or ph_sel.Dex != 'DAem':
+        if (self.ALEX or 'usPAX' in self.meas_type) or ph_sel.Dex != 'DAem':
             return ph_sel
         else:
             return Ph_sel(Dex=ph_sel.Dex, Aex='DAem')
 
     def _is_allph(self, ph_sel):
         """Return whether a photon selection `ph_sel` covers all photon."""
-        if self.ALEX:
+        if self.ALEX or 'usPAX' in self.meas_type:
             return ph_sel == Ph_sel(Dex='DAem', Aex='DAem')
         else:
             return ph_sel.Dex == 'DAem'
@@ -912,21 +912,21 @@ class Data(DataContainer):
 
     def get_D_ex(self, ich=0):
         """Returns a mask to select photons in donor-excitation periods."""
-        if self.ALEX:
+        if self.ALEX or 'usPAX' in self.meas_type:
             return self._get_ph_mask_single(ich, 'D_ex')
         else:
             return slice(None)
 
     def get_D_em_D_ex(self, ich=0):
         """Returns a mask of donor photons during donor-excitation."""
-        if self.ALEX:
+        if self.ALEX or 'usPAX' in self.meas_type:
             return self.get_D_em(ich) * self.get_D_ex(ich)
         else:
             return self.get_D_em(ich)
 
     def get_A_em_D_ex(self, ich=0):
         """Returns a mask of acceptor photons during donor-excitation."""
-        if self.ALEX:
+        if self.ALEX or 'usPAX' in self.meas_type:
             return self.get_A_em(ich) * self.get_D_ex(ich)
         else:
             return self.get_A_em(ich)
@@ -958,7 +958,7 @@ class Data(DataContainer):
     def _assert_compact(self, ph_sel):
         msg = ('Option compact=True requires a photon selection \n'
                'from a single excitation period (either Dex or Aex).')
-        if not self.ALEX:
+        if not (self.ALEX or 'usPAX' in self.meas_type):
             raise ValueError('Option compact=True requires ALEX data.')
         if ph_sel.Dex is not None and ph_sel.Aex is not None:
             raise ValueError(msg)
@@ -1146,8 +1146,12 @@ class Data(DataContainer):
         d.add(nt=[nt[n1:n2] for nt, n1, n2 in zip(d.nt, N1, N2)])
         d.add(nd=[nd[n1:n2] for nd, n1, n2 in zip(d.nd, N1, N2)])
         d.add(na=[na[n1:n2] for na, n1, n2 in zip(d.na, N1, N2)])
-        if self.ALEX:
-            d.add(naa=[aa[n1:n2] for aa, n1, n2 in zip(d.naa, N1, N2)])
+        for name in ('naa', 'nda', 'nar'):
+            if name in d:
+                d.add(**{name:
+                         [x[n1:n2] for x, n1, n2 in zip(d[name], N1, N2)]})
+        if 'nda' in self:
+            d.add(nda=[da[n1:n2] for da, n1, n2 in zip(d.nda, N1, N2)])
         d.calc_fret(E_pax=self.E_pax)  # recalculate fret efficiency
         return d
 
@@ -1275,7 +1279,7 @@ class Data(DataContainer):
         bg_a = self.bg[Ph_sel(Dex='Aem')][ich][period] * w
         bg_d = self.bg[Ph_sel(Dex='Dem')][ich][period] * w
         res = [self.nd[ich], self.na[ich]]
-        if self.ALEX and alex_naa:
+        if (self.ALEX or 'usPAX' in self.meas_type) and alex_naa:
             bg_aa = self.bg[Ph_sel(Aex='Aem')][ich][period] * w
             res.extend([self.naa[ich], bg_d, bg_a, bg_aa])
         else:
@@ -1727,7 +1731,7 @@ class Data(DataContainer):
                   zip(self.bg[sel[0]], self.bg[sel[1]], self.bg[sel[2]])]
         else:
             raise NotImplementedError('Photon selection %s not implemented.' %
-                                      ph_sel)
+                                      str(ph_sel))
         return bg
 
 
@@ -1973,7 +1977,7 @@ class Data(DataContainer):
                  dir_ex_corrected=False, dithering=False)
         self._burst_search_postprocess(
             computefret=computefret, max_rate=max_rate, dither=dither,
-            pure_python=pure_python, mute=mute)
+            pure_python=pure_python, mute=mute, E_pax=E_pax)
 
     def _burst_search_postprocess(self, computefret, max_rate, dither,
                                   pure_python, mute, E_pax):
@@ -2002,7 +2006,7 @@ class Data(DataContainer):
         """
         mch_count_ph_in_bursts = _get_mch_count_ph_in_bursts_func(pure_python)
 
-        if not self.ALEX:
+        if not (self.ALEX or 'usPAX' in self.meas_type):
             nt = [b.counts.astype(float) if b.num_bursts > 0 else np.array([])
                   for b in self.mburst]
             A_em = [self.get_A_em(ich) for ich in range(self.nch)]
@@ -2018,7 +2022,7 @@ class Data(DataContainer):
                 na = mch_count_ph_in_bursts(self.mburst, A_em)
                 nd = [t - a for t, a in zip(nt, na)]
             assert (nt[0] == na[0] + nd[0]).all()
-        if self.ALEX or 'usPAX' in self.meas_type:
+        else:
             # The "new style" would be:
             #Mask = [m for m in self.iter_ph_masks(Ph_sel(Dex='Dem'))]
             Mask = [d_em * d_ex for d_em, d_ex in zip(self.D_em, self.D_ex)]
@@ -2353,7 +2357,7 @@ class Data(DataContainer):
         """
         self.background_correction(mute=mute)
         self.leakage_correction(mute=mute)
-        if self.ALEX:
+        if self.ALEX or 'usPAX' in self.meas_type:
             self.direct_excitation_correction(mute=mute)
 
     def _update_corrections(self):
@@ -2563,7 +2567,7 @@ class Data(DataContainer):
             self._assert_compact(ph_sel)
 
         kwargs = dict(func=func, func_kw=func_kw, compact=compact)
-        if self.ALEX:
+        if self.ALEX or 'usPAX' in self.meas_type:
             kwargs.update(alex_period=self.alex_period)
         if compact:
             kwargs.update(excitation_width=self._excitation_width(ph_sel))
@@ -2646,7 +2650,7 @@ class Data(DataContainer):
     def _calculate_fret_eff(self, E_pax=False):
         """Compute FRET efficiency (`E`) for each burst."""
         G = self.get_gamma_array()
-        if not self.E_pax:
+        if not E_pax:
             E = [na / (g * nd + na) for nd, na, g in zip(self.nd, self.na, G)]
         else:
             E = [(2 * na) / (g * (nd + nda) + (2 * na))
