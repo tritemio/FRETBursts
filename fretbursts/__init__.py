@@ -168,7 +168,7 @@ from .utils import git
 
 
 def init_notebook(fs=13, savefig_dpi=65, seaborn_style='darkgrid',
-                  mpl_backend='inline'):
+                  mpl_backend='inline', configure_logger=True):
     """
     Set the default plot style for inline plots using the seaborn library.
 
@@ -185,6 +185,14 @@ def init_notebook(fs=13, savefig_dpi=65, seaborn_style='darkgrid',
         The imported seaborn library. By saving the return value you
         don't need to import seaborn again.
     """
+    if configure_logger:
+        import logging
+        logger = logging.getLogger('fretbursts')
+        formatter = logging.Formatter('%(levelname)s %(name)s\n%(message)s')
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+
     if mpl_backend is not None:
         ip = get_ipython()
         ip.enable_matplotlib(mpl_backend)

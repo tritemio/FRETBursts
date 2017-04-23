@@ -27,6 +27,9 @@ from .burstlib import Data
 from . import loader_legacy
 import phconvert as phc
 
+import logging
+log = logging.getLogger(__name__)
+
 
 def _is_multich(h5data):
     if 'photon_data' in h5data:
@@ -334,10 +337,10 @@ def usalex(fname, leakage=0, gamma=1., header=None, BT=None):
     burst search, etc...
     """
     if BT is not None:
-        print('WARNING: `BT` argument is deprecated, use `leakage` instead.')
+        log.warning('`BT` argument is deprecated, use `leakage` instead.')
         leakage = BT
     if header is not None:
-        print('WARNING: `header` argument ignored. '
+        log.warning('    `header` argument ignored. '
               '         The header length is now computed automatically.')
     print(" - Loading '%s' ... " % fname)
     ph_times_t, det_t, labels = load_sm(fname, return_labels=True)
