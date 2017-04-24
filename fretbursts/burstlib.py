@@ -1027,6 +1027,51 @@ class Data(DataContainer):
         """
         return [bursts.width * self.clk_p for bursts in self.mburst]
 
+    def burst_sizes_pax_ich(self, ich=0, gamma=1., add_aex=True,
+                            beta=1., donor_ref=True, A_laser_weight=1):
+        """Return corrected burst sizes for channel `ich`. PAX-only.
+
+        Arguments:
+            ich (int): the spot number, only relevant for multi-spot.
+                In single-spot data there is only one channel (`ich=0`)
+                so this argument may be omitted. Default 0.
+            add_aex (boolean): when True, burst size include add photons
+                detected during the Aex. Default is True.
+            A_laser_weight (int): Default 1. Weight of the fraction of AexAem
+                photons due to A laser. Since the D laser is present in both
+                alternation periods, you may want to use 2 in order to make
+                counts caused by the D laser and counts caused by the A laser
+                commensurable. Using 2 is an extension of the beta correction
+                for PAX.
+            gamma (float): coefficient for gamma correction of burst
+                sizes. Default: 1. For more info see explanation above.
+            beta (float): beta correction factor used for the AexAem term
+                of the burst size. Default 1. If `add_naa = False` or
+                measurement is not ALEX this argument is ignored.
+                For more info see explanation above.
+            donor_ref (bool): select the convention for burst size correction.
+                For details see :meth:`fretbursts.burstlib.Data.burst_sizes_ich`.
+
+        Returns
+            Array of burst sizes for channel `ich`.
+        """
+        assert 'usPAX' in self.meas_type
+        if donor_ref:
+            burst_size_dex = self.nd[ich] + self.na[ich] / gamma
+            burst_size_aex = (self.nda[ich] + self.na[ich] / gamma +
+                              A_laser_weight * (self.naa[ich] - self.nar[ich]) /
+                              (gamma * beta))
+        else:
+            burst_size_dex = self.nd[ich] * gamma + self.na[ich]
+            burst_size_aex = (self.nda[ich] * gamma + self.na[ich] +
+                              A_laser_weight * (self.naa[ich] - self.nar[ich]) /
+                              gamma)
+        burst_size = burst_size_dex
+        if add_aex:
+            burst_size += burst_size_aex
+        return burst_size
+
+
     def burst_sizes_ich(self, ich=0, gamma=1., add_naa=False,
                         beta=1., donor_ref=True):
         """Return gamma corrected burst sizes for channel `ich`.
@@ -1058,9 +1103,6 @@ class Data(DataContainer):
 
             (nd * gamma + na) + naa / beta
 
-        In PAX measurements, the measured AexAem signal is nat = na~ + naa.
-        So, naa needs to be estimated as nat - na.
-
         Arguments:
             ich (int): the spot number, only relevant for multi-spot.
                 In single-spot data there is only one channel (`ich=0`)
@@ -1073,6 +1115,8 @@ class Data(DataContainer):
                 of the burst size. Default 1. If `add_naa = False` or
                 measurement is not ALEX this argument is ignored.
                 For more info see explanation above.
+            donor_ref (bool): select the convention for burst size correction.
+                See details above in the function description.
 
         Returns
             Array of burst sizes for channel `ich`.
@@ -1104,20 +1148,24 @@ class Data(DataContainer):
 
         See also :meth:`fretbursts.burstlib.Data.burst_sizes_ich`.
         """
-        naa = self.naa[ich]
-        if 'usPAX' in self.meas_type:
-            naa -= self.na[ich]
         if donor_ref:
-            naa_term = naa / (gamma * beta)
+            naa_term = self.naa[ich] / (gamma * beta)
         else:
-            naa_term = naa / beta
+            naa_term = self.naa[ich] / beta
         return naa_term
 
-    def burst_sizes(self, gamma=1., add_naa=False, beta=1., donor_ref=True):
+    def burst_sizes(self, gamma=1., add_naa=False, beta=1., donor_ref=True,
+                    add_aex=True, A_laser_weight=1):
         """Return gamma corrected burst sizes for all the channel.
 
-        Compute burst sizes by calling :meth:`burst_sizes_ich` for each
-        channel. See :meth:`burst_sizes_ich` for a description of the arguments.
+        Compute burst sizes by calling, for each channel,
+        :meth:`burst_sizes_ich` in ALEX measurements and
+        :meth:`burst_sizes_pax_ich` in PAX measurements.
+        The argument  `add_naa` is only used for ALEX measurements.
+        Arguments `add_aex` and `A_laser_weight` are only used for PAX.
+
+        See :meth:`burst_sizes_ich` and for :meth:`burst_sizes_pax_ich` a
+        description of the arguments.
 
         Returns
             List of arrays of burst sizes, one array per channel.
@@ -2257,6 +2305,9 @@ class Data(DataContainer):
             nd, na, bg_d, bg_a, width = self.expand(ich, width=True)
             nd -= bg_d
             na -= bg_a
+            if 'nar' in self:
+                # Apply background correction to PAX field nar
+                self.nar[ich][:] = na
             if relax_nt:
                 # This does not guarantee that nt = nd + na
                 self.nt[ich] -= self.bg_from(Ph_sel('all'))[ich][period] * width

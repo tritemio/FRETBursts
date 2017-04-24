@@ -137,8 +137,9 @@ def naa(d, ich=0, th1=20, th2=np.inf, gamma=1., beta=1., donor_ref=True):
     bursts_mask = (naa_term >= th1) * (naa_term <= th2)
     return bursts_mask, ''
 
+
 def size(d, ich=0, th1=20, th2=np.inf, gamma=1., add_naa=False, beta=1.,
-         donor_ref=True):
+         donor_ref=True, add_aex=True, A_laser_weight=1):
     """Select bursts with burst sizes (i.e. counts) between `th1` and `th2`.
 
     The burst size is the number of photon in a burst. By default it
@@ -158,6 +159,12 @@ def size(d, ich=0, th1=20, th2=np.inf, gamma=1., add_naa=False, beta=1.,
             :meth:`fretbursts.burstlib.Data.burst_sizes_ich` for details.
         donor_ref (bool): Select the convention for `naa` correction.
             See :meth:`fretbursts.burstlib.Data.burst_sizes_ich` for details.
+        add_aex (bool): PAX-only. Whether to add signal from Aex laser period
+            to the burst size. Default True.
+            See :meth:`fretbursts.burstlib.Data.burst_sizes_pax_ich`.
+        A_laser_weight (scalar): PAX-only. Weight of A-ch photons during Aex
+            period (AexAem) due to the A laser.
+            See :meth:`fretbursts.burstlib.Data.burst_sizes_pax_ich`.
 
     Returns:
         A tuple containing an array (the burst mask) and a string which
