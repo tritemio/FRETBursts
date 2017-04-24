@@ -661,7 +661,7 @@ class Data(DataContainer):
     # They do not necessarly exist. For example 'naa' exists only for ALEX
     # data. Also none of them exist before performing a burst search.
     burst_fields = ['E', 'S', 'mburst', 'nd', 'na', 'nt', 'bp', 'nda', 'naa',
-                    'max_rate', 'sbr']
+                    'max_rate', 'sbr', 'nar']
 
     # Quantities (scalars or arrays) defining the current set of bursts
     burst_metadata = ['m', 'L', 'T', 'TT', 'F', 'FF', 'P', 'PP', 'rate_th',
