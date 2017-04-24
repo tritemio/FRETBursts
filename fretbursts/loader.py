@@ -102,7 +102,7 @@ def _get_measurement_specs(ph_data, setup):
         if not setup.modulated_excitation.read():
             meas_type = 'smFRET'
         elif tuple(setup.excitation_alternated.read()) == (False, True):
-            meas_type = 'usPAX'
+            meas_type = 'PAX'
         elif tuple(setup.excitation_alternated.read()) == (True, True):
             if setup.lifetime.read():
                 meas_type = 'smFRET-nsALEX'
@@ -118,7 +118,7 @@ def _load_photon_data_arrays(data, ph_data, meas_type, ondisk=False):
     # fields not mapped use the same name on both Photon-HDF5 and FRETBursts
     mapping = {'timestamps': 'ph_times_m',
                'nanotimes': 'nanotimes', 'particles': 'particles'}
-    if 'ALEX' in meas_type or 'usPAX' in meas_type:
+    if 'ALEX' in meas_type or 'PAX' in meas_type:
         mapping = {'timestamps': 'ph_times_t', 'detectors': 'det_t',
                    'nanotimes': 'nanotimes_t', 'particles': 'particles_t'}
 
@@ -241,7 +241,7 @@ def _photon_hdf5_1ch(h5data, data, ondisk=False, nch=1, ich=0, loadspecs=True):
     elif meas_type == 'smFRET':
         _compute_acceptor_emission_mask(data, ich, ondisk=ondisk)
 
-    elif loadspecs and (meas_type == 'smFRET-usALEX' or 'usPAX' in meas_type):
+    elif loadspecs and (meas_type == 'smFRET-usALEX' or 'PAX' in meas_type):
         _add_usALEX_specs(data, meas_specs)
 
     elif loadspecs and meas_type == 'smFRET-nsALEX':
@@ -605,7 +605,7 @@ def alex_apply_period(d, delete_ph_t=True):
     Now `d` is ready for futher processing such as background estimation,
     burst search, etc...
     """
-    assert d.ALEX or 'usPAX' in d.meas_type
+    assert d.ALEX or 'PAX' in d.meas_type
     if d.lifetime:
         apply_period_func = nsalex_apply_period
     else:
