@@ -1200,7 +1200,7 @@ class Data(DataContainer):
                          [x[n1:n2] for x, n1, n2 in zip(d[name], N1, N2)]})
         if 'nda' in self:
             d.add(nda=[da[n1:n2] for da, n1, n2 in zip(d.nda, N1, N2)])
-        d.calc_fret(E_pax=self.E_pax)  # recalculate fret efficiency
+        d.calc_fret(pax=self.pax)  # recalculate fret efficiency
         return d
 
     def delete_burst_data(self):
@@ -1908,7 +1908,7 @@ class Data(DataContainer):
     def burst_search(self, L=None, m=10, F=6., P=None, min_rate_cps=None,
                      ph_sel=Ph_sel('all'), compact=False, index_allph=True,
                      c=-1, computefret=True, max_rate=False, dither=False,
-                     pure_python=False, verbose=False, mute=False, E_pax=False):
+                     pure_python=False, verbose=False, mute=False, pax=False):
         """Performs a burst search with specified parameters.
 
         This method performs a sliding-window burst search without
@@ -1970,7 +1970,7 @@ class Data(DataContainer):
                 counts. Default False. See :meth:`Data.dither`.
             pure_python (bool): if True, uses the pure python functions even
                 when optimized Cython functions are available.
-            E_pax (bool): this has effect only if measurement is usPAX.
+            pax (bool): this has effect only if measurement is usPAX.
                 In this case, when True computes E using a PAX-enhanced
                 formula: ``(2 na) / (2 na + nd + nda)``.
                 Otherwise use the usual usALEX formula: ``na / na + nd``.
@@ -2025,14 +2025,14 @@ class Data(DataContainer):
                  dir_ex_corrected=False, dithering=False)
         self._burst_search_postprocess(
             computefret=computefret, max_rate=max_rate, dither=dither,
-            pure_python=pure_python, mute=mute, E_pax=E_pax)
+            pure_python=pure_python, mute=mute, pax=pax)
 
     def _burst_search_postprocess(self, computefret, max_rate, dither,
-                                  pure_python, mute, E_pax):
+                                  pure_python, mute, pax):
         if computefret:
             pprint(" - Counting D and A ph and calculating FRET ... \n", mute)
             self.calc_fret(count_ph=True, corrections=True, dither=dither,
-                           mute=mute, pure_python=pure_python, E_pax=E_pax)
+                           mute=mute, pure_python=pure_python, pax=pax)
             pprint("   [DONE Counting D/A]\n", mute)
         if max_rate:
             pprint(" - Computing max rates in burst ...", mute)
@@ -2134,7 +2134,7 @@ class Data(DataContainer):
         if process:
             pprint(" - Counting D and A ph and calculating FRET ... \n", mute)
             new_d.calc_fret(count_ph=True, corrections=True,
-                            dither=self.dithering, mute=mute, E_pax=self.E_pax)
+                            dither=self.dithering, mute=mute, pax=self.pax)
             pprint("   [DONE Counting D/A and FRET]\n", mute)
         return new_d
 
@@ -2283,7 +2283,7 @@ class Data(DataContainer):
 
         # Recompute E and S
         if computefret:
-            ds.calc_fret(count_ph=False, E_pax=self.E_pax)
+            ds.calc_fret(count_ph=False, pax=self.pax)
         # Add the annotation about the filter function
         ds.s = list(self.s + [str_sel])  # using append would modify also self
         return ds
@@ -2440,7 +2440,7 @@ class Data(DataContainer):
         if old_dithering:
             self.dither(self.lsb)
         # Recompute E and S with no corrections (because already applied)
-        self.calc_fret(count_ph=False, corrections=False, E_pax=self.E_pax)
+        self.calc_fret(count_ph=False, corrections=False, pax=self.pax)
 
     @property
     def leakage(self):
@@ -2491,7 +2491,7 @@ class Data(DataContainer):
         self.add(_beta=float(beta))
         if 'mburst' in self:
             # Recompute E and S and delete fitter objects
-            self.calc_fret(corrections=False, E_pax=self.E_pax)
+            self.calc_fret(corrections=False, pax=self.pax)
 
     @property
     def chi_ch(self):
@@ -2509,7 +2509,7 @@ class Data(DataContainer):
         self.add(_chi_ch=np.asfarray(chi_ch))
         if 'mburst' in self:
             # Recompute E and S and delete fitter objects
-            self.calc_fret(corrections=False, E_pax=self.E_pax)
+            self.calc_fret(corrections=False, pax=self.pax)
 
     @property
     def gamma(self):
@@ -2527,7 +2527,7 @@ class Data(DataContainer):
         self.add(_gamma=np.asfarray(gamma))
         if 'mburst' in self:
             # Recompute E and S and delete fitter objects
-            self.calc_fret(corrections=False, E_pax=self.E_pax)
+            self.calc_fret(corrections=False, pax=self.pax)
 
     def get_gamma_array(self):
         """Get the array of gamma factors, one per ch.
@@ -2653,7 +2653,7 @@ class Data(DataContainer):
         self.add(max_rate=Max_Rate, max_rate_params=params)
 
     def calc_fret(self, count_ph=False, corrections=True, dither=False,
-                  mute=False, pure_python=False, E_pax=False):
+                  mute=False, pure_python=False, pax=False):
         """Compute FRET (and stoichiometry if ALEX) for each burst.
 
         This is an high-level functions that can be run after burst search.
@@ -2671,7 +2671,7 @@ class Data(DataContainer):
             mute (bool): whether to mute all the printed output. Default False.
             pure_python (bool): if True, uses the pure python functions even
                 when the optimized Cython functions are available.
-            E_pax (bool): this has effect only if measurement is usPAX.
+            pax (bool): this has effect only if measurement is usPAX.
                 In this case, when True computes E using a PAX-enhanced
                 formula: ``(2 na) / (2 na + nd + nda)``.
                 Otherwise use the usual usALEX formula: ``na / na + nd``.
@@ -2687,9 +2687,9 @@ class Data(DataContainer):
             self.dither(mute=mute)
         if corrections:
             self.corrections(mute=mute)
-        self._calculate_fret_eff(E_pax=E_pax)
+        self._calculate_fret_eff(pax=pax)
         if self.ALEX or 'usPAX' in self.meas_type:
-            self._calculate_stoich()
+            self._calculate_stoich(pax=pax)
             #self._calc_alex_hist()
 
         for attr in ('ES_binwidth', 'ES_hist', 'E_fitter', 'S_fitter'):
@@ -2698,32 +2698,38 @@ class Data(DataContainer):
             if hasattr(self, attr):
                 self.delete(attr, warning=False)
 
-    def _calculate_fret_eff(self, E_pax=False):
+    def _calculate_fret_eff(self, pax=False):
         """Compute FRET efficiency (`E`) for each burst."""
         G = self.get_gamma_array()
-        if not E_pax:
+        if not pax:
             E = [na / (g * nd + na) for nd, na, g in zip(self.nd, self.na, G)]
         else:
             E = [(2 * na) / (g * (nd + nda) + (2 * na))
                  for nd, na, nda, g in zip(self.nd, self.na, self.nda, G)]
-        self.add(E=E, E_pax=E_pax)
+        self.add(E=E, pax=pax)
 
-    def _calculate_stoich(self):
+    def _calculate_stoich(self, pax=False):
         """Compute "stoichiometry" (the `S` parameter) for each burst."""
         G = self.get_gamma_array()
-        naa = self.naa
-        if 'usPAX' in self.meas_type:
-            # in PAX self.naa contains the total Aem signal due to both lasers
-            # during the A-excitation period. Since the A-emission due
-            # D laser (na) is the same in both D and A excitation periods
-            # (except for statistical fluctuations and dynamics), we can
-            # compute the A-emission due to A laser (naa~) as:
-            #     naa~ = naa - nar
-            # were nar is na before leakage an direct-excitation correction.
-            # The quantity naa~ in PAX is equivalent to naa in usALEX.
-            naa = [aa - ar for aa, ar in zip(self.naa, self.nar)]
-        S = [(g * d + a) / (g * d + a + aa / self.beta) for d, a, aa, g in
-             zip(self.nd, self.na, naa, G)]
+        if not pax:
+            naa = self.naa
+            if 'usPAX' in self.meas_type:
+                # in PAX self.naa contains the total Aem signal due to both lasers
+                # during the A-excitation period. Since the A-emission due
+                # D laser (na) is the same in both D and A excitation periods
+                # (except for statistical fluctuations and dynamics), we can
+                # compute the A-emission due to A laser (naa~) as:
+                #     naa~ = naa - nar
+                # were nar is na before leakage an direct-excitation correction.
+                # The quantity naa~ in PAX is equivalent to naa in usALEX.
+                naa = [aa - ar for aa, ar in zip(self.naa, self.nar)]
+            S = [(g * d + a) / (g * d + a + aa / self.beta) for d, a, aa, g in
+                 zip(self.nd, self.na, naa, G)]
+        else:
+            S = [(g * (d + da) + 2 * a) / (g * (d + da) + 2 * aa)
+                 for d, a, da, aa, g in
+                 zip(self.nd, self.na, self.nda, self.naa, G)]
+
         self.add(S=S)
 
     def _calc_alex_hist(self, binwidth=0.05):
