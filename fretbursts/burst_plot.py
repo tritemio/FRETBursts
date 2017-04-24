@@ -166,7 +166,7 @@ def plot_alternation_hist(d, bins=None, ax=None, **kwargs):
     This function must be called on ALEX data **before** calling
     :func:`fretbursts.loader.alex_apply_period`.
     """
-    assert d.ALEX or d.meas_type == 'usPAX'
+    assert d.alternated
     if d.lifetime:
         plot_alternation = plot_alternation_hist_nsalex
     else:
@@ -890,7 +890,7 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
     which_dict = {'all': 'k', 'nd': green, 'na': red, 'naa': purple}
     assert which in which_dict
     if which == 'all':
-        if 'usPAX' in d.meas_type:
+        if 'PAX' in d.meas_type:
             sizes = d.burst_sizes_pax_ich(ich=i, gamma=gamma, add_aex=add_naa,
                                           A_laser_weight=A_laser_weight,
                                           beta=beta, donor_ref=donor_ref)

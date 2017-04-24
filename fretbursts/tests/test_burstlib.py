@@ -194,7 +194,7 @@ def test_bg_calc(data):
 
 def test_ph_streams(data):
     sel = [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
-    if data.ALEX:
+    if data.alternated:
         sel.extend([Ph_sel(Aex='Aem'), Ph_sel(Aex='Dem')])
     for s in sel:
         assert s in data.ph_streams
@@ -208,7 +208,7 @@ def test_bg_from(data):
         bg = d.bg_from(ph_sel=sel)
         assert list_array_equal(bg, d.bg[sel])
 
-    if not data.ALEX:
+    if not (data.alternated):
         assert list_array_equal(d.bg_from(Ph_sel('all')),
                                 d.bg_from(Ph_sel(Dex='DAem')))
         return
@@ -248,18 +248,18 @@ def test_iter_ph_times(data):
     assert list_array_equal(d.ph_times_m, d.iter_ph_times())
 
     for ich, ph in enumerate(d.iter_ph_times(Ph_sel(Dex='Dem'))):
-        if d.ALEX:
+        if d.alternated:
             assert (ph == d.ph_times_m[ich][d.D_em[ich] * d.D_ex[ich]]).all()
         else:
             assert (ph == d.ph_times_m[ich][-d.A_em[ich]]).all()
 
     for ich, ph in enumerate(d.iter_ph_times(Ph_sel(Dex='Aem'))):
-        if d.ALEX:
+        if d.alternated:
             assert (ph == d.ph_times_m[ich][d.A_em[ich] * d.D_ex[ich]]).all()
         else:
             assert (ph == d.ph_times_m[ich][d.A_em[ich]]).all()
 
-    if d.ALEX:
+    if d.alternated:
         for ich, ph in enumerate(d.iter_ph_times(Ph_sel(Aex='Dem'))):
             assert (ph == d.ph_times_m[ich][d.D_em[ich] * d.A_ex[ich]]).all()
         for ich, ph in enumerate(d.iter_ph_times(Ph_sel(Aex='Aem'))):
@@ -353,40 +353,40 @@ if has_matplotlib:
         """Test that E/S_fitter attributes are deleted on burst search."""
         data.burst_search(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Dem'))
         bplt.dplot(data, bplt.hist_fret)  # create E_fitter attribute
-        if data.ALEX:
+        if data.alternated:
             bplt.dplot(data, bplt.hist_S)  # create S_fitter attribute
 
         data.burst_search(L=10, m=10, F=7, ph_sel=Ph_sel(Dex='Aem'))
         assert not hasattr(data, 'E_fitter')
-        if data.ALEX:
+        if data.alternated:
             assert not hasattr(data, 'S_fitter')
 
         bplt.dplot(data, bplt.hist_fret)  # create E_fitter attribute
-        if data.ALEX:
+        if data.alternated:
             bplt.dplot(data, bplt.hist_S)  # create S_fitter attribute
 
         data.calc_fret()
         assert not hasattr(data, 'E_fitter')
-        if data.ALEX:
+        if data.alternated:
             assert not hasattr(data, 'S_fitter')
 
 def test_burst_search(data):
     """Smoke test and bg_bs check."""
     streams = [Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
-    if data.ALEX:
+    if data.alternated:
         streams.extend([Ph_sel(Dex='Aem', Aex='Aem'), Ph_sel(Dex='DAem')])
     for sel in streams:
         data.burst_search(L=10, m=10, F=7, ph_sel=sel)
         assert list_equal(data.bg_bs, data.bg_from(sel))
 
-    if data.ALEX:
+    if data.alternated:
         data.burst_search(m=10, F=7, ph_sel=Ph_sel(Dex='DAem'), compact=True)
     data.burst_search(L=10, m=10, F=7)
 
 def test_burst_search_and_gate(data_1ch):
     """Test consistency of burst search and gate."""
     d = data_1ch
-    assert d.ALEX
+    assert d.alternated
     d_dex = d.copy()
     d_dex.burst_search(ph_sel=Ph_sel(Dex='DAem'))
     d_aex = d.copy()
@@ -415,10 +415,10 @@ def test_burst_sizes(data):
     bs2 = data.burst_sizes_ich(gamma=0.5, donor_ref=False)
     assert np.allclose(bs1, bs2 / 0.5)
     # Test add_naa
-    if data.ALEX:
+    if data.alternated:
         bs_no_naa = data.burst_sizes_ich(add_naa=False)
         bs_naa = data.burst_sizes_ich(add_naa=True)
-        assert np.allclose(bs_no_naa + data.naa_, bs_naa)
+        assert np.allclose(bs_no_naa + data.naa[0], bs_naa)
 
         # Test beta and donor_ref arguments with gamma=1
         naa1 = data.get_naa_corrected(beta=0.8, donor_ref=True)
@@ -739,7 +739,7 @@ def test_calc_sbr(data):
 def test_calc_max_rate(data):
     """Smoke test for Data.calc_max_rate()"""
     data.calc_max_rate(m=10)
-    if data.ALEX:
+    if data.alternated:
         data.calc_max_rate(m=10, ph_sel=Ph_sel(Dex='DAem'), compact=True)
 
 def test_burst_data(data):
@@ -779,7 +779,7 @@ def test_burst_corrections(data):
         burst_size_raw = bursts.counts
 
         lk = leakage[ich]
-        if d.ALEX:
+        if d.alternated:
             nda, naa = d.nda[ich], d.naa[ich]
             period = d.bp[ich]
             bg_da = d.bg_from(Ph_sel(Aex='Dem'))[ich][period]*width
@@ -816,6 +816,7 @@ def test_burst_search_consistency(data):
         start, stop, width = mb.start, mb.stop, mb.width
         assert np.all(width <= stop - start)
 
+
 def test_E_and_S_with_corrections(data):
     d = data
     gamma = 0.5
@@ -824,8 +825,10 @@ def test_E_and_S_with_corrections(data):
     d.beta = beta
     for i, (E, nd, na) in enumerate(zip(d.E, d.nd, d.na)):
         assert (E == na / (nd * gamma + na)).all()
-        if d.ALEX:
+        if d.alternated:
             naa = d.naa[i]
+            if 'PAX' in data.meas_type:
+                naa = d.naa[i] - d.nar[i]
             assert (d.S[i] == (gamma * nd + na) /
                               (gamma * nd + na + naa / beta)).all()
 
@@ -835,7 +838,7 @@ def test_burst_size_da(data):
     """
     d = data
     d.calc_ph_num(alex_all=True)
-    if d.ALEX:
+    if d.alternated:
         for mb, nd, na, naa, nda in zip(d.mburst, d.nd, d.na, d.naa, d.nda):
             tot_size = mb.counts
             tot_size2 = nd + na + naa + nda
@@ -876,7 +879,7 @@ def test_burst_selection_nocorrections(data):
     assert list_array_equal(ds1.nd, ds2.nd)
     assert list_array_equal(ds1.na, ds2.na)
     assert list_array_equal(ds1.E, ds2.E)
-    if d.ALEX:
+    if d.alternated:
         assert list_array_equal(ds1.naa, ds2.naa)
         assert list_array_equal(ds1.E, ds2.E)
 
@@ -894,7 +897,7 @@ def test_burst_selection_ranges(data):
         time=Range(1, 61, lambda d, ich: d.mburst[ich].start * d.clk_p),
         width=Range(0.5, 1.5, lambda d, ich: d.mburst[ich].width * d.clk_p*1e3),
         peak_phrate=Range(50e3, 150e3, lambda d, ich: d.max_rate[ich]))
-    if d.ALEX:
+    if d.alternated:
         sel_functions.update(naa=Range(30, 40, None), S=Range(0.3, 0.7, None))
 
     for func_name, range_ in sel_functions.items():

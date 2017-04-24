@@ -251,6 +251,7 @@ def _photon_hdf5_1ch(h5data, data, ondisk=False, nch=1, ich=0, loadspecs=True):
     # Set some `data` flags
     data.add(meas_type=meas_type)
     data.add(ALEX='ALEX' in meas_type)
+    data.add(alternated=data.ALEX or 'PAX' in data.meas_type)
     data.add(lifetime='nanotimes' in ph_data)
 
 
@@ -605,7 +606,7 @@ def alex_apply_period(d, delete_ph_t=True):
     Now `d` is ready for futher processing such as background estimation,
     burst search, etc...
     """
-    assert d.ALEX or 'PAX' in d.meas_type
+    assert d.alternated
     if d.lifetime:
         apply_period_func = nsalex_apply_period
     else:

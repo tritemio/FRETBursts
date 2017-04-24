@@ -674,7 +674,7 @@ class Data(DataContainer):
 
     @property
     def ph_streams(self):
-        if self.ALEX or 'PAX' in self.meas_type:
+        if self.alternated:
             return self._ph_streams
         else:
             return [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
@@ -760,14 +760,14 @@ class Data(DataContainer):
         """For non-ALEX data fix Aex to allow stable comparison."""
         msg = 'Photon selection must be of type `Ph_sel` (it was `%s` instead).'
         assert isinstance(ph_sel, Ph_sel), (msg % type(ph_sel))
-        if (self.ALEX or 'PAX' in self.meas_type) or ph_sel.Dex != 'DAem':
+        if self.alternated or ph_sel.Dex != 'DAem':
             return ph_sel
         else:
             return Ph_sel(Dex=ph_sel.Dex, Aex='DAem')
 
     def _is_allph(self, ph_sel):
         """Return whether a photon selection `ph_sel` covers all photon."""
-        if self.ALEX or 'PAX' in self.meas_type:
+        if self.alternated:
             return ph_sel == Ph_sel(Dex='DAem', Aex='DAem')
         else:
             return ph_sel.Dex == 'DAem'
@@ -912,21 +912,21 @@ class Data(DataContainer):
 
     def get_D_ex(self, ich=0):
         """Returns a mask to select photons in donor-excitation periods."""
-        if self.ALEX or 'PAX' in self.meas_type:
+        if self.alternated:
             return self._get_ph_mask_single(ich, 'D_ex')
         else:
             return slice(None)
 
     def get_D_em_D_ex(self, ich=0):
         """Returns a mask of donor photons during donor-excitation."""
-        if self.ALEX or 'PAX' in self.meas_type:
+        if self.alternated:
             return self.get_D_em(ich) * self.get_D_ex(ich)
         else:
             return self.get_D_em(ich)
 
     def get_A_em_D_ex(self, ich=0):
         """Returns a mask of acceptor photons during donor-excitation."""
-        if self.ALEX or 'PAX' in self.meas_type:
+        if self.alternated:
             return self.get_A_em(ich) * self.get_D_ex(ich)
         else:
             return self.get_A_em(ich)
@@ -958,7 +958,7 @@ class Data(DataContainer):
     def _assert_compact(self, ph_sel):
         msg = ('Option compact=True requires a photon selection \n'
                'from a single excitation period (either Dex or Aex).')
-        if not (self.ALEX or 'PAX' in self.meas_type):
+        if not self.alternated:
             raise ValueError('Option compact=True requires ALEX data.')
         if ph_sel.Dex is not None and ph_sel.Aex is not None:
             raise ValueError(msg)
@@ -1128,7 +1128,7 @@ class Data(DataContainer):
         else:
             burst_size = self.nd[ich] * gamma + self.na[ich]
 
-        if add_naa and (self.ALEX or 'PAX' in self.meas_type):
+        if add_naa and self.alternated:
             kws = dict(ich=ich, gamma=gamma, beta=beta, donor_ref=donor_ref)
             burst_size += self.get_naa_corrected(**kws)
         return burst_size
@@ -1327,7 +1327,7 @@ class Data(DataContainer):
         bg_a = self.bg[Ph_sel(Dex='Aem')][ich][period] * w
         bg_d = self.bg[Ph_sel(Dex='Dem')][ich][period] * w
         res = [self.nd[ich], self.na[ich]]
-        if (self.ALEX or 'PAX' in self.meas_type) and alex_naa:
+        if self.alternated and alex_naa:
             bg_aa = self.bg[Ph_sel(Aex='Aem')][ich][period] * w
             res.extend([self.naa[ich], bg_d, bg_a, bg_aa])
         else:
@@ -2054,7 +2054,7 @@ class Data(DataContainer):
         """
         mch_count_ph_in_bursts = _get_mch_count_ph_in_bursts_func(pure_python)
 
-        if not (self.ALEX or 'PAX' in self.meas_type):
+        if not self.alternated:
             nt = [b.counts.astype(float) if b.num_bursts > 0 else np.array([])
                   for b in self.mburst]
             A_em = [self.get_A_em(ich) for ich in range(self.nch)]
@@ -2313,7 +2313,7 @@ class Data(DataContainer):
                 self.nt[ich] -= self.bg_from(Ph_sel('all'))[ich][period] * width
             else:
                 self.nt[ich] = nd + na
-            if self.ALEX or 'PAX' in self.meas_type:
+            if self.alternated:
                 bg_aa = self.bg_from(Ph_sel(Aex='Aem'))
                 self.naa[ich] -= bg_aa[ich][period] * width
                 if 'nda' in self:
@@ -2376,7 +2376,7 @@ class Data(DataContainer):
         for nd, na in zip(self.nd, self.na):
             nd += lsb * (np.random.rand(nd.size) - 0.5)
             na += lsb * (np.random.rand(na.size) - 0.5)
-        if self.ALEX or 'PAX' in self.meas_type:
+        if self.alternated:
             for naa in self.naa:
                 naa += lsb * (np.random.rand(naa.size) - 0.5)
             if 'nda' in self:
@@ -2408,7 +2408,7 @@ class Data(DataContainer):
         """
         self.background_correction(mute=mute)
         self.leakage_correction(mute=mute)
-        if self.ALEX or 'PAX' in self.meas_type:
+        if self.alternated:
             self.direct_excitation_correction(mute=mute)
 
     def _update_corrections(self):
@@ -2618,7 +2618,7 @@ class Data(DataContainer):
             self._assert_compact(ph_sel)
 
         kwargs = dict(func=func, func_kw=func_kw, compact=compact)
-        if self.ALEX or 'PAX' in self.meas_type:
+        if self.alternated:
             kwargs.update(alex_period=self.alex_period)
         if compact:
             kwargs.update(excitation_width=self._excitation_width(ph_sel))
@@ -2688,7 +2688,7 @@ class Data(DataContainer):
         if corrections:
             self.corrections(mute=mute)
         self._calculate_fret_eff(pax=pax)
-        if self.ALEX or 'PAX' in self.meas_type:
+        if self.alternated:
             self._calculate_stoich(pax=pax)
             #self._calc_alex_hist()
 
