@@ -1823,8 +1823,8 @@ class Data(DataContainer):
             (m - 1 - c) / (t[last] - t[first]) >= min_rate_cps
 
         Arguments:
-            min_rate_cps (float or array): minimum photon rate for burst start
-                if array if one value per channel.
+            min_rate_cps (float or array): minimum photon rate for burst start.
+                If array is one value per channel.
         """
         bsearch = _get_bsearch_func(pure_python=pure_python)
 
