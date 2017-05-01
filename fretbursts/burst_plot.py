@@ -747,8 +747,8 @@ def _bins_array(bins):
 
 def _hist_burst_taildist(data, bins, pdf,  weights=None, yscale='log',
                          color=None, label=None, plot_style=None):
-    hist = HistData(*np.histogram(data, bins=_bins_array(bins),
-                                  weights=weights))
+    hist = HistData(*np.histogram(data[~np.isnan(data)],
+                                  bins=_bins_array(bins), weights=weights))
     ydata = hist.pdf if pdf else hist.counts
 
     default_plot_style = dict(marker='o')
