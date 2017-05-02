@@ -2051,16 +2051,22 @@ def dplot_1ch(d, func, pgrid=True, ax=None,
     func(d, **kwargs)
     return ax
 
+
 def dplot(d, func, **kwargs):
     """Main plot wrapper for single and multi-spot measurements."""
-    if d.nch == 1:
+    if hasattr(d, '__array__'):
+        nch = d.shape[1]
+    else:
+        nch = d.nch
+    if nch == 1:
         return dplot_1ch(d=d, func=func, **kwargs)
-    elif d.nch == 8:
+    elif nch == 8:
         return dplot_8ch(d=d, func=func, **kwargs)
-    elif d.nch == 16:
+    elif nch == 16:
         return dplot_16ch(d=d, func=func, **kwargs)
-    elif d.nch == 48:
+    elif nch == 48:
         return dplot_48ch(d=d, func=func, **kwargs)
+
 
 ##
 #  ALEX join-plot using seaborn
