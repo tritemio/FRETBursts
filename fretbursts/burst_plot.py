@@ -906,7 +906,7 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
             sizes = d.burst_sizes_ich(ich=i, gamma=gamma, add_naa=add_naa,
                                       beta=beta, donor_ref=donor_ref)
             label = label.format(FD='nd', FA='na')
-        if add_naa:
+            if add_naa:
                 label += " + naa/(g*beta)" if donor_ref else ' + naa/beta'
     else:
         sizes = d[which][i]
@@ -931,6 +931,7 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
     if legend:
         plt.legend(loc='best')
 
+
 def hist_size_all(d, i=0, **kwargs):
     """Plot burst sizes for all the combinations of photons.
 
@@ -950,6 +951,7 @@ def _get_fit_E_text(d, pylab=True):
     fit_text += r'\Delta E_{fit} = %.2f \%%' % delta
     if pylab: fit_text = r'$'+fit_text+r'$'
     return fit_text
+
 
 def _fitted_E_plot(d, i=0, F=1, no_E=False, ax=None, show_model=True,
                    verbose=False, two_gauss_model=False, lw=2.5, color='k',
@@ -976,7 +978,7 @@ def _fitted_E_plot(d, i=0, F=1, no_E=False, ax=None, show_model=True,
             y2 = a2*normpdf(x, m2, s2)
             ax2.plot(x, scale*y1, ls='--', lw=lw, alpha=alpha, color=color)
             ax2.plot(x, scale*y2, ls='--', lw=lw, alpha=alpha, color=color)
-        if fillcolor == None:
+        if fillcolor is None:
             ax2.plot(x, scale*y, lw=lw, alpha=alpha, color=color)
         else:
             ax2.fill_between(x, scale*y, lw=lw, alpha=alpha, edgecolor=color,
@@ -987,8 +989,7 @@ def _fitted_E_plot(d, i=0, F=1, no_E=False, ax=None, show_model=True,
     ax2.axvline(d.E_fit[i], lw=3, color=red, ls='--', alpha=0.6)
     xtext = 0.6 if d.E_fit[i] < 0.6 else 0.2
     if d.nch > 1 and not no_E:
-        ax2.text(xtext, 0.81, "CH%d: $E_{fit} = %.3f$" % \
-                     (i+1, d.E_fit[i]),
+        ax2.text(xtext, 0.81, "CH%d: $E_{fit} = %.3f$" % (i+1, d.E_fit[i]),
                  transform=gca().transAxes, fontsize=16,
                  bbox=dict(boxstyle='round', facecolor='#dedede', alpha=0.5))
 
@@ -1092,8 +1093,8 @@ def hist_burst_data(
     if not hasattr(d, fitter_name) or _is_list_of_arrays(weights) \
             or getattr(d, data_name+'_weights') != weights_tuple:
         if hasattr(d, fitter_name):
-            print(' - Overwriting the old %s object with the new weights.' %\
-                    fitter_name)
+            print(' - Overwriting the old %s object with the new weights.' %
+                  fitter_name)
             if verbose:
                 print('   Old weights:', getattr(d, data_name+'_weights'))
                 print('   New weights:', weights_tuple)
@@ -1735,8 +1736,8 @@ def hist_burst_phrate(d, i=0, bins=(0, 1000, 20), pdf=True, weights=None,
     if hasattr(d, '__array__'):
         max_rate = d
     else:
-    if 'max_rate' not in d:
-        d.calc_max_rate(m=10)
+        if 'max_rate' not in d:
+            d.calc_max_rate(m=10)
         max_rate = d.max_rate
     _hist_burst_taildist(max_rate[i]*1e-3, bins, pdf, weights=weights,
                          color=color, plot_style=plot_style)
