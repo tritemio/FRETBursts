@@ -1895,7 +1895,7 @@ def _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
             ax.axis('off')
             continue
         b = d.mburst[ich] if 'mburst' in d else None
-        if i == 0 and suptitle and hasattr(d, status) and callable(d.status):
+        if i == 0 and suptitle and hasattr(d, 'status') and callable(d.status):
             fig.suptitle(d.status())
         s = '[%d]' % ich
         if 'bg_mean' in d:
