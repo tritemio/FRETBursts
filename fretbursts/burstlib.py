@@ -1065,7 +1065,7 @@ class Data(DataContainer):
             burst_size_dex = self.nd[ich] * gamma + self.na[ich]
             burst_size_aex = (self.nda[ich] * gamma + self.na[ich] +
                               A_laser_weight * (self.naa[ich] - self.nar[ich]) /
-                              gamma)
+                              beta)
         burst_size = burst_size_dex
         if add_aex:
             burst_size += burst_size_aex
@@ -2711,25 +2711,27 @@ class Data(DataContainer):
     def _calculate_stoich(self, pax=False):
         """Compute "stoichiometry" (the `S` parameter) for each burst."""
         G = self.get_gamma_array()
+        naa = self.naa
+        if 'PAX' in self.meas_type:
+            # in PAX self.naa contains the total Aem signal due to both lasers
+            # during the A-excitation period. Since the A-emission due
+            # D laser (na) is the same in both D and A excitation periods
+            # (except for statistical fluctuations and dynamics), we can
+            # compute the A-emission due to A laser (naa~) as:
+            #     naa~ = naa - nar
+            # were `nar` is `na` before leakage and direct-excitation
+            # corrections. The quantity `naa~`` in PAX is equivalent to `naa`
+            # in usALEX.
+            naa = [aa - ar for aa, ar in zip(self.naa, self.nar)]
         if not pax:
-            naa = self.naa
-            if 'PAX' in self.meas_type:
-                # in PAX self.naa contains the total Aem signal due to both lasers
-                # during the A-excitation period. Since the A-emission due
-                # D laser (na) is the same in both D and A excitation periods
-                # (except for statistical fluctuations and dynamics), we can
-                # compute the A-emission due to A laser (naa~) as:
-                #     naa~ = naa - nar
-                # were nar is na before leakage an direct-excitation correction.
-                # The quantity naa~ in PAX is equivalent to naa in usALEX.
-                naa = [aa - ar for aa, ar in zip(self.naa, self.nar)]
             S = [(g * d + a) / (g * d + a + aa / self.beta) for d, a, aa, g in
                  zip(self.nd, self.na, naa, G)]
         else:
-            S = [(g * (d + da) + 2 * a) / (g * (d + da) + 2 * aa)
+            # This is a PAX-enhanced formula which uses information
+            # from both alternation periods in order to compute S
+            S = [(g * (d + da) + 2 * a) / (g * (d + da) + 2 * a + 2 * aa)
                  for d, a, da, aa, g in
-                 zip(self.nd, self.na, self.nda, self.naa, G)]
-
+                 zip(self.nd, self.na, self.nda, naa, G)]
         self.add(S=S)
 
     def _calc_alex_hist(self, binwidth=0.05):

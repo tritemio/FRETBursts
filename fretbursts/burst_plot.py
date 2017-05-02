@@ -890,16 +890,24 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
     which_dict = {'all': 'k', 'nd': green, 'na': red, 'naa': purple}
     assert which in which_dict
     if which == 'all':
+        label = '{FD} + {FA}/g' if donor_ref else 'g*{FD} + {FA}'
         if 'PAX' in d.meas_type:
             sizes = d.burst_sizes_pax_ich(ich=i, gamma=gamma, add_aex=add_naa,
                                           A_laser_weight=A_laser_weight,
                                           beta=beta, donor_ref=donor_ref)
+            if not add_aex:
+                label = label.format(FD='nd', FA='na')
+            else:
+                label.format(FD='(nd + nda)', FA='2 * na')
+                aex = 'Aex_weight * (naa - nar)/{coor}'
+                corr = '(g * beta)' if donor_ref else 'beta'
+                label += aex.format(corr=corr)
         else:
             sizes = d.burst_sizes_ich(ich=i, gamma=gamma, add_naa=add_naa,
                                       beta=beta, donor_ref=donor_ref)
-        label = 'nd + na/g' if donor_ref else 'g*nd + na'
-        if add_naa:
-            label += " + naa/(b*g)" if donor_ref else ' + naa/b'
+            label = label.format(FD='nd', FA='na')
+            if add_naa:
+                label += " + naa/(g*beta)" if donor_ref else ' + naa/beta'
     else:
         sizes = d[which][i]
         label = which
@@ -923,6 +931,7 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
     if legend:
         plt.legend(loc='best')
 
+
 def hist_size_all(d, i=0, **kwargs):
     """Plot burst sizes for all the combinations of photons.
 
@@ -942,6 +951,7 @@ def _get_fit_E_text(d, pylab=True):
     fit_text += r'\Delta E_{fit} = %.2f \%%' % delta
     if pylab: fit_text = r'$'+fit_text+r'$'
     return fit_text
+
 
 def _fitted_E_plot(d, i=0, F=1, no_E=False, ax=None, show_model=True,
                    verbose=False, two_gauss_model=False, lw=2.5, color='k',
@@ -968,7 +978,7 @@ def _fitted_E_plot(d, i=0, F=1, no_E=False, ax=None, show_model=True,
             y2 = a2*normpdf(x, m2, s2)
             ax2.plot(x, scale*y1, ls='--', lw=lw, alpha=alpha, color=color)
             ax2.plot(x, scale*y2, ls='--', lw=lw, alpha=alpha, color=color)
-        if fillcolor == None:
+        if fillcolor is None:
             ax2.plot(x, scale*y, lw=lw, alpha=alpha, color=color)
         else:
             ax2.fill_between(x, scale*y, lw=lw, alpha=alpha, edgecolor=color,
@@ -979,8 +989,7 @@ def _fitted_E_plot(d, i=0, F=1, no_E=False, ax=None, show_model=True,
     ax2.axvline(d.E_fit[i], lw=3, color=red, ls='--', alpha=0.6)
     xtext = 0.6 if d.E_fit[i] < 0.6 else 0.2
     if d.nch > 1 and not no_E:
-        ax2.text(xtext, 0.81, "CH%d: $E_{fit} = %.3f$" % \
-                     (i+1, d.E_fit[i]),
+        ax2.text(xtext, 0.81, "CH%d: $E_{fit} = %.3f$" % (i+1, d.E_fit[i]),
                  transform=gca().transAxes, fontsize=16,
                  bbox=dict(boxstyle='round', facecolor='#dedede', alpha=0.5))
 
@@ -1084,8 +1093,8 @@ def hist_burst_data(
     if not hasattr(d, fitter_name) or _is_list_of_arrays(weights) \
             or getattr(d, data_name+'_weights') != weights_tuple:
         if hasattr(d, fitter_name):
-            print(' - Overwriting the old %s object with the new weights.' %\
-                    fitter_name)
+            print(' - Overwriting the old %s object with the new weights.' %
+                  fitter_name)
             if verbose:
                 print('   Old weights:', getattr(d, data_name+'_weights'))
                 print('   New weights:', weights_tuple)
@@ -1724,9 +1733,13 @@ def hist_burst_phrate(d, i=0, bins=(0, 1000, 20), pdf=True, weights=None,
     """Histogram of max photon rate in each burst.
     """
     weights = weights[i] if weights is not None else None
-    if 'max_rate' not in d:
-        d.calc_max_rate(m=10)
-    _hist_burst_taildist(d.max_rate[i]*1e-3, bins, pdf, weights=weights,
+    if hasattr(d, '__array__'):
+        max_rate = d
+    else:
+        if 'max_rate' not in d:
+            d.calc_max_rate(m=10)
+        max_rate = d.max_rate
+    _hist_burst_taildist(max_rate[i]*1e-3, bins, pdf, weights=weights,
                          color=color, plot_style=plot_style)
     plt.xlabel('Peak rate (kcps)')
 
