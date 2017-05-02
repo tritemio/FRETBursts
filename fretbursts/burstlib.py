@@ -2711,7 +2711,6 @@ class Data(DataContainer):
     def _calculate_stoich(self, pax=False):
         """Compute "stoichiometry" (the `S` parameter) for each burst."""
         G = self.get_gamma_array()
-        if not pax:
         naa = self.naa
         if 'PAX' in self.meas_type:
             # in PAX self.naa contains the total Aem signal due to both lasers
@@ -2720,16 +2719,19 @@ class Data(DataContainer):
             # (except for statistical fluctuations and dynamics), we can
             # compute the A-emission due to A laser (naa~) as:
             #     naa~ = naa - nar
-                # were nar is na before leakage an direct-excitation correction.
-                # The quantity naa~ in PAX is equivalent to naa in usALEX.
+            # were `nar` is `na` before leakage and direct-excitation
+            # corrections. The quantity `naa~`` in PAX is equivalent to `naa`
+            # in usALEX.
             naa = [aa - ar for aa, ar in zip(self.naa, self.nar)]
+        if not pax:
             S = [(g * d + a) / (g * d + a + aa / self.beta) for d, a, aa, g in
                  zip(self.nd, self.na, naa, G)]
         else:
-            S = [(g * (d + da) + 2 * a) / (g * (d + da) + 2 * aa)
+            # This is a PAX-enhanced formula which uses information
+            # from both alternation periods in order to compute S
+            S = [(g * (d + da) + 2 * a) / (g * (d + da) + 2 * a + 2 * aa)
                  for d, a, da, aa, g in
-                 zip(self.nd, self.na, self.nda, self.naa, G)]
-
+                 zip(self.nd, self.na, self.nda, naa, G)]
         self.add(S=S)
 
     def _calc_alex_hist(self, binwidth=0.05):
