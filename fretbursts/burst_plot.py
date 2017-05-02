@@ -1732,9 +1732,13 @@ def hist_burst_phrate(d, i=0, bins=(0, 1000, 20), pdf=True, weights=None,
     """Histogram of max photon rate in each burst.
     """
     weights = weights[i] if weights is not None else None
+    if hasattr(d, '__array__'):
+        max_rate = d
+    else:
     if 'max_rate' not in d:
         d.calc_max_rate(m=10)
-    _hist_burst_taildist(d.max_rate[i]*1e-3, bins, pdf, weights=weights,
+        max_rate = d.max_rate
+    _hist_burst_taildist(max_rate[i]*1e-3, bins, pdf, weights=weights,
                          color=color, plot_style=plot_style)
     plt.xlabel('Peak rate (kcps)')
 
