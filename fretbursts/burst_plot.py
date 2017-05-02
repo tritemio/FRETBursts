@@ -890,16 +890,24 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
     which_dict = {'all': 'k', 'nd': green, 'na': red, 'naa': purple}
     assert which in which_dict
     if which == 'all':
+        label = '{FD} + {FA}/g' if donor_ref else 'g*{FD} + {FA}'
         if 'PAX' in d.meas_type:
             sizes = d.burst_sizes_pax_ich(ich=i, gamma=gamma, add_aex=add_naa,
                                           A_laser_weight=A_laser_weight,
                                           beta=beta, donor_ref=donor_ref)
+            if not add_aex:
+                label = label.format(FD='nd', FA='na')
+            else:
+                label.format(FD='(nd + nda)', FA='2 * na')
+                aex = 'Aex_weight * (naa - nar)/{coor}'
+                corr = '(g * beta)' if donor_ref else 'beta'
+                label += aex.format(corr=corr)
         else:
             sizes = d.burst_sizes_ich(ich=i, gamma=gamma, add_naa=add_naa,
                                       beta=beta, donor_ref=donor_ref)
-        label = 'nd + na/g' if donor_ref else 'g*nd + na'
+            label = label.format(FD='nd', FA='na')
         if add_naa:
-            label += " + naa/(b*g)" if donor_ref else ' + naa/b'
+                label += " + naa/(g*beta)" if donor_ref else ' + naa/beta'
     else:
         sizes = d[which][i]
         label = which
