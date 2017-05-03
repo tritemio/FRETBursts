@@ -899,7 +899,7 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
                 label = label.format(FD='nd', FA='na')
             else:
                 label.format(FD='(nd + nda)', FA='2 * na')
-                aex = 'Aex_weight * (naa - nar)/{coor}'
+                aex = 'Aex_weight * (naa - nar)/{corr}'
                 corr = '(g * beta)' if donor_ref else 'beta'
                 label += aex.format(corr=corr)
         else:
