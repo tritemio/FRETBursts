@@ -272,25 +272,51 @@ def plot_alternation_hist_nsalex(d, bins=None, ax=None, ich=0,
 ##
 #  Timetrace plots
 #
-def _plot_bursts(d, i, t_max_clk, pmax=1e3, pmin=0, color="#999999"):
+
+def _burst_info(d, ich, burst_index):
+    burst = d.mburst[ich][burst_index]
+    params = dict(
+        b_index=burst_index,
+        start_ms=float(burst.start) * d.clk_p * 1e3,
+        width_ms=float(burst.width) * d.clk_p * 1e3,
+        nt=d.nt[ich][burst_index],
+        nd=d.nd[ich][burst_index],
+        na=d.na[ich][burst_index],
+        E=d.E[ich][burst_index])
+    msg = ("[{b_index}]: w={width_ms:4.2f} ms\n"
+           "size=(T{nt:3.0f}, D{nd:3.0f}, A{na:3.0f}")
+    if d.alternated:
+        msg += ", AA{naa:3.0f}"
+        params['naa'] = d.naa[ich][burst_index]
+    msg += ")\n   E={E:4.2%}"
+    if d.alternated:
+        msg += "   S={S:4.2%}"
+        params['S'] = d.S[ich][burst_index]
+    return msg.format(**params)
+
+
+def _plot_bursts(d, i, tmin_clk, tmax_clk, pmax=1e3, pmin=0, color="#999999"):
     """Highlights bursts in a timetrace plot."""
     b = d.mburst[i]
     if b.num_bursts == 0:
         return
-    pprint("CH %d burst..." % (i + 1))
-    bs = b[b.start < t_max_clk]
+    burst_mask = (tmin_clk < b.start) * (b.start < tmax_clk)
+    bs = b[burst_mask]
+    burst_indices = np.where(burst_mask)[0]
     start = bs.start * d.clk_p
     end = bs.stop * d.clk_p
     R = []
     width = end - start
     ax = gca()
-    for s, w in zip(start, width):
+    for b, bidx, s, w in zip(bs, burst_indices, start, width):
         r = Rectangle(xy=(s, pmin), height=pmax - pmin, width=w)
         r.set_clip_box(ax.bbox)
         r.set_zorder(0)
         R.append(r)
+        ax.text(s, -20, _burst_info(d, i, bidx), fontsize=6, rotation=45,
+                horizontalalignment='center')
     ax.add_artist(PatchCollection(R, lw=0, color=color))
-    pprint("[DONE]\n")
+
 
 def _plot_rate_th(d, i, F, ph_sel, invert=False, scale=1,
                   plot_style_={}, rate_th_style={}):
@@ -395,9 +421,8 @@ def timetrace_single(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
 
     # Plot bursts
     if bursts:
-        t_max_clk = int(tmax / d.clk_p)
-        print(burst_color)
-        _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500, color=burst_color)
+        _plot_bursts(d, i, tmin_clk, tmax_clk, pmax=500, pmin=-500,
+                     color=burst_color)
 
     # Plot timetrace
     plot_style_ = dict(linestyle='-', linewidth=1.2, marker=None)
@@ -474,8 +499,9 @@ def timetrace(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
     """
     # Plot bursts
     if bursts:
-        t_max_clk = int(tmax / d.clk_p)
-        _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500, color=burst_color)
+        tmin_clk, tmax_clk = tmin / d.clk_p, tmax / d.clk_p
+        _plot_bursts(d, i, tmin_clk, tmax_clk, pmax=500, pmin=-500,
+                     color=burst_color)
 
     # Plot multiple timetraces
     ph_sel_list = [Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
@@ -518,13 +544,13 @@ def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
     if m is None:
         m = d.m if m in d else 10
 
+    tmin_clk, tmax_clk = tmin/d.clk_p, tmax/d.clk_p
     # Plot bursts
     if bursts:
-        t_max_clk = int(tmax/d.clk_p)
-        _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500, color=burst_color)
+        _plot_bursts(d, i, tmin_clk, tmax_clk, pmax=500, pmin=-500,
+                     color=burst_color)
 
     # Compute ratetrace
-    tmin_clk, tmax_clk = tmin/d.clk_p, tmax/d.clk_p
     ph_times = d.get_ph_times(i, ph_sel=ph_sel)
     iph1 = np.searchsorted(ph_times, tmin_clk)
     iph2 = np.searchsorted(ph_times, tmax_clk)
@@ -606,11 +632,11 @@ def ratetrace(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
         burst_color (string): string containing the the HEX RGB color to use
             to highlight the burst regions.
     """
-
     # Plot bursts
     if bursts:
-        t_max_clk = int(tmax/d.clk_p)
-        _plot_bursts(d, i, t_max_clk, pmax=500, pmin=-500, color=burst_color)
+        tmin_clk, tmax_clk = tmin / d.clk_p, tmax / d.clk_p
+        _plot_bursts(d, i, tmin_clk, tmax_clk, pmax=500, pmin=-500,
+                     color=burst_color)
 
     # Plot multiple timetraces
     ph_sel_list = [Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
