@@ -777,6 +777,7 @@ def join_data(d_list, gap=0):
 
     return new_d
 
+
 def burst_search_and_gate(dx, F=6, m=10, min_rate_cps=None, c=-1,
                           ph_sel1=Ph_sel(Dex='DAem'),
                           ph_sel2=Ph_sel(Aex='Aem'), compact=False, mute=False):
@@ -814,6 +815,7 @@ def burst_search_and_gate(dx, F=6, m=10, min_rate_cps=None, c=-1,
     dx_d = dx.copy(mute=mute)
     dx_a = dx.copy(mute=mute)
     dx_and = dx.copy(mute=mute)
+    dx_and.delete_burst_data()
 
     dx_d.burst_search(L=m, m=m, F=F, min_rate_cps=min_rate_cps, c=c,
                       ph_sel=ph_sel1, compact=compact, computefret=False,
