@@ -701,7 +701,7 @@ def timetrace_fret_scatter(d, i=0, gamma=1., **kwargs):
     xlabel('Time (s)'); ylabel('E')
 
 
-def timetrace_bg(d, i=0, nolegend=False, ncol=2, plot_style={}):
+def timetrace_bg(d, i=0, nolegend=False, ncol=2, plot_style={}, show_da=False):
     """Timetrace of background rates."""
     bg = d.bg_from(Ph_sel('all'))
     bg_dd = d.bg_from(Ph_sel(Dex='Dem'))
@@ -719,9 +719,16 @@ def timetrace_bg(d, i=0, nolegend=False, ncol=2, plot_style={}):
         bg_aa = d.bg_from(Ph_sel(Aex='Aem'))
         label = "AA: %d cps" % d.bg_mean[Ph_sel(Aex='Aem')][i]
         plot(t, 1e-3 * bg_aa[i], label=label, color=purple, **plot_style_)
+        if show_da:
+            bg_da = d.bg_from(Ph_sel(Aex='Dem'))
+            label = "DA: %d cps" % d.bg_mean[Ph_sel(Aex='Dem')][i]
+            plot(t, 1e-3 * bg_da[i], label=label,
+                 color=_ph_sel_color_dict[Ph_sel(Aex='Dem')], **plot_style_)
     if not nolegend:
         legend(loc='best', frameon=False, ncol=ncol)
-    xlabel("Time (s)"); ylabel("BG rate (kcps)"); grid(True)
+    plt.xlabel("Time (s)")
+    plt.ylabel("BG rate (kcps)")
+    plt.grid(True)
     plt.ylim(ymin=0)
 
 
