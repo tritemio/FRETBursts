@@ -482,7 +482,7 @@ def timetrace(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
     invert_list = [False, True]
     burst_picker_list = [burst_picker, False]
     scroll_list = [scroll, False]
-    if d.ALEX and show_aa:
+    if d.alternated and show_aa:
         ph_sel_list.append(Ph_sel(Aex='Aem'))
         invert_list.append(True)
         burst_picker_list.append(False)
