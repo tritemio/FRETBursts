@@ -643,7 +643,7 @@ def ratetrace(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
     invert_list = [False, True]
     burst_picker_list = [burst_picker, False]
     scroll_list = [scroll, False]
-    if d.ALEX and show_aa:
+    if d.alternated and show_aa:
         ph_sel_list.append(Ph_sel(Aex='Aem'))
         invert_list.append(True)
         burst_picker_list.append(False)
@@ -715,7 +715,7 @@ def timetrace_bg(d, i=0, nolegend=False, ncol=2, plot_style={}):
     plot(t, 1e-3 * bg_dd[i], color=green, label=label, **plot_style_)
     label = "AD: %d cps" % d.bg_mean[Ph_sel(Dex='Aem')][i]
     plot(t, 1e-3 * bg_ad[i], color=red, label=label, **plot_style_)
-    if d.ALEX:
+    if d.alternated:
         bg_aa = d.bg_from(Ph_sel(Aex='Aem'))
         label = "AA: %d cps" % d.bg_mean[Ph_sel(Aex='Aem')][i]
         plot(t, 1e-3 * bg_aa[i], label=label, color=purple, **plot_style_)
@@ -964,7 +964,7 @@ def hist_size_all(d, i=0, **kwargs):
     Calls :func:`hist_size` multiple times with different `which` parameters.
     """
     fields = ['all', 'nd', 'na']
-    if d.ALEX:
+    if d.alternated:
         fields.append('naa')
     for which in fields:
         hist_size(d, i, which=which, **kwargs)
@@ -1513,7 +1513,7 @@ def hist_interphoton(d, i=0, binwidth=1e-4, tmax=None, bins=None, period=None,
     """
     # Plot multiple timetraces
     ph_sel_list = [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
-    if d.ALEX:
+    if d.alternated:
         ph_sel_list.append(Ph_sel(Aex='Aem'))
         if show_da:
             ph_sel_list.append(Ph_sel(Aex='Dem'))
@@ -1602,7 +1602,7 @@ def hist_bg(d, i=0, binwidth=1e-4, tmax=0.01, bins=None, period=0,
     """
     # Plot multiple timetraces
     ph_sel_list = [Ph_sel('all'), Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
-    if d.ALEX:
+    if d.alternated:
         ph_sel_list.append(Ph_sel(Aex='Aem'))
         if show_da:
             ph_sel_list.append(Ph_sel(Aex='Dem'))
