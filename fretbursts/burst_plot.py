@@ -1570,7 +1570,8 @@ def hist_bg_single(d, i=0, binwidth=1e-4, tmax=0.01, bins=None,
             bg_rate = manual_rate
         else:
             bg_rate = d.bg_from(ph_sel)[i][period]
-        tau_th = bg_rate * 1e-6
+        # with 4 the tau_th cuts enough tail most of the times
+        tau_th = bg_rate * 1e-6 / 4
 
         i_tau_th = np.searchsorted(hist['t_ax'], tau_th)
         counts_integral = hist['counts'][i_tau_th:].sum()
