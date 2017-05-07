@@ -2163,7 +2163,7 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='Spectral_r', kind='hex',
                    vmax_fret=True, vmax_threshold=10,
                    vmin_default=0, vmin=None, cmap_compensate=False,
                    joint_kws=None, marginal_kws=None, histcolor_id=0,
-                   rightside_text=False):
+                   rightside_text=False, E_name='E', S_name='S'):
     """Plot an ALEX join plot: an E-S 2D histograms with marginal E and S.
 
     This function plots a jointplot: a main 2D histogram (hexbin plot)
@@ -2201,6 +2201,12 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='Spectral_r', kind='hex',
         rightside_text (bool): when True, print the measurement name on
             the right side of the figure. When False (default) no additional
             text is printed.
+        E_name, S_name (string): name of the `Data` attribute to be used for
+            E and S. The default is 'E' and 'S' respectively. These arguments
+            are used when adding your own cutom E or S attributes to Data
+            using `Data.add`. In this case, you can specify the name of
+            these custom attributes so that they can be plotted as an E-S
+            histogram.
 
     .. seealso::
         The `Seaborn documentation <http://web.stanford.edu/~mwaskom/software/seaborn/index.html>`__
@@ -2210,7 +2216,7 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='Spectral_r', kind='hex',
         * http://web.stanford.edu/~mwaskom/software/seaborn/generated/seaborn.JointGrid.html
 
     """
-    g = sns.JointGrid(x=d.E[i], y=d.S[i], ratio=3, space=0.2,
+    g = sns.JointGrid(x=d[E_name][i], y=d[S_name][i], ratio=3, space=0.2,
                       xlim=(-0.2, 1.2), ylim=(-0.2, 1.2))
 
     histcolor = sns.color_palette(cmap, 12)[histcolor_id]
