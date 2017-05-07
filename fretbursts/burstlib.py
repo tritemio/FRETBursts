@@ -2355,7 +2355,7 @@ class Data(DataContainer):
                 continue  # if no bursts skip this ch
             naa = self.naa[i]
             if 'PAX' in self.meas_type:
-                naa -= self.nar[i]
+                naa = naa - self.nar[i]  # do not modify inplace
             self.na[i] -= naa * self.dir_ex
             self.nt[i] = self.nd[i] + self.na[i]
             if self.ALEX:
