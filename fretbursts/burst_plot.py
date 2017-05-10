@@ -1923,9 +1923,10 @@ def _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
     for i, ich in enumerate(iter_ch):
         ax = AX.ravel()[i]
         if ich in skip_ch:
+            ax.grid(grid)
             continue
         b = d.mburst[ich] if 'mburst' in d else None
-        if i == 0 and suptitle and hasattr(d, 'status') and callable(d.status):
+        if suptitle and i == 0 and hasattr(d, 'status') and callable(d.status):
             fig.suptitle(d.status())
         if title:
             s = '[%d]' % ich
@@ -1934,7 +1935,6 @@ def _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
             if b is not None:
                 s += (', #bu=%d' % b.num_bursts)
             ax.set_title(s)
-        ax.grid(grid)
         plt.sca(ax)
         gui_status['first_plot_in_figure'] = (i == 0)
         func(d, ich, **kwargs)
