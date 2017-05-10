@@ -168,7 +168,7 @@ from .utils import git
 
 
 def init_notebook(fs=13, savefig_dpi=65, seaborn_style='darkgrid',
-                  mpl_backend='inline', configure_logger=True):
+                  mpl_backend='inline', configure_logger=True, apionly=False):
     """
     Set the default plot style for inline plots using the seaborn library.
 
@@ -197,24 +197,26 @@ def init_notebook(fs=13, savefig_dpi=65, seaborn_style='darkgrid',
         ip = get_ipython()
         ip.enable_matplotlib(mpl_backend)
 
-    import seaborn as sns
-
-    rc={'font.size': fs, 'axes.labelsize': fs, 'legend.fontsize': fs,
-        'axes.titlesize': fs*1.1,
-        'xtick.labelsize': fs, 'ytick.labelsize': fs,
-        'savefig.dpi': savefig_dpi,
-        'font.sans-serif': ['Arial', 'Liberation Sans'],
-    }
-    sns.set(rc=rc)
-    blue = '#0055d4'
-    green = '#2ca02c'
-    color_brewer = sns.color_palette("Set1", 9)
-    colors = np.array(color_brewer)[(1,0,2,3,4,8,6,7), :]
-    colors = list(colors)
-    colors[:3] = (blue, colors[1], green)
-    sns.set_palette(colors, 8)
-    sns.colors = colors
-    sns.set_style(seaborn_style)
+    if apionly:
+        import seaborn.apionly as sns
+    else:
+        import seaborn as sns
+        rc={'font.size': fs, 'axes.labelsize': fs, 'legend.fontsize': fs,
+            'axes.titlesize': fs*1.1,
+            'xtick.labelsize': fs, 'ytick.labelsize': fs,
+            'savefig.dpi': savefig_dpi,
+            'font.sans-serif': ['Arial', 'Liberation Sans'],
+        }
+        sns.set(rc=rc)
+        blue = '#0055d4'
+        green = '#2ca02c'
+        color_brewer = sns.color_palette("Set1", 9)
+        colors = np.array(color_brewer)[(1,0,2,3,4,8,6,7), :]
+        colors = list(colors)
+        colors[:3] = (blue, colors[1], green)
+        sns.set_palette(colors, 8)
+        sns.colors = colors
+        sns.set_style(seaborn_style)
     return sns
 
 citation()
