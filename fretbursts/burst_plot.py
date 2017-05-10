@@ -1329,23 +1329,22 @@ def hist2d_alex(d, i=0, vmin=2, vmax=0, binwidth=0.05, S_max_norm=0.8,
         # the selection object must be saved (otherwise will be destroyed)
         hist2d_alex.gui_sel = gs.rectSelection(gcf(), gca())
 
-def hexbin_alex(d, i=0, figsize=(6, 5), vmin=0, vmax_fret=True, gridsize=40,
-                **hexbin_kwargs):
+
+def hexbin_alex(d, i=0, vmin=0, vmax=None, gridsize=80,
+                cmap='Spectral_r', **hexbin_kwargs):
     """Plot an hexbin 2D histogram for E-S.
     """
-    fig = plt.gcf()
-    fig.set_size_inches(*figsize)
-
-    hexbin_kwargs_ = dict(extent=(-0.2, 1.2, -0.2, 1.2), gridsize=gridsize,
-                          mincnt=1, cmap='GnBu_r')
+    if d.num_bursts[i] < 1:
+        return
+    hexbin_kwargs_ = dict(edgecolor='none', linewidth=0.2, gridsize=gridsize,
+                          cmap=cmap, extent=(-0.2, 1.2, -0.2, 1.2), mincnt=1)
     if hexbin_kwargs is not None:
-        hexbin_kwargs_.update(hexbin_kwargs)
+        hexbin_kwargs_.update(_normalize_kwargs(hexbin_kwargs))
     poly = plt.hexbin(d.E[i], d.S[i], **hexbin_kwargs_)
-    vmax = _alex_hexbin_vmax(poly, vmax_fret=vmax_fret)
     poly.set_clim(vmin, vmax)
     plt.xlabel('E')
     plt.ylabel('S')
-    plt.colorbar()
+
 
 def plot_ES_selection(ax, E1, E2, S1, S2, rect=True, **kwargs):
     """Plot an overlay ROI on top of an E-S plot (i.e. ALEX histogram).
@@ -1924,7 +1923,6 @@ def _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
     for i, ich in enumerate(iter_ch):
         ax = AX.ravel()[i]
         if ich in skip_ch:
-            ax.axis('off')
             continue
         b = d.mburst[ich] if 'mburst' in d else None
         if i == 0 and suptitle and hasattr(d, 'status') and callable(d.status):
