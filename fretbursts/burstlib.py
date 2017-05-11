@@ -2328,6 +2328,7 @@ class Data(DataContainer):
         """
         if self.leakage_corrected:
             return -1
+        elif self.leakage != 0:
         pprint("   - Applying leakage correction.\n", mute)
         Lk = self.get_leakage_array()
         for i, num_bursts in enumerate(self.num_bursts):
@@ -2339,7 +2340,6 @@ class Data(DataContainer):
                 self.nt[i] += self.naa[i]
             elif 'PAX' in self.meas_type:
                 self.nt[i] += (self.nda[i] + self.naa[i])
-
         self.add(leakage_corrected=True)
 
     def direct_excitation_correction(self, mute=False):
@@ -2349,6 +2349,7 @@ class Data(DataContainer):
         """
         if self.dir_ex_corrected:
             return -1
+        elif self.dir_ex != 0:
         pprint("   - Applying direct excitation correction.\n", mute)
         for i, num_bursts in enumerate(self.num_bursts):
             if num_bursts == 0:
@@ -2384,20 +2385,18 @@ class Data(DataContainer):
                     nda += lsb * (np.random.rand(nda.size) - 0.5)
         self.add(lsb=lsb)
 
-    def calc_chi_ch(self):
+    def calc_chi_ch(self, E):
         """Calculate the gamma correction prefactor factor `chi_ch` (array).
 
-        `chi_ch` is a ch-dependent prefactor for gamma used to correct
-        the dispersion of fitted E peaks (`E_fit`).
-        This method returns `chi_ch`. To apply the correction assign the array
-        to the `Data.chi_ch` attribute.
-        """
-        if 'E_fit' not in self:
-            print("ERROR: E_fit values not found. Call a `.fit_E_*` first.")
-            return
+        Computes `chi_ch`, a channel-dependent prefactor for gamma used
+        to correct dispersion of E across channels.
 
-        EE = self.E_fit.mean()  # Mean E value among the CH
-        chi_ch = (1 / EE - 1) / (1 / self.E_fit - 1)
+        Returns:
+            array of `chi_ch` correction factors (one per spot).
+            To apply the correction assign the returned array to `Data.chi_ch`.
+            Upon assignment E values for all bursts will be corrected.
+        """
+        chi_ch = (1 / E.mean() - 1) / (1 / E - 1)
         return chi_ch
 
     def corrections(self, mute=False):
