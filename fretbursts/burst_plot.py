@@ -772,7 +772,7 @@ def _bins_array(bins):
 
 
 def _hist_burst_taildist(data, bins, pdf, weights=None, yscale='log',
-                         color=None, label=None, plot_style=None):
+                         color=None, label=None, plot_style=None, vline=None):
     hist = HistData(*np.histogram(data[~np.isnan(data)],
                                   bins=_bins_array(bins), weights=weights))
     ydata = hist.pdf if pdf else hist.counts
@@ -786,6 +786,8 @@ def _hist_burst_taildist(data, bins, pdf, weights=None, yscale='log',
         plot_style['label'] = label
     default_plot_style.update(_normalize_kwargs(plot_style, kind='line2d'))
     plt.plot(hist.bincenters, ydata, **default_plot_style)
+    if vline is not None:
+        plt.axvline(vline, ls='--')
     plt.yscale(yscale)
     if pdf:
         plt.ylabel('PDF')
@@ -794,7 +796,7 @@ def _hist_burst_taildist(data, bins, pdf, weights=None, yscale='log',
 
 
 def hist_width(d, i=0, bins=(0, 10, 0.025), pdf=True, weights=None,
-               yscale='log', color=None, plot_style=None):
+               yscale='log', color=None, plot_style=None, vline=None):
     """Plot histogram of burst durations.
 
     Parameters:
@@ -806,11 +808,13 @@ def hist_width(d, i=0, bins=(0, 10, 0.025), pdf=True, weights=None,
         color (string or tuple or None): matplotlib color used for the plot.
         yscale (string): 'log' or 'linear', sets the plot y scale.
         plot_style (dict): dict of matplotlib line style passed to `plot`.
+        vline (float): If not None, plot vertical line at the specified x
+            position.
     """
     weights = weights[i] if weights is not None else None
     burst_widths = d.mburst[i].width * d.clk_p * 1e3
 
-    _hist_burst_taildist(burst_widths, bins, pdf, weights=weights,
+    _hist_burst_taildist(burst_widths, bins, pdf, weights=weights, vline=vline,
                          yscale=yscale, color=color, plot_style=plot_style)
     plt.xlabel('Burst width (ms)')
     plt.xlim(xmin=0)
@@ -819,7 +823,7 @@ def hist_width(d, i=0, bins=(0, 10, 0.025), pdf=True, weights=None,
 def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, weights=None,
                     yscale='log', gamma=1, add_naa=False, beta=1.,
                     donor_ref=True, add_aex=True, A_laser_weight=1,
-                    label_prefix=None, color=None, plot_style=None):
+                    label_prefix=None, color=None, plot_style=None, vline=None):
     """Plot histogram of burst brightness, i.e. burst size / duration.
 
     Parameters:
@@ -843,19 +847,21 @@ def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, weights=None,
         pdf (bool): if True, normalize the histogram to obtain a PDF.
         yscale (string): 'log' or 'linear', sets the plot y scale.
         plot_style (dict): dict of matplotlib line style passed to `plot`.
+        vline (float): If not None, plot vertical line at the specified x
+            position.
     """
     weights = weights[i] if weights is not None else None
     if plot_style is None:
         plot_style = {}
 
-    burst_widths = d.mburst[i].width*d.clk_p*1e3
+    burst_widths = d.mburst[i].width * d.clk_p * 1e3
     if 'PAX' in d.meas_type:
         sizes = d.burst_sizes_pax_ich(ich=i, gamma=gamma, beta=beta,
                                       donor_ref=donor_ref, add_aex=add_aex,
                                       A_laser_weight=A_laser_weight)
     else:
-        sizes = d.burst_sizes_ich(ich=i, gamma=gamma, beta=beta, add_naa=add_naa,
-                                  donor_ref=donor_ref)
+        sizes = d.burst_sizes_ich(ich=i, gamma=gamma, beta=beta,
+                                  add_naa=add_naa, donor_ref=donor_ref)
     brightness = sizes / burst_widths
     label = 'nd + na/g' if donor_ref else 'g*nd + na'
     if add_naa:
@@ -869,7 +875,7 @@ def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, weights=None,
     if 'label' not in plot_style:
         plot_style['label'] = label
 
-    _hist_burst_taildist(brightness, bins, pdf, weights=weights,
+    _hist_burst_taildist(brightness, bins, pdf, weights=weights, vline=vline,
                          yscale=yscale, color=color, plot_style=plot_style)
     plt.xlabel('Burst brightness (kHz)')
     plt.legend(loc='best')
@@ -877,7 +883,7 @@ def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, weights=None,
 
 def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
               yscale='log', gamma=1, add_naa=False, beta=1, donor_ref=True,
-              add_aex=True, A_laser_weight=1,
+              add_aex=True, A_laser_weight=1, vline=None,
               label_prefix=None, legend=True, color=None, plot_style=None):
     """Plot histogram of burst sizes.
 
@@ -909,6 +915,8 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
         yscale (string): 'log' or 'linear', sets the plot y scale.
         legend (bool): if True add legend to plot
         plot_style (dict): dict of matplotlib line style passed to `plot`.
+        vline (float): If not None, plot vertical line at the specified x
+            position.
     """
     weights = weights[i] if weights is not None else None
     if plot_style is None:
@@ -952,7 +960,7 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
         plot_style['color'] = color
 
     _hist_burst_taildist(sizes, bins, pdf, weights=weights, yscale=yscale,
-                         plot_style=plot_style)
+                         plot_style=plot_style, vline=vline)
     plt.xlabel('Burst size')
     if legend:
         plt.legend(loc='best')
@@ -1745,7 +1753,7 @@ def hist_sbr(d, i=0, bins=(0, 30, 1), pdf=True, weights=None, color=None,
 
 
 def hist_burst_phrate(d, i=0, bins=(0, 1000, 20), pdf=True, weights=None,
-                      color=None, plot_style=None):
+                      color=None, plot_style=None, vline=None):
     """Histogram of max photon rate in each burst.
     """
     weights = weights[i] if weights is not None else None
@@ -1755,8 +1763,8 @@ def hist_burst_phrate(d, i=0, bins=(0, 1000, 20), pdf=True, weights=None,
         if 'max_rate' not in d:
             d.calc_max_rate(m=10)
         max_rate = d.max_rate
-    _hist_burst_taildist(max_rate[i]*1e-3, bins, pdf, weights=weights,
-                         color=color, plot_style=plot_style)
+    _hist_burst_taildist(max_rate[i] * 1e-3, bins, pdf, weights=weights,
+                         color=color, plot_style=plot_style, vline=vline)
     plt.xlabel('Peak rate (kcps)')
 
 
