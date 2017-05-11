@@ -57,16 +57,9 @@ from . import burstlib as bl
 from .phtools import phrates
 from . import burstlib_ext as bext
 from . import background as bg
-from .utils.misc import pprint, HistData, _is_list_of_arrays
+from .utils.misc import HistData, _is_list_of_arrays
 from .scroll_gui import ScrollingToolQT
 from . import gui_selection as gs
-
-
-params = {
-    'font.size': 12,
-    'legend.fontsize': 11,
-}
-plt.rcParams.update(params)
 
 
 ##
