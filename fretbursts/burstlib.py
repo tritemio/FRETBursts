@@ -2329,17 +2329,17 @@ class Data(DataContainer):
         if self.leakage_corrected:
             return -1
         elif self.leakage != 0:
-        pprint("   - Applying leakage correction.\n", mute)
-        Lk = self.get_leakage_array()
-        for i, num_bursts in enumerate(self.num_bursts):
-            if num_bursts == 0:
-                continue  # if no bursts skip this ch
-            self.na[i] -= self.nd[i] * Lk[i]
-            self.nt[i] = self.nd[i] + self.na[i]
-            if self.ALEX:
-                self.nt[i] += self.naa[i]
-            elif 'PAX' in self.meas_type:
-                self.nt[i] += (self.nda[i] + self.naa[i])
+            pprint("   - Applying leakage correction.\n", mute)
+            Lk = self.get_leakage_array()
+            for i, num_bursts in enumerate(self.num_bursts):
+                if num_bursts == 0:
+                    continue  # if no bursts skip this ch
+                self.na[i] -= self.nd[i] * Lk[i]
+                self.nt[i] = self.nd[i] + self.na[i]
+                if self.ALEX:
+                    self.nt[i] += self.naa[i]
+                elif 'PAX' in self.meas_type:
+                    self.nt[i] += (self.nda[i] + self.naa[i])
         self.add(leakage_corrected=True)
 
     def direct_excitation_correction(self, mute=False):
@@ -2350,19 +2350,19 @@ class Data(DataContainer):
         if self.dir_ex_corrected:
             return -1
         elif self.dir_ex != 0:
-        pprint("   - Applying direct excitation correction.\n", mute)
-        for i, num_bursts in enumerate(self.num_bursts):
-            if num_bursts == 0:
-                continue  # if no bursts skip this ch
-            naa = self.naa[i]
-            if 'PAX' in self.meas_type:
-                naa = naa - self.nar[i]  # do not modify inplace
-            self.na[i] -= naa * self.dir_ex
-            self.nt[i] = self.nd[i] + self.na[i]
-            if self.ALEX:
-                self.nt[i] += self.naa[i]
-            elif 'PAX' in self.meas_type:
-                self.nt[i] += (self.nda[i] + self.naa[i])
+            pprint("   - Applying direct excitation correction.\n", mute)
+            for i, num_bursts in enumerate(self.num_bursts):
+                if num_bursts == 0:
+                    continue  # if no bursts skip this ch
+                naa = self.naa[i]
+                if 'PAX' in self.meas_type:
+                    naa = naa - self.nar[i]  # do not modify inplace
+                self.na[i] -= naa * self.dir_ex
+                self.nt[i] = self.nd[i] + self.na[i]
+                if self.ALEX:
+                    self.nt[i] += self.naa[i]
+                elif 'PAX' in self.meas_type:
+                    self.nt[i] += (self.nda[i] + self.naa[i])
         self.add(dir_ex_corrected=True)
 
     def dither(self, lsb=2, mute=False):
@@ -2697,13 +2697,21 @@ class Data(DataContainer):
             if hasattr(self, attr):
                 self.delete(attr, warning=False)
 
+    def _aex_fraction(self):
+        """Proportion of Aex period versus Dex + Aex."""
+        assert self.alternated
+        D_ON, A_ON = self.D_ON, self.A_ON
+        return ((A_ON[1] - A_ON[0]) /
+                (D_ON[1] - D_ON[0] + A_ON[1] - A_ON[0]))
+
     def _calculate_fret_eff(self, pax=False):
         """Compute FRET efficiency (`E`) for each burst."""
         G = self.get_gamma_array()
         if not pax:
             E = [na / (g * nd + na) for nd, na, g in zip(self.nd, self.na, G)]
         else:
-            E = [(2 * na) / (g * (nd + nda) + (2 * na))
+            f_dex = 1 - self._aex_fraction()
+            E = [(na / f_dex) / (g * (nd + nda) + (na / f_dex))
                  for nd, na, nda, g in zip(self.nd, self.na, self.nda, G)]
         self.add(E=E, pax=pax)
 
@@ -2728,7 +2736,10 @@ class Data(DataContainer):
         else:
             # This is a PAX-enhanced formula which uses information
             # from both alternation periods in order to compute S
-            S = [(g * (d + da) + 2 * a) / (g * (d + da) + 2 * a + 2 * aa)
+            f_aex = self._aex_fraction()
+            f_dex = 1 - f_aex
+            S = [(g * (d + da) + a / f_dex) /
+                 (g * (d + da) + a / f_dex + aa / f_aex)
                  for d, a, da, aa, g in
                  zip(self.nd, self.na, self.nda, naa, G)]
         self.add(S=S)
