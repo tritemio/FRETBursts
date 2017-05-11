@@ -1930,15 +1930,15 @@ def _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
                 s += (' BG=%.1fk' % (d.bg_mean[Ph_sel('all')][ich] * 1e-3))
             if title_nbursts and b is not None:
                 s += (' #B=%d' % b.num_bursts)
-            if title == 'out':
+            if title is True or 'out' in title.lower():
                 ax.set_title(s, **title_kws)
             else:
                 titley, va = 0.95, 'top'
                 if 'bottom' in str(title):
                     titley, va = 1 - titley, 'baseline'
-                titlex, ha = 0.05, 'left'
-                if 'right' in str(title):
-                    titlex, ha = 1 - titlex, 'right'
+                titlex, ha = 0.95, 'right'
+                if 'left' in str(title):
+                    titlex, ha = 1 - titlex, 'left'
                 ax.text(titlex, titley, s, transform=ax.transAxes, ha=ha, va=va,
                         **title_kws)
         plt.sca(ax)
