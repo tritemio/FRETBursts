@@ -1907,8 +1907,9 @@ def scatter_alex(d, i=0, **kwargs):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
-               sharex, sharey, suptitle, grid, scale, skip_ch=None, title=True,
-               top=0.95, bottom=None, hspace=0.15, wspace=None,
+               sharex, sharey, suptitle, grid, scale, skip_ch=None,
+               title='out', title_ch=True, title_bg=True, title_nbursts=True,
+               title_kws=None, top=0.95, bottom=None, hspace=0.15, wspace=None,
                left=0.08, right=0.96):
     if AX is None:
         fig, AX = plt.subplots(nrows, ncols, figsize=figsize, sharex=sharex,
@@ -1928,13 +1929,27 @@ def _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
         b = d.mburst[ich] if 'mburst' in d else None
         if suptitle and i == 0 and hasattr(d, 'status') and callable(d.status):
             fig.suptitle(d.status())
-        if title:
-            s = '[%d]' % ich
-            if 'bg_mean' in d:
+        if title:  # no title if None of False
+            if title_kws is None:
+                title_kws = {}
+            s = ''
+            if title_ch:
+                s += '[%d]' % ich
+            if title_bg and 'bg_mean' in d:
                 s += (' BG=%.1fk' % (d.bg_mean[Ph_sel('all')][ich] * 1e-3))
-            if b is not None:
-                s += (', #bu=%d' % b.num_bursts)
-            ax.set_title(s)
+            if title_nbursts and b is not None:
+                s += (' #B=%d' % b.num_bursts)
+            if title == 'out':
+                ax.set_title(s, **title_kws)
+            else:
+                titley, va = 0.95, 'top'
+                if 'bottom' in str(title):
+                    titley, va = 1 - titley, 'baseline'
+                titlex, ha = 0.05, 'left'
+                if 'right' in str(title):
+                    titlex, ha = 1 - titlex, 'right'
+                ax.text(titlex, titley, s, transform=ax.transAxes, ha=ha, va=va,
+                        **title_kws)
         plt.sca(ax)
         gui_status['first_plot_in_figure'] = (i == 0)
         func(d, ich, **kwargs)
@@ -1964,9 +1979,11 @@ def _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
 
 
 def dplot_48ch(d, func, sharex=True, sharey=True, layout='horiz',
-               grid=True, figsize=None, AX=None, suptitle=True, title=True,
-               scale=True, skip_ch=None, top=0.95, bottom=None,
-               hspace=0.15, wspace=None, left=0.08, right=0.96, **kwargs):
+               grid=True, figsize=None, AX=None, scale=True, skip_ch=None,
+               suptitle=True, title=True, title_ch=True, title_bg=True,
+               title_nbursts=True, title_kws=None,
+               top=0.93, bottom=None, hspace=0.18, wspace=None, left=0.08,
+               right=0.96, **kwargs):
     """Plot wrapper for 48-spot measurements. Use `dplot` instead."""
     msg = "Wrong layout '%s'. Valid values: 'horiz', 'vert', '8x6'."
     assert (layout.startswith('vert') or layout.startswith('horiz') or
@@ -1989,7 +2006,9 @@ def dplot_48ch(d, func, sharex=True, sharey=True, layout='horiz',
     return _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
                       sharex, sharey, suptitle, grid, scale, skip_ch=skip_ch,
                       top=top, bottom=bottom, hspace=hspace, wspace=wspace,
-                      left=left, right=right, title=title)
+                      left=left, right=right,
+                      title=title, title_ch=title_ch, title_bg=title_bg,
+                      title_nbursts=title_nbursts, title_kws=title_kws)
 
 
 def dplot_16ch(d, func, sharex=True, sharey=True, ncols=8,
