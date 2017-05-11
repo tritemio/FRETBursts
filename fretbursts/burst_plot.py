@@ -778,7 +778,7 @@ def _bins_array(bins):
     return bins
 
 
-def _hist_burst_taildist(data, bins, pdf,  weights=None, yscale='log',
+def _hist_burst_taildist(data, bins, pdf, weights=None, yscale='log',
                          color=None, label=None, plot_style=None):
     hist = HistData(*np.histogram(data[~np.isnan(data)],
                                   bins=_bins_array(bins), weights=weights))
@@ -815,7 +815,7 @@ def hist_width(d, i=0, bins=(0, 10, 0.025), pdf=True, weights=None,
         plot_style (dict): dict of matplotlib line style passed to `plot`.
     """
     weights = weights[i] if weights is not None else None
-    burst_widths = d.mburst[i].width*d.clk_p*1e3
+    burst_widths = d.mburst[i].width * d.clk_p * 1e3
 
     _hist_burst_taildist(burst_widths, bins, pdf, weights=weights,
                          yscale=yscale, color=color, plot_style=plot_style)
@@ -975,15 +975,6 @@ def hist_size_all(d, i=0, **kwargs):
         fields.append('naa')
     for which in fields:
         hist_size(d, i, which=which, **kwargs)
-
-
-def _get_fit_E_text(d, pylab=True):
-    """Return a formatted string for fitted E."""
-    delta = (d.E_fit.max()-d.E_fit.min())*100
-    fit_text = r'\langle{E}_{fit}\rangle = %.3f \qquad ' % d.E_fit.mean()
-    fit_text += r'\Delta E_{fit} = %.2f \%%' % delta
-    if pylab: fit_text = r'$'+fit_text+r'$'
-    return fit_text
 
 
 def _fitted_E_plot(d, i=0, F=1, no_E=False, ax=None, show_model=True,
@@ -1923,8 +1914,8 @@ def _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
         skip_ch = []
     for i, ich in enumerate(iter_ch):
         ax = AX.ravel()[i]
+        ax.grid(grid)
         if ich in skip_ch:
-            ax.grid(grid)
             continue
         b = d.mburst[ich] if 'mburst' in d else None
         if suptitle and i == 0 and hasattr(d, 'status') and callable(d.status):
