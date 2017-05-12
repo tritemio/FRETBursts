@@ -1322,8 +1322,8 @@ def hist2d_alex(d, i=0, vmin=2, vmax=0, binwidth=0.05, S_max_norm=0.8,
         hist2d_alex.gui_sel = gs.rectSelection(gcf(), gca())
 
 
-def hexbin_alex(d, i=0, vmin=0, vmax=None, gridsize=80,
-                cmap='Spectral_r', **hexbin_kwargs):
+def hexbin_alex(d, i=0, vmin=0, vmax=None, gridsize=80, cmap='Spectral_r',
+                E_name='E', S_name='S', **hexbin_kwargs):
     """Plot an hexbin 2D histogram for E-S.
     """
     if d.num_bursts[i] < 1:
@@ -1332,7 +1332,7 @@ def hexbin_alex(d, i=0, vmin=0, vmax=None, gridsize=80,
                           cmap=cmap, extent=(-0.2, 1.2, -0.2, 1.2), mincnt=1)
     if hexbin_kwargs is not None:
         hexbin_kwargs_.update(_normalize_kwargs(hexbin_kwargs))
-    poly = plt.hexbin(d.E[i], d.S[i], **hexbin_kwargs_)
+    poly = plt.hexbin(d[E_name][i], d[S_name][i], **hexbin_kwargs_)
     poly.set_clim(vmin, vmax)
     plt.xlabel('E')
     plt.ylabel('S')
@@ -1916,7 +1916,7 @@ def _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
     for i, ich in enumerate(iter_ch):
         ax = AX.ravel()[i]
         ax.grid(grid)
-        plt.setp(ax.get_xticklabels(), rotation=45)
+        plt.setp(ax.get_xticklabels(), rotation=xrotation)
         if ich in skip_ch:
             continue
         b = d.mburst[ich] if 'mburst' in d else None
