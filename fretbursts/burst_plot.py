@@ -1985,7 +1985,7 @@ def dplot_48ch(d, func, sharex=True, sharey=True, layout='horiz',
     if layout == '8x6':
         nrows, ncols = 6, 8
         if figsize is None:
-            figsize = (20, 16)
+            figsize = (18, 6)
     else:
         nrows, ncols = 4, 12
         if layout.startswith('vert'):
