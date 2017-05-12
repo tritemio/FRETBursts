@@ -1902,7 +1902,7 @@ def _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
                sharex, sharey, suptitle, grid, scale, skip_ch=None,
                title='out', title_ch=True, title_bg=True, title_nbursts=True,
                title_kws=None, top=0.95, bottom=None, hspace=0.15, wspace=None,
-               left=0.08, right=0.96):
+               left=0.08, right=0.96, xrotation=0):
     if AX is None:
         fig, AX = plt.subplots(nrows, ncols, figsize=figsize, sharex=sharex,
                                sharey=sharey, squeeze=False)
@@ -1916,6 +1916,7 @@ def _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
     for i, ich in enumerate(iter_ch):
         ax = AX.ravel()[i]
         ax.grid(grid)
+        plt.setp(ax.get_xticklabels(), rotation=45)
         if ich in skip_ch:
             continue
         b = d.mburst[ich] if 'mburst' in d else None
@@ -1973,7 +1974,7 @@ def _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
 def dplot_48ch(d, func, sharex=True, sharey=True, layout='horiz',
                grid=True, figsize=None, AX=None, scale=True, skip_ch=None,
                suptitle=True, title=True, title_ch=True, title_bg=True,
-               title_nbursts=True, title_kws=None,
+               title_nbursts=True, title_kws=None, xrotation=0,
                top=0.93, bottom=None, hspace=0.18, wspace=None, left=0.08,
                right=0.96, **kwargs):
     """Plot wrapper for 48-spot measurements. Use `dplot` instead."""
@@ -1998,7 +1999,7 @@ def dplot_48ch(d, func, sharex=True, sharey=True, layout='horiz',
     return _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
                       sharex, sharey, suptitle, grid, scale, skip_ch=skip_ch,
                       top=top, bottom=bottom, hspace=hspace, wspace=wspace,
-                      left=left, right=right,
+                      left=left, right=right, xrotation=xrotation,
                       title=title, title_ch=title_ch, title_bg=title_bg,
                       title_nbursts=title_nbursts, title_kws=title_kws)
 
