@@ -1931,7 +1931,7 @@ def _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
             if title_bg and 'bg_mean' in d:
                 s += (' BG=%.1fk' % (d.bg_mean[Ph_sel('all')][ich] * 1e-3))
             if title_nbursts and b is not None:
-                s += (' #B=%d' % b.num_bursts)
+                s += (' #B=%d' % b.size)
             if title is True or 'out' in title.lower():
                 ax.set_title(s, **title_kws)
             else:
