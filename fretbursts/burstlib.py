@@ -1019,7 +1019,7 @@ class Data(DataContainer):
     @property
     def num_bursts(self):
         """Array of number of bursts in each channel."""
-        return np.array([bursts.num_bursts for bursts in self.mburst])
+        return np.array([bursts.size for bursts in self.mburst])
 
     @property
     def burst_widths(self):
