@@ -360,12 +360,15 @@ class MultiFitter(FitterBase):
     the method `.set_weights_func` allows to set the function to be called
     to generate weights.
     """
-    def __init__(self, data_list):
+    def __init__(self, data_list, skip_ch=None):
         self.data_list = data_list
         self.ndata = len(data_list)
         self._weights = [None]*self.ndata
         self._hist_computed = False
         self._kde_computed = False
+        self.skip_ch = []
+        if skip_ch is not None:
+            self.skip_ch = skip_ch
 
     @property
     def weights(self):
@@ -401,10 +404,13 @@ class MultiFitter(FitterBase):
             bins = np.r_[-0.2 : 1.2 : binwidth]
         kwargs.update(bins=bins, density=False)
         hist_counts = []
-        for data, weights in zip(self.data_list, self.weights):
-            if weights is not None:
-                kwargs.update(weights=weights)
-            counts, bins = np.histogram(data, **kwargs)
+        for ich, (data, weights) in enumerate(zip(self.data_list, self.weights)):
+            if ich in self.skip_ch:
+                counts = np.zeros_like(bins)
+            else:
+                if weights is not None:
+                    kwargs.update(weights=weights)
+                counts, _ = np.histogram(data, **kwargs)
             hist_counts.append(counts)
         self._set_hist_data(hist_counts, bins)
 
@@ -454,8 +460,7 @@ class MultiFitter(FitterBase):
         #init_params = copy.deepcopy(self.model.params)
         for i, data in enumerate(data_list):
             self.fit_res.append(
-                self.model.fit(data, x=self.hist_axis, **fit_kwargs)
-                )
+                self.model.fit(data, x=self.hist_axis, **fit_kwargs))
             self.params.iloc[i] = pd.Series(self.fit_res[-1].values)
 
     def calc_kde(self, bandwidth=0.03):
@@ -482,7 +487,7 @@ class MultiFitter(FitterBase):
         self.kde_max_pos = np.zeros(self.ndata)
         for ich, kde in enumerate(self.kde):
             self.kde_max_pos[ich] = \
-                    find_max(x_kde, kde(x_kde), xmin=xmin, xmax=xmax)
+                find_max(x_kde, kde(x_kde), xmin=xmin, xmax=xmax)
 
 
 def plot_mfit(fitter, ich=0, residuals=False, ax=None, plot_kde=False,
@@ -515,7 +520,7 @@ def plot_mfit(fitter, ich=0, residuals=False, ax=None, plot_kde=False,
         fit_res = fitter.fit_res[ich]
         x = fitter.x_axis
         ax.plot(x, fit_res.model.eval(x=x, **fit_res.values), 'k', alpha=0.8)
-        if  fit_res.model.components is not None:
+        if fit_res.model.components is not None:
             for component in fit_res.model.components:
                 ax.plot(x, component.eval(x=x, **fit_res.values), '--k',
                         alpha=0.8)
