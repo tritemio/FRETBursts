@@ -338,6 +338,7 @@ def _plot_rate_th(d, i, F, ph_sel, invert=False, scale=1,
         y_rate *= -1
     plot(x_rate, y_rate, **rate_th_style_)
 
+
 def _gui_timetrace_burst_sel(d, fig, ax):
     """Add GUI burst selector via mouse click to the current plot."""
     global gui_status
@@ -346,11 +347,13 @@ def _gui_timetrace_burst_sel(d, fig, ax):
     else:
         gui_status['burst_sel'].ax_list.append(ax)
 
+
 def _gui_timetrace_scroll(fig):
     """Add GUI to scroll a timetrace wi a slider."""
     global gui_status
     if gui_status['first_plot_in_figure']:
         gui_status['scroll_gui'] = ScrollingToolQT(fig)
+
 
 def timetrace_single(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
                      ph_sel=Ph_sel('all'), invert=False, bursts=False,
@@ -455,7 +458,7 @@ def timetrace(d, i=0, binwidth=1e-3, bins=None, tmin=0, tmax=200,
               show_aa=True, legend=False, set_ax_limits=True,
               burst_color='#BBBBBB', plot_style=None,
               #dd_plot_style={}, ad_plot_style={}, aa_plot_style={}
-             ):
+              ):
     """Plot the timetraces (histogram) of photon timestamps.
 
     Arguments:
@@ -537,7 +540,7 @@ def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
     if m is None:
         m = d.m if m in d else 10
 
-    tmin_clk, tmax_clk = tmin/d.clk_p, tmax/d.clk_p
+    tmin_clk, tmax_clk = tmin / d.clk_p, tmax / d.clk_p
     # Plot bursts
     if bursts:
         _plot_bursts(d, i, tmin_clk, tmax_clk, pmax=500, pmin=-500,
@@ -549,16 +552,16 @@ def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
     iph2 = np.searchsorted(ph_times, tmax_clk)
     if iph2 - iph1 > max_num_ph:
         iph2 = iph1 + max_num_ph
-        tmax = ph_times[iph2]*d.clk_p
+        tmax = ph_times[iph2] * d.clk_p
         warnings.warn(('Max number of photons reached in ratetrace_single().'
                        '\n    tmax is reduced to %ds. To plot a wider '
                        'time range increase `max_num_ph`.') % tmax,
                       UserWarning)
     ph_times = ph_times[iph1:iph2]
-    rates = 1e-3*phrates.mtuple_rates(ph_times, m)/d.clk_p
+    rates = 1e-3 * phrates.mtuple_rates(ph_times, m) / d.clk_p
     if invert:
         rates *= -1
-    times = phrates.mtuple_rates_t(ph_times, m)*d.clk_p
+    times = phrates.mtuple_rates_t(ph_times, m) * d.clk_p
 
     # Plot ratetrace
     plot_style_ = dict(linestyle='-', linewidth=1.2, marker=None)
@@ -573,7 +576,8 @@ def ratetrace_single(d, i=0, m=None, max_num_ph=1e6, tmin=0, tmax=200,
         _plot_rate_th(d, i, F=F, scale=1e-3, ph_sel=ph_sel, invert=invert,
                       plot_style_=plot_style_, rate_th_style=rate_th_style)
 
-    xlabel('Time (s)'); ylabel('Rate (kcps)')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Rate (kcps)')
     if burst_picker:
         _gui_timetrace_burst_sel(d, gcf(), gca())
     if scroll:
@@ -1950,6 +1954,7 @@ def _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
             ax.legend_.remove()
     [a.set_xlabel('') for a in AX[:-1, :].ravel()]
     [a.set_ylabel('') for a in AX[:, 1:].ravel()]
+
     if sharex:
         plt.setp([a.get_xticklabels() for a in AX[:-1, :].ravel()],
                  visible=False)
