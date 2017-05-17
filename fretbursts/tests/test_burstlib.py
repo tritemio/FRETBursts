@@ -718,6 +718,7 @@ def test_burst_fuse_0ms(data):
     if d.nch == 8:
         d.burst_search(L=10, m=10, F=7, computefret=False)
         d.mburst[1] = bl.bslib.Bursts.empty()  # Make one channel with no bursts
+        d._calc_burst_period()
         d.calc_fret(count_ph=True)
     df = d.fuse_bursts(ms=0)
     for ich, bursts in enumerate(df.mburst):
@@ -735,8 +736,9 @@ def test_burst_fuse_separation(data):
     fuse_ms = 2
     df = d.fuse_bursts(ms=fuse_ms)
     for bursts in df.mburst:
-        separation = bursts.separation*df.clk_p
-        assert separation.min() >= fuse_ms*1e-3
+        separation = bursts.separation * df.clk_p
+        if bursts.num_bursts > 0:
+            assert separation.min() >= fuse_ms * 1e-3
 
 def test_calc_sbr(data):
     """Smoke test Data.calc_sbr()"""
