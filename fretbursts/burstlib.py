@@ -2273,7 +2273,8 @@ class Data(DataContainer):
             # the old list that is also in the original object.
             # The list is initialized with empty arrays because this is the
             # valid value when a ch has no bursts.
-            ds.add(**{name: [np.array([])] * self.nch})
+            empty = bslib.Bursts.empty() if name == 'mburst' else np.array([])
+            ds.add(**{name: [empty] * self.nch})
 
             # Assign the new data
             for ich, mask in enumerate(masks):
@@ -2578,7 +2579,7 @@ class Data(DataContainer):
         sbr = []
         for ich, mb in enumerate(self.mburst):
             if mb.num_bursts == 0:
-                sbr.append([])
+                sbr.append(np.array([]))
                 continue  # if no bursts skip this ch
             nd, na, bg_d, bg_a = self.expand(ich)
             nt = self.burst_sizes_ich(ich=ich, gamma=gamma)
