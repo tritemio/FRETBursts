@@ -431,7 +431,7 @@ def fit_bursts_kde_peak(dx, burst_data='E', bandwidth=0.03, weights=None,
     return KDE_max_mch
 
 def bursts_fitter(dx, burst_data='E', save_fitter=True,
-                  weights=None, gamma=1, add_naa=False,
+                  weights=None, gamma=1, add_naa=False, skip_ch=None,
                   binwidth=None, bandwidth=None, model=None, verbose=False):
     """Create a mfit.MultiFitter object (for E or S) add it to `dx`.
 
@@ -459,7 +459,7 @@ def bursts_fitter(dx, burst_data='E', save_fitter=True,
         The `mfit.MultiFitter` object with the specified burst-size weights.
     """
     assert burst_data in dx
-    fitter = mfit.MultiFitter(dx[burst_data])
+    fitter = mfit.MultiFitter(dx[burst_data], skip_ch=skip_ch)
     if weights is None or _is_list_of_arrays(weights):
         # If no weights or precomputed weights
         fitter.weights = weights
