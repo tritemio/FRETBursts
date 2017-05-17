@@ -112,7 +112,6 @@ def list_array_allclose(list1, list2):
 # Test functions
 #
 
-
 def test_bg_compatlayer_for_obsolete_attrs():
     d = load_dataset_1ch(process=False)
     attrs = ('bg_dd', 'bg_ad', 'bg_da', 'bg_aa',
@@ -347,6 +346,7 @@ def test_burst_search_with_no_bursts(data):
     # F=600 results in periods with no bursts for the us-ALEX measurement
     # and in no bursts at all for the multi-spot measurements
     data.burst_search(m=10, F=600)
+    data.fuse_bursts(ms=1)
 
 if has_matplotlib:
     def test_stale_fitter_after_burst_search(data):
@@ -715,11 +715,17 @@ def test_burst_fuse_0ms(data):
     as the number of ph in bursts (via burst selection).
     """
     d = data
-
+    if d.nch == 8:
+        d.burst_search(L=10, m=10, F=7, computefret=False)
+        d.mburst[1] = bl.bslib.Bursts.empty()  # Make one channel with no bursts
+        d.calc_fret(count_ph=True)
     df = d.fuse_bursts(ms=0)
     for ich, bursts in enumerate(df.mburst):
         mask = bl.ph_in_bursts_mask(df.ph_data_sizes[ich], bursts)
         assert mask.sum() == bursts.counts.sum()
+    df.calc_fret(count_ph=True)
+    assert len(df.mburst) == len(d.mburst)
+    assert len(df.mburst) == d.nch
 
 def test_burst_fuse_separation(data):
     """Test that after fusing bursts the minimum separation is equal
