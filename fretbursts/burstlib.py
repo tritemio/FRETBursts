@@ -22,7 +22,6 @@ from builtins import range, zip
 
 import os
 import hashlib
-from textwrap import dedent
 import numpy as np
 import copy
 from numpy import zeros, size, r_
@@ -401,8 +400,10 @@ def mch_fuse_bursts(MBurst, ms=0, clk_p=12.5e-9, verbose=True):
         ch += 1
         pprint(" - - - - - CHANNEL %2d - - - - \n" % ch, not verbose)
         if mb.num_bursts == 0:
-            continue
-        new_bursts = fuse_bursts_iter(mb, ms=ms, clk_p=clk_p, verbose=verbose)
+            new_bursts = bslib.Bursts.empty()
+        else:
+            new_bursts = fuse_bursts_iter(mb, ms=ms, clk_p=clk_p,
+                                          verbose=verbose)
         new_mburst.append(new_bursts)
     return new_mburst
 

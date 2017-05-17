@@ -268,7 +268,7 @@ class Bursts(object):
     stop) such as the ones returned by burst search functions (e.g.
     :func:`bsearch_py`).
 
-    `Bursts` object are iterable, yielding one burst a time (:class:`Burst`
+    `Bursts` objects are iterable, yielding one burst a time (:class:`Burst`
     objects). `Bursts` can be compared for equality (with `==`) and copied
     (:meth:`Bursts.copy`).
 
