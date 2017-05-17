@@ -411,12 +411,13 @@ def mch_fuse_bursts(MBurst, ms=0, clk_p=12.5e-9, verbose=True):
 def burst_stats(mburst, clk_p):
     """Compute average duration, size and burst-delay for bursts in mburst.
     """
-    width_stats = np.array([[b.width.mean(), b.width.std()] for b in mburst
-                            if b.num_bursts > 0]).T
-    height_stats = np.array([[b.counts.mean(), b.counts.std()] for b in mburst
-                             if b.num_bursts > 0]).T
-    mean_burst_delay = np.array([b.separation.mean() for b in mburst
-                                 if b.num_bursts > 0])
+    nans = [np.nan, np.nan]
+    width_stats = np.array([[b.width.mean(), b.width.std()]
+                            if b.num_bursts > 0 else nans for b in mburst]).T
+    height_stats = np.array([[b.counts.mean(), b.counts.std()]
+                             if b.num_bursts > 0 else nans for b in mburst]).T
+    mean_burst_delay = np.array([b.separation.mean() if b.num_bursts > 0
+                                 else np.nan for b in mburst])
     return (clk_to_s(width_stats, clk_p) * 1e3, height_stats,
             clk_to_s(mean_burst_delay, clk_p))
 
