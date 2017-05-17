@@ -406,7 +406,7 @@ class MultiFitter(FitterBase):
         hist_counts = []
         for ich, (data, weights) in enumerate(zip(self.data_list, self.weights)):
             if ich in self.skip_ch:
-                counts = np.zeros_like(bins)
+                counts = np.zeros(bins.size - 1)
             else:
                 if weights is not None:
                     kwargs.update(weights=weights)
