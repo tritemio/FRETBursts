@@ -396,6 +396,7 @@ def burst_data(dx, ich=None, include_bg=False, include_ph_index=False,
         for ich in range(dx.nch):
             if ich not in skip_ch:
                 bursts[ich] = _burst_data_ich(dx, ich=ich, **kws)
+                bursts[ich]['spot'] = ich
         bursts = pd.concat(bursts, ignore_index=True)
     return bursts
 
