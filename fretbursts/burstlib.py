@@ -1279,6 +1279,8 @@ class Data(DataContainer):
         # NOTE: Updating gamma has the side effect of recomputing E
         #       (and S if ALEX). We need to update gamma because, in general,
         #       gamma can be an array with a value for each ch.
+        #       However, the per-channel gamma correction is lost once both
+        #       gamma and chi_ch are made scalar.
         if update_gamma:
             dc._update_gamma(np.mean(self.get_gamma_array()))
         return dc

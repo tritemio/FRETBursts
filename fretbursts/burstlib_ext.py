@@ -83,7 +83,8 @@ def moving_window_startstop(start, stop, step, window=None):
     # Reduce `stop` to an integer number of `step` and adjust for last window
     stop_corrected = (stop - stop % step) - window + step
     # differently from range, np.arange accepts also floats
-    return [(t1, t1+window) for t1 in np.arange(start, stop_corrected, step)]
+    return [(t1, t1 + window) for t1 in np.arange(start, stop_corrected, step)]
+
 
 def moving_window_dataframe(start, stop, step, window=None):
     """Create a DataFrame for storing moving-window data.
@@ -112,6 +113,7 @@ def moving_window_dataframe(start, stop, step, window=None):
     tmean = 0.5 * (tstart + tstop)
     df = pd.DataFrame(data=dict(tstart=tstart, tstop=tstop, tmean=tmean))
     return df
+
 
 def moving_window_chunks(dx, start, stop, step, window=None,
                          time_zero=0):
@@ -162,7 +164,7 @@ def calc_mean_lifetime(dx, t1=0, t2=np.inf, ph_sel=Ph_sel('all')):
 
     for bursts, nanot, mask in zip(dx.mburst, dx.nanotimes,
                                    dx.iter_ph_masks(ph_sel)):
-        selection = (nanot > t1)*(nanot < t2)
+        selection = (nanot > t1) * (nanot < t2)
         # Select photons in ph_sel AND with nanotime in [t1, t2]
         if isarray(mask):
             selection *= mask
@@ -191,6 +193,7 @@ def _store_bg_data(store, base_name, min_ph_delays_us, best_bg, best_th,
     store[base_name + 'best_th'] = best_th
     store.close()
 
+
 def _load_bg_data(store, base_name, ph_streams):
     if not base_name.endswith('/'):
         base_name = base_name + '/'
@@ -209,6 +212,7 @@ def _load_bg_data(store, base_name, ph_streams):
     best_th = store[base_name + 'best_th']
     store.close()
     return best_th, best_bg, BG_data, BG_data_e, min_ph_delays
+
 
 def calc_bg_brute_cache(dx, min_ph_delay_list=None, return_all=False,
                         error_metrics='KS', force_recompute=False):
@@ -267,6 +271,7 @@ def calc_bg_brute_cache(dx, min_ph_delay_list=None, return_all=False,
     else:
         return res[:-3]
 
+
 def calc_bg_brute(dx, min_ph_delay_list=None, return_all=False,
                   error_metrics='KS'):
     """Compute background for all the ch, ph_sel and periods.
@@ -300,7 +305,7 @@ def calc_bg_brute(dx, min_ph_delay_list=None, return_all=False,
     BG_data, BG_data_e = {}, {}
 
     index = pd.MultiIndex.from_product([list(range(dx.nch)), ph_sel_labels],
-                                        names=['CH', 'ph_sel'])
+                                       names=['CH', 'ph_sel'])
     best_th = pd.DataFrame(index=index, columns=np.arange(dx.nperiods))
     best_th.columns.name = 'period'
     best_th.sortlevel(inplace=True)
@@ -319,9 +324,9 @@ def calc_bg_brute(dx, min_ph_delay_list=None, return_all=False,
                 b = BG_data_e[ph_sel][ich, period, :]
                 i_best_th = b[-np.isnan(b)].argmin()
                 best_th.loc[(ich, str(ph_sel)), period] = \
-                        min_ph_delay_list[i_best_th]
+                    min_ph_delay_list[i_best_th]
                 best_bg.loc[(ich, str(ph_sel)), period] = \
-                        BG_data[ph_sel][ich, period, i_best_th]
+                    BG_data[ph_sel][ich, period, i_best_th]
     if return_all:
         return best_th, best_bg, BG_data, BG_data_e, min_ph_delay_list
     else:
