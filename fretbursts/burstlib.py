@@ -1340,6 +1340,31 @@ class Data(DataContainer):
             res.append(w)
         return res
 
+    def burst_data_ich(self, ich):
+        """Return a dict of burst data for channel `ich`."""
+        bursts = {}
+        bursts['size_raw'] = self.mburst[ich].counts
+        bursts['t_start'] = self.mburst[ich].start * self.clk_p
+        bursts['t_end'] = self.mburst[ich].stop * self.clk_p
+        bursts['i_start'] = self.mburst[ich].istart
+        bursts['i_end'] = self.mburst[ich].istop
+
+        period = bursts['period'] = self.bp[ich]
+        width = self.mburst[ich].width * self.clk_p
+        bursts['width_ms'] = width * 1e3
+        bursts['bg_ad'] = self.bg[Ph_sel(Dex='Aem')][ich][period] * width
+        bursts['bg_dd'] = self.bg[Ph_sel(Dex='Dem')][ich][period] * width
+        if self.alternated:
+            bursts['bg_aa'] = self.bg[Ph_sel(Aex='Aem')][ich][period] * width
+            bursts['bg_da'] = self.bg[Ph_sel(Aex='Dem')][ich][period] * width
+
+        burst_fields = self.burst_fields[:]
+        burst_fields.remove('mburst')
+        for field in burst_fields:
+            if field in self:
+                bursts[field] = self[field][ich]
+        return bursts
+
     @property
     def time_max(self):
         """The last recorded time in seconds."""

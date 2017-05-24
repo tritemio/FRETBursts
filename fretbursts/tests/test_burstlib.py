@@ -399,6 +399,7 @@ def test_burst_search_and_gate(data_1ch):
         ph_b_mask_and = bl.ph_in_bursts_mask(ph.size, bursts_and)
         assert (ph_b_mask_and == ph_b_mask_dex * ph_b_mask_aex).all()
 
+
 def test_mch_count_ph_num_py_c(data):
     na_py = bl.bslib.mch_count_ph_in_bursts_py(data.mburst, data.A_em)
     na_c = bl.bslib.mch_count_ph_in_bursts_c(data.mburst, data.A_em)
@@ -774,6 +775,34 @@ def test_expand(data):
         assert (bg_d == bg_d2).all() and (bg_a == bg_a2).all()
 
 
+def test_burst_data_ich(data):
+    """Test method `Data.burst_data_ich()`."""
+    d = data
+    for ich, bursts in enumerate(d.mburst):
+        if bursts.num_bursts == 0:
+            continue  # if no bursts skip this ch
+        burst_dict = d.burst_data_ich(ich=ich)
+        assert (burst_dict['size_raw'] == bursts.counts).all()
+        assert (burst_dict['t_start'] == bursts.start * d.clk_p).all()
+        assert (burst_dict['t_end'] == bursts.stop * d.clk_p).all()
+        assert (burst_dict['i_start'] == bursts.istart).all()
+        assert (burst_dict['i_end'] == bursts.istop).all()
+        assert (burst_dict['period'] == d.bp[ich]).all()
+        nd, na, bg_d, bg_a, width = d.expand(ich, width=True)
+        width_ms = width * 1e3
+        assert (width_ms == burst_dict['width_ms']).all()
+        assert (nd == burst_dict['nd']).all()
+        assert (na == burst_dict['na']).all()
+        assert (bg_d == burst_dict['bg_dd']).all()
+        assert (bg_a == burst_dict['bg_ad']).all()
+        if d.alternated:
+            period = d.bp[ich]
+            bg_da = d.bg_from(Ph_sel(Aex='Dem'))[ich][period] * width
+            bg_aa = d.bg_from(Ph_sel(Aex='Aem'))[ich][period] * width
+            assert (bg_da == burst_dict['bg_da']).all()
+            assert (bg_aa == burst_dict['bg_aa']).all()
+
+
 def test_burst_corrections(data):
     """Test background and bleed-through corrections."""
     d = data
@@ -919,6 +948,7 @@ def test_burst_selection_ranges(data):
             selected = getter(ds, ich)
             assert ((selected >= range_.min) * (selected <= range_.max)).all()
 
+
 def test_join_data(data):
     """Smoke test for bext.join_data() function.
     """
@@ -927,6 +957,7 @@ def test_join_data(data):
     assert (dj.num_bursts == 2 * d.num_bursts).all()
     for bursts in dj.mburst:
         assert (np.diff(bursts.start) > 0).all()
+
 
 def test_collapse(data_8ch):
     """Test the .collapse() method that joins the ch.

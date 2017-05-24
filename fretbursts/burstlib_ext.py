@@ -333,24 +333,28 @@ def calc_bg_brute(dx, min_ph_delay_list=None, return_all=False,
         return best_th, best_bg
 
 
-def burst_data(dx, ich=0, include_bg=False, include_ph_index=False):
+def burst_data(dx, ich=None, include_bg=False, include_ph_index=False,
+               skip_ch=None):
     """Return a table (`pd.DataFrame`) of burst data (one row per burst).
 
     Columns include:
 
-    - *nd*, *na*, *naa*: burst counts in DexDem, DexAem, AexAem
-      photon streams.
+    - *E* and *S*: FRET and stoichiometry for each burst.
+    - *nd*, *na*, *naa*, *nda*: burst counts in DexDem, DexAem, AexAem and
+      AexDem photon streams.
     - *t_start*, *t_stop*: time (in seconds) of first and last photon inside
       the burst
     - *width_ms*: burst duration in milliseconds
-    - *size_raw*: uncorrected total counts in the burst
+    - *size_raw*: the total uncorrected burst counts in the photon stream
+      used for burst search
 
     Optional columns include:
 
     - *i_start*, *i_stop*: index of burst start and stop relative to the
       original timestamps array (requires `include_ph_index=True`)
-    - *bg_dd*, *bg_ad*, *bg_aa*: background contribution in the DexDem, DexAem,
-      AexAem photon stream (requires `include_bg=True`)
+    - *bg_dd*, *bg_ad*, *bg_aa*, *bg_da*: background contribution in the
+      DexDem, DexAem, AexAem, AexDem photon streams (requires
+      `include_bg=True`).
 
     If the peak photon-counts in each bursts has been computed (see
     :meth:`fretbursts.burstlib.Data.calc_max_rate`), it will
@@ -361,43 +365,39 @@ def burst_data(dx, ich=0, include_bg=False, include_ph_index=False):
             background (see above). Default False.
         include_ph_index (bool): if True includes additional two columns for
             index of first and last timestamp in each burst. Default False.
+        skip_ch (list or None): List of channels to skip if measurement is
+            multispot.
 
     Return:
         A pandas's DataFrame containing burst data (one row per burst).
     """
-    if dx.ALEX:
-        nd, na, naa, bg_d, bg_a, bg_aa, wid = dx.expand(ich=ich, alex_naa=True,
-                                                        width=True)
-        nt = nd + na + naa + dx.nda[ich]
+    def _burst_data_ich(dx, ich, include_bg=False, include_ph_index=False):
+        bursts = dx.burst_data_ich(ich=ich)
+        if not include_ph_index:
+            bursts.pop('i_start')
+            bursts.pop('i_stop')
+        if not include_bg:
+            for field in bursts:
+                if field.startswith('bg'):
+                    bursts.pop(field)
+        return pd.DataFrame.from_dict(bursts)
+
+    if skip_ch is None:
+        skip_ch = []
+    kws = dict(include_bg=include_bg, include_ph_index=include_ph_index)
+    if dx.nch == 1:
+        # Single-spot case, no spot column added
+        if ich is None:
+            ich = 0
+        bursts = _burst_data_ich(dx, ich=ich, **kws)
     else:
-        nd, na, bg_d, bg_a, wid = dx.expand(ich=ich, width=True)
-        nt = nd + na
-
-    size_raw = dx.mburst[ich].counts
-    t_start = dx.mburst[ich].start * dx.clk_p
-    t_end = dx.mburst[ich].stop * dx.clk_p
-    i_start = dx.mburst[ich].istart
-    i_end = dx.mburst[ich].istop
-    #asym = asymmetry(dx, dropnan=False)
-
-    data_dict = dict(size_raw=size_raw, nt=nt, width_ms=wid*1e3,
-                     t_start=t_start, t_end=t_end)#, asymmetry=asym)
-
-    if include_ph_index:
-        data_dict.update(i_start=i_start, i_end=i_end)
-
-    if include_bg:
-        data_dict.update(bg_d=bg_d, bg_a=bg_a)
-        if dx.ALEX:
-            data_dict.update(bg_aa=bg_aa)
-
-    burst_fields = dx.burst_fields[:]
-    burst_fields.remove('mburst')
-    for field in burst_fields:
-        if field in dx:
-            data_dict[field] = dx[field][ich]
-
-    return pd.DataFrame.from_dict(data_dict)
+        # Multispot case, add a spot column
+        bursts = {}
+        for ich in range(dx.nch):
+            if ich not in skip_ch:
+                bursts[ich] = _burst_data_ich(dx, ich=ich, **kws)
+        bursts = pd.concat(bursts, ignore_index=True)
+    return bursts
 
 
 def fit_bursts_kde_peak(dx, burst_data='E', bandwidth=0.03, weights=None,
