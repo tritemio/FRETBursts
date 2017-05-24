@@ -1345,9 +1345,9 @@ class Data(DataContainer):
         bursts = {}
         bursts['size_raw'] = self.mburst[ich].counts
         bursts['t_start'] = self.mburst[ich].start * self.clk_p
-        bursts['t_end'] = self.mburst[ich].stop * self.clk_p
+        bursts['t_stop'] = self.mburst[ich].stop * self.clk_p
         bursts['i_start'] = self.mburst[ich].istart
-        bursts['i_end'] = self.mburst[ich].istop
+        bursts['i_stop'] = self.mburst[ich].istop
 
         period = bursts['period'] = self.bp[ich]
         width = self.mburst[ich].width * self.clk_p

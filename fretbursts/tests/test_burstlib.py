@@ -784,9 +784,9 @@ def test_burst_data_ich(data):
         burst_dict = d.burst_data_ich(ich=ich)
         assert (burst_dict['size_raw'] == bursts.counts).all()
         assert (burst_dict['t_start'] == bursts.start * d.clk_p).all()
-        assert (burst_dict['t_end'] == bursts.stop * d.clk_p).all()
+        assert (burst_dict['t_stop'] == bursts.stop * d.clk_p).all()
         assert (burst_dict['i_start'] == bursts.istart).all()
-        assert (burst_dict['i_end'] == bursts.istop).all()
+        assert (burst_dict['i_stop'] == bursts.istop).all()
         assert (burst_dict['period'] == d.bp[ich]).all()
         nd, na, bg_d, bg_a, width = d.expand(ich, width=True)
         width_ms = width * 1e3
