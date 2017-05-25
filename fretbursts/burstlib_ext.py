@@ -372,15 +372,14 @@ def burst_data(dx, ich=None, include_bg=False, include_ph_index=False,
         A pandas's DataFrame containing burst data (one row per burst).
     """
     def _burst_data_ich(dx, ich, include_bg=False, include_ph_index=False):
-        bursts = dx.burst_data_ich(ich=ich)
+        bursts_ich = dx.burst_data_ich(ich=ich)
         if not include_ph_index:
-            bursts.pop('i_start')
-            bursts.pop('i_stop')
+            bursts_ich.pop('i_start')
+            bursts_ich.pop('i_stop')
         if not include_bg:
-            for field in bursts:
-                if field.startswith('bg'):
-                    bursts.pop(field)
-        return pd.DataFrame.from_dict(bursts)
+            bursts_ich = {k: v for k, v in bursts_ich.items()
+                          if not k.startswith('bg')}
+        return pd.DataFrame.from_dict(bursts_ich)
 
     if skip_ch is None:
         skip_ch = []
