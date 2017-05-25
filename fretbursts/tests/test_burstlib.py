@@ -752,8 +752,11 @@ def test_calc_max_rate(data):
         data.calc_max_rate(m=10, ph_sel=Ph_sel(Dex='DAem'), compact=True)
 
 def test_burst_data(data):
-    """Smoke test for bext.burst_data()"""
+    """Test for bext.burst_data()"""
     bext.burst_data(data, include_bg=True, include_ph_index=True)
+    bext.burst_data(data, include_bg=False, include_ph_index=True)
+    bext.burst_data(data, include_bg=True, include_ph_index=False)
+    bext.burst_data(data, include_bg=False, include_ph_index=False)
 
 def test_print_burst_stats(data):
     """Smoke test for burstlib.print_burst_stats()"""
