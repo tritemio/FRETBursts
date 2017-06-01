@@ -361,7 +361,8 @@ def usalex(fname, leakage=0, gamma=1., header=None, BT=None):
     alex_period = 4000
 
     dx = Data(fname=fname, clk_p=12.5e-9, nch=1, leakage=leakage, gamma=gamma,
-              ALEX=True, lifetime=False,
+              ALEX=True, lifetime=False, alternated=True,
+              meas_type='smFRET-usALEX',
               D_ON=DONOR_ON, A_ON=ACCEPT_ON, alex_period=alex_period,
               ph_times_t=[ph_times_t], det_t=[det_t], det_donor_accept=(0, 1),
               ch_labels=labels)
@@ -369,7 +370,7 @@ def usalex(fname, leakage=0, gamma=1., header=None, BT=None):
 
 
 def _usalex_apply_period_1ch(d, delete_ph_t=True, remove_d_em_a_ex=False,
-                            ich=0):
+                             ich=0):
     """Applies to the Data object `d` the alternation period previously set.
 
     This function operates on a single-channel.
