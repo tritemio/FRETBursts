@@ -75,3 +75,33 @@ FRETBursts from the source folder you need to add ``-e`` to the lasted command::
 
 In this case, modifications in the source files would be immediately available
 on the next FRETBursts import.
+
+Install FRETBursts in new environment
+----------------------------------
+
+As a rule, all new development takes place on separate branches. In priniciple, the master branch is always stable and releasable. The advantage of installing from the master branch is that you can easily get immidiate updates without waiting for a formal release. If there are some errors you can always roll back to the latest released version to get your job done. Since you have the full version down to the commit level printed in the notebook you will know which version works and which does not.
+
+Another even safer approach is creating a separate environment with conda. You can create a new environment in which you install a
+totally different set of packages. You can have an environment with the latest released FRETBursts and one with the latest master version.
+    
+Use conda-forge to install a new environment for FRETBursts::
+
+    conda config --append channels conda-forge 
+    
+This appends the conda-forge channel to the conda channels. 
+
+The default environment is called root. To make a new environment called fbmaster:
+
+    conda create -n fbmaster python=3.6 frebursts
+    
+This installs python 3.6 and names the environment 'fbmaster.'
+
+Then activate the environment:
+
+    activate fbmaster
+
+See `Managing environments <https://conda.io/docs/using/envs.html>`__ for documentation. 
+
+Once the environment is activated you can install/remove more packages in it. For example you can replace the stable FRETBursts with the version from github master using pip install -e . in the same terminal where the environment has been activated. Installing the stable FRETBursts first, allows installing all the dependencies through conda. Conda adds all the environment to the notebook menu. So when you open a notebook, you can go to the menu Kernel -> Change kernel and select fbmaster instead of default (or vice versa). The latest used kernel is saved in the notebook so you don't have to switch every time.
+
+Environments help to be more reproducible in computations. They can be "saved" or exported to a text file so that they can be recreated on a different machine. For example, you can have an environment for a paper. 1 or 2 years later, an updated python installation may have some incompatibilities causing the old analysis to fail or to give different results. If you saved the environment file, you can restore the old environment with the exact version of all packages with one command. Having a saved environment saves you the trouble of finding and fixing these incompatibilities (they are almost always trivial but it takes time).
