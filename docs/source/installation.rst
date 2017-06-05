@@ -51,6 +51,15 @@ The previous installs or upgrades FRETBursts to the latest stable release.
 Install latest development version
 ----------------------------------
 
+As a rule, all new development takes place on separate "feature branches". 		
+The master branch should always be stable and releasable. 		
+The advantage of installing from the master branch is that you can 		
+easily get immidiate updates without waiting for a formal release. 		
+If there are some errors you can always roll back to the latest 		
+released version to get your job done. Since you have the full version 		
+down to the commit level printed in the notebook you will know which version 		
+works and which does not.
+
 You can install the latest development version directly from GitHub with::
 
     pip install git+git://github.com/tritemio/FRETBursts.git
