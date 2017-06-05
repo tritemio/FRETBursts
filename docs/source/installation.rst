@@ -79,46 +79,38 @@ on the next FRETBursts import.
 Install FRETBursts in new environment
 ---------------------------------------
 
-As a rule, all new development takes place on separate branches. 
-In priniciple, the master branch is always stable and releasable. 
-The advantage of installing from the master branch is that you can 
-easily get immidiate updates without waiting for a formal release. 
-If there are some errors you can always roll back to the latest 
-released version to get your job done. Since you have the full version 
-down to the commit level printed in the notebook you will know which version 
-works and which does not.
-
 Another even safer approach is creating a separate environment with conda. 
 You can create a new environment in which you install a
-totally different set of packages. You can have an environment with the 
+totally different set of packages, so you can have an environment with the 
 latest released FRETBursts and one with the latest master version.
     
-FRETBursts is not in the generic conda channel. To install FRETBursts through 
-conda-forge you first need to add the conda-forge channel::
+FRETBursts is not in the generic conda channel, but in the conda-forge channel. 
+The conda-forge first needs to be addeed to the list of channels with::
 
     conda config --append channels conda-forge 
     
-This appends the conda-forge channel to the conda channels. 
+This **appends** the conda-forge channel to the list of conda channels. 
 
 The default environment is called the root environment. 
-To make a new environment called fbmaster::
+To make a new environment called `fbmaster`::
 
     conda create -n fbmaster python=3.6 frebursts
     
-This command both installs python 3.6 and creates the environment 'fbmaster.'
+This command creates the environment `fbmaster` and installs python 3.6 and fretbursts in it.
 
 Finally, activate the environment::
 
-    activate fbmaster
+    . activate fbmaster
 
-Refer to `Managing environments <https://conda.io/docs/using/envs.html>`__ for documentation. 
+(without the leading dot-space on windows). 
+Refer to the conda documentation `Managing environments <https://conda.io/docs/using/envs.html>`__ for details. 
 
 Once the environment is activated you can install/remove more packages in it. 
 For example you can replace the stable FRETBursts with the version from github master using 
 ``pip install -e .`` in the same terminal where the environment has been activated. 
 Installing the stable FRETBursts first allows installing all the dependencies through conda. 
 Conda adds the environment to the notebook menu. So when you open a notebook, you can go to the 
-menu ``Kernel -> Change kernel`` and select ``fbmaster`` instead of default (or vice versa). 
+menu *Kernel* -> *Change kernel* and select *fbmaster* instead of default (or vice versa). 
 The latest used kernel is saved in the notebook so you don't have to switch every time.
 
 Environments help to be more reproducible in computations. They can be "saved" or exported 
