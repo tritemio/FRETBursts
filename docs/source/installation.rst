@@ -54,7 +54,7 @@ Install latest development version
 As a rule, all new development takes place on separate "feature branches". 		
 The master branch should always be stable and releasable. 		
 The advantage of installing from the master branch is that you can 		
-easily get immidiate updates without waiting for a formal release. 		
+get updates without waiting for a formal release. 		
 If there are some errors you can always roll back to the latest 		
 released version to get your job done. Since you have the full version 		
 down to the commit level printed in the notebook you will know which version 		
@@ -85,34 +85,35 @@ FRETBursts from the source folder you need to add ``-e`` to the lasted command::
 In this case, modifications in the source files would be immediately available
 on the next FRETBursts import.
 
-Install FRETBursts in new environment
+Install FRETBursts in a new environment
 ---------------------------------------
 
-Another even safer approach is creating a separate environment with conda. 
-You can create a new environment in which you install a
+If you want to install multiple version of FRETBursts you can create separate environments with conda. 
+New conda environments can contain
 totally different set of packages, so you can have an environment with the 
-latest released FRETBursts and one with the latest master version.
+latest released FRETBursts and one with the latest master version, for example.
     
 FRETBursts is not in the generic conda channel, but in the conda-forge channel. 
-The conda-forge first needs to be addeed to the list of channels with::
+You can add conda-forge to the channel list with::
 
     conda config --append channels conda-forge 
     
-This **appends** the conda-forge channel to the list of conda channels. 
+This **appends** the conda-forge to the channel list, with a lower
+priority than the default channel. A package that is availbale with the same 
+version both in conda-forge and in the default channel, will be installed 
+from the default channel.
 
 The default environment is called the root environment. 
-To make a new environment called `fbmaster`::
+To make a new environment called `fbmaster` which contains python 3.6 and 
+fretbursts you can use::
 
     conda create -n fbmaster python=3.6 frebursts
     
-This command creates the environment `fbmaster` and installs python 3.6 and fretbursts in it.
-
-Finally, activate the environment::
+The environment needs to be activated:
 
     . activate fbmaster
 
-(without the leading dot-space on windows). 
-Refer to the conda documentation `Managing environments <https://conda.io/docs/using/envs.html>`__ for details. 
+(on windows remove the leading "dot"). 
 
 Once the environment is activated you can install/remove more packages in it. 
 For example you can replace the stable FRETBursts with the version from github master using 
@@ -129,3 +130,5 @@ incompatibilities causing the old analysis to fail or to give different results.
 the environment file, you can restore the old environment with the exact version of all packages 
 using a single command. Having a saved environment saves you the trouble of finding and fixing 
 numerous, time-wasting incompatibilities.
+
+Refer to the conda documentation `Managing environments <https://conda.io/docs/using/envs.html>`__ for details. 
