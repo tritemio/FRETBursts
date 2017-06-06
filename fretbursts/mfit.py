@@ -401,16 +401,18 @@ class MultiFitter(FitterBase):
         if verbose:
             print(" - Computing histogram.")
         if bins is None:
-            bins = np.r_[-0.2 : 1.2 : binwidth]
+            bins = np.arange(-0.2, 1.2, binwidth)
         kwargs.update(bins=bins, density=False)
         hist_counts = []
         for ich, (data, weights) in enumerate(zip(self.data_list, self.weights)):
+            # NaN cause issues in some versions of numpy.histogram()
+            valid = ~np.isnan(data)
             if ich in self.skip_ch:
                 counts = np.zeros(bins.size - 1)
             else:
                 if weights is not None:
-                    kwargs.update(weights=weights)
-                counts, _ = np.histogram(data, **kwargs)
+                    kwargs.update(weights=weights[valid])
+                counts, _ = np.histogram(data[valid], **kwargs)
             hist_counts.append(counts)
         self._set_hist_data(hist_counts, bins)
 
