@@ -85,12 +85,12 @@ FRETBursts from the source folder you need to add ``-e`` to the lasted command::
 In this case, modifications in the source files would be immediately available
 on the next FRETBursts import.
 
-Install FRETBursts in a new environment
----------------------------------------
+Install FRETBursts in a separate environment
+--------------------------------------------
 
-If you want to install multiple version of FRETBursts you can create separate environments with conda. 
-New conda environments can contain
-totally different set of packages, so you can have an environment with the 
+If you want to install multiple versions of FRETBursts, you can create separate environments with conda. 
+Each conda environments can contain
+a totally different set of packages, so you can have an environment with the 
 latest released FRETBursts and one with the latest master version, for example.
     
 FRETBursts is not in the generic conda channel, but in the conda-forge channel. 
@@ -98,8 +98,8 @@ You can add conda-forge to the channel list with::
 
     conda config --append channels conda-forge 
     
-This **appends** the conda-forge to the channel list, with a lower
-priority than the default channel. A package that is availbale with the same 
+This **appends** `conda-forge` to the channel list, with a lower
+priority than the default channel. This means that a package availbale with the same 
 version both in conda-forge and in the default channel, will be installed 
 from the default channel.
 
