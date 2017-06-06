@@ -333,7 +333,7 @@ def calc_bg_brute(dx, min_ph_delay_list=None, return_all=False,
         return best_th, best_bg
 
 
-def burst_data(dx, ich=None, include_bg=False, include_ph_index=False,
+def burst_data(dx, include_bg=False, include_ph_index=False,
                skip_ch=None):
     """Return a table (`pd.DataFrame`) of burst data (one row per burst).
 
@@ -384,19 +384,15 @@ def burst_data(dx, ich=None, include_bg=False, include_ph_index=False,
     if skip_ch is None:
         skip_ch = []
     kws = dict(include_bg=include_bg, include_ph_index=include_ph_index)
-    if dx.nch == 1:
-        # Single-spot case, no spot column added
-        if ich is None:
-            ich = 0
-        bursts = _burst_data_ich(dx, ich=ich, **kws)
-    else:
-        # Multispot case, add a spot column
-        bursts = {}
-        for ich in range(dx.nch):
-            if ich not in skip_ch:
-                bursts[ich] = _burst_data_ich(dx, ich=ich, **kws)
-                bursts[ich]['spot'] = ich
+    bursts = {}
+    for ich in range(dx.nch):
+        if ich not in skip_ch:
+            bursts[ich] = _burst_data_ich(dx, ich=ich, **kws)
+            bursts[ich]['spot'] = ich
+    if dx.nch > 1:
         bursts = pd.concat(bursts, ignore_index=True)
+    else:
+        bursts = bursts[0]
     return bursts
 
 
