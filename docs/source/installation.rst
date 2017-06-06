@@ -109,7 +109,7 @@ fretbursts you can use::
 
     conda create -n fbmaster python=3.6 frebursts
     
-The environment needs to be activated:
+The environment needs to be activated::
 
     . activate fbmaster
 
