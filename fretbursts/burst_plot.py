@@ -2144,11 +2144,11 @@ def _alex_plot_style(g, colorbar=True):
         plt.colorbar(cax=cax)
 
 
-def _hist_bursts_marg(arr, dx, i, **kwargs):
+def _hist_bursts_marg(arr, dx, i, E_name='E', S_name='S', **kwargs):
     """Wrapper to call hist_burst_data() from seaborn plot_marginals().
     """
     vertical = kwargs.get('vertical', False)
-    data_name = 'S' if vertical else 'E'
+    data_name = S_name if vertical else E_name
     hist_burst_data(dx, i=i, data_name=data_name, **kwargs)
 
 
@@ -2277,7 +2277,8 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='Spectral_r', kind='hex',
             joint_kws_.update(_normalize_kwargs(joint_kws))
         jplot = g.plot_joint(sns.kdeplot, **joint_kws_)
 
-    g.plot_marginals(_hist_bursts_marg, dx=d, i=i, **marginal_kws_)
+    g.plot_marginals(_hist_bursts_marg, dx=d, i=i, E_name=E_name, S_name=S_name,
+                     **marginal_kws_)
     g.annotate(lambda x, y: x.size, stat='# Bursts',
                template='{stat}: {val}')
     colorbar = kind.startswith('hex')
