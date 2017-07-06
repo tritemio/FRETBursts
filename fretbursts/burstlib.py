@@ -626,8 +626,11 @@ class Data(DataContainer):
         nd, na (list of arrays): number of donor or acceptor photons during
             donor excitation in each burst
         nt (list of arrays): total number photons (nd+na+naa)
-        naa (list of arrays): number of acceptor photons in each bursts
+        naa (list of arrays): number of acceptor photons in each burst
             during acceptor excitation **[ALEX only]**
+        nar (list of arrays): number of acceptor photons in each burst
+            during donor excitation, not corrected for D-leakage and
+            A-direct-excitation. **[PAX only]**
         bp (list of arrays): time period for each burst. Same shape as `nd`.
             This is needed to identify the background rate for each burst.
         bg_bs (list): background rates used for threshold computation in burst
@@ -2124,12 +2127,13 @@ class Data(DataContainer):
                 nt = [d + a + da + aa for d, a, da, aa in zip(nd, na, nda, naa)]
                 assert (nt[0] == na[0] + nd[0] + nda[0] + naa[0]).all()
                 # This is a copy of na which will never be corrected
-                # it is used to compute the equivalento of naa for PAX:
+                # (except for background). It is used to compute the
+                # equivalent of naa for PAX:
                 #   naa~ = naa - nar
-                # where naa~ A emission due to A-excitation, nar is the
-                # A-emission due to D-excitation during the D-semiperiod,
-                # and naa is the A-channel signal due to both excitations
-                # detected during the A-channel semiperiod.
+                # where naa~ is the A emission due to direct excitation
+                # by A laser during D+A-excitation,
+                # nar is the uncorrected A-channel signal during D-excitation,
+                # and naa is the A-channel signal during D+A excitation.
                 nar = [a.copy() for a in na]
                 self.add(nar=nar)
         self.add(nd=nd, na=na, nt=nt,
@@ -2751,13 +2755,13 @@ class Data(DataContainer):
         naa = self.naa
         if 'PAX' in self.meas_type:
             # in PAX self.naa contains the total Aem signal due to both lasers
-            # during the A-excitation period. Since the A-emission due
-            # D laser (na) is the same in both D and A excitation periods
+            # during the D+A-excitation period. Since the A-emission due
+            # D laser (na) is the same in both D and D+A excitation periods
             # (except for statistical fluctuations and dynamics), we can
             # compute the A-emission due to A laser (naa~) as:
             #     naa~ = naa - nar
             # were `nar` is `na` before leakage and direct-excitation
-            # corrections. The quantity `naa~`` in PAX is equivalent to `naa`
+            # corrections. The quantity `naa~` in PAX is equivalent to `naa`
             # in usALEX.
             naa = [aa - ar for aa, ar in zip(self.naa, self.nar)]
         if not pax:
