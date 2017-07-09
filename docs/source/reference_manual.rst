@@ -20,3 +20,4 @@ Contents:
     HDF5_format
     fretmath
     files_description
+    cython

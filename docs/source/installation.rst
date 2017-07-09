@@ -8,7 +8,7 @@ or PIP (see below). Being written in python, FRETBursts runs on OS X,
 Windows and Linux.
 
 For updates on the latest FRETBursts version please refer to the
-`Release Notes (What's new?) <https://github.com/tritemio/FRETBursts/releases>`_.
+`Release Notes (What's new?) <https://github.com/tritemio/FRETBursts/releases>`__.
 
 .. _package_install:
 
@@ -65,7 +65,7 @@ You can install the latest development version directly from GitHub with::
     pip install git+git://github.com/tritemio/FRETBursts.git
 
 .. note ::
-    Note that the previous command fails if `git <http://git-scm.com/>`_
+    Note that the previous command fails if `git <http://git-scm.com/>`__
     is not installed.
 
 Alternatively you can do an "editable" installation, i.e. executing
