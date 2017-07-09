@@ -167,7 +167,7 @@ from .utils.misc import download_file
 from .utils import git
 
 
-def init_notebook(fs=13, savefig_dpi=65, seaborn_style='darkgrid',
+def init_notebook(fs=13, seaborn_style='darkgrid',
                   mpl_backend='inline', configure_logger=True, apionly=False):
     """
     Set the default plot style for inline plots using the seaborn library.
@@ -176,10 +176,7 @@ def init_notebook(fs=13, savefig_dpi=65, seaborn_style='darkgrid',
     ipython QT console.
 
     Arguments:
-        fs (int): base font size for text labels (not for title)
-        savefig_dpi (int): this value determines the figure size in
-            the notebook. It is assigned to
-            matplotlib.rcParams['savefig.dpi']
+        fs (int): base font size for text labels
 
     Returns:
         The imported seaborn library. By saving the return value you
@@ -202,7 +199,6 @@ def init_notebook(fs=13, savefig_dpi=65, seaborn_style='darkgrid',
         rc={'font.size': fs, 'axes.labelsize': fs, 'legend.fontsize': fs,
             'axes.titlesize': fs*1.1,
             'xtick.labelsize': fs, 'ytick.labelsize': fs,
-            'savefig.dpi': savefig_dpi,
             'font.sans-serif': ['Arial', 'Liberation Sans'],
         }
         sns.set(rc=rc)
