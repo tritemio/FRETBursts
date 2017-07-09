@@ -197,10 +197,8 @@ def init_notebook(fs=13, savefig_dpi=65, seaborn_style='darkgrid',
         ip = get_ipython()
         ip.enable_matplotlib(mpl_backend)
 
-    if apionly:
-        import seaborn.apionly as sns
-    else:
-        import seaborn as sns
+    import seaborn as sns
+    if not apionly:
         rc={'font.size': fs, 'axes.labelsize': fs, 'legend.fontsize': fs,
             'axes.titlesize': fs*1.1,
             'xtick.labelsize': fs, 'ytick.labelsize': fs,
