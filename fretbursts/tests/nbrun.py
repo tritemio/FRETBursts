@@ -205,7 +205,8 @@ if __name__ == '__main__':
     assert folder.is_dir(), 'Folder "%s" not found.' % folder
 
     out_path = Path(folder, 'out/')
-    out_path.mkdir(exist_ok=True, parents=True)
+    if not out_path.is_dir():
+        out_path.mkdir(parents=True)  # py2 compat
 
     print('Executing notebooks in "%s" ... ' % folder)
     pathlist = list(folder.glob('*.ipynb'))
