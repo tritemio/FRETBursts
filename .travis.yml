@@ -33,6 +33,6 @@ script:
     - python -Wd fretbursts/tests/importtest.py
     - py.test -v
     - cd notebooks
-    - python ../fretbursts/tests/nbrun.py
+    - python ../fretbursts/tests/nbrun.py .
 
 sudo: false
