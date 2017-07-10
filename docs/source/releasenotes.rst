@@ -12,19 +12,25 @@ for 48-spot data.
 
 The list of changes include:
 
-- Add PAX support
+- Added PAX support
 - Workaround for a `numpy.histogram issue <https://github.com/numpy/numpy/issues/7503>`__ when input contains NaNs
 - :func:`bext.burst_data() <fretbursts.burstlib_ext.burst_data>`: bugfix, add tests and improve handling of multispot data
-- Add ``apionly`` argument to ``init_notebook()`` for setting up the notebook
+- Added ``apionly`` argument to ``init_notebook()`` for setting up the notebook
   plots without changing any plot style (see `958824 <https://github.com/tritemio/FRETBursts/commit/958824123152fd618d6811153bfbed64722fffd7>`__).
-- Support "empty" channels in multispot data
-- Improve plots for 48-spot data
-- Allow using custom ``Data`` fields for E and S in ``alex_jointplot``
+- Support "empty" channels in multispot data.
+- Improve plots for 48-spot data.
+
+- Refactoring of :func:`alex_jointplot <fretbursts.burst_plot.alex_jointplot>`.
+    * Allow using custom ``Data`` fields for E and S in ``alex_jointplot``.
+    * Remove rarely used arguments
+    * Set axis limits by default
+- Added notebook showing how to change appearance of `alex_jointplot` plots.
 
 .. [pax] Doose *et al.* European Biophysics Journal 36(6) p.669-674, **2007**.
          DOI:`10.1007/s00249-007-0133-7 <https://doi.org/10.1007/s00249-007-0133-7>`__
 .. [48spot] Ingargiola *et al.* bioRxiv 156182, **2017**.
          DOI:`10.1101/156182 <https://doi.org/10.1101/156182>`__
+
 
 Version 0.6.3 (Apr. 2017)
 --------------------------
