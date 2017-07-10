@@ -11,6 +11,7 @@ execute the other notebooks. Then use `run_notebook()` to execute
 notebooks.
 """
 
+import sys
 import time
 from pathlib import Path
 from IPython.display import display, FileLink
@@ -141,8 +142,9 @@ def run_notebook(notebook_path, nb_kwargs=None, suffix='-out',
     if execute_kwargs is None:
         execute_kwargs = {}
     execute_kwargs.update(timeout=timeout)
-    if kernel_name is not None:
-        execute_kwargs.update(kernel_name=kernel_name)
+    if kernel_name is None:
+        kernel_name = 'python%d' % sys.version_info[0]
+    execute_kwargs.update(kernel_name=kernel_name)
     ep = ExecutePreprocessor(**execute_kwargs)
     nb = nbformat.read(str(notebook_path), as_version=4)
 
