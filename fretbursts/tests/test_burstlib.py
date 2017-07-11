@@ -250,7 +250,7 @@ def test_iter_ph_times(data):
         if d.alternated:
             assert (ph == d.ph_times_m[ich][d.D_em[ich] * d.D_ex[ich]]).all()
         else:
-            assert (ph == d.ph_times_m[ich][-d.A_em[ich]]).all()
+            assert (ph == d.ph_times_m[ich][~d.A_em[ich]]).all()
 
     for ich, ph in enumerate(d.iter_ph_times(Ph_sel(Dex='Aem'))):
         if d.alternated:
