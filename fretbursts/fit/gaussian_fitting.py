@@ -432,7 +432,7 @@ def two_gaussian_fit_EM(s, p0=[0, 0.1, 0.6, 0.1, 0.5], max_iter=300, ptol=1e-4,
         # Convergence check
         counter += 1
         fixed = np.concatenate([fix_mu, fix_sig, [0]]).astype(bool)
-        relative_delta = np.abs(p_new[-fixed] - p_old[-fixed])/p_new[-fixed]
+        relative_delta = np.abs(p_new[~fixed] - p_old[~fixed])/p_new[~fixed]
         converged = relative_delta.max() < ptol
         stop_iter = converged or (counter >= max_iter)
 
