@@ -1352,7 +1352,7 @@ class Data(DataContainer):
         bursts['i_start'] = self.mburst[ich].istart
         bursts['i_stop'] = self.mburst[ich].istop
 
-        period = bursts['period'] = self.bp[ich]
+        period = bursts['bg_period'] = self.bp[ich]
         width = self.mburst[ich].width * self.clk_p
         bursts['width_ms'] = width * 1e3
         bursts['bg_ad'] = self.bg[Ph_sel(Dex='Aem')][ich][period] * width
@@ -1363,6 +1363,7 @@ class Data(DataContainer):
 
         burst_fields = self.burst_fields[:]
         burst_fields.remove('mburst')
+        burst_fields.remove('bp')
         for field in burst_fields:
             if field in self:
                 bursts[field] = self[field][ich]
