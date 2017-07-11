@@ -2222,6 +2222,8 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='Spectral_r', kind='hex',
             using `Data.add`. In this case, you can specify the name of
             these custom attributes so that they can be plotted as an E-S
             histogram.
+    Returns:
+        A ``seaborn.JointGrid`` object that can be used for tweaking the plot.
 
     .. seealso::
         The `Seaborn documentation <https://seaborn.pydata.org/>`__
