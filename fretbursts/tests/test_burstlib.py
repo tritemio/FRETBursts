@@ -790,7 +790,7 @@ def test_burst_data_ich(data):
         assert (burst_dict['t_stop'] == bursts.stop * d.clk_p).all()
         assert (burst_dict['i_start'] == bursts.istart).all()
         assert (burst_dict['i_stop'] == bursts.istop).all()
-        assert (burst_dict['period'] == d.bp[ich]).all()
+        assert (burst_dict['bg_period'] == d.bp[ich]).all()
         nd, na, bg_d, bg_a, width = d.expand(ich, width=True)
         width_ms = width * 1e3
         assert (width_ms == burst_dict['width_ms']).all()
