@@ -10,6 +10,9 @@ A laser is alternated (see references [pax]_ and [48spot]_).
 There are also a few minor bug fixes and better support
 for 48-spot data.
 
+To update to the latest version type `conda install fretbursts -c conda-forge`. 
+For installation instructions see :doc:`Getting Started <getting_started>`.
+
 The list of changes include:
 
 - Added PAX support
