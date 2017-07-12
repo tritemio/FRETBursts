@@ -24,7 +24,8 @@ The list of changes include:
     * Allow using custom ``Data`` fields for E and S in ``alex_jointplot``.
     * Remove rarely used arguments
     * Set axis limits by default
-- Added notebook showing how to change appearance of `alex_jointplot` plots.
+- Added `a new notebook <http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%20Customize%20the%20us-ALEX%20histogram.ipynb>`__
+  showing how to customize :func:`alex_jointplot <fretbursts.burst_plot.alex_jointplot>` plots.
 
 .. [pax] Doose *et al.* European Biophysics Journal 36(6) p.669-674, **2007**.
          DOI:`10.1007/s00249-007-0133-7 <https://doi.org/10.1007/s00249-007-0133-7>`__
