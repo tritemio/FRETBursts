@@ -14,8 +14,8 @@ Welcome to FRETBursts's documentation!
 freely-diffusing single-molecule FRET data for single and multi-spot experiments.
 
 See :ref:`getting-started` for installation instructions.
-The development version can be found on the `GitHub repository <https://github.com/tritemio/FRETBursts>`_,
-where you can also find the `Release Notes (What's new?) <https://github.com/tritemio/FRETBursts/releases>`_.
+The development version can be found on the `GitHub repository <https://github.com/tritemio/FRETBursts>`_.
+For information on new versions see :doc:`release notes <releasenotes>`.
 
 This documentation contains installation instructions and the
 reference API documentation.
