@@ -387,6 +387,17 @@ def test_burst_search_and_gate(data_1ch):
     """Test consistency of burst search and gate."""
     d = data_1ch
     assert d.alternated
+
+    # Smoke tests
+    bext.burst_search_and_gate(d, F=(6, 8))
+    bext.burst_search_and_gate(d, m=(12, 8))
+    bext.burst_search_and_gate(d, min_rate_cps=(60e3, 40e3))
+    if d.nch > 1:
+        mr1 = 35e3 + np.arange(d.nch) * 1e3
+        mr2 = 30e3 + np.arange(d.nch) * 1e3
+        bext.burst_search_and_gate(d, min_rate_cps=(mr1, mr2))
+
+    # Consistency test
     d_dex = d.copy()
     d_dex.burst_search(ph_sel=Ph_sel(Dex='DAem'))
     d_aex = d.copy()
@@ -398,6 +409,7 @@ def test_burst_search_and_gate(data_1ch):
         ph_b_mask_aex = bl.ph_in_bursts_mask(ph.size, bursts_aex)
         ph_b_mask_and = bl.ph_in_bursts_mask(ph.size, bursts_and)
         assert (ph_b_mask_and == ph_b_mask_dex * ph_b_mask_aex).all()
+
 
 
 def test_mch_count_ph_num_py_c(data):

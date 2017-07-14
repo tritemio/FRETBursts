@@ -796,11 +796,16 @@ def burst_search_and_gate(dx, F=6, m=10, min_rate_cps=None, c=-1,
     Arguments:
         dx (Data object): contains the data on which to perform the burst
             search. Background estimation must be performed before the search.
-        F (float): Burst search parameter F.
-        m (int): Burst search parameter m.
-        min_rate_cps (float or list/array): min. rate in cps for burst detection.
+        F (float or tuple): burst search parameter F. If it is a 2-element
+            tuple, specifies F separately for `ph_sel1` and `ph_sel2`.
+        m (int or tuple): Burst search parameter m. If it is a 2-element
+            tuple, specifies m separately for `ph_sel1` and `ph_sel2`.
+        min_rate_cps (float or tuple): min. rate in cps for burst detection.
             If not None, min_rate_cps overrides any value passed in `F`.
-            If non-scalar, it must contain one rate per each channel.
+            If a 2-element tuple specifies min_rate_cps separately for
+            `ph_sel1` and `ph_sel2`. In multispot data, it can also be an
+            array (or a 2-tuple or arrays) with size equal to the number of
+            spots.
         c (float): parameter used set the definition of the rate estimatator.
             See `c` parameter in :meth:`.burstlib.Data.burst_search`
             for details.
@@ -818,10 +823,22 @@ def burst_search_and_gate(dx, F=6, m=10, min_rate_cps=None, c=-1,
     dx_and = dx.copy(mute=mute)
     dx_and.delete_burst_data()
 
-    dx_d.burst_search(L=m, m=m, F=F, min_rate_cps=min_rate_cps, c=c,
+    def _get_args(x):
+        try:
+            assert len(x) == 2
+            x1, x2 = x
+        except TypeError:
+            x1 = x2 = x
+        return x1, x2
+
+    m1, m2 = _get_args(m)
+    F1, F2 = _get_args(F)
+    min_rate_cps1, min_rate_cps2 = _get_args(min_rate_cps)
+
+    dx_d.burst_search(L=m1, m=m1, F=F1, min_rate_cps=min_rate_cps1, c=c,
                       ph_sel=ph_sel1, compact=compact, computefret=False,
                       mute=mute)
-    dx_a.burst_search(L=m, m=m, F=F, min_rate_cps=min_rate_cps, c=c,
+    dx_a.burst_search(L=m2, m=m2, F=F2, min_rate_cps=min_rate_cps2, c=c,
                       ph_sel=ph_sel2, compact=compact, computefret=False,
                       mute=mute)
 
