@@ -164,6 +164,7 @@ def test_time_min_max():
     assert d.time_max == d.mburst[0].stop[-1] * d.clk_p
     assert d.time_min == d.mburst[0].start[0] * d.clk_p
 
+
 def test_time_min_max_multispot(data_8ch):
     """Test time_min and time_max for multi-spot data."""
     d = data_8ch
@@ -282,10 +283,12 @@ def test_iter_ph_times(data):
         assert list_array_equal(d.iter_ph_times(),
                                 d.iter_ph_times(Ph_sel(Dex='DAem')))
 
+
 def test_get_ph_times_period(data):
     for ich in range(data.nch):
         data.get_ph_times_period(0, ich=ich)
         data.get_ph_times_period(0, ich=ich, ph_sel=Ph_sel(Dex='Dem'))
+
 
 def test_iter_ph_times_period(data):
     d = data
@@ -303,6 +306,7 @@ def test_iter_ph_times_period(data):
             ph_period_test = ph_period_test[mask[istart : iend + 1]]
             assert (ph_period == ph_period_test).all()
 
+
 def test_burst_search_py_cy(data):
     """Test python and cython burst search with background-dependent threshold.
     """
@@ -319,6 +323,7 @@ def test_burst_search_py_cy(data):
     assert np.all(num_bursts1 == data.num_bursts)
     assert mburst1 == data.mburst
 
+
 def test_burst_search_constant_rates(data):
     """Test python and cython burst search with constant threshold."""
     data.burst_search(min_rate_cps=50e3, pure_python=True)
@@ -329,6 +334,7 @@ def test_burst_search_constant_rates(data):
     assert (data.num_bursts > 0).all()
     assert np.all(num_bursts1 == data.num_bursts)
     assert mburst1 == data.mburst
+
 
 def test_burst_search_L(data):
     """Test burst search with different L arguments."""
@@ -341,12 +347,14 @@ def test_burst_search_L(data):
         assert (bursts.counts >= 30).all()
     assert np.all(num_bursts1 > data.num_bursts)
 
+
 def test_burst_search_with_no_bursts(data):
     """Smoke test burst search when some periods have no bursts."""
     # F=600 results in periods with no bursts for the us-ALEX measurement
     # and in no bursts at all for the multi-spot measurements
     data.burst_search(m=10, F=600)
     data.fuse_bursts(ms=1)
+
 
 if has_matplotlib:
     def test_stale_fitter_after_burst_search(data):
@@ -370,6 +378,7 @@ if has_matplotlib:
         if data.alternated:
             assert not hasattr(data, 'S_fitter')
 
+
 def test_burst_search(data):
     """Smoke test and bg_bs check."""
     streams = [Ph_sel(Dex='Dem'), Ph_sel(Dex='Aem')]
@@ -382,6 +391,7 @@ def test_burst_search(data):
     if data.alternated:
         data.burst_search(m=10, F=7, ph_sel=Ph_sel(Dex='DAem'), compact=True)
     data.burst_search(L=10, m=10, F=7)
+
 
 def test_burst_search_and_gate(data_1ch):
     """Test consistency of burst search and gate."""
@@ -411,12 +421,12 @@ def test_burst_search_and_gate(data_1ch):
         assert (ph_b_mask_and == ph_b_mask_dex * ph_b_mask_aex).all()
 
 
-
 def test_mch_count_ph_num_py_c(data):
     na_py = bl.bslib.mch_count_ph_in_bursts_py(data.mburst, data.A_em)
     na_c = bl.bslib.mch_count_ph_in_bursts_c(data.mburst, data.A_em)
     assert list_array_equal(na_py, na_c)
     assert na_py[0].dtype == np.float64
+
 
 def test_burst_sizes(data):
     """Test for .burst_sizes_ich() and burst_sizes()"""
@@ -456,6 +466,7 @@ def test_leakage(data):
     na2 = list(data.na)
     assert list_array_equal(na1, na2)
 
+
 def test_gamma(data):
     """
     Test setting gamma before and after burst search
@@ -470,6 +481,7 @@ def test_gamma(data):
     data.burst_search()
     E2 = list(data.E)
     assert list_array_equal(E1, E2)
+
 
 def test_dir_ex(data_1ch):
     """
@@ -487,6 +499,7 @@ def test_dir_ex(data_1ch):
     na2 = list(data.na)
     assert list_array_equal(na1, na2)
 
+
 def test_beta(data_1ch):
     """
     Test setting beta before and after burst search
@@ -502,6 +515,7 @@ def test_beta(data_1ch):
     data.burst_search()
     S2 = list(data.S)
     assert list_array_equal(S1, S2)
+
 
 def test_bursts_interface(data):
     d = data
@@ -519,11 +533,13 @@ def test_bursts_interface(data):
 
         assert (b.stop > b.start).all()
 
+
 def test_burst_stop_istop(data):
     """Test coherence between b_end() and b_iend()"""
     d = data
     for ph, bursts in zip(d.ph_times_m, d.mburst):
         assert (ph[bursts.istop] == bursts.stop).all()
+
 
 def test_monotonic_burst_start(data):
     """Test for monotonic burst start times."""
@@ -531,11 +547,13 @@ def test_monotonic_burst_start(data):
     for i in range(d.nch):
         assert (np.diff(d.mburst[i].start) > 0).all()
 
+
 def test_monotonic_burst_stop(data):
     """Test for monotonic burst stop times."""
     d = data
     for bursts in d.mburst:
         assert (np.diff(bursts.stop) > 0).all()
+
 
 def test_burst_istart_iend_size(data):
     """Test consistency between burst istart, istop and counts (i.e. size)"""
@@ -544,12 +562,14 @@ def test_burst_istart_iend_size(data):
         counts = bursts.istop - bursts.istart + 1
         assert (counts == bursts.counts).all()
 
+
 def test_burst_recompute_times(data):
     """Test Bursts.recompute_times method."""
     d = data
     for times, bursts in zip(d.ph_times_m, d.mburst):
         newbursts = bursts.recompute_times(times)
         assert newbursts == bursts
+
 
 def test_burst_recompute_index(data):
     """Test Bursts.recompute_index_* methods."""
@@ -612,6 +632,7 @@ def test_burst_recompute_index(data):
 #        assert  bursts_sel1 == bursts_sel2
 #        assert  bursts_sel == bursts_sel1
 
+
 def test_phrates_mtuple(data):
     d = data
     m = 10
@@ -626,6 +647,7 @@ def test_phrates_mtuple(data):
         assert phrates.default_c == 1
         assert (rates == (m - 1 - phrates.default_c) / delays).all()
         assert (phrates.mtuple_rates_t(phc, m) == t_rates).all()
+
 
 if has_numba:
     def test_phrates_kde(data):
@@ -667,6 +689,7 @@ if has_numba:
             assert (ratesl == rateslc).all()
             assert (ratesr == ratesrc).all()
 
+
 def test_burst_ph_data_functions(data):
     """Tests the functions that iterate or operate on per-burst "ph-data".
     """
@@ -705,6 +728,7 @@ def test_burst_ph_data_functions(data):
                 if i < bistart.size-1 and bistart[i+1] > biend[i] + 1:
                     assert not bursts_mask[stop]
 
+
 def test_ph_in_bursts_ich(data):
     """Tests the ph_in_bursts_ich method.
     """
@@ -714,6 +738,7 @@ def test_ph_in_bursts_ich(data):
         ph_in_bursts_dd = d.ph_in_bursts_ich(ich, ph_sel=Ph_sel(Dex='Dem'))
         assert ph_in_bursts_dd.size < ph_in_bursts.size
 
+
 def test_burst_fuse(data):
     """Test 2 independent implementations of fuse_bursts for consistency.
     """
@@ -722,6 +747,7 @@ def test_burst_fuse(data):
         new_mbursti = bl.fuse_bursts_iter(bursts, ms=1)
         new_mburstd = bl.fuse_bursts_direct(bursts, ms=1)
         assert new_mbursti == new_mburstd
+
 
 def test_burst_fuse_0ms(data):
     """Test that after fusing with ms=0 the sum of bursts sizes is that same
@@ -741,6 +767,7 @@ def test_burst_fuse_0ms(data):
     assert len(df.mburst) == len(d.mburst)
     assert len(df.mburst) == d.nch
 
+
 def test_burst_fuse_separation(data):
     """Test that after fusing bursts the minimum separation is equal
     to the threshold used during fusing.
@@ -753,15 +780,18 @@ def test_burst_fuse_separation(data):
         if bursts.num_bursts > 0:
             assert separation.min() >= fuse_ms * 1e-3
 
+
 def test_calc_sbr(data):
     """Smoke test Data.calc_sbr()"""
     data.calc_sbr()
+
 
 def test_calc_max_rate(data):
     """Smoke test for Data.calc_max_rate()"""
     data.calc_max_rate(m=10)
     if data.alternated:
         data.calc_max_rate(m=10, ph_sel=Ph_sel(Dex='DAem'), compact=True)
+
 
 def test_burst_data(data):
     """Test for bext.burst_data()"""
@@ -770,9 +800,11 @@ def test_burst_data(data):
     bext.burst_data(data, include_bg=True, include_ph_index=False)
     bext.burst_data(data, include_bg=False, include_ph_index=False)
 
+
 def test_print_burst_stats(data):
     """Smoke test for burstlib.print_burst_stats()"""
     bl.print_burst_stats(data)
+
 
 def test_expand(data):
     """Test method `expand()` for `Data()`."""
@@ -843,6 +875,7 @@ def test_burst_corrections(data):
             burst_size_raw2 = nd + na + bg_d + bg_a + lk*nd
             assert np.allclose(burst_size_raw, burst_size_raw2)
 
+
 def test_burst_search_consistency(data):
     """Test consistency of burst data array
     """
@@ -900,6 +933,7 @@ def test_burst_size_da(data):
             tot_size = mb.counts
             assert (tot_size == nd + na).all()
 
+
 def test_burst_selection(data):
     """Smoke test for burst selection methods.
     """
@@ -915,6 +949,7 @@ def test_burst_selection(data):
                               kind='both')
     Mb2 = [m1 + m2 for m1, m2 in zip(M1, M2)]
     assert list_array_equal(Mb, Mb2)
+
 
 def test_burst_selection_nocorrections(data):
     """Test burst selection with uncorrected bursts.
@@ -934,6 +969,7 @@ def test_burst_selection_nocorrections(data):
     if d.alternated:
         assert list_array_equal(ds1.naa, ds2.naa)
         assert list_array_equal(ds1.E, ds2.E)
+
 
 def test_burst_selection_ranges(data):
     """Test selection functions having a min-max range.
