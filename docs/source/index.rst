@@ -68,9 +68,9 @@ reference API documentation.
    <div class="col-md-3">
    <h2>Features</h2>
 
-* :doc:`Sliding-Window Burst Search <burstsearch>`
+* `ALEX and PAX <http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/FRETBursts%20-%20us-ALEX%20smFRET%20burst%20analysis.ipynb>`__
+* :doc:`Burst Search Algorithm <burstsearch>`
 * `Dual-Channel Burst Search (DCBS) <http://dx.doi.org/10.1101/039198>`__
-* `Burst Variance Analysis (BVA) <http://dx.doi.org/10.1101/039198>`__
-* `Two-channel Kernel Density Estimator (2CDE) <http://dx.doi.org/10.1101/039198>`__
-* `Periodic Acceptor Excitation (PAX) <http://dx.doi.org/10.1101/039198>`__
-* `Export burst data <http://dx.doi.org/10.1101/039198>`__
+* `Burst Variance Analysis (BVA) <http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%20Burst%20Variance%20Analysis.ipynb>`__
+* `Two-channel Kernel Density Estimator (2CDE) <http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%202CDE%20Method.ipynb>`__
+* `Exporting burst data <http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%20Exporting%20Burst%20Data%20Including%20Timestamps.ipynb>`__
