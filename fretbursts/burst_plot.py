@@ -35,6 +35,7 @@ from __future__ import division, print_function, absolute_import
 from builtins import range
 
 import warnings
+from itertools import cycle
 
 # Numeric imports
 import numpy as np
@@ -288,7 +289,8 @@ def _burst_info(d, ich, burst_index):
     return msg.format(**params)
 
 
-def _plot_bursts(d, i, tmin_clk, tmax_clk, pmax=1e3, pmin=0, color="#999999"):
+def _plot_bursts(d, i, tmin_clk, tmax_clk, pmax=1e3, pmin=0, color="#999999",
+                 ytext=20):
     """Highlights bursts in a timetrace plot."""
     b = d.mburst[i]
     if b.num_bursts == 0:
@@ -301,13 +303,15 @@ def _plot_bursts(d, i, tmin_clk, tmax_clk, pmax=1e3, pmin=0, color="#999999"):
     R = []
     width = end - start
     ax = gca()
-    for b, bidx, s, w in zip(bs, burst_indices, start, width):
+    for b, bidx, s, w, sign, va in zip(bs, burst_indices, start, width,
+                                       cycle([-1, 1]),
+                                       cycle(['top', 'bottom'])):
         r = Rectangle(xy=(s, pmin), height=pmax - pmin, width=w)
         r.set_clip_box(ax.bbox)
         r.set_zorder(0)
         R.append(r)
-        ax.text(s, -20, _burst_info(d, i, bidx), fontsize=6, rotation=45,
-                horizontalalignment='center')
+        ax.text(s, sign * ytext, _burst_info(d, i, bidx), fontsize=6, rotation=45,
+                horizontalalignment='center', va=va)
     ax.add_artist(PatchCollection(R, lw=0, color=color))
 
 
