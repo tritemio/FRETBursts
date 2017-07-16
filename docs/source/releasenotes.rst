@@ -10,7 +10,7 @@ A laser is alternated (see references [pax]_ and [48spot]_).
 There are also a few minor bug fixes and better support
 for 48-spot data.
 
-To update to the latest version type `conda install fretbursts -c conda-forge`. 
+To update to the latest version type `conda install fretbursts -c conda-forge`.
 For installation instructions see :doc:`Getting Started <getting_started>`.
 
 The list of changes include:
@@ -22,13 +22,16 @@ The list of changes include:
   plots without changing any plot style (see `958824 <https://github.com/tritemio/FRETBursts/commit/958824123152fd618d6811153bfbed64722fffd7>`__).
 - Support "empty" channels in multispot data.
 - Improve plots for 48-spot data.
-
 - Refactoring of :func:`alex_jointplot <fretbursts.burst_plot.alex_jointplot>`.
     * Allow using custom ``Data`` fields for E and S in ``alex_jointplot``.
     * Remove rarely used arguments
     * Set axis limits by default
 - Added `a new notebook <http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%20Customize%20the%20us-ALEX%20histogram.ipynb>`__
   showing how to customize :func:`alex_jointplot <fretbursts.burst_plot.alex_jointplot>` plots.
+- Improved normalization of exponential curve representing the
+  fitted background in :func:`hist_bg <fretbursts.burst_plot.hist_bg>`
+  (see `Issue 61 <https://github.com/tritemio/FRETBursts/issues/61>`__).
+  Many thanks to Danielis Rutkauskas for reporting the issue.
 
 .. [pax] Doose *et al.* European Biophysics Journal 36(6) p.669-674, **2007**.
          DOI:`10.1007/s00249-007-0133-7 <https://doi.org/10.1007/s00249-007-0133-7>`__
