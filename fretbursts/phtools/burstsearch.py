@@ -635,12 +635,14 @@ class BurstsGap(Bursts):
     _i_gap, _i_gap_counts = 4, 5
     _ncols = 6
 
-    def __init__(self, data):
-        if data.shape[1] == Bursts._ncols:
-            datag = np.zeros((data.shape[0], self._ncols), dtype=np.int64)
-            datag[:, :Bursts._ncols] = data
-            data = datag
-        super(BurstsGap, self).__init__(data)
+    def __init__(self, burstarray):
+        if burstarray.ndim == 2 and burstarray.shape[1] == Bursts._ncols:
+            # Add missing gap columns
+            datag = np.zeros((burstarray.shape[0], self._ncols),
+                             dtype=np.int64)
+            datag[:, :Bursts._ncols] = burstarray
+            burstarray = datag
+        super(BurstsGap, self).__init__(burstarray)
 
     @classmethod
     def from_list(cls, bursts_list):
