@@ -1,6 +1,14 @@
 FRETBursts Release Notes
 ========================
 
+Version 0.6.5 (unreleased)
+--------------------------
+
+- Fix BurstsGap giving an error when being sliced (see `#62 <https://github.com/tritemio/FRETBursts/pull/64>`__).
+- Plots: spread burst labels to reduce overlapping when plotting burst
+  info with :func:`timetrace <fretbursts.burst_plot.timetrace>`.
+  See the new example notebook for timetrace plotting.
+
 Version 0.6.4 (Jul. 2017)
 --------------------------
 
