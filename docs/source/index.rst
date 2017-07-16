@@ -32,11 +32,57 @@ FRETBursts: single-molecule FRET burst analysis
 
 .. raw:: html
 
+
+    <div style="clear: both"></div>
+    <div class="container-fluid hidden-xs hidden-sm">
+      <div class="row">
+
+        <a href="examples/anscombes_quartet.html">
+          <div class="col-md-2 thumbnail">
+            <img src="_static/alex_jointplota.png">
+          </div>
+        </a>
+
+        <a href="examples/anscombes_quartet.html">
+          <div class="col-md-2 thumbnail">
+            <img src="_static/hist_bg_fit.png">
+          </div>
+        </a>
+
+        <a href="examples/anscombes_quartet.html">
+          <div class="col-md-2 thumbnail">
+            <img src="_static/timetrace_bg.png">
+          </div>
+        </a>
+
+        <a href="examples/anscombes_quartet.html">
+          <div class="col-md-2 thumbnail">
+            <img src="_static/timetrace_bursts_tr.png">
+          </div>
+        </a>
+
+        <a href="examples/anscombes_quartet.html">
+          <div class="col-md-2 thumbnail">
+            <img src="_static/BVA.png">
+          </div>
+        </a>
+
+        <a href="examples/anscombes_quartet.html">
+          <div class="col-md-2 thumbnail">
+            <img src="_static/2cde.png">
+          </div>
+        </a>
+
+      </div>
+    </div>
+    <br>
+
+
+
     <div class="container-fluid">
     <div class="row">
     <div class="col-md-6">
     <br>
-
 
 `FRETBursts <http://tritemio.github.io/FRETBursts/>`__ is an open-source (GPLv2) python package for burst analysis of
 freely-diffusing single-molecule FRET data for single and multi-spot experiments.
@@ -54,10 +100,10 @@ reference API documentation.
    <div class="col-md-3">
    <h2>Documentation</h2>
 
-* `An introduction to FRETBursts <http://tritemio.github.io/smbits/2016/02/19/fretbursts>`__
-* :doc:`Installing and getting started <getting_started>`
-* :doc:`What's new in the package? <releasenotes>`
-* `μs-ALEX Tutorial <https://github.com/tritemio/FRETBursts_notebooks#fretbursts-notebooks>`__
+* `Introducing FRETBursts <http://tritemio.github.io/smbits/2016/02/19/fretbursts>`__
+* :doc:`Installation <getting_started>`
+* :doc:`What's new? <releasenotes>`
+* `μs-ALEX Tutorial <http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/FRETBursts%20-%20us-ALEX%20smFRET%20burst%20analysis.ipynb>`__
 * `List of Jupyter Notebooks <https://github.com/tritemio/FRETBursts_notebooks#fretbursts-notebooks>`__
 * `FRETBursts Paper <http://dx.doi.org/10.1101/039198>`__
 * :doc:`Reference manual <reference_manual>`
@@ -70,7 +116,7 @@ reference API documentation.
 
 * `ALEX and PAX <http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/FRETBursts%20-%20us-ALEX%20smFRET%20burst%20analysis.ipynb>`__
 * :doc:`Burst Search Algorithm <burstsearch>`
-* `Dual-Channel Burst Search (DCBS) <http://dx.doi.org/10.1101/039198>`__
-* `Burst Variance Analysis (BVA) <http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%20Burst%20Variance%20Analysis.ipynb>`__
-* `Two-channel Kernel Density Estimator (2CDE) <http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%202CDE%20Method.ipynb>`__
+* `DCBS <http://dx.doi.org/10.1101/039198>`__
+* `BVA <http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%20Burst%20Variance%20Analysis.ipynb>`__
+* `2CDE <http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%202CDE%20Method.ipynb>`__
 * `Exporting burst data <http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%20Exporting%20Burst%20Data%20Including%20Timestamps.ipynb>`__
