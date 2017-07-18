@@ -4,27 +4,6 @@
    contain the root `toctree` directive.
 
 
-.. raw:: html
-
-   <style type="text/css">
-   .thumbnail {{
-       position: relative;
-       float: left;
-       margin: 10px;
-       width: 180px;
-       height: 200px;
-   }}
-
-   .thumbnail img {{
-       position: absolute;
-       display: inline;
-       left: 0;
-       width: 170px;
-       height: 170px;
-   }}
-
-   </style>
-
 
 Single-molecule FRET burst analysis
 ==========================================
@@ -69,7 +48,7 @@ Single-molecule FRET burst analysis
 
         <a href="examples/anscombes_quartet.html">
           <div class="col-sm-2 thumbnail">
-            <img src="_static/2cde_joint.png">
+            <img src="_static/fret_hist_fit.png">
           </div>
         </a>
 
