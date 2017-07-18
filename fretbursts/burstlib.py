@@ -1255,16 +1255,33 @@ class Data(DataContainer):
                 delattr(new_d, attr)
         return new_d
 
-    def collapse(self, update_gamma=True):
+    def collapse(self, update_gamma=True, skip_ch=None):
         """Returns an object with 1-spot data joining the multi-spot data.
 
-        The argument `update_gamma` (bool, default True) allows to avoid
-        recomputing gamma as the average of the original gamma. This flag
-        should be always True. Set False only for testing/debugging.
+        Arguments:
+            skip_ch (tuple of ints): list of channels to skip.
+                If None, keep all channels.
+            update_gamma (bool): if True, recompute gamma as mean of the
+                per-channel gamma. If False, do not update gamma.
+                If True, gamma becomes a single value and the update has the
+                side effect of recomputing E and S values, discarding
+                previous per-channel corrections. If False, gamma is not
+                updated (it stays with multi-spot values) and E and S are
+                not recomputed.
+
+        Note:
+            When using `update_gamma=False`, burst selections on the
+            collapsed `Data` object should be done with
+            `computefret=False`, otherwise any attempt to use multi-spot
+            gamma for single-spot data will raise an error.
         """
         dc = Data(**self)
 
-        bursts = bslib.Bursts.merge(self.mburst, sort=False)
+        mch_bursts = self.mburst
+        if skip_ch is not None:
+            mch_bursts = [bursts for i, bursts in enumerate(mch_bursts)
+                          if i not in skip_ch]
+        bursts = bslib.Bursts.merge(mch_bursts, sort=False)
         # Sort by start times, and when equal by stop times
         indexsort = np.lexsort((bursts.stop, bursts.start))
         dc.add(mburst=[bursts[indexsort]])
