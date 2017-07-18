@@ -26,43 +26,49 @@
    </style>
 
 
-FRETBursts: single-molecule FRET burst analysis
-===============================================
+Single-molecule FRET burst analysis
+==========================================
 
 
 .. raw:: html
 
 
     <div style="clear: both"></div>
-    <div class="container-fluid hidden-xs hidden-sm">
-      <div class="row">
+    <div class="container-fluid hidden-xs">
+      <div class="row align-items-center">
 
         <a href="examples/anscombes_quartet.html">
-          <div class="col-md-2 thumbnail">
+          <div class="col-sm-2 thumbnail">
             <img src="_static/alex_jointplot_fit.png">
           </div>
         </a>
 
         <a href="examples/anscombes_quartet.html">
-          <div class="col-md-2 thumbnail">
+          <div class="col-sm-2 thumbnail">
             <img src="_static/hist_bg_fit.png">
           </div>
         </a>
 
         <a href="examples/anscombes_quartet.html">
-          <div class="col-md-2 thumbnail">
+          <div class="col-sm-2 thumbnail">
             <img src="_static/timetrace_bursts.png">
           </div>
         </a>
 
         <a href="examples/anscombes_quartet.html">
-          <div class="col-md-2 thumbnail">
+          <div class="col-sm-2 thumbnail">
             <img src="_static/BVA_joint.png">
           </div>
         </a>
 
         <a href="examples/anscombes_quartet.html">
-          <div class="col-md-2 thumbnail">
+          <div class="col-sm-2 thumbnail">
+            <img src="_static/2cde_joint.png">
+          </div>
+        </a>
+
+        <a href="examples/anscombes_quartet.html">
+          <div class="col-sm-2 thumbnail">
             <img src="_static/2cde_joint.png">
           </div>
         </a>
