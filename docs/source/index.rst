@@ -39,7 +39,7 @@ FRETBursts: single-molecule FRET burst analysis
 
         <a href="examples/anscombes_quartet.html">
           <div class="col-md-2 thumbnail">
-            <img src="_static/alex_jointplota.png">
+            <img src="_static/alex_jointplot_fit.png">
           </div>
         </a>
 
@@ -51,25 +51,19 @@ FRETBursts: single-molecule FRET burst analysis
 
         <a href="examples/anscombes_quartet.html">
           <div class="col-md-2 thumbnail">
-            <img src="_static/timetrace_bg.png">
+            <img src="_static/timetrace_bursts.png">
           </div>
         </a>
 
         <a href="examples/anscombes_quartet.html">
           <div class="col-md-2 thumbnail">
-            <img src="_static/timetrace_bursts_tr.png">
+            <img src="_static/BVA_joint.png">
           </div>
         </a>
 
         <a href="examples/anscombes_quartet.html">
           <div class="col-md-2 thumbnail">
-            <img src="_static/BVA.png">
-          </div>
-        </a>
-
-        <a href="examples/anscombes_quartet.html">
-          <div class="col-md-2 thumbnail">
-            <img src="_static/2cde.png">
+            <img src="_static/2cde_joint.png">
           </div>
         </a>
 
