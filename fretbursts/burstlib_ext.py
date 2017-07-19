@@ -86,7 +86,7 @@ def moving_window_startstop(start, stop, step, window=None):
     return [(t1, t1 + window) for t1 in np.arange(start, stop_corrected, step)]
 
 
-def moving_window_dataframe(start, stop, step, window=None):
+def moving_window_dataframe(start, stop, step, window=None, time_zero=0):
     """Create a DataFrame for storing moving-window data.
 
     Create and return a DataFrame for storing columns of moving-window data.
@@ -112,7 +112,7 @@ def moving_window_dataframe(start, stop, step, window=None):
     tstop = mw_slices[:, 1]
     tmean = 0.5 * (tstart + tstop)
     df = pd.DataFrame(data=dict(tstart=tstart, tstop=tstop, tmean=tmean))
-    return df
+    return df - time_zero
 
 
 def moving_window_chunks(dx, start, stop, step, window=None,
@@ -141,8 +141,9 @@ def moving_window_chunks(dx, start, stop, step, window=None,
     time_slices = moving_window_startstop(start, stop, step, window)
     dx_slices = []
     for t1, t2 in time_slices:
-        dx_slice = dx.select_bursts(select_bursts.time, time_s1=t1, time_s2=t2)
-        dx_slice.name = 'Slice %d-%d s' % (t1, t2)
+        dx_slice = dx.select_bursts(select_bursts.time,
+                                    time_s1=t1, time_s2=t2)
+        dx_slice.name = 'Slice %d:%d s' % (t1 - time_zero, t2 - time_zero)
         dx_slice.add(slice_tstart=t1 - time_zero, slice_tstop=t2 - time_zero)
         dx_slices.append(dx_slice)
     return dx_slices
