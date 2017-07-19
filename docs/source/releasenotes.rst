@@ -8,6 +8,10 @@ Version 0.6.5 (unreleased)
 - Plots: spread burst labels to reduce overlapping when plotting burst
   info with :func:`timetrace <fretbursts.burst_plot.timetrace>`.
   See the new example notebook for timetrace plotting.
+- New notebooks:
+    - `Example - Plotting timetraces with bursts <https://github.com/tritemio/FRETBursts/blob/master/notebooks/Example%20-%20Plotting%20timetraces%20with%20bursts.ipynb>`__
+    - `Example - Selecting FRET populations <https://github.com/tritemio/FRETBursts/blob/master/notebooks/Example%20-%20Selecting%20FRET%20populations.ipynb>`__
+    - `Example - FRET histogram fitting <https://github.com/tritemio/FRETBursts/blob/master/notebooks/Example%20-%20FRET%20histogram%20fitting.ipynb>`__
 
 Version 0.6.4 (Jul. 2017)
 --------------------------
@@ -40,6 +44,10 @@ The list of changes include:
   fitted background in :func:`hist_bg <fretbursts.burst_plot.hist_bg>`
   (see `Issue 61 <https://github.com/tritemio/FRETBursts/issues/61>`__).
   Many thanks to Danielis Rutkauskas for reporting the issue.
+- Removed shortcut (underscore) syntax for single-spot. Code like
+  ``d.E_`` needs to be changed to ``d.E[0]``.
+  This syntax was causing difficulties during developing new features for PAX.
+  Please report if you would like for the syntax to be reintroduced.
 
 .. [pax] Doose *et al.* European Biophysics Journal 36(6) p.669-674, **2007**.
          DOI:`10.1007/s00249-007-0133-7 <https://doi.org/10.1007/s00249-007-0133-7>`__
