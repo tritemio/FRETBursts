@@ -221,7 +221,7 @@ if __name__ == '__main__':
     pathlist = list(folder.glob('*.ipynb'))
     for nbpath in pathlist:
         if nbpath.name in exclude_list:
-            print('- Skipping "%s"' % nbpath, flush=True)
+            print('- Skipping "%s"' % nbpath)
             continue
         if nbpath.stem.endswith('-out') or nbpath.stem.startswith('_'):
             continue
