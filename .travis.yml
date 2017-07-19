@@ -34,6 +34,7 @@ script:
     - python -Wd fretbursts/tests/importtest.py
     - py.test -v
     - cd notebooks
-    - python ../fretbursts/tests/nbrun.py .
+    - if [[ $TRAVIS_PYTHON_VERSION != '2.7' ]]; then python ../fretbursts/tests/nbrun.py . ; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then python ../fretbursts/tests/nbrun.py --exclude-list dev/exclude-py27.txt . ; fi
 
 sudo: false

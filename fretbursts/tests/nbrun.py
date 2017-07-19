@@ -201,6 +201,8 @@ if __name__ == '__main__':
            'Use `jupyter kernelspec list` for a list of kernels.')
     parser.add_argument('--kernel', metavar='KERNEL_NAME', default=None,
                         help=msg)
+    parser.add_argument('--exclude-list', metavar='FILE_NAME', default=None,
+                        help=msg)
     args = parser.parse_args()
 
     folder = Path(args.folder)
@@ -210,11 +212,20 @@ if __name__ == '__main__':
     if not out_path.is_dir():
         out_path.mkdir(parents=True)  # py2 compat
 
+    exclude_list = []
+    if args.exclude_list is not None:
+        with open(args.exclude_list) as f:
+            exclude_list = [s.strip() for s in f.readlines()]
+
     print('Executing notebooks in "%s" ... ' % folder)
     pathlist = list(folder.glob('*.ipynb'))
     for nbpath in pathlist:
-        if not (nbpath.stem.endswith('-out') or nbpath.stem.startswith('_')):
-            print()
-            out_path_ipynb = Path(out_path, nbpath.name)
-            run_notebook(nbpath, out_path_ipynb=out_path_ipynb,
-                         kernel_name=args.kernel)
+        if nbpath.name in exclude_list:
+            print('- Skipping "%s"' % nbpath, flush=True)
+            continue
+        if nbpath.stem.endswith('-out') or nbpath.stem.startswith('_'):
+            continue
+        print()
+        out_path_ipynb = Path(out_path, nbpath.name)
+        run_notebook(nbpath, out_path_ipynb=out_path_ipynb,
+                     kernel_name=args.kernel)
