@@ -213,7 +213,7 @@ if __name__ == '__main__':
         out_path.mkdir(parents=True)  # py2 compat
 
     exclude_list = []
-    if args.exclude_list is not None:
+    if args.exclude_list is not None and sys.version_info[0] == 2:
         with open(args.exclude_list) as f:
             exclude_list = [s.strip() for s in f.readlines()]
 

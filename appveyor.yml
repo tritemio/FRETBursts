@@ -52,8 +52,7 @@ test_script:
   - python -Wd fretbursts/tests/importtest.py
   - py.test -v
   - cd %APPVEYOR_BUILD_FOLDER%\notebooks
-  - ps: 'if($env:PYTHON_VERSION -ne "2.7"){python ../fretbursts/tests/nbrun.py .}'
-  - ps: 'if($env:PYTHON_VERSION -eq "2.7"){python ../fretbursts/tests/nbrun.py --exclude-list dev/exclude-py27.txt .}'
+  - python ../fretbursts/tests/nbrun.py --exclude-list dev/exclude-py27.txt .
 
 after_test:
   - cd %APPVEYOR_BUILD_FOLDER%
