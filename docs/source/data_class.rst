@@ -39,6 +39,8 @@ methods providing summary information on the measurement:
 
     .. automethod:: burst_sizes
 
+    .. automethod:: burst_sizes_pax_ich
+
     .. automethod:: burst_sizes_ich
 
     .. automethod:: get_naa_corrected

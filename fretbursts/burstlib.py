@@ -1169,7 +1169,7 @@ class Data(DataContainer):
         The argument  `add_naa` is only used for ALEX measurements.
         Arguments `add_aex` and `A_laser_weight` are only used for PAX.
 
-        See :meth:`burst_sizes_ich` and for :meth:`burst_sizes_pax_ich` a
+        See :meth:`burst_sizes_ich` and :meth:`burst_sizes_pax_ich` for a
         description of the arguments.
 
         Returns
