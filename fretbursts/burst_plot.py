@@ -1115,6 +1115,7 @@ def hist_burst_data(
 
     if ax is None:
         ax = gca()
+    ax.set_axisbelow(True)
     pline = ax.axhline if vertical else ax.axvline
     bar = ax.barh if vertical else ax.bar
     xlabel, ylabel = ax.set_xlabel, ax.set_ylabel
@@ -1147,8 +1148,8 @@ def hist_burst_data(
     if data_name in ['E', 'S']:
         xlim(-0.19, 1.19)
 
-    hist_bar_style_ = dict(facecolor='#80b3ff', edgecolor='#5f8dd3',
-                           linewidth=1.5, alpha=0.7, label='E Histogram')
+    hist_bar_style_ = dict(facecolor='#74a9cf', edgecolor='k', alpha=1,
+                           linewidth=0.15, label='E Histogram')
     hist_bar_style_.update(**_normalize_kwargs(hist_bar_style))
 
     hist_plot_style_ = dict(linestyle='-', marker='o', markersize=6,
@@ -2175,7 +2176,7 @@ def _alex_hexbin_vmax(patches, vmax_fret=True, Smax=0.8):
 
 def alex_jointplot(d, i=0, gridsize=50, cmap='Spectral_r', kind='hex',
                    vmax_fret=True, vmin=0, vmax=None,
-                   joint_kws=None, marginal_kws=None, marginal_color=7,
+                   joint_kws=None, marginal_kws=None, marginal_color=10,
                    rightside_text=False, E_name='E', S_name='S'):
     """Plot an ALEX join plot: an E-S 2D histograms with marginal E and S.
 
@@ -2244,7 +2245,8 @@ def alex_jointplot(d, i=0, gridsize=50, cmap='Spectral_r', kind='hex',
         histcolor = marginal_color
     marginal_kws_ = dict(
         show_kde=True, bandwidth=0.03, binwidth=0.03,
-        hist_bar_style={'facecolor': histcolor, 'edgecolor': 'k', 'linewidth': 0.2})
+        hist_bar_style={'facecolor': histcolor, 'edgecolor': 'k',
+                        'linewidth': 0.15, 'alpha': 1})
     if marginal_kws is not None:
         marginal_kws_.update(_normalize_kwargs(marginal_kws))
 
