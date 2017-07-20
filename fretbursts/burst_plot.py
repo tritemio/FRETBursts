@@ -1157,7 +1157,7 @@ def hist_burst_data(
                                               kind='line2d'))
     if hist_style == 'bar':
         bar(fitter.hist_bins[:-1], hist_vals, fitter.hist_binwidth,
-            **hist_bar_style_)
+            align='edge', **hist_bar_style_)
     else:
         if vertical:
             ax.plot(hist_vals, fitter.hist_axis, **hist_plot_style_)
