@@ -171,6 +171,18 @@ def test_time_min_max_multispot(data_8ch):
     assert d.time_max == max(t[-1] for t in d.ph_times_m) * d.clk_p
     assert d.time_min == min(t[0] for t in d.ph_times_m) * d.clk_p
 
+def test_aex_dex_ratio(data_1ch):
+    """Test methods computing relative D and A alternation periods durations.
+    """
+    d = data_1ch
+    Dx, Ax = d.D_ON, d.A_ON
+    a1 = d._aex_fraction()
+    a2 = (Ax[1] - Ax[0]) / (Ax[1] - Ax[0] + Dx[1] - Dx[0])
+    assert a1 == a2
+    r1 = d._aex_dex_ratio()
+    r2 = (Ax[1] - Ax[0]) / (Dx[1] - Dx[0])
+    assert r1 == r2
+    assert (a1 / (1 - a1)) == r1
 
 def test_bg_calc(data):
     """Smoke test bg_calc() and test deletion of bg fields.
