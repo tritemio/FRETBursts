@@ -1085,6 +1085,9 @@ class Data(DataContainer):
 
         Returns
             Array of burst sizes for channel `ich`.
+
+        See also:
+            :meth:`Data.burst_sizes_ich`
         """
         assert 'PAX' in self.meas_type
         naa = self._get_naa_ich(ich)      # nar-subtracted
@@ -1093,20 +1096,16 @@ class Data(DataContainer):
         if aex_corr:
             alpha = 1 - self._aex_fraction()       # Dex duty-cycle
 
-        if donor_ref:
-            burst_size_dex = self.nd[ich] + self.na[ich] / gamma
-            burst_size_aex = (self.nda[ich] +
-                              self.na[ich] * aex_dex_ratio / gamma +
-                              naa / (alpha * beta * gamma))
-        else:
-            burst_size_dex = self.nd[ich] * gamma + self.na[ich]
-            burst_size_aex = (self.nda[ich] * gamma +
-                              self.na[ich] * aex_dex_ratio +
-                              naa / (alpha * beta))
+        burst_size_dex = self.nd[ich] * gamma + self.na[ich]
+        burst_size_aex = (self.nda[ich] * gamma +
+                          self.na[ich] * aex_dex_ratio +
+                          naa / (alpha * beta))
 
         burst_size = burst_size_dex
         if add_aex:
             burst_size += burst_size_aex
+        if donor_ref:
+            burst_size /= gamma
         return burst_size
 
     def burst_sizes_ich(self, ich=0, gamma=1., add_naa=False,
