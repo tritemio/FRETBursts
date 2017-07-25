@@ -255,6 +255,10 @@ def test_burst_size_pax():
     assert np.allclose(b1, b2)
 
     d.leakage = 0.1
+    nd, na = d.nd[0], d.na[0]
+    nda = d.nda[0]
+    naa = d.naa[0] - d.nar[0] * aex_dex_ratio
+    
     # Test add_aex with duty-cycle correction, gamma, beta
     gamma = 0.7
     beta = 0.85
