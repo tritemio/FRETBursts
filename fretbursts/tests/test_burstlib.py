@@ -68,6 +68,17 @@ def load_dataset_8ch():
     d.burst_search(L=10, m=10, F=7)
     return d
 
+def load_fake_pax():
+    fn = "0023uLRpitc_NTP_20dT_0.5GndCl.hdf5"
+    fname = DATASETS_DIR + fn
+    d = loader.photon_hdf5(fname)
+    d.add(ALEX=False, meas_type='PAX')
+    loader.alex_apply_period(d)
+    d.calc_bg(bg.exp_fit, time_s=30, tail_min_us='auto')
+    d.burst_search(L=10, m=10, F=6)
+    return d
+
+
 @pytest.fixture(scope="module", params=[
                                     load_dataset_1ch,
                                     load_dataset_8ch,
@@ -171,6 +182,7 @@ def test_time_min_max_multispot(data_8ch):
     assert d.time_max == max(t[-1] for t in d.ph_times_m) * d.clk_p
     assert d.time_min == min(t[0] for t in d.ph_times_m) * d.clk_p
 
+
 def test_aex_dex_ratio(data_1ch):
     """Test methods computing relative D and A alternation periods durations.
     """
@@ -183,6 +195,81 @@ def test_aex_dex_ratio(data_1ch):
     r2 = (Ax[1] - Ax[0]) / (Dx[1] - Dx[0])
     assert r1 == r2
     assert (a1 / (1 - a1)) == r1
+
+
+def test_burst_size_pax():
+    d = load_fake_pax()
+    aex_dex_ratio, alpha_d = d._aex_dex_ratio(), 1 - d._aex_fraction()
+    nd, na = d.nd[0], d.na[0]
+    nda = d.nda[0]
+    naa = d.naa[0] - d.nar[0] * aex_dex_ratio
+
+    # Test burst size during Dex
+    b1 = d.burst_sizes_pax_ich(add_aex=False)
+    b2 = d.burst_sizes_ich(add_naa=False)
+    b3 = nd + na
+    assert (b1 == b2).all()
+    assert (b1 == b3).all()
+
+    # Test naa
+    naa2 = d.get_naa_corrected()
+    naa3 = d._get_naa_ich()
+    assert (naa == naa2).all()
+    assert (naa == naa3).all()
+
+    # Test add_naa
+    b1 = d.burst_sizes_ich(add_naa=True)
+    b2 = nd + na + naa
+    assert (b1 == b2).all()
+
+    # Test add_aex with no duty-cycle correction
+    b1 = d.burst_sizes_pax_ich(add_aex=True, aex_corr=False)
+    b2 = nd + na + nda + d.naa[0]
+    b3 = nd + na + nda + naa + na * aex_dex_ratio
+    assert np.allclose(b1, b2)
+    assert np.allclose(b1, b3)
+
+    # Test add_aex with duty-cycle correction
+    b1 = d.burst_sizes_pax_ich(add_aex=True, aex_corr=True)
+    b2 = nd + na + nda + na * aex_dex_ratio + naa / alpha_d
+    assert np.allclose(b1, b2)
+
+    # Test add_aex with duty-cycle correction, donor_ref
+    b1 = d.burst_sizes_pax_ich(add_aex=True, aex_corr=True, donor_ref=True)
+    b2 = d.burst_sizes_pax_ich(add_aex=True, aex_corr=True, donor_ref=False)
+    assert np.allclose(b1, b2)
+
+    # Test add_aex with duty-cycle correction, gamma, beta
+    gamma = 0.7
+    beta = 0.85
+    b1 = d.burst_sizes_pax_ich(add_aex=True, aex_corr=True,
+                               gamma=gamma, beta=beta, donor_ref=True)
+    b2 = d.burst_sizes_pax_ich(add_aex=True, aex_corr=True,
+                               gamma=gamma, beta=beta, donor_ref=False)
+    assert np.allclose(b1 * gamma, b2)
+    b1 = d.burst_sizes_pax_ich(add_aex=True, aex_corr=True,
+                               gamma=gamma, beta=beta, donor_ref=False)
+
+    b2 = (gamma * (nd + nda) + na * (1 + aex_dex_ratio) +
+          naa / (alpha_d * beta))
+    assert np.allclose(b1, b2)
+
+    d.leakage = 0.1
+    # Test add_aex with duty-cycle correction, gamma, beta
+    gamma = 0.7
+    beta = 0.85
+    b1 = d.burst_sizes_pax_ich(add_aex=True, aex_corr=True,
+                               gamma=gamma, beta=beta, donor_ref=True)
+    b2 = d.burst_sizes_pax_ich(add_aex=True, aex_corr=True,
+                               gamma=gamma, beta=beta, donor_ref=False)
+    assert np.allclose(b1 * gamma, b2)
+    b1 = d.burst_sizes_pax_ich(add_aex=True, aex_corr=True,
+                               gamma=gamma, beta=beta, donor_ref=False)
+
+    b2 = (gamma * (nd + nda) + na * (1 + aex_dex_ratio) +
+          naa / (alpha_d * beta))
+    assert np.allclose(b1, b2)
+
 
 def test_bg_calc(data):
     """Smoke test bg_calc() and test deletion of bg fields.
