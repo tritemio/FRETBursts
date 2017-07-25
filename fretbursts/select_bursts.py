@@ -138,7 +138,7 @@ def naa(d, ich=0, th1=20, th2=np.inf, gamma=1., beta=1., donor_ref=True):
     return bursts_mask, ''
 
 
-def size(d, ich=0, th1=20, th2=np.inf, gamma=1., add_naa=False, beta=1.,
+def size(d, ich=0, th1=20, th2=np.inf, add_naa=False, gamma=1., beta=1.,
          donor_ref=True, add_aex=True, A_laser_weight=1):
     """Select bursts with burst sizes (i.e. counts) between `th1` and `th2`.
 
@@ -171,9 +171,14 @@ def size(d, ich=0, th1=20, th2=np.inf, gamma=1., add_naa=False, beta=1.,
         briefly describe the selection.
     """
     assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
-    kws = dict(ich=ich, gamma=gamma, add_naa=add_naa, beta=beta,
-               donor_ref=donor_ref)
-    burst_size = d.burst_sizes_ich(**kws)
+    kws = dict(ich=ich, gamma=gamma, beta=beta, donor_ref=donor_ref)
+    if 'PAX' in d.meas_type:
+        kws.update(add_aex=add_aex, A_laser_weight=A_laser_weight)
+        burst_size = d.burst_sizes_pax_ich(**kws)
+    else:
+        kws.update(add_naa=add_naa)
+        burst_size = d.burst_sizes_ich(**kws)
+
     if d.nch > 1 and (np.size(th1) == d.nch):
         th1 = th1[ich]
     if d.nch > 1 and (np.size(th2) == d.nch):

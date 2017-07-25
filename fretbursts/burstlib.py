@@ -1033,49 +1033,56 @@ class Data(DataContainer):
         return [bursts.width * self.clk_p for bursts in self.mburst]
 
     def burst_sizes_pax_ich(self, ich=0, gamma=1., add_aex=True,
-                            beta=1., donor_ref=True, A_laser_weight=1):
+                            beta=1., donor_ref=True, aex_corr=True):
         """Return corrected burst sizes for channel `ich`. PAX-only.
 
         Arguments:
             ich (int): the spot number, only relevant for multi-spot.
                 In single-spot data there is only one channel (`ich=0`)
                 so this argument may be omitted. Default 0.
-            add_aex (boolean): when True, burst size include add photons
-                detected during the Aex. Default is True.
-            A_laser_weight (int): Default 1. Weight of the fraction of AexAem
-                photons due to A laser. Since the D laser is present in both
-                alternation periods, you may want to use 2 in order to make
-                counts caused by the D laser and counts caused by the A laser
-                commensurable. Using 2 is an extension of the beta correction
-                for PAX.
             gamma (float): coefficient for gamma correction of burst
                 sizes. Default: 1. For more info see explanation above.
-            beta (float): beta correction factor used for the AexAem term
-                of the burst size. Default 1. If `add_naa = False` or
-                measurement is not ALEX this argument is ignored.
-                For more info see explanation above.
-            donor_ref (bool): select the convention for burst size correction.
-                For details see :meth:`fretbursts.burstlib.Data.burst_sizes_ich`.
+            donor_ref (bool): True or False select different conventions
+                for burst size correction. For details see
+                :meth:`fretbursts.burstlib.Data.burst_sizes_ich`.
+            add_aex (boolean): when True, the returned burst size also
+                includes photons detected during the DAex. Default is True.
+            aex_corr (bool): If True, and `add_aex == True`, then divide
+                the DAexAem term (naa) by the Dex duty cycle. For example,
+                if Dex and DAex alternation periods are equal, naa is
+                multiplied by 2. This correction makes the returned value
+                equal to the S_pax denominator (using the PAX-enhanced
+                formula). If False, naa is left unmodified.
+                If `add_aex == False` this argument is ignored.
+            beta (float): beta correction factor used for the DAexAem term
+                (naa) of the burst size.
+                If `add_aex == False` this argument is ignored. Default 1.
 
         Returns
             Array of burst sizes for channel `ich`.
         """
         assert 'PAX' in self.meas_type
+        naa = self._get_naa_ich(ich)      # nar-subtracted
+        alpha = 1
+        aex_dex_ratio = 1
+        if aex_corr:
+            aex_dex_ratio = self._aex_dex_ratio()
+            alpha = 1 - self._aex_fraction()       # Dex duty-cycle
+            assert alpha - 1 / (1 + aex_dex_ratio) < 1e-9
         if donor_ref:
             burst_size_dex = self.nd[ich] + self.na[ich] / gamma
-            burst_size_aex = (self.nda[ich] + self.na[ich] / gamma +
-                              A_laser_weight * (self.naa[ich] - self.nar[ich]) /
-                              (gamma * beta))
+            burst_size_aex = (self.nda[ich] +
+                              self.na[ich] * aex_dex_ratio / gamma +
+                              naa / (alpha * beta * gamma))
         else:
             burst_size_dex = self.nd[ich] * gamma + self.na[ich]
-            burst_size_aex = (self.nda[ich] * gamma + self.na[ich] +
-                              A_laser_weight * (self.naa[ich] - self.nar[ich]) /
-                              beta)
+            burst_size_aex = (self.nda[ich] * gamma +
+                              self.na[ich] * aex_dex_ratio +
+                              naa / (alpha * beta))
         burst_size = burst_size_dex
         if add_aex:
             burst_size += burst_size_aex
         return burst_size
-
 
     def burst_sizes_ich(self, ich=0, gamma=1., add_naa=False,
                         beta=1., donor_ref=True):
@@ -1097,9 +1104,10 @@ class Data(DataContainer):
 
         In an ALEX measurement, use `add_naa = True` to add counts from
         AexAem stream to the returned burst size. The argument `gamma` and
-        `beta` are used to correctly scale `naa` so that it become commensurate
-        with the Dex corrected burst size. In particular, when using
-        definition (1) (i.e. `donor_ref = True`), the total burst size is::
+        `beta` are used to correctly scale `naa` so that it become
+        commensurate with the Dex corrected burst size. In particular,
+        when using definition (1) (i.e. `donor_ref = True`), the total
+        burst size is::
 
             (nd + na/gamma) + naa / (beta * gamma)
 
@@ -1153,24 +1161,36 @@ class Data(DataContainer):
 
         See also :meth:`fretbursts.burstlib.Data.burst_sizes_ich`.
         """
+        naa = self._get_naa_ich(ich)  # with eventual duty-cycle correction
         if donor_ref:
-            naa_term = self.naa[ich] / (gamma * beta)
+            correction = (gamma * beta)
         else:
-            naa_term = self.naa[ich] / beta
-        return naa_term
+            correction = beta
+        return naa / correction
 
-    def burst_sizes(self, gamma=1., add_naa=False, beta=1., donor_ref=True,
-                    add_aex=True, A_laser_weight=1):
+    def _get_naa_ich(self, ich=0):
+        """Return naa for `ich` both in ALEX and PAX measurements.
+
+        In case of PAX, returns naa using the duty-cycle correction::
+
+            naa = self.naa - aex_dex_ratio * self.nar
+
+        where `self.nar` is equal to `self.na` before leakage and direct
+        excitation correction, and `aex_dex_ratio` is the Aex duty-cycle.
+        """
+        naa = self.naa[ich]
+        if 'PAX' in self.meas_type:
+            # ATTENTION: do not modify naa inplace
+            naa = naa - self._aex_dex_ratio() * self.nar[ich]
+        return naa
+
+    def burst_sizes(self, gamma=1., add_naa=False, beta=1., donor_ref=True):
         """Return gamma corrected burst sizes for all the channel.
 
         Compute burst sizes by calling, for each channel,
-        :meth:`burst_sizes_ich` in ALEX measurements and
-        :meth:`burst_sizes_pax_ich` in PAX measurements.
-        The argument  `add_naa` is only used for ALEX measurements.
-        Arguments `add_aex` and `A_laser_weight` are only used for PAX.
+        :meth:`burst_sizes_ich`.
 
-        See :meth:`burst_sizes_ich` and :meth:`burst_sizes_pax_ich` for a
-        description of the arguments.
+        See :meth:`burst_sizes_ich` for description of the arguments.
 
         Returns
             List of arrays of burst sizes, one array per channel.
@@ -2754,7 +2774,13 @@ class Data(DataContainer):
         assert self.alternated
         D_ON, A_ON = self.D_ON, self.A_ON
         return ((A_ON[1] - A_ON[0]) /
-                (D_ON[1] - D_ON[0] + A_ON[1] - A_ON[0]))
+                (A_ON[1] - A_ON[0] + D_ON[1] - D_ON[0]))
+
+    def _aex_dex_ratio(self):
+        """Ratio of Aex and Dex period durations."""
+        assert self.alternated
+        D_ON, A_ON = self.D_ON, self.A_ON
+        return (A_ON[1] - A_ON[0]) / (D_ON[1] - D_ON[0])
 
     def _calculate_fret_eff(self, pax=False):
         """Compute FRET efficiency (`E`) for each burst."""
@@ -2762,8 +2788,8 @@ class Data(DataContainer):
         if not pax:
             E = [na / (g * nd + na) for nd, na, g in zip(self.nd, self.na, G)]
         else:
-            f_dex = 1 - self._aex_fraction()
-            E = [(na / f_dex) / (g * (nd + nda) + (na / f_dex))
+            alpha = 1 - self._aex_fraction()
+            E = [(na / alpha) / (g * (nd + nda) + (na / alpha))
                  for nd, na, nda, g in zip(self.nd, self.na, self.nda, G)]
         self.add(E=E, pax=pax)
 
@@ -2772,26 +2798,16 @@ class Data(DataContainer):
         G = self.get_gamma_array()
         naa = self.naa
         if 'PAX' in self.meas_type:
-            # in PAX self.naa contains the total Aem signal due to both lasers
-            # during the D+A-excitation period. Since the A-emission due
-            # D laser (na) is the same in both D and D+A excitation periods
-            # (except for statistical fluctuations and dynamics), we can
-            # compute the A-emission due to A laser (naa~) as:
-            #     naa~ = naa - nar
-            # were `nar` is `na` before leakage and direct-excitation
-            # corrections. The quantity `naa~` in PAX is equivalent to `naa`
-            # in usALEX.
-            naa = [aa - ar for aa, ar in zip(self.naa, self.nar)]
+            naa = [self._get_naa_ich(i) for i in range(self.nch)]
         if not pax:
-            S = [(g * d + a) / (g * d + a + aa / self.beta) for d, a, aa, g in
-                 zip(self.nd, self.na, naa, G)]
+            S = [(g * d + a) / (g * d + a + aa / self.beta)
+                 for d, a, aa, g in zip(self.nd, self.na, naa, G)]
         else:
             # This is a PAX-enhanced formula which uses information
             # from both alternation periods in order to compute S
-            f_aex = self._aex_fraction()
-            f_dex = 1 - f_aex
-            S = [(g * (d + da) + a / f_dex) /
-                 (g * (d + da) + a / f_dex + aa / f_aex)
+            alpha = 1 - self._aex_fraction()
+            S = [(g * (d + da) + a / alpha) /
+                 (g * (d + da) + a / alpha + aa / (alpha * self.beta))
                  for d, a, da, aa, g in
                  zip(self.nd, self.na, self.nda, naa, G)]
         self.add(S=S)

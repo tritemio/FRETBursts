@@ -31,3 +31,4 @@ notebooks/wip
 .cache
 *.csv
 _*
+docs/source/modules/generated
