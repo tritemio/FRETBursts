@@ -112,6 +112,7 @@ def na(d, ich=0, th1=20, th2=np.inf):
     bursts_mask = (d.na[ich] >= th1)*(d.na[ich] <= th2)
     return bursts_mask, ''
 
+
 def naa(d, ich=0, th1=20, th2=np.inf, gamma=1., beta=1., donor_ref=True):
     """Select bursts with (naa >= th1) and (naa <= th2).
 
@@ -139,7 +140,7 @@ def naa(d, ich=0, th1=20, th2=np.inf, gamma=1., beta=1., donor_ref=True):
 
 
 def size(d, ich=0, th1=20, th2=np.inf, add_naa=False, gamma=1., beta=1.,
-         donor_ref=True, add_aex=True, A_laser_weight=1):
+         donor_ref=True, add_aex=True, aex_corr=True):
     """Select bursts with burst sizes (i.e. counts) between `th1` and `th2`.
 
     The burst size is the number of photon in a burst. By default it
@@ -159,21 +160,26 @@ def size(d, ich=0, th1=20, th2=np.inf, add_naa=False, gamma=1., beta=1.,
             :meth:`fretbursts.burstlib.Data.burst_sizes_ich` for details.
         donor_ref (bool): Select the convention for `naa` correction.
             See :meth:`fretbursts.burstlib.Data.burst_sizes_ich` for details.
-        add_aex (bool): PAX-only. Whether to add signal from Aex laser period
+        add_aex (bool): PAX-only. Whether to add signal from DAex laser period
             to the burst size. Default True.
             See :meth:`fretbursts.burstlib.Data.burst_sizes_pax_ich`.
-        A_laser_weight (scalar): PAX-only. Weight of A-ch photons during Aex
-            period (AexAem) due to the A laser.
-            See :meth:`fretbursts.burstlib.Data.burst_sizes_pax_ich`.
+        aex_corr (bool): If True, and `add_aex == True`, apply the
+            duty-cyclecorrection to DAexAem (naa).
+            If `add_aex == False` this argument is ignored. For details
+            see :meth:`fretbursts.burstlib.Data.burst_sizes_pax_ich`.
 
     Returns:
         A tuple containing an array (the burst mask) and a string which
         briefly describe the selection.
+
+    See also:
+        - :meth:`fretbursts.burstlib.Data.burst_sizes_ich`.
+        - :meth:`fretbursts.burstlib.Data.burst_sizes_pax_ich`.
     """
     assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
     kws = dict(ich=ich, gamma=gamma, beta=beta, donor_ref=donor_ref)
-    if 'PAX' in d.meas_type:
-        kws.update(add_aex=add_aex, A_laser_weight=A_laser_weight)
+    if 'PAX' in d.meas_type and add_aex:
+        kws.update(add_aex=add_aex, aex_corr=aex_corr)
         burst_size = d.burst_sizes_pax_ich(**kws)
     else:
         kws.update(add_naa=add_naa)
