@@ -1034,7 +1034,31 @@ class Data(DataContainer):
 
     def burst_sizes_pax_ich(self, ich=0, gamma=1., add_aex=True,
                             beta=1., donor_ref=True, aex_corr=True):
-        """Return corrected burst sizes for channel `ich`. PAX-only.
+        r"""Return corrected burst sizes for channel `ich`. PAX-only.
+
+        When `donor_ref = False`, the formula for PAX-enhanced burst size is:
+
+        .. math::
+
+            \gamma(F_{D_{ex}D_{em}} + F_{DA_{ex}D_{em}}) +
+            \frac{1}{\alpha} F_{FRET}
+
+        where :math:`\alpha` is the Dex duty-cycle (0.5 if alternation
+        periods are equal) and :math:`F_{FRET}` is `na`, the AemAex
+        signal after leakage and direct-excitation corrections.
+
+        If `add_ex = True`, we add the term:
+
+        .. math::
+
+            \tilde{F}_{A_{ex}A_{em}} / (\alpha\beta)
+
+        where :math:`\tilde{F}_{A_{ex}A_{em}}` in A emission due to
+        A excitation (and not due to FRET).
+
+        If `aex_corr = False`, then :math:`\alpha` is fixed to 1.
+        If `donor_ref = True`, the above burst size expression is divided by
+        :math:`\gamma`.
 
         Arguments:
             ich (int): the spot number, only relevant for multi-spot.
@@ -1051,9 +1075,10 @@ class Data(DataContainer):
                 the DAexAem term (naa) by the Dex duty cycle. For example,
                 if Dex and DAex alternation periods are equal, naa is
                 multiplied by 2. This correction makes the returned value
-                equal to the S_pax denominator (using the PAX-enhanced
-                formula). If False, naa is left unmodified.
-                If `add_aex == False` this argument is ignored.
+                equal to the denominator of the stoichiometry ratio S_pax
+                (PAX-enhanced formula). If False, naa is not divided by
+                the Dex duty-cycle (gamma and beta corrections may still be
+                applied). If `add_aex == False`, `aex_corr` is ignored.
             beta (float): beta correction factor used for the DAexAem term
                 (naa) of the burst size.
                 If `add_aex == False` this argument is ignored. Default 1.
@@ -1063,12 +1088,11 @@ class Data(DataContainer):
         """
         assert 'PAX' in self.meas_type
         naa = self._get_naa_ich(ich)      # nar-subtracted
+        aex_dex_ratio = self._aex_dex_ratio()
         alpha = 1
-        aex_dex_ratio = 1
         if aex_corr:
-            aex_dex_ratio = self._aex_dex_ratio()
             alpha = 1 - self._aex_fraction()       # Dex duty-cycle
-            assert alpha - 1 / (1 + aex_dex_ratio) < 1e-9
+
         if donor_ref:
             burst_size_dex = self.nd[ich] + self.na[ich] / gamma
             burst_size_aex = (self.nda[ich] +
@@ -1079,6 +1103,7 @@ class Data(DataContainer):
             burst_size_aex = (self.nda[ich] * gamma +
                               self.na[ich] * aex_dex_ratio +
                               naa / (alpha * beta))
+
         burst_size = burst_size_dex
         if add_aex:
             burst_size += burst_size_aex
