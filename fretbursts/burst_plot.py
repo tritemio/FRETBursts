@@ -888,7 +888,7 @@ def _get_sizes_and_formula(d, ich, gamma, beta, donor_ref, add_naa,
              if donor_ref else '$\\gamma {FD} + {FA}$')
     if 'PAX' in d.meas_type and add_aex:
         sizes = d.burst_sizes_pax_ich(ich=ich, gamma=gamma,
-                                      add_aex=add_naa, aex_corr=aex_corr,
+                                      add_aex=add_aex, aex_corr=aex_corr,
                                       beta=beta, donor_ref=donor_ref)
         if not add_aex:
             label = label.format(FD='n_d', FA='n_a')

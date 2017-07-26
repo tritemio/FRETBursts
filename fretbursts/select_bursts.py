@@ -116,7 +116,8 @@ def na(d, ich=0, th1=20, th2=np.inf):
 def naa(d, ich=0, th1=20, th2=np.inf, gamma=1., beta=1., donor_ref=True):
     """Select bursts with (naa >= th1) and (naa <= th2).
 
-    The `naa` quantity can be optionally corrected using gamma and beta factors.
+    The `naa` quantity can be optionally corrected using gamma and beta
+    factors.
 
     Arguments:
         th1, th2 (floats): lower (`th1`) and upper (`th2`) bounds for
