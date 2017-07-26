@@ -830,7 +830,7 @@ def hist_width(d, i=0, bins=(0, 10, 0.025), pdf=True, weights=None,
 
 def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, weights=None,
                     yscale='log', gamma=1, add_naa=False, beta=1.,
-                    donor_ref=True, add_aex=True, A_laser_weight=1,
+                    donor_ref=True, add_aex=True, aex_corr=True,
                     label_prefix=None, color=None, plot_style=None, vline=None):
     """Plot histogram of burst brightness, i.e. burst size / duration.
 
@@ -847,8 +847,8 @@ def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, weights=None,
         add_aex (bool): *PAX-only*. Whether to add signal from Aex laser period
             to the burst size. Default True.
             See :meth:`fretbursts.burstlib.Data.burst_sizes_pax_ich`.
-        A_laser_weight (scalar): *PAX-only*. Weight of A-ch photons during Aex
-            period (AexAem) due to the A laser.
+        aex_corr (bool): *PAX-only*. If True, do duty-cycle correction
+            when adding the DAexAem term `naa`.
             See :meth:`fretbursts.burstlib.Data.burst_sizes_pax_ich`.
         label_prefix (string or None): a custom prefix for the legend label.
         color (string or tuple or None): matplotlib color used for the plot.
@@ -863,18 +863,11 @@ def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, weights=None,
         plot_style = {}
 
     burst_widths = d.mburst[i].width * d.clk_p * 1e3
-    if 'PAX' in d.meas_type:
-        sizes = d.burst_sizes_pax_ich(ich=i, gamma=gamma, beta=beta,
-                                      donor_ref=donor_ref, add_aex=add_aex,
-                                      A_laser_weight=A_laser_weight)
-    else:
-        sizes = d.burst_sizes_ich(ich=i, gamma=gamma, beta=beta,
-                                  add_naa=add_naa, donor_ref=donor_ref)
+    sizes, label = _get_sizes_and_formula(
+        d=d, ich=i, gamma=gamma, beta=beta, donor_ref=donor_ref,
+        add_naa=add_naa, add_aex=add_aex, aex_corr=aex_corr)
     brightness = sizes / burst_widths
-    label = 'nd + na/g' if donor_ref else 'g*nd + na'
-    if add_naa:
-        label += " + naa/(b*g)" if donor_ref else ' + naa/b'
-    label = '(' + label + ') / w'
+    label = '$(' + label[1:-1] + ') / w$'
     if label_prefix is not None:
         label = label_prefix + ' ' + label
 
@@ -889,9 +882,35 @@ def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, weights=None,
     plt.legend(loc='best')
 
 
+def _get_sizes_and_formula(d, ich, gamma, beta, donor_ref, add_naa,
+                           add_aex, aex_corr):
+    label = ('${FD} + {FA}/\\gamma$'
+             if donor_ref else '$\\gamma {FD} + {FA}$')
+    if 'PAX' in d.meas_type and add_aex:
+        sizes = d.burst_sizes_pax_ich(ich=ich, gamma=gamma,
+                                      add_aex=add_naa, aex_corr=aex_corr,
+                                      beta=beta, donor_ref=donor_ref)
+        if not add_aex:
+            label = label.format(FD='n_d', FA='n_a')
+        else:
+            label = label[:-1].format(FD='(n_d + n_{da})',
+                                      FA='n_a/\\alpha')
+            aex = ' + n_{DA_{ex}A_{em}} - \\frac{W_A}{W_D} n_a/%s$'
+            corr = '(\\gamma\\beta)' if donor_ref else '\\beta'
+            label += aex % corr
+    else:
+        sizes = d.burst_sizes_ich(ich=ich, gamma=gamma, add_naa=add_naa,
+                                  beta=beta, donor_ref=donor_ref)
+        label = label.format(FD='n_d', FA='n_a')
+        if add_naa:
+            corr = '(\\gamma\\beta) ' if donor_ref else '\\beta '
+            label = label[:-1] + ' + n_{aa} / %s$' % corr
+    return sizes, label
+
+
 def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
               yscale='log', gamma=1, add_naa=False, beta=1, donor_ref=True,
-              add_aex=True, A_laser_weight=1, vline=None,
+              add_aex=True, aex_corr=True, vline=None,
               label_prefix=None, legend=True, color=None, plot_style=None):
     """Plot histogram of burst sizes.
 
@@ -914,8 +933,8 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
         add_aex (bool): *PAX-only*. Whether to add signal from Aex laser period
             to the burst size. Default True.
             See :meth:`fretbursts.burstlib.Data.burst_sizes_pax_ich`.
-        A_laser_weight (scalar): *PAX-only*. Weight of A-ch photons during Aex
-            period (AexAem) due to the A laser.
+        aex_corr (bool): *PAX-only*. If True, do duty-cycle correction
+            when adding the DAexAem term `naa`.
             See :meth:`fretbursts.burstlib.Data.burst_sizes_pax_ich`.
         label_prefix (string or None): a custom prefix for the legend label.
         color (string or tuple or None): matplotlib color used for the plot.
@@ -932,24 +951,9 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
     which_dict = {'all': 'k', 'nd': green, 'na': red, 'naa': purple}
     assert which in which_dict
     if which == 'all':
-        label = '{FD} + {FA}/g' if donor_ref else 'g*{FD} + {FA}'
-        if 'PAX' in d.meas_type:
-            sizes = d.burst_sizes_pax_ich(ich=i, gamma=gamma, add_aex=add_naa,
-                                          A_laser_weight=A_laser_weight,
-                                          beta=beta, donor_ref=donor_ref)
-            if not add_aex:
-                label = label.format(FD='nd', FA='na')
-            else:
-                label = label.format(FD='(nd + nda)', FA='2 * na')
-                aex = ' + Aex_weight * (naa - nar)/{corr}'
-                corr = '(g * beta)' if donor_ref else 'beta'
-                label += aex.format(corr=corr)
-        else:
-            sizes = d.burst_sizes_ich(ich=i, gamma=gamma, add_naa=add_naa,
-                                      beta=beta, donor_ref=donor_ref)
-            label = label.format(FD='nd', FA='na')
-            if add_naa:
-                label += " + naa/(g*beta)" if donor_ref else ' + naa/beta'
+        sizes, label = _get_sizes_and_formula(
+            d=d, ich=i, gamma=gamma, beta=beta, donor_ref=donor_ref,
+            add_naa=add_naa, add_aex=add_aex, aex_corr=aex_corr)
     else:
         sizes = d[which][i]
         label = which
