@@ -948,7 +948,8 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
     weights = weights[i] if weights is not None else None
     if plot_style is None:
         plot_style = {}
-    which_dict = {'all': 'k', 'nd': green, 'na': red, 'naa': purple}
+    which_dict = {'all': 'k', 'nd': green, 'na': red, 'naa': purple,
+                  'nar': red, 'nda': 'C0'}
     assert which in which_dict
     if which == 'all':
         sizes, label = _get_sizes_and_formula(
@@ -975,7 +976,7 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
                          plot_style=plot_style, vline=vline)
     plt.xlabel('Burst size')
     if legend:
-        plt.legend(loc='best')
+        plt.legend(loc='upper right')
 
 
 def hist_size_all(d, i=0, **kwargs):
@@ -983,9 +984,11 @@ def hist_size_all(d, i=0, **kwargs):
 
     Calls :func:`hist_size` multiple times with different `which` parameters.
     """
-    fields = ['all', 'nd', 'na']
-    if d.alternated:
+    fields = ['nd', 'na']
+    if d.ALEX:
         fields.append('naa')
+    elif 'PAX' in d.meas_type:
+        fields += ['nda', 'naa']
     for which in fields:
         hist_size(d, i, which=which, **kwargs)
 
