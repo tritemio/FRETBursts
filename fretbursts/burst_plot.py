@@ -886,14 +886,14 @@ def _get_sizes_and_formula(d, ich, gamma, beta, donor_ref, add_naa,
                            ph_sel, naa_aexonly, naa_comp, na_comp):
     label = ('${FD} + {FA}/\\gamma$'
              if donor_ref else '$\\gamma {FD} + {FA}$')
-    kws = dict(ich=ich, gamma=gamma, beta=beta, donor_ref=donor_ref)
+    kws = dict(gamma=gamma, beta=beta, donor_ref=donor_ref)
     if 'PAX' in d.meas_type and ph_sel is not None:
         kws_pax = dict(ph_sel=ph_sel, naa_aexonly=naa_aexonly,
                        naa_comp=naa_comp, na_comp=na_comp)
-        sizes = d.burst_sizes_pax_ich(**dict(kws, **kws_pax))
-        label = '$ %s $' % d._burst_sizes_pax_formula(**kws_pax)
+        sizes = d.burst_sizes_pax_ich(ich=ich, **dict(kws, **kws_pax))
+        label = '$ %s $' % d._burst_sizes_pax_formula(**dict(kws, **kws_pax))
     else:
-        sizes = d.burst_sizes_ich(add_naa=add_naa, **kws)
+        sizes = d.burst_sizes_ich(ich=ich, add_naa=add_naa, **kws)
         label = label.format(FD='n_d', FA='n_a')
         if add_naa:
             corr = '(\\gamma\\beta) ' if donor_ref else '\\beta '
@@ -902,7 +902,7 @@ def _get_sizes_and_formula(d, ich, gamma, beta, donor_ref, add_naa,
 
 
 def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
-              yscale='log', gamma=1, add_naa=False, beta=1, donor_ref=True,
+              yscale='log', gamma=1, beta=1, donor_ref=True, add_naa=False,
               ph_sel=None, naa_aexonly=False, naa_comp=False, na_comp=False,
               vline=None, label_prefix=None, legend=True, color=None,
               plot_style=None):

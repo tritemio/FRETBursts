@@ -1053,12 +1053,15 @@ class Data(DataContainer):
                                  na_comp=False,
                                  gamma=None, beta=None, donor_ref=True):
         """Return a latex expression of the PAX burst size."""
+        gamma = None if gamma == 1 else gamma
+        beta = None if beta == 1 else beta
         terms = []
         if ph_sel.Dex is not None and 'D' in ph_sel.Dex:
             terms.append('n_d')
         if ph_sel.Aex is not None and 'D' in ph_sel.Aex:
             terms.append('n_{da}')
-        terms = ['+'.join(terms)]
+        if len(terms) > 1:
+            terms = ['+'.join(terms)]
         if gamma is not None and not donor_ref and len(terms) > 0:
             terms[0] = r'\gamma\left(' + terms[0] + r'\right) '
 
