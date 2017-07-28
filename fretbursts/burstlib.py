@@ -1364,25 +1364,28 @@ class Data(DataContainer):
             `computefret=False`, otherwise any attempt to use multi-spot
             gamma for single-spot data will raise an error.
         """
+        if skip_ch is None:
+            skip_ch = []
         dc = Data(**self)
-
         mch_bursts = self.mburst
-        if skip_ch is not None:
-            mch_bursts = [bursts for i, bursts in enumerate(mch_bursts)
-                          if i not in skip_ch]
+        mch_bursts = [bursts for i, bursts in enumerate(mch_bursts)
+                      if i not in skip_ch]
+
         bursts = bslib.Bursts.merge(mch_bursts, sort=False)
         # Sort by start times, and when equal by stop times
         indexsort = np.lexsort((bursts.stop, bursts.start))
         dc.add(mburst=[bursts[indexsort]])
 
-        ich_burst = [i * np.ones(nb) for i, nb in enumerate(self.num_bursts)]
+        ich_burst = [i * np.ones(nb) for i, nb in enumerate(self.num_bursts)
+                     if i not in skip_ch]
         dc.add(ich_burst=np.hstack(ich_burst)[indexsort])
 
         for name in self.burst_fields:
             if name in self and name is not 'mburst':
                 # Concatenate arrays along axis = 0
-                value = [np.concatenate(self[name])[indexsort]]
-                dc.add(**{name: value})
+                value = [x for i, x in enumerate(self[name])
+                         if i not in skip_ch]
+                dc.add(**{name: [np.concatenate(value)[indexsort]]})
         dc.add(nch=1)
         dc.add(_chi_ch=1.)
         # NOTE: Updating gamma has the side effect of recomputing E
