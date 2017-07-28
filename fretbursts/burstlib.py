@@ -1047,6 +1047,31 @@ class Data(DataContainer):
         """
         return [bursts.width * self.clk_p for bursts in self.mburst]
 
+    @staticmethod
+    def _burst_sizes_pax_formula(ph_sel=Ph_sel('all'),
+                                 naa_aexonly=False, naa_comp=False,
+                                 na_comp=False):
+        terms_dex = []
+        #alpha1 = r'\left( 1 + \frac{w_A}{w_D} \right)'
+        alpha1 = r'\alpha^{-1} '
+        if ph_sel.Dex is not None and 'D' in ph_sel.Dex:
+            terms_dex.append('n_d')
+        if ph_sel.Aex is not None and 'D' in ph_sel.Aex:
+            terms_dex.append('n_{da}')
+
+        terms_aex = []
+        if ph_sel.Dex is not None and 'Aem' in ph_sel.Dex:
+            terms_aex.append('n_a %s' % alpha1 if na_comp else 'n_a')
+        if ph_sel.Aex is not None and 'Aem' in ph_sel.Aex:
+            naa_term = 'n_{DA_{ex}A_{em}} '
+            if naa_aexonly:
+                naa_term += r' - \frac{w_A}{w_D}n_a '
+                naa_term = r'\left(' + naa_term + r'\right) '
+            if naa_comp:
+                naa_term += alpha1
+            terms_aex.append(naa_term)
+        return ' + '.join(terms_dex + terms_aex)
+
     def burst_sizes_pax_ich(self, ich=0, ph_sel=Ph_sel('all'),
                             naa_aexonly=False, naa_comp=False, na_comp=False,
                             gamma=1., beta=1., donor_ref=True):

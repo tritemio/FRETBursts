@@ -883,24 +883,17 @@ def hist_brightness(d, i=0, bins=(0, 60, 1), pdf=True, weights=None,
 
 
 def _get_sizes_and_formula(d, ich, gamma, beta, donor_ref, add_naa,
-                           add_aex, aex_corr):
+                           ph_sel, naa_aexonly, naa_comp, na_comp):
     label = ('${FD} + {FA}/\\gamma$'
              if donor_ref else '$\\gamma {FD} + {FA}$')
-    if 'PAX' in d.meas_type and add_aex:
-        sizes = d.burst_sizes_pax_ich(ich=ich, gamma=gamma,
-                                      add_aex=add_aex, aex_corr=aex_corr,
-                                      beta=beta, donor_ref=donor_ref)
-        if not add_aex:
-            label = label.format(FD='n_d', FA='n_a')
-        else:
-            label = label[:-1].format(FD='(n_d + n_{da})',
-                                      FA='n_a/\\alpha')
-            aex = ' + n_{DA_{ex}A_{em}} - \\frac{W_A}{W_D} n_a/%s$'
-            corr = '(\\gamma\\beta)' if donor_ref else '\\beta'
-            label += aex % corr
+    kws = dict(ich=ich, gamma=gamma, beta=beta, donor_ref=donor_ref)
+    if 'PAX' in d.meas_type and ph_sel is not None:
+        kws_pax = dict(ph_sel=ph_sel, naa_aexonly=naa_aexonly,
+                       naa_comp=naa_comp, na_comp=na_comp)
+        sizes = d.burst_sizes_pax_ich(**kws, **kws_pax)
+        label = '$ %s $' % d._burst_sizes_pax_formula(**kws_pax)
     else:
-        sizes = d.burst_sizes_ich(ich=ich, gamma=gamma, add_naa=add_naa,
-                                  beta=beta, donor_ref=donor_ref)
+        sizes = d.burst_sizes_ich(add_naa=add_naa, **kws)
         label = label.format(FD='n_d', FA='n_a')
         if add_naa:
             corr = '(\\gamma\\beta) ' if donor_ref else '\\beta '
@@ -964,7 +957,8 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
     if which == 'all':
         sizes, label = _get_sizes_and_formula(
             d=d, ich=i, gamma=gamma, beta=beta, donor_ref=donor_ref,
-            add_naa=add_naa, add_aex=add_aex, aex_corr=aex_corr)
+            add_naa=add_naa, ph_sel=ph_sel, naa_aexonly=naa_aexonly,
+            naa_comp=naa_comp, na_comp=na_comp)
     else:
         sizes = d[which][i]
         label = which
