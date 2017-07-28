@@ -1018,6 +1018,21 @@ class Data(DataContainer):
     def _det_donor_accept_multich(self):
         return self._get_tuple_multich('det_donor_accept')
 
+    @property
+    def _aex_fraction(self):
+        """Proportion of Aex period versus Dex + Aex."""
+        assert self.alternated
+        D_ON, A_ON = self.D_ON, self.A_ON
+        return ((A_ON[1] - A_ON[0]) /
+                (A_ON[1] - A_ON[0] + D_ON[1] - D_ON[0]))
+
+    @property
+    def _aex_dex_ratio(self):
+        """Ratio of Aex and Dex period durations."""
+        assert self.alternated
+        D_ON, A_ON = self.D_ON, self.A_ON
+        return (A_ON[1] - A_ON[0]) / (D_ON[1] - D_ON[0])
+
     ##
     # Methods and properties for burst-data access
     #
@@ -1032,33 +1047,15 @@ class Data(DataContainer):
         """
         return [bursts.width * self.clk_p for bursts in self.mburst]
 
-    def burst_sizes_pax_ich(self, ich=0, gamma=1., add_aex=True,
-                            beta=1., donor_ref=True, aex_corr=True):
-        r"""Return corrected burst sizes for channel `ich`. PAX-only.
+    def burst_sizes_pax_ich(self, ich=0, ph_sel=Ph_sel('all'),
+                            naa_aexonly=False, naa_comp=False, na_comp=False,
+                            gamma=1., beta=1., donor_ref=True):
+        r"""Return different definitions of PAX burst sizes for channel `ich`.
 
-        When `donor_ref = False`, the formula for PAX-enhanced burst size is:
-
-        .. math::
-
-            \gamma(F_{D_{ex}D_{em}} + F_{DA_{ex}D_{em}}) +
-            \frac{1}{\alpha} F_{FRET}
-
-        where :math:`\alpha` is the Dex duty-cycle (0.5 if alternation
-        periods are equal) and :math:`F_{FRET}` is `na`, the AemAex
-        signal after leakage and direct-excitation corrections.
-
-        If `add_ex = True`, we add the term:
-
-        .. math::
-
-            \tilde{F}_{A_{ex}A_{em}} / (\alpha\beta)
-
-        where :math:`\tilde{F}_{A_{ex}A_{em}}` in A emission due to
-        A excitation (and not due to FRET).
-
-        If `aex_corr = False`, then :math:`\alpha` is fixed to 1.
-        If `donor_ref = True`, the above burst size expression is divided by
-        :math:`\gamma`.
+        There are 4 basic "terms" corresponding to the 4 photon streams:
+        `nd`, `na`, `nda`, `naa`. Which term is included is defined by
+        the `ph_sel` argument (by default all are included).
+        The other arguments specify the various corrections for each term.
 
         Arguments:
             ich (int): the spot number, only relevant for multi-spot.
@@ -1066,47 +1063,79 @@ class Data(DataContainer):
                 so this argument may be omitted. Default 0.
             gamma (float): coefficient for gamma correction of burst
                 sizes. Default: 1. For more info see explanation above.
+            beta (float): beta correction factor used for the DAexAem term.
             donor_ref (bool): True or False select different conventions
                 for burst size correction. For details see
                 :meth:`fretbursts.burstlib.Data.burst_sizes_ich`.
-            add_aex (boolean): when True, the returned burst size also
-                includes photons detected during the DAex. Default is True.
-            aex_corr (bool): If True, and `add_aex == True`, then divide
-                the DAexAem term (naa) by the Dex duty cycle. For example,
-                if Dex and DAex alternation periods are equal, naa is
-                multiplied by 2. This correction makes the returned value
-                equal to the denominator of the stoichiometry ratio S_pax
-                (PAX-enhanced formula). If False, naa is not divided by
-                the Dex duty-cycle (gamma and beta corrections may still be
-                applied). If `add_aex == False`, `aex_corr` is ignored.
-            beta (float): beta correction factor used for the DAexAem term
-                (naa) of the burst size.
-                If `add_aex == False` this argument is ignored. Default 1.
+            ph_sel (Ph_sel object): defines which terms are included in the
+                burst size.
+            na_comp (bool): If True, multiply the `na` term by `(1 + Wa/Wd)`,
+                where Wa and Wd are the D and A alternation durations
+                (typically Wa/Wd = 1).
+            naa_aexonly (bool): if True, the `naa` term is corrected to
+                include only A emission due to A excitation.
+                If False, the `naa` term includes all the counts in DAexAem.
+                The `naa` term also depends on the `naa_comp` argument.
+            naa_comp (bool): If True, multiplies the `naa` term by
+                `(1 + Wa/Wd)`,
+                where Wa and Wd are the D and A alternation durations
+                (typically Wa/Wd = 1). The `naa` term also depends on
+                the `naa_aexonly` argument.
 
         Returns
             Array of burst sizes for channel `ich`.
+
+        Examples:
+
+            Burst sizes with all streams and no correction::
+
+                Data.burst_sizes_pax_ich(ph_sel=Ph_sel('all'))
+
+            .. math::
+
+                F_{D_{ex}D_{em}} + F_{DA_{ex}D_{em}} +
+                F_{FRET} + F_{DA_{ex}A_{em}}
+
+            Burst sizes with all streams and all corrections::
+
+                Data.burst_sizes_pax_ich(ph_sel=Ph_sel('all'), na_comp=True,
+                                         aa_aexonly=True, naa_comp=True)
+
+            .. math::
+
+                \gamma (F_{D_{ex}D_{em}} + F_{DA_{ex}D_{em}}) +
+                \left(1 + \frac{W_A}{W_D} \right) \,
+                ( F_{FRET} +
+                  (F_{DA_{ex}A_{em}} - F_{D_{ex}A_{em}})\,\beta^{-1})
 
         See also:
             :meth:`Data.burst_sizes_ich`
         """
         assert 'PAX' in self.meas_type
-        naa = self._get_naa_ich(ich)      # nar-subtracted
-        aex_dex_ratio = self._aex_dex_ratio()
-        alpha = 1
-        if aex_corr:
-            alpha = 1 - self._aex_fraction()       # Dex duty-cycle
+        aex_dex_ratio = self._aex_dex_ratio
 
-        burst_size_dex = self.nd[ich] * gamma + self.na[ich]
-        burst_size_aex = (self.nda[ich] * gamma +
-                          self.na[ich] * aex_dex_ratio +
-                          naa / (alpha * beta))
+        bsize = 0
+        if ph_sel.Dex is not None and 'D' in ph_sel.Dex:
+            bsize += self.nd[ich] * gamma
+        if ph_sel.Aex is not None and 'D' in ph_sel.Aex:
+            bsize += self.nda[ich] * gamma
 
-        burst_size = burst_size_dex
-        if add_aex:
-            burst_size += burst_size_aex
+        if ph_sel.Dex is not None and 'Aem' in ph_sel.Dex:
+            na_term = self.na[ich]
+            if na_comp:
+                na_term = na_term * (1 + aex_dex_ratio)
+            bsize += na_term
+        if ph_sel.Aex is not None and 'Aem' in ph_sel.Aex:
+            naa_term = self.naa[ich].copy()
+            if naa_aexonly:
+                naa_term -= aex_dex_ratio * self.nar[ich]
+            if naa_comp:
+                naa_term *= (1 + aex_dex_ratio)
+            bsize += naa_term / beta
+
         if donor_ref:
-            burst_size /= gamma
-        return burst_size
+            bsize /= gamma
+        return bsize
 
     def burst_sizes_ich(self, ich=0, gamma=1., add_naa=False,
                         beta=1., donor_ref=True):
@@ -1157,56 +1186,25 @@ class Data(DataContainer):
 
         Returns
             Array of burst sizes for channel `ich`.
-
-        See also :meth:`fretbursts.burstlib.Data.get_naa_corrected`.
         """
-        if donor_ref:
-            burst_size = self.nd[ich] + self.na[ich] / gamma
-        else:
-            burst_size = self.nd[ich] * gamma + self.na[ich]
+        burst_size = self.nd[ich] * gamma + self.na[ich]
 
         if add_naa and self.alternated:
-            kws = dict(ich=ich, gamma=gamma, beta=beta, donor_ref=donor_ref)
-            burst_size += self.get_naa_corrected(**kws)
+            naa = self.naa[ich]
+            if 'PAX' in self.meas_type:
+                naa = naa - self._aex_dex_ratio * self.nar[ich]
+            burst_size += naa / beta
+        if donor_ref:
+            burst_size /= gamma
         return burst_size
 
-    def get_naa_corrected(self, ich=0, gamma=1., beta=1., donor_ref=True):
-        """Return corrected naa array for channel `ich`.
-
-        Arguments:
-            ich (int): the spot number, only relevant for multi-spot.
-            gamma (floats): gamma-factor to use in computing the corrected naa.
-            beta (float): beta-factor to use in computing the corrected naa.
-            donor_ref (bool): Select the convention for `naa` correction.
-                If True (default), uses `naa / (beta * gamma)`. Otherwise,
-                uses `naa / beta`. A consistent convention should be used
-                for the corrected Dex burst size in order to make it
-                commensurable with naa.
-
-        See also :meth:`fretbursts.burstlib.Data.burst_sizes_ich`.
+    @property
+    def naa_aexonly(self):
+        """Returns self.naa - aex_dex_ratio * self.nar. PAX-only.
         """
-        naa = self._get_naa_ich(ich)  # with eventual duty-cycle correction
-        if donor_ref:
-            correction = (gamma * beta)
-        else:
-            correction = beta
-        return naa / correction
-
-    def _get_naa_ich(self, ich=0):
-        """Return naa for `ich` both in ALEX and PAX measurements.
-
-        In case of PAX, returns naa using the duty-cycle correction::
-
-            naa = self.naa - aex_dex_ratio * self.nar
-
-        where `self.nar` is equal to `self.na` before leakage and direct
-        excitation correction, and `aex_dex_ratio` is the Aex duty-cycle.
-        """
-        naa = self.naa[ich]
-        if 'PAX' in self.meas_type:
-            # ATTENTION: do not modify naa inplace
-            naa = naa - self._aex_dex_ratio() * self.nar[ich]
-        return naa
+        WaWd_ratio = self._aex_dex_ratio
+        return [naa - WaWd_ratio * nar
+                for naa, nar in zip(self.naa, self.nar)]
 
     def burst_sizes(self, gamma=1., add_naa=False, beta=1., donor_ref=True):
         """Return gamma corrected burst sizes for all the channel.
@@ -2793,27 +2791,14 @@ class Data(DataContainer):
             if hasattr(self, attr):
                 self.delete(attr, warning=False)
 
-    def _aex_fraction(self):
-        """Proportion of Aex period versus Dex + Aex."""
-        assert self.alternated
-        D_ON, A_ON = self.D_ON, self.A_ON
-        return ((A_ON[1] - A_ON[0]) /
-                (A_ON[1] - A_ON[0] + D_ON[1] - D_ON[0]))
-
-    def _aex_dex_ratio(self):
-        """Ratio of Aex and Dex period durations."""
-        assert self.alternated
-        D_ON, A_ON = self.D_ON, self.A_ON
-        return (A_ON[1] - A_ON[0]) / (D_ON[1] - D_ON[0])
-
     def _calculate_fret_eff(self, pax=False):
         """Compute FRET efficiency (`E`) for each burst."""
         G = self.get_gamma_array()
         if not pax:
             E = [na / (g * nd + na) for nd, na, g in zip(self.nd, self.na, G)]
         else:
-            alpha = 1 - self._aex_fraction()
-            E = [(na / alpha) / (g * (nd + nda) + (na / alpha))
+            adr = self._aex_dex_ratio
+            E = [na * (1 + adr) / (g * (nd + nda) + na * (1 + adr))
                  for nd, na, nda, g in zip(self.nd, self.na, self.nda, G)]
         self.add(E=E, pax=pax)
 
@@ -2822,17 +2807,17 @@ class Data(DataContainer):
         G = self.get_gamma_array()
         naa = self.naa
         if 'PAX' in self.meas_type:
-            naa = [self._get_naa_ich(i) for i in range(self.nch)]
+            naa = self.naa_aexonly
         if not pax:
-            S = [(g * d + a) / (g * d + a + aa / self.beta)
-                 for d, a, aa, g in zip(self.nd, self.na, naa, G)]
+            S = [(g * nd + na) / (g * nd + na + naa / self.beta)
+                 for nd, na, naa, g in zip(self.nd, self.na, naa, G)]
         else:
             # This is a PAX-enhanced formula which uses information
             # from both alternation periods in order to compute S
-            alpha = 1 - self._aex_fraction()
-            S = [(g * (d + da) + a / alpha) /
-                 (g * (d + da) + a / alpha + aa / (alpha * self.beta))
-                 for d, a, da, aa, g in
+            alpha = 1 - self.aex_fraction
+            S = [(g * (nd + nda) + na / alpha) /
+                 (g * (nd + nda) + na / alpha + naa / (alpha * self.beta))
+                 for nd, na, nda, naa, g in
                  zip(self.nd, self.na, self.nda, naa, G)]
         self.add(S=S)
 

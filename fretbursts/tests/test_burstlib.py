@@ -188,91 +188,100 @@ def test_aex_dex_ratio(data_1ch):
     """
     d = data_1ch
     Dx, Ax = d.D_ON, d.A_ON
-    a1 = d._aex_fraction()
+    aex_fraction = d._aex_fraction
     a2 = (Ax[1] - Ax[0]) / (Ax[1] - Ax[0] + Dx[1] - Dx[0])
-    assert a1 == a2
-    r1 = d._aex_dex_ratio()
+    assert aex_fraction == a2
+    aex_dex_ratio = d._aex_dex_ratio
     r2 = (Ax[1] - Ax[0]) / (Dx[1] - Dx[0])
-    assert r1 == r2
-    assert (a1 / (1 - a1)) == r1
+    assert aex_dex_ratio == r2
+    assert (aex_fraction / (1 - aex_fraction)) == aex_dex_ratio
+    assert (1 - aex_fraction) == 1 / (1 + aex_dex_ratio)
 
 
 def test_burst_size_pax():
     d = load_fake_pax()
-    aex_dex_ratio, alpha_d = d._aex_dex_ratio(), 1 - d._aex_fraction()
+    aex_dex_ratio = d._aex_dex_ratio
     nd, na = d.nd[0], d.na[0]
-    nda = d.nda[0]
-    naa = d.naa[0] - d.nar[0] * aex_dex_ratio
+    nda, naa = d.nda[0], d.naa[0]
+    naa_aexonly = naa - d.nar[0] * aex_dex_ratio
 
     # Test burst size during Dex
-    b1 = d.burst_sizes_pax_ich(add_aex=False)
+    b1 = d.burst_sizes_pax_ich(ph_sel=Ph_sel(Dex='DAem'))
     b2 = d.burst_sizes_ich(add_naa=False)
     b3 = nd + na
     assert (b1 == b2).all()
     assert (b1 == b3).all()
 
-    # Test naa
-    naa2 = d.get_naa_corrected()
-    naa3 = d._get_naa_ich()
-    assert (naa == naa2).all()
-    assert (naa == naa3).all()
-
-    # Test add_naa
-    b1 = d.burst_sizes_ich(add_naa=True)
-    b2 = nd + na + naa
+    # Test burst size during Dex + AexAem
+    b1 = d.burst_sizes_pax_ich(ph_sel=Ph_sel(Dex='DAem', Aex='Aem'),
+                               naa_aexonly=True)
+    b2 = d.burst_sizes_ich(add_naa=True)
+    b3 = nd + na + naa_aexonly
     assert (b1 == b2).all()
+    assert (b1 == b3).all()
 
-    # Test add_aex with no duty-cycle correction
-    b1 = d.burst_sizes_pax_ich(add_aex=True, aex_corr=False)
-    b2 = nd + na + nda + d.naa[0]
-    b3 = nd + na + nda + naa + na * aex_dex_ratio
-    assert np.allclose(b1, b2)
-    assert np.allclose(b1, b3)
-
-    # Test add_aex with duty-cycle correction
-    b1 = d.burst_sizes_pax_ich(add_aex=True, aex_corr=True)
-    b2 = nd + na + nda + na * aex_dex_ratio + naa / alpha_d
+    # Test all-ph size with no corrections
+    b1 = d.burst_sizes_pax_ich(ph_sel=Ph_sel('all'))
+    b2 = nd + na + nda + naa
     assert np.allclose(b1, b2)
 
-    # Test add_aex with duty-cycle correction, donor_ref
-    b1 = d.burst_sizes_pax_ich(add_aex=True, aex_corr=True, donor_ref=True)
-    b2 = d.burst_sizes_pax_ich(add_aex=True, aex_corr=True, donor_ref=False)
+    # Test all-ph size with all corrections
+    b1 = d.burst_sizes_pax_ich(ph_sel=Ph_sel('all'),
+                               na_comp=True, naa_comp=True, naa_aexonly=True)
+    b2 = (nd + na * (1 + aex_dex_ratio) + nda +
+          naa_aexonly * (1 + aex_dex_ratio))
+    assert np.allclose(b1, b2)
+
+    # Test all-ph size with only na_comp
+    b1 = d.burst_sizes_pax_ich(ph_sel=Ph_sel('all'), na_comp=True)
+    b2 = (nd + na * (1 + aex_dex_ratio) + nda + naa)
+    assert np.allclose(b1, b2)
+
+    # Test all-ph size with na_comp + naa_aexonly
+    b1 = d.burst_sizes_pax_ich(ph_sel=Ph_sel('all'), na_comp=True,
+                               naa_aexonly=True)
+    b2 = (nd + na * (1 + aex_dex_ratio) + nda + naa_aexonly)
     assert np.allclose(b1, b2)
 
     # Test add_aex with duty-cycle correction, gamma, beta
     gamma = 0.7
     beta = 0.85
-    b1 = d.burst_sizes_pax_ich(add_aex=True, aex_corr=True,
+    b1 = d.burst_sizes_pax_ich(ph_sel=Ph_sel('all'),
+                               na_comp=True, naa_comp=True, naa_aexonly=True,
                                gamma=gamma, beta=beta, donor_ref=True)
-    b2 = d.burst_sizes_pax_ich(add_aex=True, aex_corr=True,
+    b2 = d.burst_sizes_pax_ich(ph_sel=Ph_sel('all'),
+                               na_comp=True, naa_comp=True, naa_aexonly=True,
                                gamma=gamma, beta=beta, donor_ref=False)
+    b3 = (gamma * (nd + nda) + na * (1 + aex_dex_ratio) +
+          naa_aexonly * (1 + aex_dex_ratio) / beta)
     assert np.allclose(b1 * gamma, b2)
-    b1 = d.burst_sizes_pax_ich(add_aex=True, aex_corr=True,
-                               gamma=gamma, beta=beta, donor_ref=False)
+    assert np.allclose(b2, b3)
 
-    b2 = (gamma * (nd + nda) + na * (1 + aex_dex_ratio) +
-          naa / (alpha_d * beta))
+    b1 = d.burst_sizes_pax_ich(ph_sel=Ph_sel(Dex='DAem', Aex='Aem'),
+                               naa_aexonly=True,
+                               gamma=gamma, beta=beta, donor_ref=False)
+    b2 = d.burst_sizes_ich(add_naa=True,
+                           gamma=gamma, beta=beta, donor_ref=False)
     assert np.allclose(b1, b2)
 
     d.leakage = 0.1
     nd, na = d.nd[0], d.na[0]
-    nda = d.nda[0]
-    naa = d.naa[0] - d.nar[0] * aex_dex_ratio
-    
+    nda, naa = d.nda[0], d.naa[0]
+    naa_aexonly = naa - d.nar[0] * aex_dex_ratio
+
     # Test add_aex with duty-cycle correction, gamma, beta
     gamma = 0.7
     beta = 0.85
-    b1 = d.burst_sizes_pax_ich(add_aex=True, aex_corr=True,
+    b1 = d.burst_sizes_pax_ich(ph_sel=Ph_sel('all'),
+                               na_comp=True, naa_comp=True, naa_aexonly=True,
                                gamma=gamma, beta=beta, donor_ref=True)
-    b2 = d.burst_sizes_pax_ich(add_aex=True, aex_corr=True,
+    b2 = d.burst_sizes_pax_ich(ph_sel=Ph_sel('all'),
+                               na_comp=True, naa_comp=True, naa_aexonly=True,
                                gamma=gamma, beta=beta, donor_ref=False)
+    b3 = (gamma * (nd + nda) + na * (1 + aex_dex_ratio) +
+          naa_aexonly * (1 + aex_dex_ratio) / beta)
     assert np.allclose(b1 * gamma, b2)
-    b1 = d.burst_sizes_pax_ich(add_aex=True, aex_corr=True,
-                               gamma=gamma, beta=beta, donor_ref=False)
-
-    b2 = (gamma * (nd + nda) + na * (1 + aex_dex_ratio) +
-          naa / (alpha_d * beta))
-    assert np.allclose(b1, b2)
+    assert np.allclose(b2, b3)
 
 
 def test_bg_calc(data):
@@ -533,28 +542,34 @@ def test_mch_count_ph_num_py_c(data):
 
 def test_burst_sizes(data):
     """Test for .burst_sizes_ich() and burst_sizes()"""
+    d = data
     # Smoke test
     plain_sizes = data.burst_sizes()
     assert len(plain_sizes) == data.nch
     # Test gamma and donor_ref arguments
-    bs1 = data.burst_sizes_ich(gamma=0.5, donor_ref=True)
-    bs2 = data.burst_sizes_ich(gamma=0.5, donor_ref=False)
-    assert np.allclose(bs1, bs2 / 0.5)
+    gamma = 0.5
+    beta = 0.7
+    bs1 = data.burst_sizes_ich(gamma=gamma, donor_ref=True)
+    bs2 = data.burst_sizes_ich(gamma=gamma, donor_ref=False)
+    assert np.allclose(bs1, bs2 / gamma)
     # Test add_naa
+    nd, na = d.nd[0], d.na[0]
+    assert np.allclose(bs2, gamma * nd + na)
     if data.alternated:
-        bs_no_naa = data.burst_sizes_ich(add_naa=False)
-        bs_naa = data.burst_sizes_ich(add_naa=True)
+        naa = d.naa[0]
+        bs_no_naa = d.burst_sizes_ich(add_naa=False)
+        bs_naa = d.burst_sizes_ich(add_naa=True)
         assert np.allclose(bs_no_naa + data.naa[0], bs_naa)
+        assert np.allclose(nd + na + naa, bs_naa)
 
         # Test beta and donor_ref arguments with gamma=1
-        naa1 = data.get_naa_corrected(beta=0.8, donor_ref=True)
-        naa2 = data.get_naa_corrected(beta=0.8, donor_ref=False)
-        assert np.allclose(naa1, naa2)
+        kws = dict(add_naa=True, gamma=gamma, beta=beta)
+        b1 = d.burst_sizes_ich(donor_ref=True, **kws)
+        b2 = d.burst_sizes_ich(donor_ref=False, **kws)
+        b3 = gamma * nd + na + naa / beta
+        assert np.allclose(b1 * gamma, b2)
+        assert np.allclose(b2, b3)
 
-        # Test beta and donor_ref arguments with gamma=0.5
-        naa1 = data.get_naa_corrected(gamma=0.5, beta=0.8, donor_ref=True)
-        naa2 = data.get_naa_corrected(gamma=0.5, beta=0.8, donor_ref=False)
-        assert np.allclose(naa1 * 0.5, naa2)
 
 def test_leakage(data):
     """

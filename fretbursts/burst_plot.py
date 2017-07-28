@@ -910,11 +910,12 @@ def _get_sizes_and_formula(d, ich, gamma, beta, donor_ref, add_naa,
 
 def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
               yscale='log', gamma=1, add_naa=False, beta=1, donor_ref=True,
-              add_aex=True, aex_corr=True, vline=None,
-              label_prefix=None, legend=True, color=None, plot_style=None):
-    """Plot histogram of burst sizes.
+              ph_sel=None, naa_aexonly=False, naa_comp=False, na_comp=False,
+              vline=None, label_prefix=None, legend=True, color=None,
+              plot_style=None):
+    """Plot histogram of "burst sizes", according to different definitions.
 
-    Parameters:
+    Arguments:
         d (Data): Data object
         i (int): channel index
         bins (array or None): array of bin edges. If len(bins) == 3
@@ -930,12 +931,17 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
         add_naa (bool): if True, include `naa` to the total burst size.
         donor_ref (bool): convention used for corrected burst size computation.
             See :meth:`fretbursts.burstlib.Data.burst_sizes_ich` for details.
-        add_aex (bool): *PAX-only*. Whether to add signal from Aex laser period
-            to the burst size. Default True.
-            See :meth:`fretbursts.burstlib.Data.burst_sizes_pax_ich`.
-        aex_corr (bool): *PAX-only*. If True, do duty-cycle correction
-            when adding the DAexAem term `naa`.
-            See :meth:`fretbursts.burstlib.Data.burst_sizes_pax_ich`.
+        na_comp (bool): **[PAX-only]** If True, multiply the `na` term
+            by `(1 + Wa/Wd)`, where Wa and Wd are the D and A alternation
+            durations (typically Wa/Wd = 1).
+        naa_aexonly (bool): **[PAX-only]** if True, the `naa` term is
+            corrected to include only A emission due to A excitation.
+            If False, the `naa` term includes all the counts in DAexAem.
+            The `naa` term also depends on the `naa_comp` argument.
+        naa_comp (bool): **[PAX-only]** If True, multiplies the `naa` term by
+            `(1 + Wa/Wd)` where Wa and Wd are the D and A alternation
+            durations (typically Wa/Wd = 1). The `naa` term also depends on
+            the `naa_aexonly` argument.
         label_prefix (string or None): a custom prefix for the legend label.
         color (string or tuple or None): matplotlib color used for the plot.
         pdf (bool): if True, normalize the histogram to obtain a PDF.
@@ -944,6 +950,10 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
         plot_style (dict): dict of matplotlib line style passed to `plot`.
         vline (float): If not None, plot vertical line at the specified x
             position.
+
+    See also:
+        - :meth:`fretbursts.burstlib.Data.burst_sizes_ich`.
+        - :meth:`fretbursts.burstlib.Data.burst_sizes_pax_ich`.
     """
     weights = weights[i] if weights is not None else None
     if plot_style is None:

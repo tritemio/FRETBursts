@@ -113,7 +113,8 @@ def na(d, ich=0, th1=20, th2=np.inf):
     return bursts_mask, ''
 
 
-def naa(d, ich=0, th1=20, th2=np.inf, gamma=1., beta=1., donor_ref=True):
+def naa(d, ich=0, th1=20, th2=np.inf, gamma=1., beta=1., donor_ref=True,
+        naa_comp=False, naa_aexonly=True):
     """Select bursts with (naa >= th1) and (naa <= th2).
 
     The `naa` quantity can be optionally corrected using gamma and beta
@@ -131,27 +132,51 @@ def naa(d, ich=0, th1=20, th2=np.inf, gamma=1., beta=1., donor_ref=True):
             convention when combining `Dex size` and `naa` burst selections
             so that the thresholds values of the two selections will be
             commensurable.
-            See :meth:`fretbursts.burstlib.Data.get_naa_corrected` for details.
+        na_comp (bool): **[PAX-only]** If True, multiply the `na` term
+            by `(1 + Wa/Wd)`, where Wa and Wd are the D and A alternation
+            durations (typically Wa/Wd = 1).
+        naa_aexonly (bool): **[PAX-only]** if True, the `naa` term is
+            corrected to include only A emission due to A excitation.
+            If False, the `naa` term includes all the counts in DAexAem.
+            The `naa` term also depends on the `naa_comp` argument.
+        naa_comp (bool): **[PAX-only]** If True, multiplies the `naa` term by
+            `(1 + Wa/Wd)` where Wa and Wd are the D and A alternation
+            durations (typically Wa/Wd = 1). The `naa` term also depends on
+            the `naa_aexonly` argument.
+
+    See also:
+        - :meth:`fretbursts.burstlib.Data.burst_sizes_pax_ich`.
     """
     assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
-    kws = dict(ich=ich, gamma=gamma, beta=beta, donor_ref=donor_ref)
-    naa_term = d.get_naa_corrected(**kws)
+    aex_dex_ratio = d._aex_dex_ratio
+    naa_term = d.naa[ich].copy()
+    if 'PAX' in d.meas_type and naa_aexonly:
+        naa_term -= aex_dex_ratio * d.nar[ich]
+    if 'PAX' in d.meas_type and naa_comp:
+        naa_term *= (1 + aex_dex_ratio)
+    naa_term /= beta
+    if donor_ref:
+        naa_term /= gamma
     bursts_mask = (naa_term >= th1) * (naa_term <= th2)
     return bursts_mask, ''
 
 
 def size(d, ich=0, th1=20, th2=np.inf, add_naa=False, gamma=1., beta=1.,
-         donor_ref=True, add_aex=True, aex_corr=True):
+         donor_ref=True, ph_sel=None, naa_aexonly=False, naa_comp=False,
+         na_comp=False):
     """Select bursts with burst sizes (i.e. counts) between `th1` and `th2`.
 
     The burst size is the number of photon in a burst. By default it
     includes all photons during donor excitation (`Dex`).
     To add *AexAem* photons to the burst size use `add_naa=True`.
+    If `ph_sel` is specified use a PAX-specific definition of size
+    as defined in :meth:`fretbursts.burstlib.Data.burst_sizes_pax_ich`.
 
     Arguments:
         d (Data object): the object containing the measurement.
-        ich (int): the spot number, only relevant for multi-spot. In single-spot
-            data there is only CH0 so this argument may be omitted. Default 0.
+        ich (int): the spot number, only relevant for multi-spot. In
+            single-spot data there is only CH-0 so this argument may be
+            omitted. Default 0.
         th1, th2 (floats): select bursts with ``th1 <= size <= th2``.
             Default `th2 = inf` (i.e. no upper limit).
         add_naa (boolean): when True, add AexAem photons when computing burst
@@ -161,17 +186,24 @@ def size(d, ich=0, th1=20, th2=np.inf, add_naa=False, gamma=1., beta=1.,
             :meth:`fretbursts.burstlib.Data.burst_sizes_ich` for details.
         donor_ref (bool): Select the convention for `naa` correction.
             See :meth:`fretbursts.burstlib.Data.burst_sizes_ich` for details.
-        add_aex (bool): PAX-only. Whether to add signal from DAex laser period
-            to the burst size. Default True.
-            See :meth:`fretbursts.burstlib.Data.burst_sizes_pax_ich`.
-        aex_corr (bool): If True, and `add_aex == True`, apply the
-            duty-cyclecorrection to DAexAem (naa).
-            If `add_aex == False` this argument is ignored. For details
-            see :meth:`fretbursts.burstlib.Data.burst_sizes_pax_ich`.
+        ph_sel (Ph_sel object or None): if not None, use PAX-specific
+            burst size definition. ph_sel defines which terms are included
+            in the burst size.
+        na_comp (bool): **[PAX-only]** If True, multiply the `na` term
+            by `(1 + Wa/Wd)`, where Wa and Wd are the D and A alternation
+            durations (typically Wa/Wd = 1).
+        naa_aexonly (bool): **[PAX-only]** if True, the `naa` term is
+            corrected to include only A emission due to A excitation.
+            If False, the `naa` term includes all the counts in DAexAem.
+            The `naa` term also depends on the `naa_comp` argument.
+        naa_comp (bool): **[PAX-only]** If True, multiplies the `naa` term by
+            `(1 + Wa/Wd)` where Wa and Wd are the D and A alternation
+            durations (typically Wa/Wd = 1). The `naa` term also depends on
+            the `naa_aexonly` argument.
 
     Returns:
         A tuple containing an array (the burst mask) and a string which
-        briefly describe the selection.
+        briefly describes the selection.
 
     See also:
         - :meth:`fretbursts.burstlib.Data.burst_sizes_ich`.
@@ -179,8 +211,9 @@ def size(d, ich=0, th1=20, th2=np.inf, add_naa=False, gamma=1., beta=1.,
     """
     assert th1 <= th2, 'th1 (%.2f) must be <= of th2 (%.2f)' % (th1, th2)
     kws = dict(ich=ich, gamma=gamma, beta=beta, donor_ref=donor_ref)
-    if 'PAX' in d.meas_type and add_aex:
-        kws.update(add_aex=add_aex, aex_corr=aex_corr)
+    if 'PAX' in d.meas_type and ph_sel is not None:
+        kws.update(ph_sel=ph_sel, naa_aexonly=naa_aexonly, naa_comp=naa_comp,
+                   na_comp=na_comp)
         burst_size = d.burst_sizes_pax_ich(**kws)
     else:
         kws.update(add_naa=add_naa)
