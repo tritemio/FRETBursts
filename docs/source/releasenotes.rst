@@ -4,7 +4,21 @@ FRETBursts Release Notes
 Version 0.6.5 (unreleased)
 --------------------------
 
-- Fix BurstsGap giving an error when being sliced (see `#62 <https://github.com/tritemio/FRETBursts/pull/64>`__).
+Bug fixes:
+
+- Fix histograms offset by half bin when using matplotlib 2.x.
+  (see commit `d3102e <https://github.com/tritemio/FRETBursts/commit/d3102e65e5c79c7a95c357d7d55ee273dc3ce87f>`__).
+- Fix `BurstsGap` giving an error when being sliced
+  (see `#62 <https://github.com/tritemio/FRETBursts/pull/64>`__).
+
+Other changes:
+
+- Kinetics: better handling of time_zero in moving_window functions
+  (see `c25b68 <https://github.com/tritemio/FRETBursts/commit/c25b682a191a72fe2a6835d49bafc47acd57bc36>`__).
+- Multispot: Add argument `skip_ch` to `Data.collapse` and to `dplot`.
+- Plots: use `vmin=1` by default in `alex_jointplot` and `hexbin_alex`.
+- PAX: rewrote burst size and correction factors to be more clear and general
+  (see :meth:`Data.burst_sizes_pax_ich <fretbursts.burstlib.Data.burst_sizes_pax_ich>`)
 - Plots: spread burst labels to reduce overlapping when plotting burst
   info with :func:`timetrace <fretbursts.burst_plot.timetrace>`.
   See the new example notebook for timetrace plotting.
