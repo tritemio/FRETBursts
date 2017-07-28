@@ -220,6 +220,12 @@ def test_burst_size_pax():
     assert (b1 == b2).all()
     assert (b1 == b3).all()
 
+    # Test burst size during AexAem
+    b1 = d.burst_sizes_pax_ich(ph_sel=Ph_sel(Dex=None, Aex='Aem'),
+                               naa_aexonly=True)
+    b2 = naa_aexonly
+    assert (b1 == b2).all()
+
     # Test all-ph size with no corrections
     b1 = d.burst_sizes_pax_ich(ph_sel=Ph_sel('all'))
     b2 = nd + na + nda + naa
