@@ -938,7 +938,7 @@ def hist_size(d, i=0, which='all', bins=(0, 600, 4), pdf=False, weights=None,
             corrected to include only A emission due to A excitation.
             If False, the `naa` term includes all the counts in DAexAem.
             The `naa` term also depends on the `naa_comp` argument.
-        naa_comp (bool): **[PAX-only]** If True, multiplies the `naa` term by
+        naa_comp (bool): **[PAX-only]** If True, multiply the `naa` term by
             `(1 + Wa/Wd)` where Wa and Wd are the D and A alternation
             durations (typically Wa/Wd = 1). The `naa` term also depends on
             the `naa_aexonly` argument.
