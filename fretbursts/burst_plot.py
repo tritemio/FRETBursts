@@ -1342,7 +1342,7 @@ def hist2d_alex(d, i=0, vmin=2, vmax=0, binwidth=0.05, S_max_norm=0.8,
         hist2d_alex.gui_sel = gs.rectSelection(gcf(), gca())
 
 
-def hexbin_alex(d, i=0, vmin=0, vmax=None, gridsize=80, cmap='Spectral_r',
+def hexbin_alex(d, i=0, vmin=1, vmax=None, gridsize=80, cmap='Spectral_r',
                 E_name='E', S_name='S', **hexbin_kwargs):
     """Plot an hexbin 2D histogram for E-S.
     """
@@ -2186,7 +2186,7 @@ def _alex_hexbin_vmax(patches, vmax_fret=True, Smax=0.8):
 
 
 def alex_jointplot(d, i=0, gridsize=50, cmap='Spectral_r', kind='hex',
-                   vmax_fret=True, vmin=0, vmax=None,
+                   vmax_fret=True, vmin=1, vmax=None,
                    joint_kws=None, marginal_kws=None, marginal_color=10,
                    rightside_text=False, E_name='E', S_name='S'):
     """Plot an ALEX join plot: an E-S 2D histograms with marginal E and S.
