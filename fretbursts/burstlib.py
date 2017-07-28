@@ -1050,27 +1050,46 @@ class Data(DataContainer):
     @staticmethod
     def _burst_sizes_pax_formula(ph_sel=Ph_sel('all'),
                                  naa_aexonly=False, naa_comp=False,
-                                 na_comp=False):
-        terms_dex = []
-        #alpha1 = r'\left( 1 + \frac{w_A}{w_D} \right)'
-        alpha1 = r'\alpha^{-1} '
+                                 na_comp=False,
+                                 gamma=None, beta=None, donor_ref=True):
+        """Return a latex expression of the PAX burst size."""
+        terms = []
         if ph_sel.Dex is not None and 'D' in ph_sel.Dex:
-            terms_dex.append('n_d')
+            terms.append('n_d')
         if ph_sel.Aex is not None and 'D' in ph_sel.Aex:
-            terms_dex.append('n_{da}')
+            terms.append('n_{da}')
+        terms = ['+'.join(terms)]
+        if gamma is not None and not donor_ref and len(terms) > 0:
+            terms[0] = r'\gamma\left(' + terms[0] + r'\right) '
 
-        terms_aex = []
         if ph_sel.Dex is not None and 'Aem' in ph_sel.Dex:
-            terms_aex.append('n_a %s' % alpha1 if na_comp else 'n_a')
+            na_term = 'n_a'
+            corr = ''
+            if na_comp:
+                corr += r'\alpha'
+            if gamma is not None and donor_ref:
+                corr += r'\gamma'
+            if len(corr) > 0:
+                corr = corr if len(corr) < 8 else '(%s)' % corr
+                na_term += '%s^{-1}' % corr
+            terms.append(na_term)
         if ph_sel.Aex is not None and 'Aem' in ph_sel.Aex:
             naa_term = 'n_{DA_{ex}A_{em}} '
             if naa_aexonly:
-                naa_term += r' - \frac{w_A}{w_D}n_a '
+                naa_term += r' - \frac{w_A}{w_D} n_a '
                 naa_term = r'\left(' + naa_term + r'\right) '
+            corr = ''
             if naa_comp:
-                naa_term += alpha1
-            terms_aex.append(naa_term)
-        return ' + '.join(terms_dex + terms_aex)
+                corr += r'\alpha'
+            if beta is not None:
+                corr += r'\beta'
+            if gamma is not None and donor_ref:
+                corr += r'\gamma'
+            if len(corr) > 0:
+                corr = corr if len(corr) < 8 else '(%s)' % corr
+                naa_term += '%s^{-1}' % corr
+            terms.append(naa_term)
+        return ' + '.join(terms)
 
     def burst_sizes_pax_ich(self, ich=0, ph_sel=Ph_sel('all'),
                             naa_aexonly=False, naa_comp=False, na_comp=False,
