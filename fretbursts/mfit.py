@@ -473,10 +473,15 @@ class MultiFitter(FitterBase):
 
         self.kde_bandwidth = bandwidth
         self.kde = []
-        for data, weights_i in zip(self.data_list, self.weights):
-            self.kde.append(
-                gf.gaussian_kde_w(data, bw_method=bandwidth,
-                                  weights=weights_i))
+        empty = []
+        for ich, (data, weights_i) in enumerate(zip(self.data_list,
+                                                    self.weights)):
+            if ich in self.skip_ch:
+                kde = empty
+            else:
+                kde = gf.gaussian_kde_w(data, bw_method=bandwidth,
+                                        weights=weights_i)
+            self.kde.append(kde)
         self._kde_computed = True
 
     def find_kde_max(self, x_kde, xmin=None, xmax=None):
@@ -486,10 +491,11 @@ class MultiFitter(FitterBase):
         """
         if not hasattr(self, 'kde'):
             self.calc_kde()
-        self.kde_max_pos = np.zeros(self.ndata)
+        self.kde_max_pos = np.zeros(self.ndata) * np.nan
         for ich, kde in enumerate(self.kde):
-            self.kde_max_pos[ich] = \
-                find_max(x_kde, kde(x_kde), xmin=xmin, xmax=xmax)
+            if ich not in self.skip_ch:
+                self.kde_max_pos[ich] = find_max(x_kde, kde(x_kde),
+                                                 xmin=xmin, xmax=xmax)
 
 
 def plot_mfit(fitter, ich=0, residuals=False, ax=None, plot_kde=False,
