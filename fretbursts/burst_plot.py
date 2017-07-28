@@ -890,7 +890,7 @@ def _get_sizes_and_formula(d, ich, gamma, beta, donor_ref, add_naa,
     if 'PAX' in d.meas_type and ph_sel is not None:
         kws_pax = dict(ph_sel=ph_sel, naa_aexonly=naa_aexonly,
                        naa_comp=naa_comp, na_comp=na_comp)
-        sizes = d.burst_sizes_pax_ich(**kws, **kws_pax)
+        sizes = d.burst_sizes_pax_ich(**dict(kws, **kws_pax))
         label = '$ %s $' % d._burst_sizes_pax_formula(**kws_pax)
     else:
         sizes = d.burst_sizes_ich(add_naa=add_naa, **kws)
