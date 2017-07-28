@@ -75,7 +75,7 @@ def load_fake_pax():
     d.add(ALEX=False, meas_type='PAX')
     loader.alex_apply_period(d)
     d.calc_bg(bg.exp_fit, time_s=30, tail_min_us='auto')
-    d.burst_search(L=10, m=10, F=6)
+    d.burst_search(L=10, m=10, F=6, pax=True)
     return d
 
 
@@ -282,7 +282,6 @@ def test_burst_size_pax():
           naa_aexonly * (1 + aex_dex_ratio) / beta)
     assert np.allclose(b1 * gamma, b2)
     assert np.allclose(b2, b3)
-
 
 def test_bg_calc(data):
     """Smoke test bg_calc() and test deletion of bg fields.

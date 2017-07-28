@@ -2814,7 +2814,7 @@ class Data(DataContainer):
         else:
             # This is a PAX-enhanced formula which uses information
             # from both alternation periods in order to compute S
-            alpha = 1 - self.aex_fraction
+            alpha = 1 - self._aex_fraction
             S = [(g * (nd + nda) + na / alpha) /
                  (g * (nd + nda) + na / alpha + naa / (alpha * self.beta))
                  for nd, na, nda, naa, g in
