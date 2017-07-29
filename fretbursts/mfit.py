@@ -476,7 +476,7 @@ class MultiFitter(FitterBase):
         empty = []
         for ich, (data, weights_i) in enumerate(zip(self.data_list,
                                                     self.weights)):
-            if ich in self.skip_ch:
+            if ich in self.skip_ch or len(data) == 0:
                 kde = empty
             else:
                 kde = gf.gaussian_kde_w(data, bw_method=bandwidth,
@@ -493,7 +493,7 @@ class MultiFitter(FitterBase):
             self.calc_kde()
         self.kde_max_pos = np.zeros(self.ndata) * np.nan
         for ich, kde in enumerate(self.kde):
-            if ich not in self.skip_ch:
+            if ich not in self.skip_ch or len(kde) == 0:
                 self.kde_max_pos[ich] = find_max(x_kde, kde(x_kde),
                                                  xmin=xmin, xmax=xmax)
 
