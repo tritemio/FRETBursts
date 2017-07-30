@@ -1997,24 +1997,28 @@ def dplot_48ch(d, func, sharex=True, sharey=True, layout='horiz',
                suptitle=True, title=True, title_ch=True, title_bg=True,
                title_nbursts=True, title_kws=None, xrotation=0,
                top=0.93, bottom=None, hspace=0.18, wspace=None, left=0.08,
-               right=0.96, **kwargs):
+               right=0.96, dec=1, **kwargs):
     """Plot wrapper for 48-spot measurements. Use `dplot` instead."""
     msg = "Wrong layout '%s'. Valid values: 'horiz', 'vert', '8x6'."
     assert (layout.startswith('vert') or layout.startswith('horiz') or
             layout == '8x6'), (msg % layout)
+    if dec > 1:
+        assert dec == 2 or dec == 4
+        assert layout.startswith('horiz')
     global gui_status
-    iter_ch = range(48)
+    ch_map = np.arange(48).reshape(4, 12)[::dec, ::dec]
+    iter_ch = ch_map.ravel()
     if layout == '8x6':
         nrows, ncols = 6, 8
         if figsize is None:
             figsize = (18, 6)
     else:
-        nrows, ncols = 4, 12
+        nrows, ncols = 4 // dec, 12 // dec
         if layout.startswith('vert'):
             nrows, ncols = ncols, nrows
-            iter_ch = np.arange(48).reshape(4, 12).T.ravel()
+            iter_ch = ch_map.T.ravel()
         if figsize is None:
-            figsize = (20, 7)
+            figsize = (1.5 * nrows + 2, 1.5 * ncols + 1)
             if layout.startswith('vert'):
                 figsize = figsize[1], figsize[0]
     return _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
