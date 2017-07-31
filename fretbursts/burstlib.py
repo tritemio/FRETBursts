@@ -22,6 +22,7 @@ from builtins import range, zip
 
 import os
 import hashlib
+import numbers
 import numpy as np
 import copy
 from numpy import zeros, size, r_
@@ -788,7 +789,7 @@ class Data(DataContainer):
             ph_sel (Ph_sel object): object defining the photon selection.
                 See :mod:`fretbursts.ph_sel` for details.
         """
-        assert isinstance(ich, int)
+        isinstance(ich, numbers.Integral)
 
         if self._is_allph(ph_sel):
             # Note that slice(None) is equivalent to [:].
