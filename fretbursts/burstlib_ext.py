@@ -387,7 +387,7 @@ def burst_data(dx, include_bg=False, include_ph_index=False,
     kws = dict(include_bg=include_bg, include_ph_index=include_ph_index)
     bursts = {}
     for ich in range(dx.nch):
-        if ich not in skip_ch:
+        if ich not in skip_ch and dx.num_bursts[ich] > 0:
             bursts[ich] = _burst_data_ich(dx, ich=ich, **kws)
             bursts[ich]['spot'] = ich
     if dx.nch > 1:

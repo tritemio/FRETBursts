@@ -1456,6 +1456,8 @@ class Data(DataContainer):
     def burst_data_ich(self, ich):
         """Return a dict of burst data for channel `ich`."""
         bursts = {}
+        if self.num_bursts[ich] == 0:
+            return bursts
         bursts['size_raw'] = self.mburst[ich].counts
         bursts['t_start'] = self.mburst[ich].start * self.clk_p
         bursts['t_stop'] = self.mburst[ich].stop * self.clk_p
