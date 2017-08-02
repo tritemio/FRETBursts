@@ -2018,7 +2018,7 @@ def dplot_48ch(d, func, sharex=True, sharey=True, layout='horiz',
             nrows, ncols = ncols, nrows
             iter_ch = ch_map.T.ravel()
         if figsize is None:
-            figsize = (1.5 * nrows + 2, 1.5 * ncols + 1)
+            figsize = (1.5 * ncols + 2, 1.5 * nrows + 1)
             if layout.startswith('vert'):
                 figsize = figsize[1], figsize[0]
     return _iter_plot(d, func, kwargs, iter_ch, nrows, ncols, figsize, AX,
