@@ -1,8 +1,12 @@
 FRETBursts Release Notes
 ========================
 
-Version 0.6.5 (unreleased)
---------------------------
+Version 0.6.5 (Aug. 2017)
+-------------------------
+
+This is a minor release with an important bug fix for histograms plots
+and other tweaks mostly for PAX. New "short notebooks" for common tasks 
+have also been added.
 
 Bug fixes:
 
