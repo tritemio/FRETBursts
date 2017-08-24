@@ -38,9 +38,7 @@ See also this [blog post](http://tritemio.github.io/smbits/2016/02/19/fretbursts
 Project Description
 -------------------
 
-<div style="float: right; margin-left: 30px;">
-<img title="FRETBurst generated ALEX histogram"style="float: right; margin-left: 30px;" src="https://cloud.githubusercontent.com/assets/4156237/12906391/9866197a-ce94-11e5-932b-548a511e4840.png" align=right height = 340 />
-</div>
+<img title="FRETBurst generated ALEX histogram" style="float: right; margin-left: 30px;" src="https://cloud.githubusercontent.com/assets/4156237/12906391/9866197a-ce94-11e5-932b-548a511e4840.png" align="right" height="340" />
 
 **[FRETBursts](http://tritemio.github.io/FRETBursts)** is a
 open source software for burst analysis of freely-diffusing
