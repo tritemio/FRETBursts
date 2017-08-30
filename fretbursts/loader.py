@@ -96,10 +96,12 @@ def _get_measurement_specs(ph_data, setup):
         if setup.num_split_ch.read() != 1:
             raise ValueError(msg.format(n=setup.num_split_ch.read(),
                                         type='split', nvalid=1))
-        if setup.num_spectral_ch.read() != 2:
+        if setup.num_spectral_ch.read() > 2:
             raise ValueError(msg.format(n=setup.num_spectral_ch.read(),
-                                        type='spectral', nvalid=2))
-        if not setup.modulated_excitation.read():
+                                        type='spectral', nvalid='1 or 2'))
+        if setup.num_spectral_ch.read() == 1:
+            meas_type = 'smFRET-1color'
+        elif not setup.modulated_excitation.read():
             meas_type = 'smFRET'
         elif tuple(setup.excitation_alternated.read()) == (False, True):
             meas_type = 'PAX'
