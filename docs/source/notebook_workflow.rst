@@ -16,7 +16,7 @@ Alternatively, you can import FRETBursts in its own namespace
     import fretbursts as fb
 
 To get started with FRETBursts it is recommended that you download the
-`FRETBursts notebooks <https://github.com/tritemio/FRETBursts_notebooks/archive/master.zip>`__
+`FRETBursts notebooks <https://github.com/OpenSMFS/FRETBursts_notebooks/archive/master.zip>`__
 that contains live tutorials ready to run and modify.
 
 Why a notebook-based workflow
@@ -25,7 +25,7 @@ Why a notebook-based workflow
 `Jupyter Notebooks <http://jupyter.org/>`__ is the recommended
 environment to perform interactive analysis with FRETBursts.
 
-The `FRETBursts tutorials <https://github.com/tritemio/FRETBursts_notebooks>`_
+The `FRETBursts tutorials <https://github.com/OpenSMFS/FRETBursts_notebooks>`_
 are Jupyter notebooks and, typically,
 a new analysis is performed by copying and modifying an existing notebook.
 

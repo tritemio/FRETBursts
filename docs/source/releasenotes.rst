@@ -11,14 +11,14 @@ have also been added.
 Bug fixes:
 
 - Fix histograms offset by half bin when using matplotlib 2.x.
-  (see commit `d3102e <https://github.com/tritemio/FRETBursts/commit/d3102e65e5c79c7a95c357d7d55ee273dc3ce87f>`__).
+  (see commit `d3102e <https://github.com/OpenSMFS/FRETBursts/commit/d3102e65e5c79c7a95c357d7d55ee273dc3ce87f>`__).
 - Fix `BurstsGap` giving an error when being sliced
   (see `#62 <https://github.com/tritemio/FRETBursts/pull/64>`__).
 
 Other changes:
 
 - Kinetics: better handling of time_zero in moving_window functions
-  (see `c25b68 <https://github.com/tritemio/FRETBursts/commit/c25b682a191a72fe2a6835d49bafc47acd57bc36>`__).
+  (see `c25b68 <https://github.com/OpenSMFS/FRETBursts/commit/c25b682a191a72fe2a6835d49bafc47acd57bc36>`__).
 - Multispot: Add argument `skip_ch` to `Data.collapse` and to `dplot`.
 - Plots: use `vmin=1` by default in `alex_jointplot` and `hexbin_alex`.
 - PAX: rewrote burst size and correction factors to be more clear and general
@@ -27,9 +27,9 @@ Other changes:
   info with :func:`timetrace <fretbursts.burst_plot.timetrace>`.
   See the new example notebook for timetrace plotting.
 - New notebooks:
-    - `Example - Plotting timetraces with bursts <https://github.com/tritemio/FRETBursts/blob/master/notebooks/Example%20-%20Plotting%20timetraces%20with%20bursts.ipynb>`__
-    - `Example - Selecting FRET populations <https://github.com/tritemio/FRETBursts/blob/master/notebooks/Example%20-%20Selecting%20FRET%20populations.ipynb>`__
-    - `Example - FRET histogram fitting <https://github.com/tritemio/FRETBursts/blob/master/notebooks/Example%20-%20FRET%20histogram%20fitting.ipynb>`__
+    - `Example - Plotting timetraces with bursts <https://github.com/OpenSMFS/FRETBursts/blob/master/notebooks/Example%20-%20Plotting%20timetraces%20with%20bursts.ipynb>`__
+    - `Example - Selecting FRET populations <https://github.com/OpenSMFS/FRETBursts/blob/master/notebooks/Example%20-%20Selecting%20FRET%20populations.ipynb>`__
+    - `Example - FRET histogram fitting <https://github.com/OpenSMFS/FRETBursts/blob/master/notebooks/Example%20-%20FRET%20histogram%20fitting.ipynb>`__
 
 Version 0.6.4 (Jul. 2017)
 --------------------------
@@ -49,7 +49,7 @@ The list of changes include:
 - Workaround for a `numpy.histogram issue <https://github.com/numpy/numpy/issues/7503>`__ when input contains NaNs
 - :func:`bext.burst_data() <fretbursts.burstlib_ext.burst_data>`: bugfix, add tests and improve handling of multispot data
 - Added ``apionly`` argument to ``init_notebook()`` for setting up the notebook
-  plots without changing any plot style (see `958824 <https://github.com/tritemio/FRETBursts/commit/958824123152fd618d6811153bfbed64722fffd7>`__).
+  plots without changing any plot style (see `958824 <https://github.com/OpenSMFS/FRETBursts/commit/958824123152fd618d6811153bfbed64722fffd7>`__).
 - Support "empty" channels in multispot data.
 - Improve plots for 48-spot data.
 - Refactoring of :func:`alex_jointplot <fretbursts.burst_plot.alex_jointplot>`.
@@ -107,17 +107,17 @@ The current release includes the following changes:
   `PR #57 <https://github.com/tritemio/FRETBursts/pull/57>`__.
   Tests were added to avoid future regressions.
 - Fix access to the deprecated background attributes (introduced in 0.6).
-  See `b850a5 <https://github.com/tritemio/FRETBursts/commit/b850a595033c27cc66f8f4a748b1d0bf68366750>`__.
+  See `b850a5 <https://github.com/OpenSMFS/FRETBursts/commit/b850a595033c27cc66f8f4a748b1d0bf68366750>`__.
 - Add plot wrapper for 16-ch data.
 - Improved example notebook showing how to export burst data.
-  See `Exporting Burst Data <https://github.com/tritemio/FRETBursts/blob/49a45dd815b40602c5e754a162c66a837bbd2477/notebooks/Example%20-%20Exporting%20Burst%20Data%20Including%20Timestamps.ipynb>`__.
+  See `Exporting Burst Data <https://github.com/OpenSMFS/FRETBursts/blob/49a45dd815b40602c5e754a162c66a837bbd2477/notebooks/Example%20-%20Exporting%20Burst%20Data%20Including%20Timestamps.ipynb>`__.
 - Re-enable background rate caching.
   See `PR #53 <https://github.com/tritemio/FRETBursts/pull/53>`__.
 - Support Path objects as filename in `loader.photon_hdf5()`.
-  See `201b5c <https://github.com/tritemio/FRETBursts/commit/201b5c089eca0f0867ceb453c3c111c54a21704d>`__.
+  See `201b5c <https://github.com/OpenSMFS/FRETBursts/commit/201b5c089eca0f0867ceb453c3c111c54a21704d>`__.
 - Improve `Ph_sel` string representation, added factory method `Ph_sel.from_str`
   and added new tests.
-  See `3dc5f0 <https://github.com/tritemio/FRETBursts/commit/3dc5f078c678ca3c806f49b27223a2e1cd6df64a>`__.
+  See `3dc5f0 <https://github.com/OpenSMFS/FRETBursts/commit/3dc5f078c678ca3c806f49b27223a2e1cd6df64a>`__.
 
 
 Version 0.6 (Jan. 2017)
@@ -145,9 +145,9 @@ Version 0.6 (Jan. 2017)
   the background to be fitted. `hist_interphoton*` do not require any prior
   background fit and also have a cleaner and improved API.
 - Detect and handle smFRET files (no ALEX) with counts not only in D or A channels
-  (`f0e33d <https://github.com/tritemio/FRETBursts/commit/f0e33d855d6dfb31c89f282b249f80d845472124>`__).
+  (`f0e33d <https://github.com/OpenSMFS/FRETBursts/commit/f0e33d855d6dfb31c89f282b249f80d845472124>`__).
 - Better error message when a burst filtering function fails
-  (`c7826d <https://github.com/tritemio/FRETBursts/commit/c7826d5190a034578b1fdb9c4325f8fbfe2c01d4>`__).
+  (`c7826d <https://github.com/OpenSMFS/FRETBursts/commit/c7826d5190a034578b1fdb9c4325f8fbfe2c01d4>`__).
 
 Backward-incompatible changes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -211,7 +211,7 @@ Version 0.5.9 (Sep. 2016)
 
 - Added support for pyqt and qt 5+.
 - Fix burst selection with multispot data.
-  See `this commit <https://github.com/tritemio/FRETBursts/commit/f05e807cbd032e748580af9cc310585bcde97e40>`__.
+  See `this commit <https://github.com/OpenSMFS/FRETBursts/commit/f05e807cbd032e748580af9cc310585bcde97e40>`__.
 
 There may still be some glitches when using
 the QT5 GUIs from the notebook, but installing (and importing) FRETBursts
@@ -291,7 +291,7 @@ Using the conda-forge channel simplifies our release process since
 their infrastructure automatically builds packages for multiple
 platforms and python versions. Please report any issues in installing
 or upgrading FRETBursts on the
-`GitHub Issues <https://github.com/tritemio/FRETBursts/issues>`__ page.
+`GitHub Issues <https://github.com/OpenSMFS/FRETBursts/issues>`__ page.
 
 For more detailed installation instructions see the
 `Getting Started <http://fretbursts.readthedocs.io/en/latest/getting_started.html>`__

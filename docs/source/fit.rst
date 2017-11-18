@@ -62,7 +62,7 @@ And plot the histogram and the fitted model::
     dplot(d, hist_fret, show_model=True)
 
 More detailed example can be found in the
-`tutorials <https://github.com/tritemio/FRETBursts_notebooks>`_
+`tutorials <https://github.com/OpenSMFS/FRETBursts_notebooks>`_
 in notebooks on
 `us-ALEX analysis <http://nbviewer.ipython.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/FRETBursts%20-%20us-ALEX%20smFRET%20burst%20analysis.ipynb>`_.
 

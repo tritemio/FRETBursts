@@ -4,7 +4,7 @@ package:
 
 source:
     #path: ../fretbursts/
-    git_url: https://github.com/tritemio/fretbursts.git
+    git_url: https://github.com/OpenSMFS/FRETBursts.git
     #git_tag : 0.4rc6.dev3
 
 build:

@@ -4,7 +4,7 @@ FRETBursts
 [![DOI](https://zenodo.org/badge/5991/tritemio/FRETBursts.svg)](https://zenodo.org/badge/latestdoi/5991/tritemio/FRETBursts)
 [![TravisCI Build Status](https://travis-ci.org/tritemio/FRETBursts.svg?branch=master)](https://travis-ci.org/tritemio/FRETBursts)
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/tritemio/fretbursts?branch=master&svg=true)](https://ci.appveyor.com/project/tritemio/fretbursts)
-> *Quick links: [Reference documentation](http://fretbursts.readthedocs.org/), [FRETBursts tutorials](https://github.com/tritemio/FRETBursts_notebooks#fretbursts-notebooks), [bioRxiv paper](http://dx.doi.org/10.1101/039198)*
+> *Quick links: [Reference documentation](http://fretbursts.readthedocs.org/), [FRETBursts tutorials](https://github.com/OpenSMFS/FRETBursts_notebooks#fretbursts-notebooks), [bioRxiv paper](http://dx.doi.org/10.1101/039198)*
 
 Latest News
 -----------
@@ -22,7 +22,7 @@ Our software paper describing FRETBursts has been peer-reviewed and published by
 #### 2016-03-20
 New online service to run FRETBursts without installation:
 
-- [FRETBursts Online Demo](https://github.com/tritemio/FRETBursts_notebooks#run-online)
+- [FRETBursts Online Demo](https://github.com/OpenSMFS/FRETBursts_notebooks#run-online)
 
 For more info see this [blog post](http://tritemio.github.io/smbits/2016/03/22/binder-fretbursts/).
 
@@ -40,7 +40,7 @@ Project Description
 
 <img title="FRETBurst generated ALEX histogram" style="float: right; margin-left: 30px;" src="https://cloud.githubusercontent.com/assets/4156237/12906391/9866197a-ce94-11e5-932b-548a511e4840.png" align="right" height="340" />
 
-**[FRETBursts](http://tritemio.github.io/FRETBursts)** is a
+**[FRETBursts](http://opensmfs.github.io/FRETBursts)** is a
 open source software for burst analysis of freely-diffusing
 [single-molecule FRET](http://en.wikipedia.org/wiki/Single-molecule_FRET)
 (smFRET) experiments.
@@ -67,14 +67,14 @@ an open file format for single-molecule fluorescence experiments
 FRETBursts is open source and openly developed on GitHub.
 
 We encourage users to report issues or ask questions using the
-[GitHub Issue](https://github.com/tritemio/FRETBursts/issues?state=open).
+[GitHub Issue](https://github.com/OpenSMFS/FRETBursts/issues?state=open).
 In the open source spirit, contributions are welcome and
 managed using [GitHub Pull Request](https://help.github.com/articles/creating-a-pull-request).
 Any level of contribution is accepted, from fixing typos, improving the docs
 (most editing can be done online directly)
 or implementing new features (see [github help page](https://help.github.com/articles/fork-a-repo/)).
 For questions on how to contribute
-please open a [GitHub Issue](https://github.com/tritemio/FRETBursts/issues?state=open).
+please open a [GitHub Issue](https://github.com/OpenSMFS/FRETBursts/issues?state=open).
 
 ### Technical Features
 
@@ -103,7 +103,7 @@ Main analysis features includes:
   [weighted expectation maximization](http://fretbursts.readthedocs.org/en/latest/data_class.html#fretbursts.burstlib.Data.fit_E_two_gauss_EM),
   etc...)
 - Plot function: FRETBursts includes
-  [a large set](https://github.com/tritemio/FRETBursts/blob/master/fretbursts/burst_plot.py)
+  [a large set](https://github.com/OpenSMFS/FRETBursts/blob/master/fretbursts/burst_plot.py)
   of modular
   [plot functions](http://fretbursts.readthedocs.org/en/latest/files_description.html#module-fretbursts.burst_plot)
   for background, time-traces, rate-traces, E, S, ALEX histograms,
@@ -185,10 +185,10 @@ online at the following locations:
 * [Example - Working with timestamps and bursts](http://nbviewer.ipython.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%20Working%20with%20timestamps%20and%20bursts.ipynb)
 * [Example - Burst Variance Analysis](http://nbviewer.jupyter.org/github/tritemio/FRETBursts_notebooks/blob/master/notebooks/Example%20-%20Burst%20Variance%20Analysis.ipynb)
 
-You can download the tutorials from the [FRETBursts_notebooks](https://github.com/tritemio/FRETBursts_notebooks#fretbursts-notebooks)
+You can download the tutorials from the [FRETBursts_notebooks](https://github.com/OpenSMFS/FRETBursts_notebooks#fretbursts-notebooks)
 repository.
 
-> *NOTE:* A copy of the tutorials (without output) is [included](https://github.com/tritemio/FRETBursts/tree/master/notebooks)
+> *NOTE:* A copy of the tutorials (without output) is [included](https://github.com/OpenSMFS/FRETBursts/tree/master/notebooks)
 > in the FRETBursts repository.
 
 FRETBursts notebooks use public [smFRET datasets](https://dx.doi.org/10.6084/m9.figshare.1456362.v13) that are automatically downloaded
@@ -199,11 +199,11 @@ when each notebook is executed for the first time.
 The documentation is built using [Sphinx](http://sphinx-doc.org/) (1.2.2 or
 later) and the [napoleon extension](https://pypi.python.org/pypi/sphinxcontrib-napoleon).
 A notebook that builds the HTML docs can be found in
-[`notebooks/dev/docs/`](https://github.com/tritemio/FRETBursts/tree/master/notebooks/dev/docs).
+[`notebooks/dev/docs/`](https://github.com/OpenSMFS/FRETBursts/tree/master/notebooks/dev/docs).
 
 The unit tests are written with [pytest](http://pytest.org/latest/).
 Notebooks that execute the unit tests can be found in
-[`notebooks/dev/test/`](https://github.com/tritemio/FRETBursts/tree/master/notebooks/dev/tests).
+[`notebooks/dev/test/`](https://github.com/OpenSMFS/FRETBursts/tree/master/notebooks/dev/tests).
 In the same folder a notebook for regression testing is provided.
 
 

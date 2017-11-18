@@ -8,7 +8,7 @@ or PIP (see below). Being written in python, FRETBursts runs on OS X,
 Windows and Linux.
 
 For updates on the latest FRETBursts version please refer to the
-`Release Notes (What's new?) <https://github.com/tritemio/FRETBursts/releases>`__.
+`Release Notes (What's new?) <https://github.com/OpenSMFS/FRETBursts/releases>`__.
 
 .. _package_install:
 
@@ -25,7 +25,7 @@ Then, you can install or upgrade FRETBursts with::
     conda install fretbursts -c conda-forge
 
 After the installation, it is recommended that you download and run the
-`FRETBursts notebooks <https://github.com/tritemio/FRETBursts_notebooks/archive/master.zip>`__
+`FRETBursts notebooks <https://github.com/OpenSMFS/FRETBursts_notebooks/archive/master.zip>`__
 to get familiar with the workflow. If you don't know what a Jupyter Notebooks is
 and how to launch it please see:
 
@@ -73,7 +73,7 @@ FRETBursts from the source folder. In this case, modifications in the source
 files are immediately available on the next FRETBursts import.
 To do so, clone FRETBursts and install it as follows::
 
-    git clone https://github.com/tritemio/FRETBursts.git
+    git clone https://github.com/OpenSMFS/FRETBursts.git
     cd FRETBursts
     pip install -e .
 

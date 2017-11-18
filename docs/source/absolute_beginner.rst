@@ -29,13 +29,13 @@ type the following commands in a terminal
 
 The installation should take a few seconds.
 If you notice any error please report it by opening a new issue on the
-`FRETBursts GitHub Issues <https://github.com/tritemio/FRETBursts/issues>`_.
+`FRETBursts GitHub Issues <https://github.com/OpenSMFS/FRETBursts/issues>`_.
 
 Running FRETBursts tutorial notebook
 ------------------------------------
 
 Download the ZIP file of
-`FRETBursts notebooks <https://github.com/tritemio/FRETBursts_notebooks/archive/master.zip>`__
+`FRETBursts notebooks <https://github.com/OpenSMFS/FRETBursts_notebooks/archive/master.zip>`__
 and extract it inside a folder accessible by the Jupyter Notebook App.
 
 Next, in the new Jupyter Notebook Dashboard click on the folder containing

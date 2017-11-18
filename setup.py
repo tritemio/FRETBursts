@@ -21,9 +21,9 @@ For more info please refer to:
 
 Quick links:
 
-- `FRETBursts Homepage <http://tritemio.github.io/FRETBursts/>`_
+- `FRETBursts Homepage <http://opensmfs.github.io/FRETBursts/>`_
 - `FRETBursts Reference Documentation <http://fretbursts.readthedocs.org>`_
-- `FRETBursts Tutorials <https://github.com/tritemio/FRETBursts_notebooks>`_
+- `FRETBursts Tutorials <https://github.com/OpenSMFS/FRETBursts_notebooks>`_
 
 See also `Release Notes <http://fretbursts.readthedocs.io/en/latest/releasenotes.html>`__.
 """
@@ -59,8 +59,8 @@ setup(name = project_name,
       ext_modules = ext_modules,
       author = 'Antonino Ingargiola',
       author_email = 'tritemio@gmail.com',
-      url          = 'http://tritemio.github.io/FRETBursts/',
-      download_url = 'http://tritemio.github.io/FRETBursts/',
+      url          = 'http://opensmfs.github.io/FRETBursts/',
+      download_url = 'http://opensmfs.github.io/FRETBursts/',
       install_requires = ['numpy', 'scipy', 'matplotlib', 'lmfit', 'seaborn',
                           'phconvert', 'future'],
       include_package_data = True,
