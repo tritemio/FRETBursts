@@ -143,7 +143,10 @@ def bg_to_signature(d, time_s, tail_min_us, F_bg, error_metrics, fit_allph):
     params = dict(time_s=time_s, tail_min_us=tail_min_us, F_bg=F_bg,
                   error_metrics=error_metrics, fit_allph=fit_allph)
     if d.ALEX or 'PAX' in d.meas_type:
-        params.update(offset=d.offset, d_on=d.D_ON, a_on=d.A_ON)
+        params.update(d_on=d.D_ON, a_on=d.A_ON)
+        if not d.lifetime:
+            # offset is not present in ns-ALEX/PIE
+            params.update(offset=d.offset)
     return json.dumps(params, sort_keys=True)
 
 
