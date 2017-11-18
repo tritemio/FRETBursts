@@ -476,6 +476,7 @@ def usalex_apply_period(d, delete_ph_t=True, remove_d_em_a_ex=False):
     if delete_ph_t:
         d.delete('ph_times_t')
         d.delete('det_t')
+    d.add(alternation_applied=True)
     return d
 
 ##
@@ -580,7 +581,8 @@ def nsalex_apply_period(d, delete_ph_t=True):
     assert not (d_ex * a_ex).any()
 
     d.add(ph_times_m=[ph_times], nanotimes=[nanotimes],
-          D_em=[d_em], A_em=[a_em], D_ex=[d_ex], A_ex=[a_ex],)
+          D_em=[d_em], A_em=[a_em], D_ex=[d_ex], A_ex=[a_ex],
+          alternation_applied=True)
 
     if delete_ph_t:
         d.delete('ph_times_t')
@@ -609,7 +611,14 @@ def alex_apply_period(d, delete_ph_t=True):
     Now `d` is ready for futher processing such as background estimation,
     burst search, etc...
     """
-    assert d.alternated
+    if not d.alternated:
+        print('No alternation found. Nothing to apply.')
+        return
+    if 'alternation_applied' in d and d['alternation_applied']:
+        print('Alternation already applied, I cannot reapply it. \n'
+              'Reload the data if you need to change alternation parameters.')
+        return
+
     if d.lifetime:
         apply_period_func = nsalex_apply_period
     else:
