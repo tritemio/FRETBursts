@@ -8,7 +8,7 @@ or PIP (see below). Being written in python, FRETBursts runs on OS X,
 Windows and Linux.
 
 For updates on the latest FRETBursts version please refer to the
-`Release Notes (What's new?) <https://github.com/OpenSMFS/FRETBursts/releases>`__.
+:doc:`Release Notes (What's new?) <releasenotes>`.
 
 .. _package_install:
 
@@ -106,7 +106,7 @@ will be installed from default.
 To make a new environment called `fbmaster` containing python 3.6 and
 fretbursts::
 
-    conda create -n fbmaster python=3.6 frebursts
+    conda create -n fbmaster python=3.6 fretbursts
 
 The environment needs to be activated::
 
