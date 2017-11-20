@@ -2,8 +2,9 @@ FRETBursts
 ==========
 
 [![DOI](https://zenodo.org/badge/5991/tritemio/FRETBursts.svg)](https://zenodo.org/badge/latestdoi/5991/tritemio/FRETBursts)
-[![Build Status](https://travis-ci.org/OpenSMFS/FRETBursts.svg?branch=master)](https://travis-ci.org/OpenSMFS/FRETBursts)
-[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/tritemio/fretbursts?branch=master&svg=true)](https://ci.appveyor.com/project/tritemio/fretbursts)
+[![TravisCI Build Status](https://travis-ci.org/OpenSMFS/FRETBursts.svg?branch=master)](https://travis-ci.org/OpenSMFS/FRETBursts)
+[![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/g0ih9gvm7r8459to/branch/master?svg=true)](https://ci.appveyor.com/project/tritemio/fretbursts-llfcd/branch/master)
+
 > *Quick links: [Reference documentation](http://fretbursts.readthedocs.org/), [FRETBursts tutorials](https://github.com/OpenSMFS/FRETBursts_notebooks#fretbursts-notebooks), [bioRxiv paper](http://dx.doi.org/10.1101/039198)*
 
 Latest News
@@ -17,8 +18,8 @@ for single-molecule spectroscopy (e.g. single-molecule FRET, Fluorescence Correl
 FRETBursts joins the company of [PyBroMo](https://github.com/OpenSMFS/PyBroMo) (a freely-diffusing smFRET simulator) 
 and [pycorrelate](https://github.com/OpenSMFS/pycorrelate) (cross-correlation for FCS).
 
-The new FRETBursts repository URL is https://github.com/OpenSMFS/FRETBursts and the 
-FRETBursts "landing page" is now https://opensmfs.github.io/FRETBursts/.
+The new FRETBursts repository URL is [github.com/OpenSMFS/FRETBursts](https://github.com/OpenSMFS/FRETBursts) and the 
+FRETBursts "landing page" is now [opensmfs.github.io/FRETBursts/](https://opensmfs.github.io/FRETBursts/).
 FRETBursts Documentation is hosted on ReadTheDocs and did not change URL. 
 CI services have been migrated. [Open issues](https://github.com/tritemio/FRETBursts/issues) will be migrated soon.
 
